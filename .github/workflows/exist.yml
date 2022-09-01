@@ -9,7 +9,8 @@ jobs:
       fail-fast: false
       matrix:
          exist-version: [5.2.0, release]
-         java-version: [8]  
+         java-version: [8]
+         node-version: [14]  
 
     steps:
       # Prepare Host
@@ -23,6 +24,13 @@ jobs:
             ${{ runner.os }}-buildx-        
       - name: Install Bats
         run: sudo apt-get -y install bats
+      # Install JS dependencies 
+      - name: Build Frontend Using Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
       # Build Expath Package 
       - name: Build Expath Package
         uses: actions/setup-java@v3
