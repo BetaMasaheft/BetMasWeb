@@ -9,5 +9,6 @@
     <target>BetMasWeb</target>
     <prepare>pre-install.xql</prepare>
     <finish>Pietro</finish>
+    <!-- TODO(DP): reconsider the permissions set-up see https://github.com/BetaMasaheft/Documentation/issues/2222 -->
     <permissions user="Pietro" group="dba" mode="rwxrwxr-x"/>
 <deployed>2022-01-05T13:49:37.207+01:00</deployed></meta>
