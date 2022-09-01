@@ -37679,7 +37679,7 @@ var institutions ={
     "citation" : "Location based on Encyclopaedia Aethiopica, from the Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea project",
     "references" : null,
     "names" : {
-      "attested" : "The Beinecke Rare Book and Manuscript  Library",
+      "attested" : "The Beinecke Rare Book and Manuscript Library",
       "transcription_accuracy" : "accurate",
       "association_certainty" : "certain",
       "uri" : null,
@@ -37729,7 +37729,7 @@ var institutions ={
     },
     "properties" : {
       "location_precision" : "precise",
-      "title" : "The Beinecke Rare Book and Manuscript  Library",
+      "title" : "The Beinecke Rare Book and Manuscript Library",
       "link" : "http://betamasaheft.eu/INS0472Beinecke_Library",
       "description" : "Location based on Encyclopaedia Aethiopica",
       "snippet" : null
@@ -37739,7 +37739,7 @@ var institutions ={
       "principal" : "pliuzzo",
       "comment" : "Mapped to Json from TEI xml"
     } ],
-    "title" : "The Beinecke Rare Book and Manuscript  Library",
+    "title" : "The Beinecke Rare Book and Manuscript Library",
     "contributors" : {
       "name" : "Sibylla Jenner"
     },
@@ -39503,7 +39503,7 @@ var institutions ={
     "citation" : "Location based on Encyclopaedia Aethiopica, from the Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea project",
     "references" : null,
     "names" : {
-      "attested" : "San Diego  State University Library",
+      "attested" : "San Diego State University Library",
       "transcription_accuracy" : "accurate",
       "association_certainty" : "certain",
       "uri" : null,
@@ -39553,7 +39553,7 @@ var institutions ={
     },
     "properties" : {
       "location_precision" : "precise",
-      "title" : "San Diego  State University Library",
+      "title" : "San Diego State University Library",
       "link" : "http://betamasaheft.eu/INS0491San_Diego_University_Library",
       "description" : "Location based on Encyclopaedia Aethiopica",
       "snippet" : null
@@ -39563,7 +39563,7 @@ var institutions ={
       "principal" : "pliuzzo",
       "comment" : "Mapped to Json from TEI xml"
     } ],
-    "title" : "San Diego  State University Library",
+    "title" : "San Diego State University Library",
     "contributors" : {
       "name" : "Sibylla Jenner"
     },
