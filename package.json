@@ -1,0 +1,34 @@
+{
+  "name": "betmasweb",
+  "version": "1.0.0",
+  "description": "Beta Masaheft Web Application",
+  "main": "selectForm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BetaMasaheft/BetMasWeb.git"
+  },
+  "author": "Duncan Paterson",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/BetaMasaheft/BetMasWeb/issues"
+  },
+  "homepage": "https://github.com/BetaMasaheft/BetMasWeb#readme",
+  "dependencies": {
+    "bootstrap-slider": "^11.0.2",
+    "colorbrewer": "^1.5.2",
+    "datatables": "^1.10.7",
+    "font-awesome": "^4.7.0",
+    "fuse.js": "^3.2.0",
+    "jquery": "^1.12.4",
+    "jquery.easing": "^1.4.1",
+    "leaflet": "^1.8.0",
+    "leaflet-ajax": "^2.1.0",
+    "leaflet-search": "^2.3.6",
+    "mapbox": "^1.0.0-beta10",
+    "mirador": "^3.3.0",
+    "openseadragon": "^3.1.0"
+  }
+}
