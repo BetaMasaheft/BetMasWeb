@@ -97,7 +97,7 @@ declare function q:querytype($node as node(), $model as map(*)) {
                         attribute selected {'selected'}
                     else
                         ()
-                }Simple Text search (select here another type of search)</option>
+                }Simple Text search (or click here for other search types)</option>
             <option
                 value="bmid">{
                     if ($querytypeparam = 'bmid') then
@@ -391,14 +391,14 @@ declare function q:displayQtime($node as node()*, $model as map(*)) {
                             class="w3-label w3-gray">{$q:searchType}
                         </span>
                         <span
-                            class="w3-tooltip" style="word-break:break-all"> query for "{
+                            class="w3-tooltip" style="word-break:break-all"> query for "{$model('query')}" with the parameters shown at the right.
+                            <span
+                                class="w3-text"> (searched: <em>{
                                 if ($q:searchType != 'sparql') then
                                     string-join($model('qs'), ', ')
                                 else
                                     ()
-                            }" with the parameters shown at the right.
-                            <span
-                                class="w3-text"> (entered: <em>{$model('query')}</em>)</span></span></p>),
+                            }</em>)</span></span></p>),
             <span>{'Search time: '}<span
                     class="w3-badge">{$model('runtime') div 1000}</span>
                 {' seconds.'}</span>
@@ -978,7 +978,7 @@ names are those of the indexes where the filter is built directly from there, ot
                             q:ListQueryParam-rest($r, "t:title/@ref", 'any', 'list')
                     case 'tabot'
                         return
-                            q:ListQueryParam-rest($r, "t:ab[@type eq 'tabot']//t:*/@*", 'any', 'search')
+                            q:ListQueryParam-rest($r, "t:ab[@type eq 'tabot']//t:*/@*", 'any', 'id')
                     case 'placetype'
                         return
                             q:ListQueryParam-rest($r, "t:place/@type", 'any', 'search')
@@ -1108,7 +1108,7 @@ return
 
 declare function q:text($q, $params) {
     (:    let $test := util:log('info', $q:allopts):)
-    let $qscheck := q:querystring($q, $q:mode)
+    let $qscheck := if(matches($q, '([A-Z]{1,3}-\d{3})')) then q:querystring($q, 'phrase') else q:querystring($q, $q:mode)
     let $qs := if ($qscheck = '' or $qscheck = ' ') then
         ()
     else
@@ -1561,8 +1561,9 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
                     class="w3-row w3-left-align">
                     <button
                         type="submit"
-                        class="w3-button w3-block w3-left-align w3-red">refine search results <i
-                            class="fa fa-search"></i></button>
+                        class="w3-button w3-block w3-left-align w3-red w3-tooltip" title="first select then press"><i
+                            class="fa fa-search"></i>  refine search results  <span 
+class="w3-text w3-tag w3-tiny">first select then press</span></button>
                     {
                         for $param in request:get-parameter-names()
                         for $notfacet in $param[not(ends-with(., '-facet'))]
@@ -1589,8 +1590,9 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
                     class="w3-row w3-left-align">
                     <button
                         type="submit"
-                        class="w3-button w3-block w3-left-align w3-red">refine search results <i
-                            class="fa fa-search"></i></button>
+                        class="w3-button w3-block w3-left-align w3-red w3-tooltip" title="first select then press"><i
+                            class="fa fa-search"></i>  refine search results  <span 
+class="w3-text w3-tag w3-round-xlarge w3-dark-grey w3-small">first select then press</span></button>
                 </div>
             </form>
 };
@@ -2386,7 +2388,7 @@ declare function q:fieldInputAdditions($node as node(), $model as map(*), $addit
 };
 
 declare function q:fieldInputTitle($node as node(), $model as map(*), $titleStmt-field as xs:string*) {
-    q:fieldinputTemplate('Titles', 'titleStmt')
+    q:fieldinputTemplate('Titles', 'title')
 };
 
 declare function q:fieldInputPlace($node as node(), $model as map(*), $place-field as xs:string*) {
@@ -2544,10 +2546,10 @@ if($q:searchType='clavis') then () else
                                                                         href="{$title}">{
                                                                             if ($title = '') then
                                                                                 <span
-                                                                                    class="w3-tag w3-red">{'no ref in title'}</span>
+                                                                                    class="w3-tag w3-pale-red">{'no ref in title'}</span>
                                                                             else
                                                                                 try {
-                                                                                    exptit:printTitleID($title)
+                                                                                    exptit:printTitle($title)
                                                                                 } catch * {
                                                                                     $title
                                                                                 }
@@ -2595,10 +2597,10 @@ if($q:searchType='clavis') then () else
                                                                             href="{$t}">{
                                                                                 if ($t = '') then
                                                                                     <span
-                                                                                        class="w3-tag w3-red">{'no ref in title'}</span>
+                                                                                        class="w3-tag w3-pale-red">{'no ref in title'}</span>
                                                                                 else
                                                                                     try {
-                                                                                        exptit:printTitleID($t)
+                                                                                        exptit:printTitle($t)
                                                                                     } catch * {
                                                                                         $t
                                                                                     }
@@ -2910,7 +2912,7 @@ declare function q:resultswithmatch($text, $p) {
                         <span
                             class="w3-badge">{$count}</span>
                         in {
-                            for $match in config:distinct-values($expanded//exist:match/parent::t:*/name())
+                            for $match in distinct-values($expanded//exist:match/parent::t:*/name())
                             return
                                 (<code>{string($match)}</code>, <br/>)
                         }
@@ -3285,7 +3287,7 @@ declare function q:summaryWork($item, $id) {
                                 tokenize($rpass, ' ')
                             else
                                 $rpass
-                        for $author in config:distinct-values($attributions)
+                        for $author in distinct-values($attributions)
                         let $id := replace($author, 'https://betamasaheft.eu/', '')
                         return
                             <li><a
@@ -3301,7 +3303,8 @@ declare function q:summaryWork($item, $id) {
                 </ul>
             </div>
         else
-            (),
+            ()
+            ,
         if ($item//t:listWit/t:witness or $isVersion or $anotherlang) then
             <div
                 class="w3-container">
@@ -3325,7 +3328,7 @@ declare function q:summaryWork($item, $id) {
                         let $id := replace($parallel, 'https://betamasaheft.eu/', '')
                         return
                             <li><a
-                                    href="{$p}">{exptit:printTitleID($id)}</a></li>
+                                    href="{$p}">{$id}</a></li>
                     }
                 </ul>
             </div>
@@ -3335,7 +3338,7 @@ declare function q:summaryWork($item, $id) {
             <div
                 class="w3-container">
                 <h5>Abstract</h5>
-                {string-join($item//t:abstract//text()[not(ancestor::t:bibl)], ' ')}
+                {string:tei2string($item//t:abstract/node()[not(self::t:bibl)])}
             </div>
         else
             ()
@@ -3459,7 +3462,7 @@ declare function q:resultitemlinks($collection, $item, $id, $root, $text) {
         style="word-break: break-all; text-align: left;">{$id}</span>,
     <span
         class="w3-tag w3-red"><a
-            href="{('/tei/' || $id || '.xml')}"
+            href="{('' || $id || '.xml')}"
             target="_blank">TEI</a></span>,
     (:<span
         class="w3-tag w3-red"><a
@@ -4091,7 +4094,7 @@ declare function q:formcontrol($nodeName as xs:string, $path, $group, $type) {
             <div
                 class="w3-container">
                 <label
-                    for="{$nodeName}">{$nodeName}s <span
+                    for="{$nodeName}">{if($nodeName='tabot') then 'Tābots' else ($nodeName||'s')} <span
                         class="w3-badge">{count($nodes[. != ''][. != ' '])}</span></label>
                 {q:selectors($nodeName, $nodes, $type)}
             </div>
@@ -4129,7 +4132,7 @@ declare function q:selectors($nodeName, $nodes, $type) {
                 return
                     for $n in $group//t:catDesc
                     let $id := $n/text()
-                    let $title := exptit:printTitleID($id)
+                    let $title := exptit:printTitle($id)
                     return
                         <option
                             value="{$id}">{$title[1]}</option>
@@ -4140,7 +4143,7 @@ declare function q:selectors($nodeName, $nodes, $type) {
                 then
                     (for $n in $nodes[. != ''][. != ' ']
                     let $id := string($n/@xml:id)
-                    let $title := exptit:printTitleID($id)
+                    let $title := exptit:printTitle($id)
                     let $sortkey := q:sortingkey($title)
                         order by $sortkey
                     return

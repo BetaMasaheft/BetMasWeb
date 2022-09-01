@@ -433,7 +433,7 @@ declare function app:team ($node as node(), $model as map(*)) {
 <ul class="w3-ul w3-hoverable w3-padding">{
     $exptit:col/$app:range-lookup('changewho', (),
         function($key, $count) {
-             <li id="{$key}">{editors:editorKey(replace($key, '#', '')) || ' ('||$key||')' || ' made ' || $count[1] ||' changes in ' || $count[2]||' documents. '}<a href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5B%40who%3D%27{$key}%27%5D">See the changes.</a></li>
+             <li id="{$key}">{editors:editorKey(replace($key, '#', '')) || ' ('||$key||')' || ' made ' || $count[1] ||' changes in ' || $count[2]||' documents. '}<a href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5B%40who%3D%27%23{substring-after($key, '#')}%27%5D">See the changes.</a></li>
         }, 1000)
        }
        </ul>
@@ -462,6 +462,18 @@ declare function app:deleted ($node as node(), $model as map(*)) {
     </li>}
        </ul>,
        <script type="text/javascript" src="resources/js/permanentID.js"></script>
+};
+
+declare function app:oldids ($node as node(), $model as map(*)) {
+<ul class="w3-ul w3-hoverable w3-padding">{
+let $formerly := $exptit:col//t:relation[@name eq 'betmas:formerlyAlsoListedAs']/@passive
+    for $deleted in $formerly
+    let $now := string-join($deleted/ancestor::t:relation[@passive eq $deleted]/@active, ', ')
+    order by $deleted  
+    return 
+    <li  class="w3-display-container">{substring-after($deleted, 'eu/')} is now listed as <a href="{$now}">{substring-after($now, 'eu/')}</a>. 
+    </li>}
+       </ul>
 };
 
 declare function functx:value-intersect  ( $arg1 as xs:anyAtomicType* ,    $arg2 as xs:anyAtomicType* )  as xs:anyAtomicType* {
@@ -1622,6 +1634,170 @@ function app:paginateNew($node as node(), $model as map(*), $start as xs:int, $p
             ()
 };
 
+
+declare    
+%templates:wrap
+%templates:default('start', 1)
+%templates:default("per-page", 40)
+function app:facetSearchRes ( $node as node()*,  $model as map(*), $start as xs:integer,  $per-page as xs:integer) {
+        <div class="w3-row w3-border-bottom w3-margin-bottom w3-gray">
+              <div class="w3-third">
+              <div class="w3-col" style="width:15%">
+                <span class="number">score</span>
+              </div>
+              <div class="w3-col"  style="width:70%">
+               title
+              </div>
+              <div class="w3-col"  style="width:15%">
+                hits count
+              </div>
+            </div>
+            <div class="w3-twothird">
+                 <div class="w3-twothird">first three keywords in context</div>
+                 <div class="w3-third">item-type specific options</div>
+            </div>
+            </div>,
+        for $text at $p in subsequence($model('hits'), $start, $per-page)
+        let $queryText := request:get-parameter('query', ())
+        
+            let $expanded := kwic:expand($text)
+            let $firstancestorwithID:=($expanded//exist:match/(ancestor::t:*[(@xml:id|@n)] | ancestor::t:text))[last()]
+      let $test := console:log($firstancestorwithID)
+      let $firstancestorwithIDid := $firstancestorwithID/string(@xml:id)
+        let $view := if($firstancestorwithID[ancestor-or-self::t:text]) then 'text' else 'main'
+         let $firstancestorwithIDanchor := if($view = 'main') then '#' || $firstancestorwithIDid else ()
+        
+            let $count := count($expanded//exist:match)
+            let $root := root($text)
+            let $item := $root/t:TEI
+            let $t := $root/t:TEI/@type
+            let $id := data($root/t:TEI/@xml:id)
+            let $collection := switch2:col($t)
+        let $score as xs:float := ft:score($text)
+        let $tokvalues := for $tokenInQuery in tokenize($queryText, '\s') 
+                            return if ($text[contains(., $tokenInQuery)]) then 5 else 0
+      let $values := sum($tokvalues)
+        let $enrichedScore := 
+                            $score + 
+                            $values +
+                            (count($text//node()) div 100) + 
+                            ( if($text//t:ab[node()]) then 4 
+                            else if($text//t:occupation) then 2 
+                                else if ($text/ancestor::t:TEI//t:change[contains(.,'complete')]) then 1 else ())
+        order by $enrichedScore descending
+             return
+            <div class="w3-row w3-border-bottom w3-margin-bottom">
+              <div class="w3-third">
+              <div class="w3-col" style="width:15%">
+                <span class="w3-tag w3-red">{$enrichedScore}</span>
+                <span class="w3-tag w3-red">{
+                if ($item//t:change[contains(., 'complete')]) then
+                        (attribute style {'background-color:rgb(172, 169, 166, 0.4)'},
+                        'complete')
+                    else
+                        if ($item//t:change[contains(., 'review')]) then
+                            (attribute style {'background-color:white'},
+                            'reviewed')
+                        else
+                            (attribute style {'background-color:rgb(213, 75, 10, 0.4)'},
+                            'stub')}
+                 </span>
+              </div>
+              <div class="w3-col"  style="width:70%">
+              <span class="w3-tag w3-gray">{$collection}</span>
+              <span class="w3-tag w3-gray" style="word-break: break-all; text-align: left;">{$id}</span>
+              <span class="w3-tag w3-red"><a href="{('/tei/' || $id || '.xml')}" target="_blank">TEI</a></span>
+             <!-- <span class="w3-tag w3-red"><a href="/{$id}.pdf" target="_blank" >PDF</a></span><br/>-->
+               <a target="_blank" href="/{$collection}/{$id}/main"><b>{if(starts-with($id, 'corpus')) then $root//t:titleStmt/t:title[1]/text() else try{exptit:printTitleID($id)} catch *{console:log(($text, $id, $err:description))}}</b></a><br/>
+               {if ($item//t:facsimile/t:graphic/@url) 
+               then <a target="_blank" href="{$item//t:facsimile/t:graphic/@url}">Link to images</a> 
+               else if($item//t:msIdentifier/t:idno[@facs][@n]) then 
+                 <a target="_blank" href="/manuscripts/{$id}/viewer">{
+                if($item//t:collection = 'Ethio-SPaRe') 
+               then <img src="{$config:appUrl ||'/iiif/' || string(($item//t:msIdentifier)[1]/t:idno/@facs) || '_001.tif/full/140,/0/default.jpg'}" class="thumb w3-image"/>
+(:laurenziana:)
+else  if($item//t:repository[@ref eq 'INS0339BML']) 
+               then <img src="{$config:appUrl ||'/iiif/' || string($item//t:msIdentifier/t:idno/@facs) || '005.tif/full/140,/0/default.jpg'}" class="thumb w3-image"/>
+          
+(:          
+EMIP:)
+              else if(($item//t:collection = 'EMIP') and $item//t:msIdentifier/t:idno/@n) 
+               then <img src="{$config:appUrl ||'/iiif/' || string(($item//t:msIdentifier)[1]/t:idno/@facs) || '001.tif/full/140,/0/default.jpg'}" class="thumb w3-image"/>
+              
+             (:BNF:)
+            else if (($item//t:repository/@ref)[1]  eq 'INS0303BNF') 
+            then <img src="{replace($item//t:msIdentifier/t:idno/@facs, 'ark:', 'iiif/ark:') || '/f1/full/140,/0/native.jpg'}" class="thumb w3-image"/>
+(:           vatican :)
+                else if (contains($item//t:msIdentifier/t:idno/@facs, 'digi.vat')) then <img src="{replace(substring-before($item//t:msIdentifier/t:idno/@facs, '/manifest.json'), 'iiif', 'pub/digit') || '/thumb/'
+                    ||
+                    substring-before(substring-after($item//t:msIdentifier/t:idno/@facs, 'MSS_'), '/manifest.json') || 
+                    '_0001.tif.jpg'
+                }" class="thumb w3-image"/>
+(:                bodleian:)
+else if (contains($item//t:msIdentifier/t:idno/@facs, 'bodleian')) then ('images')
+          else (<img src="{$config:appUrl ||'/iiif/' || string($item//t:msIdentifier/t:idno[not(starts-with(@facs, 'https'))][1]/@facs) ||  (if(starts-with($item//t:collection, 'Ethio')) then '_' else())||'001.tif/full/140,/0/default.jpg'}" class="thumb w3-image"/>)
+                       }</a>
+                
+                else ()}
+                {if($collection = 'works') then apptable:clavisIds($root) else ()}
+              </div>
+              <div class="w3-col"  style="width:15%">
+                <span class="w3-badge">{$count}</span>
+                in {for $match in config:distinct-values($expanded//exist:match/parent::t:*/name()) return (<code>{string($match)}</code>,<br/>) }
+              </div>
+            </div>
+            <div class="w3-twothird">
+                 <div class="w3-twothird">{
+                     for $match in subsequence($expanded//exist:match, 1, 3) 
+                      let $matchancestorwithID:=($match/(ancestor::t:*[(@xml:id|@n)] | ancestor::t:text))[last()]
+      let $matchancestorwithIDid := $matchancestorwithID/string(@xml:id)
+        let $view := if($matchancestorwithID[ancestor-or-self::t:text]) then 'text' else 'main'
+         let $matchancestorwithIDanchor := if($view = 'main') then '#' || $matchancestorwithIDid else ()
+        
+                     return  
+                      let $matchref := replace(app:refname($match), '.$', '')
+                let $ref := if($view = 'text' and $matchref !='') then '&amp;ref=' || $matchref else ()
+                return 
+               <div class="w3-row w3-padding"><div class="w3-twothird w3-padding match">
+                   {  kwic:get-summary($match/parent::node(), $match,<config width="40"/>)}
+                     </div>
+                        <div class="w3-third w3-padding">
+                        <a href="/{$collection}/{$id}/{$view}{$matchancestorwithIDanchor}?hi={$queryText}{$ref}">
+                        {' in element ' ||$match/parent::t:*/name() || ' within a ' ||
+                        $matchancestorwithID/name() 
+                        || 
+                       (if($view = 'text'  and $matchref !='') 
+                                then ', at ' || $matchref 
+                       else if($view = 'main') 
+                                then ', with id ' || $matchancestorwithIDid 
+                        else ())
+                        }</a>
+                        </div>
+                        </div>
+                 }</div>
+                 <div class="w3-third">
+                     {switch($t)
+                        case 'mss' return (
+                             <a role="button" class="w3-button w3-small w3-gray" href="/IndexPlaces?entity={$id}">places</a>,
+                             <a role="button" class="w3-button w3-small w3-gray" href="/IndexPersons?entity={$id}">persons</a>)
+                        case 'pers' return ()
+                        case 'ins' return (<a role="button" class="w3-button w3-small w3-gray" href="/manuscripts/{$id}/list">manuscripts</a>)
+                        case 'place' return (<a role="button" class="w3-button w3-small w3-gray" href="/manuscripts/place/list?place={$id}">manuscripts</a>)
+                        case 'nar' return (<a role="button" class="w3-button w3-small w3-gray" href="/collate">collate</a>)
+                        case 'work' return 
+                            (<a role="button" class="w3-button w3-small w3-gray" href="/compare?workid={$id}">compare</a>,
+                             <a role="button" class="w3-button w3-small w3-gray" href="/workmap?worksid={$id}">map of mss</a>,
+                             <a role="button" class="w3-button w3-small w3-gray" href="/collate">collate</a>,
+                             <a role="button" class="w3-button w3-small w3-gray" href="/IndexPlaces?entity={$id}">places</a>,
+                             <a role="button" class="w3-button w3-small w3-gray" href="/IndexPersons?entity={$id}">persons</a>)
+                        default return
+                            <a role="button" class="w3-button w3-small w3-gray" href="/authority-files/list?keyword={$id}">with this keyword</a>
+                     }
+                     <a role="button" class="w3-button w3-small w3-gray" href="/{$collection}/{$id}/analytic">relations</a>
+                 </div>
+            </div>
+            </div>
+    };
 
 (:~  copied from  dts: to format and select the references :)
 declare function app:refname($n){

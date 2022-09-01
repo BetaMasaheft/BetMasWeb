@@ -122,7 +122,7 @@ analyze-string($dts,$regex)
 
 (:~ Given a dts URI resource part only (without domain) 
 parse with analyse string the urn to split it into its components. :)
-declare %private function dtslib:parseDTSid($dts){
+declare function dtslib:parseDTSid($dts){
 analyze-string($dts,$dtslib:regexID)
 };
 
@@ -325,7 +325,6 @@ else
 (: let $t2 := util:log("info",count($file)):)
  let $text := if($edition/node()) then dtslib:pickDivText($file, $edition)  else $file//t:div[@type eq 'edition']
  
-(: let $t := console:log($parsedURN):)
 (: let $t2 := console:log($start):)
 (: let $t3 := console:log($end):)
  return
@@ -419,16 +418,26 @@ declare %private function dtslib:fragment($file, $edition, $ref, $start, $end, $
    </TEI>
   else if ($ref != '' ) then 
   (:fetch narrative unit passage:)
-            if (starts-with($ref, 'NAR')) then (
+            if (starts-with($ref, 'NAR') or starts-with($ref, 'https://betasamaheft.eu/NAR')) then (
                 (:will match the content of any div with a corresp corresponding to that narrative unit, if any:)
     
-      let $narrative := $text//t:*[@corresp =$ref]
+      let $narrative := $text//t:div[ends-with(@corresp, $ref)]
             return
                         <TEI xmlns="http://www.tei-c.org/ns/1.0" >
                             <dts:fragment xmlns:dts="https://w3id.org/dts/api#">
                                 {$narrative}
                             </dts:fragment>
                        </TEI> )
+     else   if (matches($ref, 'ms_') or matches($ref, 'p\d+')) then (
+                    (:will match the content of any div with a corresp corresponding to a given msItem, if any:)
+    
+      let $msCorr := $text//t:div[ends-with(@corresp, $ref)]
+            return
+                        <TEI xmlns="http://www.tei-c.org/ns/1.0" >
+                            <dts:fragment xmlns:dts="https://w3id.org/dts/api#">
+                                {$msCorr}
+                            </dts:fragment>
+                       </TEI> )     
 (:otherwise go for a passage in the standard structure:)
  else (
                     let $path := dtslib:selectorRef(1, $text,$ref,'no')
@@ -592,7 +601,7 @@ returns a node in analyze-string-result, e.g.
     </match>
 </analyze-string-result>
 :)
-declare %private function dtslib:parseRef($ref){
+declare function dtslib:parseRef($ref){
 (:dtslib:ref can be constructed as a series of dotted sub references
 each level is separated by a dot, each level can be the value of either 
     - a @n
@@ -619,7 +628,19 @@ month1.day30.NAR0069Gabreel ((@subtype,@n).(@subtype,@n).(@corresp))
  :)
 let $parseRef := analyze-string($ref, 
                '(NAR[0-9A-Za-z]+|((\d+[r|v])([a-z]?)(\[\w+\])?(\.)?(\d+)?)|([A-Za-z]+)?([0-9]+))(\.)?')
-let $refs := for $m at $p in $parseRef//s:match 
+let $refs := if(matches($ref, 'ms_') or matches($ref, 'p\d+_') ) then
+<ref type='corresp'>{$ref}</ref>
+else if ($parseRef//s:non-match)
+then  (if(matches($ref, '\.')) then for $mp at $pp in tokenize($ref, '\.')
+return <ref type='subtypeNorXMLid'  l="{$pp}">
+                                           <option type="xmlid">{$mp}</option>
+                                        </ref>
+                                        else
+<ref type='subtypeNorXMLid'  l="1">
+                                           <option type="xmlid">{$ref}</option>
+                                        </ref>)
+else
+for $m at $p in $parseRef//s:match 
                     let $t := $m/s:group[@nr=1]//text()
                     return
                      if(matches($m, '\d+[r|v][a-z]?(\d+)?')) 
@@ -657,17 +678,18 @@ let $this := normalize-space($refname)
 let $ancestors := for $a in $n/ancestor::t:div[@xml:id or @n or @corresp][ancestor::t:div[@type]]
 return dtslib:rn($a)
 let $all := ($ancestors , $this)
-return if( $n/name()='pb' or $n/name()='cb' or $n/name()='lb') then $this else string-join($all,'.')
+return if(starts-with($this, 'ms_') or  $n/name()='pb' or $n/name()='cb' or $n/name()='lb') then $this else string-join($all,'.')
 };
 
 (:~  called by dtslib:refname to format a single reference :)
 declare function dtslib:rn($n){
-  if ($n/name()='lb') then 
+  if ($n/self::t:lb) then 
          (string($n/preceding::t:pb[@n][1]/@n)||string($n/preceding::t:cb[@n][1]/@n)||string($n/@n)) 
- else if ($n/name()='cb') then 
+ else if ($n/self::t:cb) then 
          (string($n/preceding::t:pb[@n][1]/@n)||string($n/@n)) 
- else if ($n/name()='pb' and $n/@corresp) then 
+ else if ($n/self::t:pb and $n/@corresp) then 
          (string($n/@n) || '[' ||substring-after($n/@corresp, '#')||']') 
+   else if (matches($n/@corresp, '#[mp]')) then substring-after($n/@corresp, '#')
     else if($n/@n) then string($n/@n)
     else if($n/@xml:id) then string($n/@xml:id)
     else if($n/@subtype) then string($n/@subtype)
@@ -683,7 +705,7 @@ if($n/@corresp) then
               then <title>{normalize-space(exptit:printTitleID($n/@corresp))}</title>
               else if(starts-with($n/@corresp, 'NAR')) 
               then <title>{normalize-space(exptit:printTitleID($n/@corresp))}</title>
-              else <title>{string($n/@corresp)}</title>)
+              else <title>{exptit:printTitle($n/@corresp)}</title>)
  else if ($n/t:label) then <title>{string:tei2string($n/t:label)}</title>
  else if ($n/@subtye) then <title>{string($n/@subtye)} {if($n/@n) then string($n/@n) else $n/position()}</title>
  else ()
@@ -778,7 +800,9 @@ first level/part of a ref will point to level 2:)
 (:  this path will be ok to look for id or n, but will fail for composed refs, i.e. where the ref
 is built from pb and cb or from subtype and n. :)
  let $partpath := (switch($ty)
-                                case 'nar' return "/t:div[@corresp='"||$r/text()||"']"
+ 
+case 'corresp' return "/t:div[ends-with(@corresp,'"||$r/text()||"')]"
+case 'nar' return "/t:div[@corresp='"||$r/text()||"']"
                                 case 'n' return "/(t:div|t:lb|t:l)[@n='"||$r/text()||"']"
                                 case 'subtype' return "/t:div[@subtype='"||$r/text()||"']"
                                 (:it is folio reference a normal ref to a manuscript transcription will have the shape of a folio reference
@@ -807,8 +831,9 @@ of pbs and cbs available within it.   :)
                                                                    else ()) || " | " ||"t:div[@xml:id='"||
                                                                    $r/*:option[@type eq 'xmlid']/text()||"']"|| ")"
                                 default return
-                            "/(t:div|t:cb|t:pb|t:lb|t:l)[(@xml:id|@n)='"||
-                                $r/text()||"' or contains(@corresp,'"||$r/text()||"')]"
+                            "/(t:div|t:cb|t:pb|t:lb|t:l)[(@xml:id='"||
+                                $r/text()||"') or (@n='"||
+                                $r/text()||"') or contains(@corresp,'"||$r/text()||"')]"
                                 )
        (:  always think there may be an ab... :)
                                 ||(if($children='no' and $i = $count) then "" else '/(t:ab|.)') 
@@ -824,9 +849,9 @@ it returns the possible children:)
 (:~  calls for all relevant nodes in a selection the builder for the passage node:)
 declare function dtslib:pasRef($level, $text, $ref, $fallback, $type, $manifest, $BMid){
 let $path := dtslib:selectorRef($level, $text, $ref, 'yes')
-(: let $t4 := console:log($path):)
      for $n in util:eval($path)  
-     return dtslib:pas($n, $fallback, $type, $manifest, $BMid)
+     let $pas := dtslib:pas($n, $fallback, $type, $manifest, $BMid)
+     return $pas
 };
 
 declare function dtslib:ctype($mydoc, $text, $level, $cdepth){
@@ -1061,7 +1086,7 @@ for $node in ($edition/t:div[@type eq 'textpart'], $edition/t:ab/t:l, $edition/t
  let $typ := if($node/@subtype) then string($node/@subtype) else if ($node/name() = 'l') then 'verse 'else if ($node/name() = 'lb') then 'line' else 'textpart'
  group by $T := $typ
 let $citType :=  map {
-                 "dtslib:citeType": $T
+                 "dts:citeType": $T
                  }
 let $citStr : =if($node/child::t:div) then let $subType := dtslib:nestedDivs($node/child::t:div) return map:put($citType, 'dtslib:citeStructure', $subType)
 else if($node/t:ab/t:l) then let $subType := dtslib:nestedDivs($node) return map:put($citType, 'dtslib:citeStructure', $subType)
@@ -1214,7 +1239,7 @@ if($doc//t:TEI/@type eq  'mss') then ()
                             
 declare %private function dtslib:distinctW($witnesses){
 for $w in config:distinct-values($witnesses) return 
-                            map { "fabio:isManifestationOf" : if(starts-with($w, 'http')) then $w else ($config:appUrl || "/" || $w),
+                            map { "fabio:hasManifestation" : if(starts-with($w, 'http')) then $w else ($config:appUrl || "/" || $w),
                                         "@id" : if(starts-with($w, 'http')) then $w else ("https://betamasaheft.eu/" || $w),
                                         "@type" : "lawd:AssembledWork",
                                         "dc:title": exptit:printTitleID($w)}
@@ -1254,13 +1279,13 @@ else let $counts := for $div in ($document//t:div[@type eq 'textpart'], $documen
 return max($counts)
 let $teirefdecl := if($doc/@type eq  'mss' and not($doc//t:objectDesc/@form ='Inscription')) then 
 [ map{
-                 "dtslib:citeType": "folio",
+                 "dts:citeType": "folio",
                     "dtslib:citeStructure": [
                        map {
-                            "dtslib:citeType": "page",
-                             "dtslib:citeStructure": [
+                            "dts:citeType": "page",
+                             "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "column"
+                            "dts:citeType": "column"
                         }
                   ]
              }
@@ -1326,13 +1351,13 @@ else let $counts := for $div in ($document//t:div[@type eq 'textpart'], $documen
 return max($counts)
 let $teirefdecl := if($doc/@type eq  'mss' and not($doc//t:objectDesc/@form ='Inscription')) then 
 [ map{
-                 "dtslib:citeType": "folio",
+                 "dts:citeType": "folio",
                     "dtslib:citeStructure": [
                        map {
-                            "dtslib:citeType": "page",
-                             "dtslib:citeStructure": [
+                            "dts:citeType": "page",
+                             "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "column"
+                            "dts:citeType": "column"
                         }
                   ]
              }
@@ -1425,13 +1450,13 @@ else let $counts := for $div in ($document//t:div[@type eq 'textpart'], $documen
 return max($counts)
 let $teirefdecl := if($doc/@type eq  'mss' and not($doc//t:objectDesc/@form ='Inscription')) then 
 [ map{
-                 "dtslib:citeType": "folio",
-                    "dtslib:citeStructure": [
+                 "dts:citeType": "folio",
+                    "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "page",
-                             "dtslib:citeStructure": [
+                            "dts:citeType": "page",
+                             "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "column"
+                            "dts:citeType": "column"
                         }
                   ]
              }
@@ -1498,13 +1523,13 @@ else let $counts := for $div in ($document//t:div[@type eq 'textpart'], $documen
 return max($counts)
 let $teirefdecl := if($doc/@type eq  'mss' and not($doc//t:objectDesc/@form ='Inscription')) then 
 [ map{
-                 "dtslib:citeType": "folio",
-                    "dtslib:citeStructure": [
+                 "dts:citeType": "folio",
+                    "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "page",
-                             "dtslib:citeStructure": [
+                            "dts:citeType": "page",
+                             "dts:citeStructure": [
                        map {
-                            "dtslib:citeType": "column"
+                            "dts:citeType": "column"
                         }
                   ]
              }
@@ -1899,10 +1924,10 @@ let $level := if (contains($r, '\.')) then string(count(tokenize($r, '\.'))) els
 let $cdepth := dtslib:citeDepth($closestreference/ancestor::t:div[@type eq 'edition'])
 let $ctype := dtslib:typename($closestreference, 'textpart')
 let $basesource := map{"type": "Resource",
-			 "dtslib:ref": $r,
-			 "dtslib:citeType": $ctype/text(),
-			 "dtslib:level": $level,
-                                            "dtslib:citeDepth": $cdepth,
+			 "dts:ref": $r,
+			 "dts:citeType": $ctype/text(),
+			 "dts:level": $level,
+                                            "dts:citeDepth": $cdepth,
 			 "id": $sourceID,
 			 "link" : ($sourceID ||$separator || $r)}
 let $source := map:merge(($dtslinks, $basesource))

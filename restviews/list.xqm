@@ -298,16 +298,22 @@ $keyword as xs:string*){
  then (<div class="w3-panel w3-gray w3-card-4">Select an entry on the left to see all records where this occurs.</div>)
  else (
  let $res :=
+ let $keywordlink := ('https://betamasaheft.eu/' || string($keyword))
  let $terms := $apprest:collection-root/t:TEI[descendant::t:term[@key eq  $keyword]]
- let $title := $apprest:collection-root/t:TEI[descendant::t:title[@type eq  $keyword]]
- let $person := $apprest:collection-root/t:TEI[descendant::t:person[@type eq  $keyword]]
- let $desc := $apprest:collection-root/t:TEI[descendant::t:desc[@type eq  $keyword] ]
- let $place := $apprest:collection-root/t:TEI[descendant::t:place[@type eq  $keyword] ]
- let $ab := $apprest:collection-root/t:TEI[descendant::t:ab[@type eq  $keyword] ]
- let $faith := $apprest:collection-root/t:TEI[descendant::t:faith[@type eq  $keyword] ]
- let $occupation := $apprest:collection-root/t:TEI[descendant::t:occupation[@type eq  $keyword]]
- let $ref := $apprest:collection-root/t:TEI[descendant::t:ref[@type eq  'authFile'][@corresp eq $keyword]]
- let $hits := ($terms | $title |$person|$desc|$place|$ab|$faith|$occupation|$ref)
+ let $title := $apprest:collection-root/t:TEI[descendant::t:title[contains(@type,  $keyword)]]
+ let $person := $apprest:collection-root/t:TEI[descendant::t:person[contains(@type,  $keyword)]]
+ let $desc := $apprest:collection-root/t:TEI[descendant::t:desc[contains(@type,  $keyword)]]
+ let $place := $apprest:collection-root/t:TEI[descendant::t:place[contains(@type,  $keyword)]]
+ let $ab := $apprest:collection-root/t:TEI[descendant::t:ab[contains(@type,  $keyword)]]
+ let $abc := $apprest:collection-root/t:TEI[descendant::t:ab[@corresp eq  $keywordlink]]
+ let $rela := $apprest:collection-root/t:TEI[descendant::t:relation[@active eq  $keyword]]
+ let $relp := $apprest:collection-root/t:TEI[descendant::t:relation[@passive eq $keyword]]
+ let $rella := $apprest:collection-root/t:TEI[descendant::t:relation[@active eq  $keywordlink]]
+ let $rellp := $apprest:collection-root/t:TEI[descendant::t:relation[@passive eq $keywordlink]]
+ let $faith := $apprest:collection-root/t:TEI[descendant::t:faith[contains(@type,  $keyword)]]
+ let $occupation := $apprest:collection-root/t:TEI[descendant::t:occupation[contains(@type,  $keyword)]]
+ let $refb := $apprest:collection-root/t:TEI[descendant::t:ref[@corresp eq $keywordlink]]
+ let $hits := ($terms |$title |$person |$desc |$place |$ab |$abc |$faith  |$occupation |$refb |$rela |$relp |$rella |$rellp)
    return
                       map {
                       'hits' : $hits,
@@ -323,7 +329,7 @@ $keyword as xs:string*){
  
   <div class="w3-bar"> 
   <div id="hit-count" class="w3-bar-item">
-   {'There are ' || count($res("hits")) || ' resources that contain the exact keyword: '}  <span class="w3-tag w3-red">{$keyword}</span>
+   {'There are ' || count($res("hits")) || ' resources that contain the exact keyword: '}  <span class="w3-tag w3-red"><a href="/{$keyword}">{$keyword}</a></span>
    </div>
    </div>
    <div class="w3-responsive">
@@ -359,7 +365,7 @@ declare
 %rest:query-param("numberOfParts", "{$numberOfParts}", "")
 %rest:query-param("min-hits", "{$min-hits}", 0)
 %rest:query-param("max-pages", "{$max-pages}", 20)
- %rest:query-param("height","{$height}", "")
+%rest:query-param("height","{$height}", "")
 %rest:query-param("width","{$width}", "")
 %rest:query-param("depth","{$depth}", "")
 %rest:query-param("columnsNum","{$columnsNum}", "")
@@ -577,7 +583,14 @@ if(xdb:collection-available($c)) then (
                                  let $stext := $subsubcat/t:catDesc/text()
                                  order by $stext
                                  return
-                                     <li><a href="/{$collection}/list?keyword={$ssid}">{$stext}</a></li>
+                                     <li><a href="/{$collection}/list?keyword={$ssid}">{$stext}</a></li>,
+                                     <ul>                                     {for $sss in $subcat/t:category/t:category
+                                 let $sssid := string($sss/@xml:id)
+                                 let $ssstext := concat($sss/ancestor::t:category[1]/t:catDesc/text(), ': ', $sss/t:catDesc/text())
+                                     return
+                                     
+                                     <li><a href="/{$collection}/list?keyword={$sssid}">{$ssstext}</a></li>
+                                     }</ul>
                              }</ul> 
                              </div>
                              </div>)
@@ -595,17 +608,23 @@ if(xdb:collection-available($c)) then (
  then (<div class="w3-panel w3-gray w3-card-4">Select an entry on the left to see all records where this occurs.</div>)
  else (
  let $res :=
+ let $keywordlink := ('https://betamasaheft.eu/' || string($keyword))
  let $terms := $apprest:collection-root/t:TEI[descendant::t:term[@key eq  $keyword]]
- let $title := $apprest:collection-root/t:TEI[descendant::t:title[@type eq  $keyword]]
- let $person := $apprest:collection-root/t:TEI[descendant::t:person[@type eq  $keyword]]
- let $desc := $apprest:collection-root/t:TEI[descendant::t:desc[@type eq  $keyword] ]
- let $place := $apprest:collection-root/t:TEI[descendant::t:place[@type eq  $keyword] ]
- let $ab := $apprest:collection-root/t:TEI[descendant::t:ab[@type eq  $keyword] ]
- let $faith := $apprest:collection-root/t:TEI[descendant::t:faith[@type eq  $keyword] ]
- let $occupation := $apprest:collection-root/t:TEI[descendant::t:occupation[@type eq  $keyword]]
- let $ref := $apprest:collection-root/t:TEI[descendant::t:ref[@type eq  'authFile'][@corresp eq $keyword]]
- let $hits := ($terms | $title |$person|$desc|$place|$ab|$faith|$occupation|$ref)
-   return
+ let $title := $apprest:collection-root/t:TEI[descendant::t:title[contains(@type,  $keyword)]]
+ let $person := $apprest:collection-root/t:TEI[descendant::t:person[contains(@type,  $keyword)]]
+ let $desc := $apprest:collection-root/t:TEI[descendant::t:desc[contains(@type,  $keyword)]]
+ let $place := $apprest:collection-root/t:TEI[descendant::t:place[contains(@type,  $keyword)]]
+ let $ab := $apprest:collection-root/t:TEI[descendant::t:ab[contains(@type,  $keyword)]]
+ let $abc := $apprest:collection-root/t:TEI[descendant::t:ab[@corresp eq  $keywordlink]]
+ let $rela := $apprest:collection-root/t:TEI[descendant::t:relation[@active eq  $keyword]]
+ let $relp := $apprest:collection-root/t:TEI[descendant::t:relation[@passive eq $keyword]]
+ let $rella := $apprest:collection-root/t:TEI[descendant::t:relation[@active eq  $keywordlink]]
+ let $rellp := $apprest:collection-root/t:TEI[descendant::t:relation[@passive eq $keywordlink]]
+ let $faith := $apprest:collection-root/t:TEI[descendant::t:faith[contains(@type,  $keyword)]]
+ let $occupation := $apprest:collection-root/t:TEI[descendant::t:occupation[contains(@type,  $keyword)]]
+ let $refb := $apprest:collection-root/t:TEI[descendant::t:ref[@corresp eq $keywordlink]]
+ let $hits := ($terms |$title |$person |$desc |$place |$ab |$abc |$faith  |$occupation |$refb |$rela |$relp |$rella |$rellp)
+ return
                       map {
                       'hits' : $hits,
                       'collection' : $collection
@@ -660,7 +679,7 @@ href="{replace(substring-after(rest:uri(), 'BetMas'), 'list', 'listChart')}?{exr
   let $ids := for $hit in $texts return 'input=https://betamasaheft.eu/works/'||string($hit/@xml:id)||'.xml'
   let $urls := string-join($ids,'&amp;')
    return
-   <a target="_blank" class="w3-button w3-bar-item w3-red" href="{concat('http://voyant-tools.org/?', $urls)}">Voyant</a>
+   <a target="_blank" class="w3-button w3-bar-item w3-red" href="http://voyant-tools.org/?{$urls}">Voyant</a>
   else if (count($texts) eq 0) then 
   (<span class="w3-button w3-bar-item w3-red" disabled="disabled" data-hint="No text available for analysis with Voyant Tools for this selection.">Voyant</span>)
   else (<span class="w3-button w3-bar-item w3-red" data-hint="With less than 100 hits, you will find here a button to analyse the available texts in your selection with Voyant Tools.">Voyant</span>)
@@ -1834,7 +1853,7 @@ let $data :=
  else  <span n="new">{let $request := <http:request href="{xs:anyURI($xml-url)}" method="GET"/>
     let $response := http:send-request($request)[2] return $response//div[@class eq "csl-bib-body"]/div/node()}</span>
  let $sorting := $data//text()[1]
-order by $sorting
+order by $catalogue
 return
     <tr>
     <td><a href="/newSearch.html?searchType=text&amp;mode=any&amp;biblref={$catalogue}" class="lead">{$data}</a></td>

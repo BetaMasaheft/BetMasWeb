@@ -148,9 +148,23 @@ let $firstcanvas :=
             :)
                else if(contains(viewer:facsSwitch($m), 'staatsbib')) 
                then substring-before(viewer:facsSwitch($m), '/manifest') || '-0001/canvas'
-           
+              (:tuebingen
+            http://idb.ub.uni-tuebingen.de/opendigi/MaIX2/manifest
+            http://idb.ub.uni-tuebingen.de/opendigi/MaIX2/canvas/1
+            :)
+               else if(contains(viewer:facsSwitch($m), 'tuebingen')) 
+            then replace(viewer:facsSwitch($m), '/manifest', '/') || 'canvas/1'
+            (:princeton:)
+                else if(contains($this//t:msIdentifier/t:idno/@facs, 'princeton')) 
+                then   '' 
+            (:cambridge
+            https://cudl.lib.cam.ac.uk//iiif/MS-ADD-01569
+            https://cudl.lib.cam.ac.uk/iiif/MS-ADD-01569/canvas/1
+            :)
+              else if(contains(viewer:facsSwitch($m), 'cudl')) 
+              then replace(viewer:facsSwitch($m), '//iiif', '/iiif') || '/canvas/1'
            (:BNF:)
-            else if ($this//t:repository/@ref = 'INS0303BNF') 
+            else if (contains($this//t:repository/@ref, 'INS0303BNF')) 
             then replace(viewer:facsSwitch($m), 'ark:', 'iiif/ark:') || '/canvas/f1'
 (:           ES, EMIP, Laurenziana, all the others :)
                 else 
@@ -259,11 +273,17 @@ let $manifests := for $m in $this//t:idno[@facs][@n]
                                (:bodleian:)
                                       if(contains($this//t:msIdentifier/t:idno/@facs, 'bodleian')) 
                                          then   '' 
+                                   (:princeton:)
+                                      else  if(contains($this//t:msIdentifier/t:idno/@facs, 'princeton')) 
+                                         then   '' 
+                                    (:tuebingen:)
+                                      else if(contains($this//t:msIdentifier/t:idno/@facs, 'tuebingen')) 
+                                         then   '' 
                                     (:vatican:)
                                   else  if(contains(viewer:facsSwitch($m), 'digi.vat')) 
                                                 then replace(substring-before(viewer:facsSwitch($m), '/manifest.json') || '/canvas/p0001', 'http:', 'https:')
                                           (:BNF:)
-                                             else if ($this//t:repository/@ref = 'INS0303BNF') 
+                                             else if (contains($this//t:repository/@ref, 'INS0303BNF')) 
                                                then replace(viewer:facsSwitch($m), 'ark:', 'iiif/ark:') || '/canvas/f1'
                                             (:  ES, EMIP, Laurenziana, all the others :)
                                              else 
@@ -381,15 +401,18 @@ return(:BNF
                                                 https://gallica.bnf.fr/ark:/12148/btv1b10087587w
                                                 https://gallica.bnf.fr/iiif/ark:/12148/btv1b10087587w/manifest.json
                                                 :)
-                                               if ($this//t:repository/@ref = 'INS0303BNF') 
+                                               if (contains($this//t:repository/@ref, 'INS0303BNF')) 
                                                   then (
                                                   replace(viewer:facsSwitch($m), 'ark:', 'iiif/ark:') || '/manifest.json'
                                                   ,
                                                   console:log((replace(viewer:facsSwitch($m), 'ark:', 'iiif/ark:') || '/manifest.json'))
                                                   )
+   (:                                                tuebingen :)
+                                                else if(contains(viewer:facsSwitch($m), 'http://idb'))
+                                                  then  viewer:facsSwitch($m) 
                                                 else
 (:                                                vatican :)
-                                                if(contains(viewer:facsSwitch($m), 'http:')) 
+                                                if(contains(viewer:facsSwitch($m), 'http://digi')) 
                                                   then  replace(viewer:facsSwitch($m), 'http:', 'https:')
                                                  else   if(contains(viewer:facsSwitch($m), 'https:')) 
                                                   then  viewer:facsSwitch($m)
@@ -403,13 +426,13 @@ declare function viewer:location($this){
             if($this//t:collection = 'Ethio-SPaRe' or $this//t:collection = 'EMIP') 
             then $this//t:collection[1]  
             (:BNF:)
-            else if ($this//t:repository/@ref = 'INS0303BNF') 
+            else if (contains($this//t:repository/@ref, 'INS0303BNF')) 
             then 'BnF'
 (:            Laurenziana:)
-            else if ($this//t:repository/@ref = 'INS0339BML')
+            else if (contains($this//t:repository/@ref, 'INS0339BML'))
             then 'Biblioteca Medicea Laurenziana'
 (:           vatican :)
- else if ($this//t:repository/@ref = 'INS0339BML')
+ else if (contains($this//t:repository/@ref, 'INS0339BML'))
             then  'Biblioteca Apostolica Vaticana'
             else  string-join($this//t:idno, ', ')
 };
@@ -465,4 +488,3 @@ return 'var data = [' ||$chmanif||']'}</script>
         )
         
 };
-

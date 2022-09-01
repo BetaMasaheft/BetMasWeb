@@ -55,20 +55,19 @@ let $id := substring-after($titleMe, 'betmas:')
                     else
                         let $title := exptit:printTitleID($titleMe)
                         return
-                            if (string-length($title) ge 1) then
+                            if (string-length(string-join($title)) ge 1) then
                                 $title
                             else
                                 $titleMe
 };
 
 
-
 (:this is now a switch function, deciding if to go ahead with simple print title or subtitles:)
 declare 
 %test:arg('id', 'sdc:UniCont1') %test:assertEquals('La Synthaxe du Codex UniCont1')
-%test:arg('id', 'LIT2317Senodo#') %test:assertEquals('Senodos')
 %test:arg('id', '#') %test:assertEquals('&lt;span class="w3-tag w3-red"&gt;no item yet with id #&lt;/span&gt;')
 %test:arg('id', '') %test:assertEquals('&lt;span class="w3-tag w3-red"&gt;no id&lt;/span&gt;')
+%test:arg('id', 'LIT2317Senodo#') %test:assertEquals('Senodos')
 %test:arg('id', 'BNFet32') %test:assertEquals('Paris, Bibliothèque nationale de France, BnF Éthiopien 32')
 %test:arg('id', 'LIT1367Exodus') %test:assertEquals('Exodus')
 %test:arg('id', 'PRS11160HabtaS') %test:assertEquals(' Habta Śǝllāse')
@@ -99,7 +98,8 @@ function exptit:printTitleID($id as xs:string)
     else if ($id = '') then <span class="w3-tag w3-red">{ 'no id' }</span>
     (: if the id has a subid, than split it :) 
     else if (contains($id, '#')) then
-    (   let $mainID := substring-before($id, '#')
+    (   let $mainIDstart := substring-before($id, '#')
+        let $mainID := if(starts-with($mainIDstart, $config:baseURI)) then substring-after($mainIDstart, $config:baseURI) else $mainIDstart
         let $SUBid := substring-after($id, '#')
         let $node := $exptit:col//id($mainID)
         return
@@ -116,7 +116,7 @@ function exptit:printTitleID($id as xs:string)
                  ) 
             else
 (:            format the title, add it to the list and pass again to this function, which will have something to match now:)
-                (let $subtitle := exptit:printSubtitle($node, $SUBid)
+                (let $subtitle := exptit:printSubtitle($node[1], $SUBid)
                  let $name := (exptit:printTitleID($mainID)|| ', '||$subtitle)   
                  let $addit := exptit:updateTUList($name, $id)
                     return
@@ -130,6 +130,10 @@ function exptit:printTitleID($id as xs:string)
             || ', could not check for ' || $SUBid
         }</span>)
     )    
+    else if (not(starts-with($id, 'http')) and matches($id, '(A-Za-z0-9\.\-)')) then 
+(:    in e.g. LIT1340EnochE.1.6-9 will remove .1 and .6-9 :)
+    let $mainid := replace($id, '(\.[A-Za-z0-9\-]+)', '') return
+    $exptit:col/id($mainid)//t:title[@type = 'full']/text()
        (: if not, procede to main title printing :)
     else
         $exptit:col/id($id)//t:title[@type = 'full']/text()

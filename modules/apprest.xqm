@@ -572,14 +572,16 @@ return
 (:here I cannot use for the title the javascript titles.js because the content is not exposed:)
 <bibl>
 {
-for $author in config:distinct-values(($file//t:revisionDesc/t:change/@who| $file//t:editor/@key))
-let $score := count($file//t:revisionDesc/t:change[@who eq $author]) + count($file//t:editor[@key eq $author]) + (if($file//t:editor[@key eq $author][@role eq 'cataloguer' or @role eq 'editor']) then 100 else 0)
+let $ids := ($file//t:revisionDesc/t:change/@who| $file//t:fileDesc/t:titleStmt/t:editor/@key| $file//t:respStmt/@xml:id)
+let $cleanids := for $i in distinct-values($ids) return replace($i, '#', '') 
+for $author in distinct-values($cleanids)
+let $score := count($file//t:revisionDesc/t:change[@who eq $author]) + count($file//t:fileDesc/t:titleStmt/t:editor[@key eq $author]) + (if($file//t:editor[@key eq $author][@role eq 'cataloguer' or @role eq 'editor']) then 100 else 0)
 order by $score descending
                 return
 <author>{editors:editorKey(string($author))}</author>
 }
 <title level="a">{exptit:printTitleID($id)}</title>
-<title level="j">{$file//t:publisher/text()}</title>
+<title level="j">{$file//t:fileDesc/t:publicationStmt/t:publisher/text()}</title>
 <date type="accessed"> [Accessed: {current-date()}] </date>
 {let $time := max($file//t:revisionDesc/t:change/xs:date(@when))
 return
@@ -598,14 +600,16 @@ return
 (:here I cannot use for the title the javascript titles.js because the content is not exposed:)
 <bibl>
 {
-for $author in config:distinct-values(($file//t:revisionDesc/t:change/@who| $file//t:editor/@key))
+let $ids := ($file//t:revisionDesc/t:change/@who| $file//t:fileDesc/t:titleStmt/t:editor/@key| $file//t:respStmt/@xml:id)
+let $cleanids := for $i in distinct-values($ids) return replace($i, '#', '') 
+for $author in distinct-values($cleanids)
 let $count := count($file//t:revisionDesc/t:change[@who eq $author])
 order by $count descending
                 return
 <author>{editors:editorKey(string($author))}</author>
 }
 <title level="a">{exptit:printTitleID($id)}</title>
-<title level="j">{$this//t:publisher/text()}</title>
+<title level="j">{$this//t:fileDesc/t:publicationStmt/t:publisher/text()}</title>
 <date type="accessed"> [Accessed: {current-date()}] </date>
 {let $time := max($file//t:revisionDesc/t:change/xs:date(@when))
 return
@@ -647,7 +651,8 @@ return
                 {for $change in $document//t:revisionDesc/t:change
                 let $time := $change/@when
                 let $author := editors:editorKey(string($change/@who))
-                let $ES := if(contains($change/text(), 'Ethio-SPaRe team photographed the manuscript')) then () else if (xs:date($time) ge xs:date('2016-05-10')) then () else ' in Ethio-SPaRe '
+                let $collection :=  $change/ancestor::t:TEI//t:collection
+                let $ES := if(contains($change/text(), 'Ethio-SPaRe team photographed the manuscript')) then () else if (xs:date($time) ge xs:date('2016-05-10')) then () else if  (not(starts-with($collection/text(), 'Ethio-')))  then () else ' in Ethio-SPaRe '
                 order by $time descending
                 return
                 <li>
@@ -665,7 +670,9 @@ return
                 <div>
                 {for $respStmt in $document//t:titleStmt/t:respStmt
                 let $action := string-join($respStmt/t:resp, ' ')
-                let $authors :=
+              return
+              if($respStmt/t:persName) then 
+            (   let $authors :=
                             for $p in $respStmt/t:persName
                                 return
                                     (if($p/@ref) then editors:editorKey(string($p/@ref)) else $p) || (if($p/@from or $p/@to) then (' ('||'from '||$p/@from || ' to ' ||$p/@to||')') else ())
@@ -675,7 +682,9 @@ return
                 return
                 <p>
                 {($action || ' by ' || string-join($authors, ', '))}
-                </p>
+                </p>)
+                else <p>{$respStmt/t:name/text() || ', ' || $respStmt/t:resp/text()}</p>
+                
                 }
                 </div>
     </div>
@@ -728,10 +737,13 @@ return
     <div class=" w3-third" id="attributions">
 <div class="w3-panel w3-card-4 w3-padding w3-margin w3-gray " >
 <h3>Attributions of the contents</h3>
-                <div>
+<div>
                 {for $respStmt in $document//t:titleStmt/t:respStmt
-                let $action := $respStmt/t:resp
-                let $authors :=
+                let $task := $respStmt/t:resp
+                let $action := string-join($respStmt/t:resp, ' ')
+              return
+              if($respStmt/t:persName) then
+            (   let $authors :=
                             for $p in $respStmt/t:persName
                                 return
                                     (if($p/@ref) then editors:editorKey(string($p/@ref)) else $p) || (if($p/@from or $p/@to) then (' ('||'from '||$p/@from || ' to ' ||$p/@to||')') else ())
@@ -739,12 +751,20 @@ return
 
                 order by $action descending
                 return
-                <p>
-                {($action || ' by ' || string-join($authors, ', '))}
-                </p>
+                <ul class="nodot">
+                {for $task in $respStmt
+                return
+                <li class="nodot">{$action || ' by ' || string-join($authors, ', ')}</li>
                 }
+                </ul>)
+               else
+               for $task in $respStmt
+                return
+                <li class="nodot">{$respStmt/t:name/text() || ', ' || $respStmt/t:resp/text()}</li>
+                }             
+              
                 </div>
-    </div>
+          </div>
      {if($document//t:editionStmt/node()) then <div class="w3-panel w3-card-4 w3-padding w3-margin w3-red " >{string:tei2string($document//t:editionStmt/node())}</div> else ()}
      {if($document//t:availability/node()) then <div class="w3-panel w3-card-4 w3-padding w3-margin w3-white " >{string:tei2string($document//t:availability/node())}</div> else ()}
     </div>
@@ -1680,7 +1700,7 @@ else (
 <span>
 <a class="itemtitle" data-value="{$title}" href="{$title}">{
 if($title = '') then <span class="w3-tag w3-red">{'no ref in title'}</span> 
-else try{exptit:printTitleID($title)} catch * {$title}}</a>
+else try{exptit:printTitle($title)} catch * {$title}}</a>
 {$placement}</span>
 )
  }
@@ -1708,7 +1728,7 @@ return if($t = $target-work) (:highlight the position of the currently selected 
         else if ($additem/t:title[not(@ref)]/text())
    then (normalize-space(string-join(string:tei2string($additem/t:title/node()))), $placement)
     (:normally print the title of the referred item:)
-else (   <span><a class="itemtitle" data-value="{$t}" href="{$t}">{if($t = '') then <span class="w3-tag w3-red">{'no ref in title'}</span> else try{exptit:printTitleID($t)} catch * {$t}}</a> {$placement}</span>)
+else (   <span><a class="itemtitle" data-value="{$t}" href="{$t}">{if($t = '') then <span class="w3-tag w3-red">{'no ref in title'}</span> else try{exptit:printTitle($t)} catch * {$t}}</a> {$placement}</span>)
  }
  </li>
  }
@@ -1753,7 +1773,7 @@ if($mss = '') then ()  else(
 
                 <div  class="w3-card-2 w3-margin">
                                     <header class="w3-red w3-padding">
-                                        <a href="{('/'||$msid)}">{exptit:printTitleID($msid)}</a>
+<a href="{('/'||$msid)}">{exptit:printTitleID($msid)}</a> 
                                         ({string($minnotBefore)}-{string($maxnotAfter)})
                                      </header>
                                     <div class="w3-container" style="max-height:60vh; overflow-y:auto">
@@ -1779,7 +1799,7 @@ if($mss = '') then ()  else(
                                                                         {
                                                                                 if($title = '')
                                                                                 then <span class="w3-tag w3-red">{'no ref in title'}</span>
-                                                                                 else (try{exptit:printTitleID($title)} catch * {$title})
+                                                                                 else (try{exptit:printTitle($title)} catch * {$title})
                                                                         }
                                                                      </a>,
                                                                      $placement
@@ -1805,7 +1825,7 @@ return
 if ($additem/t:title[not(@ref)]/text())
    then (normalize-space(string-join(string:tei2string($additem/t:title/node()))), $placement)
     (:normally print the title of the referred item:)
-else (   <a class="itemtitle" data-value="{$t}" href="{$t}">{if($t = '') then <span class="w3-tag w3-red">{'no ref in title'}</span> else try{exptit:printTitleID($t)} catch * {$t}}</a>, $placement)
+else (   <a class="itemtitle" data-value="{$t}" href="{$t}">{if($t = '') then <span class="w3-tag w3-red">{'no ref in title'}</span> else try{exptit:printTitle($t)} catch * {$t}}</a>, $placement)
  }
  </li>
  }
