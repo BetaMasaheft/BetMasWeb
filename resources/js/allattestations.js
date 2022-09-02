@@ -1,3 +1,8 @@
+/**
+ * Called from modules/scriptlinks.xqm scriptlinks:ItemFooterScript()
+ * 
+ */
+
 var attestations = $('<div/>')
 
 $('#showattestations').on('click', function () {
@@ -5,28 +10,28 @@ $('#showattestations').on('click', function () {
     var id = $(this).data('id')
     var apicall = '/api/attestations/' + type + '/' + id
     $.getJSON(apicall, function (data) {
-    if(data.results == null) { $('#allattestations').append('No attestations of this entity could be found.')}
-    else {
-     var resheading = '<div class="w3-row"><div class="w3-quarter">Attestation source</div><div class="w3-threequarter">attestations</div></div>'
-     var totatt = ''
-     if (data.results.length > 1) {totatt = data.results.length} else {totatt = 1}
-   var report = 'There are <span class="w3-label w3-red">' + totatt + '</span> entities with attestations of this record.'
-   $('#allattestations').append(report)
-         $('#allattestations').append(resheading)
+        if (data.results == null) { $('#allattestations').append('No attestations of this entity could be found.') }
+        else {
+            var resheading = '<div class="w3-row"><div class="w3-quarter">Attestation source</div><div class="w3-threequarter">attestations</div></div>'
+            var totatt = ''
+            if (data.results.length > 1) { totatt = data.results.length } else { totatt = 1 }
+            var report = 'There are <span class="w3-label w3-red">' + totatt + '</span> entities with attestations of this record.'
+            $('#allattestations').append(report)
+            $('#allattestations').append(resheading)
 
-        if (data.results.length > 1) {
-            var resultlength = data.results.length
-            for (var i = 0; i < resultlength; i++) {
-                var res = data.results[i]
-                results(res)
+            if (data.results.length > 1) {
+                var resultlength = data.results.length
+                for (var i = 0; i < resultlength; i++) {
+                    var res = data.results[i]
+                    results(res)
+                }
+            } else {
+
+                results(data.results)
             }
-        } else {
-
-            results(data.results)
         }
-       }
     })
-    $(this).prop('disabled',true);
+    $(this).prop('disabled', true);
 });
 
 function results(res) {
@@ -76,7 +81,7 @@ function entry(entry) {
     }
 
 
-    var thisentry = '<div class="w3-row singleattestation"><div class="w3-quarter">'+entry.position+ ') '+ entrytitles + '<b>'+ entrytitle + '</b>' + ' (' + entrydate + '), ' + entryrole + '['+entryelem+']</div><div class="w3-threequarter">' + alloccurrences + '</div></div><hr/>'
+    var thisentry = '<div class="w3-row singleattestation"><div class="w3-quarter">' + entry.position + ') ' + entrytitles + '<b>' + entrytitle + '</b>' + ' (' + entrydate + '), ' + entryrole + '[' + entryelem + ']</div><div class="w3-threequarter">' + alloccurrences + '</div></div><hr/>'
     return thisentry
 };
 
@@ -105,9 +110,9 @@ function lines(name) {
 
     var link = ''
     if (name.id == 'no-id') {
-         link = name.name
+        link = name.name
     } else {
-     link = '<a href="' + name.id + '">' + name.name + '</a>'
+        link = '<a href="' + name.id + '">' + name.name + '</a>'
 
     }
     var typ = ''
@@ -124,10 +129,10 @@ $('.msitemloader').on('click', function () {
     var mainid = $(this).data('mainid')
     var msitemid = $(this).data('msitem')
     var apicall = '/api/loadmsItems/' + mainid + '/' + msitemid
-    var mscontainer = '#msitemloadcontainer'+msitemid
+    var mscontainer = '#msitemloadcontainer' + msitemid
     console.log(mscontainer)
     console.log($(mscontainer))
     $.getJSON(apicall, function (data) {
-    $(mscontainer).append(data.msitems)
+        $(mscontainer).append(data.msitems)
     })
-    })
+})

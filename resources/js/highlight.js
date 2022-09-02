@@ -1,32 +1,37 @@
+/**
+ * Called from modules/scriptlinks.xqm scriptlinks:ItemFooterScript()
+ * 
+ */
+
 var getUrlParameter = function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.href),
-    sPageParsIndex = sPageURL.lastIndexOf('\?'),
-     sPageParsed = sPageURL.substring(sPageParsIndex + 1),
-     sURLVariables = sPageParsed.split('&'),
-    sParameterName,
-    i;
+        sPageParsIndex = sPageURL.lastIndexOf('\?'),
+        sPageParsed = sPageURL.substring(sPageParsIndex + 1),
+        sURLVariables = sPageParsed.split('&'),
+        sParameterName,
+        i;
     //console.log(sURLVariables)
     for (i = 0; i < sURLVariables.length; i++) {
         sParameterName = sURLVariables[i].split('=');
-   // console.log(sParameterName)
+        // console.log(sParameterName)
         if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true: sParameterName[1];
+            return sParameterName[1] === undefined ? true : sParameterName[1];
         }
     }
 };
 
 
 function popup(id) {
-  var x = document.getElementById(id);
-  if (x.className.indexOf("w3-show") == -1) {
-    x.className += " w3-show";
-  } else { 
-    x.className = x.className.replace(" w3-show", "");
-  }
+    var x = document.getElementById(id);
+    if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+    } else {
+        x.className = x.className.replace(" w3-show", "");
+    }
 }
 
 $('.word').each(function (wn) {
-    
+
     var word = $(this)
     /*make all spaces a single space*/
     var normspace = $(word).text().replace(/\s+/g, ' ');
@@ -82,8 +87,8 @@ $('.word').each(function (wn) {
 });
 
 
-$('.popup').on('mouseover mouseout',function () {
-    var id = $(this).data('value') 
+$('.popup').on('mouseover mouseout', function () {
+    var id = $(this).data('value')
     //console.log(id)
     popup(id)
 })
@@ -124,14 +129,14 @@ $('.diplomaticHighlight').on('change', function () {
 $(document).ready(function () {
     var fullq = getUrlParameter('hi');
     //console.log(fullq)
-   if(fullq === undefined){} else {
-   if (/[\*\?\~\(]/g.test(fullq)) {
-        var q = fullq.replace(/[\*\?\~\(]/g, '')
-    } else {
-        var q = fullq
-    }
-    if(q.length > 1) {$('.msItemContent').toggleClass('w3-show')}
-    //console.log(q)
-    $('span:contains("' + q + '")').toggleClass('queryTerm')
+    if (fullq === undefined) { } else {
+        if (/[\*\?\~\(]/g.test(fullq)) {
+            var q = fullq.replace(/[\*\?\~\(]/g, '')
+        } else {
+            var q = fullq
+        }
+        if (q.length > 1) { $('.msItemContent').toggleClass('w3-show') }
+        //console.log(q)
+        $('span:contains("' + q + '")').toggleClass('queryTerm')
     }
 });

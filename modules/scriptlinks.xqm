@@ -2,11 +2,23 @@ xquery version "3.1" encoding "UTF-8";
 (:~
  : module used by the restXQ modules functions
  : used by the main views for items
+ : 43 JS deps loaded in total
+ : 23 via resources
+ : 
+ : TODO(DP): Cleanup script tags 
+ : - remove conflicts
+ : - switch from CDN to node ?
+ : - refactor (avoid unnecessary dupication) 
+ :
+ : @see https://github.com/BetaMasaheft/Documentation/issues/2224
  :
  : @author Pietro Liuzzo 
  :)
  
 module namespace scriptlinks="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks";
+
+import module namespace sm = "http://exist-db.org/xquery/securitymanager";
+import module namespace request ="http://exist-db.org/xquery/request";
 
 import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 

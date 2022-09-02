@@ -5,6 +5,8 @@
  * Modified from https://github.com/ethiopicist/Calendar/blob/master/scripts/src/conversion.js
  *
  * Copyright (c) 2020 Ethiopicist.com and its contributors.
+ * 
+ * Called from modules/scriptlinks.xqm scriptlinks:ItemFooterScript()
  *
  * @licence MIT License
  */
