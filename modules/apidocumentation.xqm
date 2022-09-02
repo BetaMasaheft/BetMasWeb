@@ -3,6 +3,7 @@ xquery version "3.1";
  : lists the functions available in the restXQ module to be printed in the api documentation
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace apidoc="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apidoc";
 

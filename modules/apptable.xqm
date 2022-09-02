@@ -3,8 +3,12 @@ xquery version "3.1" encoding "UTF-8";
  : module used by the app for tables of results
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace apptable="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apptable";
+
+import module namespace sm = "http://exist-db.org/xquery/securitymanager";
+
 import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm"; 
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";

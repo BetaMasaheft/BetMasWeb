@@ -1,5 +1,11 @@
 xquery version "3.1" encoding "UTF-8";
 (:~
+ : TODO(DP): this is supposed to call the duped module https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dts but it doesn't
+ : If calls to dts.xqm are necessary these should go to the BetMasApi packages
+ : all dts modules are good candidates to be migrated into the BetMasApi package or to become a standalone package
+ :)
+
+(:~
  : test implementation of the https://github.com/distributed-text-services
  : SERVER
  : @author Pietro Liuzzo 

@@ -1,8 +1,21 @@
 xquery version "3.1" encoding "UTF-8";
 (:~
+ : TODO(DP) move to api (?):
+ : - Yet another iteration of BetMasApi/specifications/dts.xqm
+ : - use BetMasApi modules from BetMasWeb throughout
+ : - This module is imported by 2 moduels in BetMasWeb
+ : - dead code cleanup
+ : @see #2
+ : @see items.xqm
+ : @see permanentItems.xqm
+ : 
+ :)
+
+(:~
  : test implementation of the https://github.com/distributed-text-services
  : CLIENT
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :
  : can take any number of specified DTS endpoints to parse and display them,
  : so, insted of just calling the functions in the DTS module or directly query the db, it sends
@@ -10,14 +23,19 @@ xquery version "3.1" encoding "UTF-8";
  :)
 
 module namespace dtsc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtsc";
+
+import module namespace util = "http://exist-db.org/xquery/dbutil";
+import module namespace console = "http://exist-db.org/xquery/console";
+(: import module namespace functx = "http://www.functx.com"; :)
+
+import module namespace localdts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/localdts" at "xmldb:exist:///db/apps/BetMasWeb/modules/localdts.xqm";
+import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
+
+
 declare namespace http = "http://expath.org/ns/http-client";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace dts = "https://w3id.org/dts/api#";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-import module namespace functx = "http://www.functx.com";
-import module namespace localdts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/localdts" at "xmldb:exist:///db/apps/BetMasWeb/modules/localdts.xqm";
-import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
-import module namespace console = "http://exist-db.org/xquery/console";
 
 
 declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {

@@ -1,17 +1,20 @@
 xquery version "3.1" encoding "UTF-8";
 (:~
- :error page returned as rest xq fallback before returning status code
+ : error page returned as rest xq fallback before returning status code
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error";
 
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace t = "http://www.tei-c.org/ns/1.0";
-import module namespace log="http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+(: import module namespace log="http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm"; :)
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
+
+declare namespace http = "http://expath.org/ns/http-client";
+declare namespace t = "http://www.tei-c.org/ns/1.0";
+
 
 
 declare function error:error($name as map(*)){

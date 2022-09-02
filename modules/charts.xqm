@@ -4,16 +4,20 @@ xquery version "3.1" encoding "UTF-8";
  : strings to the search, based on known homophones.
  :
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts";
+
+import module namespace util = "http://exist-db.org/xquery/dbutil";
+
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace fusekisparql = 'https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki' at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 
-declare namespace test="http://exist-db.org/xquery/xqsuite";
+(: declare namespace test="http://exist-db.org/xquery/xqsuite"; :)
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
+(: declare namespace s = "http://www.w3.org/2005/xpath-functions"; :)
 
 declare function charts:mssSankey($itemid){
   let $query := ($config:sparqlPrefixes || "

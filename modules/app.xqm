@@ -4,35 +4,41 @@ xquery version "3.1" encoding "UTF-8";
  : mostly inherited from exist-db examples app but all largely modified
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace app="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app";
 
-declare namespace test="http://exist-db.org/xquery/xqsuite";
-declare namespace t="http://www.tei-c.org/ns/1.0";
-declare namespace functx = "http://www.functx.com";
-declare namespace exist = "http://exist.sourceforge.net/NS/exist";
-declare namespace skos = "http://www.w3.org/2004/02/skos/core#";
-declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
-declare namespace sr = "http://www.w3.org/2005/sparql-results#";
-declare namespace xconf="http://exist-db.org/collection-config/1.0";
+import module namespace request = "http://exist-db.org/xquery/request";
+import module namespace functx = "http://www.functx.com";
+import module namespace util = "http://exist-db.org/xquery/dbutil";
+import module namespace templates="http://exist-db.org/xquery/templates";
 
-import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2"  at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
-import module namespace templates="http://exist-db.org/xquery/templates" ;
-import module namespace log="http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
-import module namespace coord="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord" at "xmldb:exist:///db/apps/BetMasWeb/modules/coordinates.xqm";
-import module namespace nav="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
-import module namespace ann = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ann" at "xmldb:exist:///db/apps/BetMasWeb/modules/annotations.xqm";
-import module namespace all="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
+import module namespace console="http://exist-db.org/xquery/console";
+
+
 import module namespace editors="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";
-import module namespace validation = "http://exist-db.org/xquery/validation";
 import module namespace fusekisparql = 'https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki' at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
-import module namespace console="http://exist-db.org/xquery/console";
+
+import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2"  at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace log="http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace nav="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
+import module namespace all="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
 import module namespace apptable="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apptable" at "xmldb:exist:///db/apps/BetMasWeb/modules/apptable.xqm";
+
+declare namespace t="http://www.tei-c.org/ns/1.0";
+
+declare namespace exist = "http://exist.sourceforge.net/NS/exist";
+declare namespace skos = "http://www.w3.org/2004/02/skos/core#";
+declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+declare namespace sr = "http://www.w3.org/2005/sparql-results#";
+declare namespace xconf="http://exist-db.org/collection-config/1.0";
+
+(: declare namespace test="http://exist-db.org/xquery/xqsuite"; :)
+(: declare namespace s = "http://www.w3.org/2005/xpath-functions"; :)
+
 
 (:~declare variable $app:item-uri as xs:string := raequest:get-parameter('uri',());:)
 declare variable $app:deleted := doc('/db/apps/lists/deleted.xml');
@@ -101,10 +107,6 @@ declare variable $app:APP_ROOT :=
             request:get-context-path() || "/apps/BetMas"
             ;
 
-declare %private function functx:capitalize-first( $arg as xs:string? )  as xs:string? {
-   concat(upper-case(substring($arg,1,1)),
-             substring($arg,2))
- } ;
  
 declare function app:interpretationSegments($node as node(), $model as map(*)){
  for $d in config:distinct-values(collection($config:data-rootMS)//t:seg/@ana)
@@ -1134,7 +1136,7 @@ declare
     %templates:default("target-ms", "all")
     %templates:default("target-work", "all")
     %templates:default("homophones", "true")
-%templates:default("numberOfParts", "")
+    %templates:default("numberOfParts", "")
     %templates:default("element",  "TEI")
 function app:query(
 $node as node()*, 

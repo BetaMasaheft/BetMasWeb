@@ -1,8 +1,18 @@
 xquery version "3.1" encoding "UTF-8";
 (:~
+ : TODO(DP) delete (?):
+ : - Yet another iteration of BetMasApi/specifications/dts.xqm
+ : - use BetMasApi modules from BetMasWeb throughout
+ : - This module is imported by localdts.xqm
+ : 
+ :)
+
+
+(:~
  : test implementation of the https://github.com/distributed-text-services
  : SERVER
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :
  : to do 
  : if I want to retrive 1ra@ወወልድ[1]-3vb, should the  @ወወልድ[1] piece also be in the passage/start/end parameter 
@@ -16,15 +26,9 @@ xquery version "3.1" encoding "UTF-8";
 
 module namespace dtslib="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib";
 
-declare namespace t="http://www.tei-c.org/ns/1.0";
-declare namespace exist = "http://exist.sourceforge.net/NS/exist";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace json = "http://www.json.org";
-declare namespace cx ="http://interedition.eu/collatex/ns/1.0";
-declare namespace sr="http://www.w3.org/2005/sparql-results#";
-declare namespace test="http://exist-db.org/xquery/xqsuite";
 import module namespace functx="http://www.functx.com";
+import module namespace console="http://exist-db.org/xquery/console";
+
 import module namespace log="http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
@@ -32,7 +36,18 @@ import module namespace fusekisparql = 'https://www.betamasaheft.uni-hamburg.de/
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
-import module namespace console="http://exist-db.org/xquery/console";
+
+
+declare namespace t="http://www.tei-c.org/ns/1.0";
+declare namespace exist = "http://exist.sourceforge.net/NS/exist";
+declare namespace http = "http://expath.org/ns/http-client";
+declare namespace json = "http://www.json.org";
+declare namespace cx ="http://interedition.eu/collatex/ns/1.0";
+declare namespace sr="http://www.w3.org/2005/sparql-results#";
+declare namespace test="http://exist-db.org/xquery/xqsuite";
+
+(: declare namespace s = "http://www.w3.org/2005/xpath-functions"; :)
+
 
 declare variable $dtslib:context := map{
         "@vocab": "https://www.w3.org/ns/hydra/core#",

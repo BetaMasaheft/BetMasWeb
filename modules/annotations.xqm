@@ -3,14 +3,16 @@ xquery version "3.1" encoding "UTF-8";
  : module used by functions producing oa annoations for pelagios
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace ann = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ann";
 
-declare namespace t="http://www.tei-c.org/ns/1.0";
+
 import module namespace coord = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord" at "xmldb:exist:///db/apps/BetMasWeb/modules/coordinates.xqm";
 import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-declare namespace test="http://exist-db.org/xquery/xqsuite";
 
+declare namespace test="http://exist-db.org/xquery/xqsuite";
+declare namespace t="http://www.tei-c.org/ns/1.0";
 
 (:~for the annotations in pelagios, decide based on id how to format the uri
 : wikidata.org/entity/ and not /wiki/ because it returns a 303 

@@ -4,6 +4,7 @@ xquery version "3.1" encoding "UTF-8";
  : strings to the search, based on known homophones.
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :
  :)
 module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all";

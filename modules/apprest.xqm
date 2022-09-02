@@ -4,29 +4,33 @@ xquery version "3.1" encoding "UTF-8";
  : used by the main views for items
  :
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
  
 module namespace apprest="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest";
 
-declare namespace t="http://www.tei-c.org/ns/1.0";
-declare namespace functx = "http://www.functx.com";
-declare namespace exist = "http://exist.sourceforge.net/NS/exist";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
-declare namespace http = "http://expath.org/ns/http-client";
+(: import module namespace console = "http://exist-db.org/xquery/console";
+import module namespace exreq = "http://exquery.org/ns/request"; 
+import module namespace kwic = "http://exist-db.org/xquery/kwic"   at "resource:org/exist/xquery/lib/kwic.xql"; :)
+
+import module namespace templates="http://exist-db.org/xquery/templates" ;
+
+
+import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
-import module namespace kwic = "http://exist-db.org/xquery/kwic"   at "resource:org/exist/xquery/lib/kwic.xql";
 import module namespace app="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "xmldb:exist:///db/apps/BetMasWeb/modules/app.xqm";
 import module namespace editors="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
-import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
-import module namespace templates="http://exist-db.org/xquery/templates" ;
-import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
-import module namespace console = "http://exist-db.org/xquery/console"; 
-import module namespace exreq = "http://exquery.org/ns/request";
+(: import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm"; :)
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
+
+declare namespace t="http://www.tei-c.org/ns/1.0";
+declare namespace http = "http://expath.org/ns/http-client";
+
+(: declare namespace s = "http://www.w3.org/2005/xpath-functions"; :)
 
 declare variable $apprest:languages := doc('/db/apps/lists/languages.xml');
 declare variable $apprest:prefixes := doc('https://raw.githubusercontent.com/BetaMasaheft/Documentation/master/prefixDef.xml');

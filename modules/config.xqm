@@ -2,10 +2,12 @@ xquery version "3.0";
 (:~
  : A set of helper functions to access the application context from
  : within a module.
+ : @author Duncan Paterson
  :)
 module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config";
 
 import module namespace http="http://expath.org/ns/http-client";
+import module namespace system = "http://exist-db.org/xquery/system";
 
 declare namespace templates="http://exist-db.org/xquery/templates";
 

@@ -3,10 +3,16 @@ xquery version "3.1" encoding "UTF-8";
  : module with all the main functions which can be called by the API.
  : called by academics.js
  : 
+ : Don't understand the reason for the split, this should all be xquery imv 
+ :
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace aka = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/aka";
+
 import module namespace rest = "http://exquery.org/ns/restxq";
+import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
+
 import module namespace exptit="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
@@ -42,13 +48,13 @@ let $wikidata := if(starts-with($p/@sameAs, 'wd:')) then wiki:wikitable(substrin
 order by $mindate
 return
 map {
-'id' : string($id),
-'title' : $title,
-'text' : $academictext,
-'dates' : $d-d,
-'bio' : $bio,
-'zoturl' : $zoterurl,
-'wd' : $wikidata
+'id': string($id),
+'title': $title,
+'text': $academictext,
+'dates': $d-d,
+'bio': $bio,
+'zoturl': $zoterurl,
+'wd': $wikidata
 }
 
 };

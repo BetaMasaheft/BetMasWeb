@@ -1,18 +1,28 @@
 xquery version "3.1" encoding "UTF-8";
 (:~
+ : TODO(DP) delete:
+ : - Namespace collision with BetMasApi/specifications/dts.xqm
+ : - seems to be an older(?) copy of said module
+ : - use BetMasApi modules from BetMasWeb throughout
+ : - This module has no matching imports
+ : @see #2
+ : 
+ :)
+
+(:~
  : function for locally running called by localdts.xqm
  implementation of the https://github.com/distributed-text-services
  : SERVER
- : @author Pietro Liuzzo 
+ : @author Pietro Liuzzo  
  :
  : to do 
  : if I want to retrive 1ra@ወወልድ[1]-3vb, should the  @ወወልድ[1] piece also be in the passage/start/end parameter 
-: 
-: add possibility of having a collection grouping by institution or catalogue for the manuscripts
-: 
-: urn:dts:betmasMS:INS0012bla:BLorient12314
-:
-: urn:dts:betmasMS:Zotemberg1234:BLorient12314
+ : 
+ : add possibility of having a collection grouping by institution or catalogue for the manuscripts
+ : 
+ : urn:dts:betmasMS:INS0012bla:BLorient12314
+ :
+ : urn:dts:betmasMS:Zotemberg1234:BLorient12314
  :)
 
 module namespace dts="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dts";

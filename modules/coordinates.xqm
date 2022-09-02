@@ -5,8 +5,14 @@ xquery version "3.1" encoding "UTF-8";
  : decides where and how to get coordinates for an entry based on the id
  : 
  : @author Pietro Liuzzo 
+ : @author Duncan Paterson
  :)
 module namespace coord = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord";
+
+import module namespace util = "http://exist-db.org/xquery/dbutil";
+import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
+
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace dcterms = "http://purl.org/dc/terms";
@@ -14,13 +20,11 @@ declare namespace saws = "http://purl.org/saws/ontology";
 declare namespace cmd = "http://www.clarin.eu/cmd/";
 declare namespace skos = "http://www.w3.org/2004/02/skos/core#";
 declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
 declare namespace http = "http://expath.org/ns/http-client";
 
-import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+(: declare namespace s = "http://www.w3.org/2005/xpath-functions"; :)
 
-declare namespace test="http://exist-db.org/xquery/xqsuite";
 
 (:~
  : tries to decide type of coordinate from content:)

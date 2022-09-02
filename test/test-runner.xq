@@ -9,6 +9,8 @@ xquery version "3.1";
  :)
 import module namespace test = "http://exist-db.org/xquery/xqsuite" at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
 import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all";
+import module namespace ann = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ann";
+import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors";
 
 
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
@@ -19,6 +21,10 @@ declare option output:media-type "application/json";
 test:suite(
   (
     inspect:module-functions(xs:anyURI("all.xqm")),
-    inspect:module-functions(xs:anyURI("wordCount.xqm"))
+    inspect:module-functions(xs:anyURI("annotations.xqm")),
+    inspect:module-functions(xs:anyURI("editors.xqm")),
+
+    inspect:module-functions(xs:anyURI("annotations.xqm"))
+
   )
 )
