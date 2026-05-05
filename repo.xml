@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta xmlns="http://exist-db.org/xquery/repo">
+    <description>Beta Masaheft Web Application</description>
+    <author>Pietro Liuzzo</author>
+    <author>Claudius Teodorescu</author>
+    <website>https://betamasaheft.eu/</website>
+    <status>alpha</status>
+    <license>GNU-LGPL</license>
+    <copyright>true</copyright>
+    <type>application</type>
+    <target>BetMasWeb</target>
+    <prepare>pre-install.xql</prepare>
+    <finish>post-install.xql</finish>
+    <permissions user="BetaMasaheftAdmin" group="dba" mode="rwxrwxr-x"/>
+</meta>
