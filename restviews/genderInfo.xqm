@@ -7,25 +7,14 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace genderInfo = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/genderInfo";
 
-declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace dcterms = "http://purl.org/dc/terms";
-declare namespace saws = "http://purl.org/saws/ontology";
-declare namespace cmd = "http://www.clarin.eu/cmd/";
-declare namespace skos = "http://www.w3.org/2004/02/skos/core#";
-declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace console = "http://exist-db.org/xquery/console";
-import module namespace http = "http://expath.org/ns/http-client";
 
 declare variable $genderInfo:query :=
 	"SELECT DISTINCT ?ms ?temporal ?repo ?person ?gender ?role ?occupation ?birth ?death ?bondType ?related
@@ -174,7 +163,7 @@ declare function genderInfo:GenBarChartData($sparql) {
 		"]"
 };
 
-declare %rest:GET %rest:path("BetMasWeb/gender/rels") %output:method("json") function genderInfo:relNodes() {
+declare function genderInfo:relNodes($request as map(*)) {
 	let $nodes :=
 		for $n in $genderInfo:sparqlquery[2]//sr:uri[starts-with(., $config:BMurl)]
 		let $id := substring-after($n, $config:BMurl)
@@ -223,12 +212,9 @@ declare %rest:GET %rest:path("BetMasWeb/gender/rels") %output:method("json") fun
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender") %output:method("html5") function genderInfo:landingpage() {
+declare function genderInfo:landingpage($request as map(*)) {
 	let $sparql := $genderInfo:sparqlquery[2]
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
@@ -311,16 +297,13 @@ declare %rest:GET %rest:path("/BetMasWeb/gender") %output:method("html5") functi
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/data") function genderInfo:data() {
+declare function genderInfo:data($request as map(*)) {
 	$genderInfo:sparqlquery[2]
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/table") %output:method("html5") function genderInfo:table() {
+declare function genderInfo:table($request as map(*)) {
 	let $sparql := $genderInfo:sparqlquery[2]
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
@@ -359,12 +342,9 @@ declare %rest:GET %rest:path("/BetMasWeb/gender/table") %output:method("html5") 
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/table/female") %output:method("html5") function genderInfo:tableF() {
+declare function genderInfo:tableF($request as map(*)) {
 	let $sparql := $genderInfo:sparqlqueryF[2]
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
@@ -403,12 +383,9 @@ declare %rest:GET %rest:path("/BetMasWeb/gender/table/female") %output:method("h
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/table/male") %output:method("html5") function genderInfo:tableM() {
+declare function genderInfo:tableM($request as map(*)) {
 	let $sparql := $genderInfo:sparqlqueryM[2]
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
@@ -447,13 +424,10 @@ declare %rest:GET %rest:path("/BetMasWeb/gender/table/male") %output:method("htm
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/page") %output:method("html5") function genderInfo:page() {
+declare function genderInfo:page($request as map(*)) {
 	let $sparql := $genderInfo:sparqlquery[2]
 
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
@@ -600,13 +574,10 @@ function drawMultSeries() {
 	)
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/gender/graph") %output:method("html5") function genderInfo:graph() {
+declare function genderInfo:graph($request as map(*)) {
 	let $sparql := $genderInfo:sparqlquery[2]
 
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>

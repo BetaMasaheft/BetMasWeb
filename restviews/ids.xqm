@@ -8,24 +8,13 @@ xquery version "3.1" encoding "UTF-8";
 module namespace listIds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/listIds";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
-import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
-import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 
-declare %rest:GET %rest:path("/BetMasWeb/listIds") %output:method("html5") function listIds:getlist() {
-	<rest:response>
-		<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-	</rest:response>,
+declare function listIds:getlist($request as map(*)) {
 	<html xmlns="http://www.w3.org/1999/xhtml">
 		<head>
 			<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />

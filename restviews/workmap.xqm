@@ -9,25 +9,15 @@ xquery version "3.1" encoding "UTF-8";
 module namespace workmap = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/workmap";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace dcterms = "http://purl.org/dc/terms";
-declare namespace saws = "http://purl.org/saws/ontology";
-declare namespace cmd = "http://www.clarin.eu/cmd/";
-declare namespace test = "http://exist-db.org/xquery/xqsuite";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
+import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
-import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "xmldb:exist:///db/apps/BetMasWeb/modules/app.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace coord = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord" at "xmldb:exist:///db/apps/BetMasWeb/modules/coordinates.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
-import module namespace ann = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ann" at "xmldb:exist:///db/apps/BetMasWeb/modules/annotations.xqm";
 
 declare variable $workmap:collection-rootW := collection($config:data-rootW);
 
@@ -42,14 +32,9 @@ declare variable $workmap:meta := (
 	return <meta xmlns="http://www.w3.org/1999/xhtml" content="{ $genauthor/text() }" name="creator" />
 );
 
-declare
-	%rest:GET
-	%rest:POST
-	%rest:path("/BetMasWeb/workmap")
-	%rest:query-param("worksid", "{$worksid}", "")
-	%rest:query-param("type", "{$type}", "repo")
-	%output:method("html5")
-function workmap:workmap($worksid as xs:string*, $type as xs:string*) {
+declare function workmap:workmap($request as map(*)) {
+	let $worksid as xs:string* := $request?parameters?worksid
+	let $type as xs:string* := $request?parameters?type
 	let $fullurl := ("?worksid=" || $worksid)
 	let $log := log:add-log-message($fullurl, sm:id()//sm:real/sm:username/string(), "worksmap")
 	let $w := if (contains($worksid, ",")) then
@@ -68,9 +53,6 @@ function workmap:workmap($worksid as xs:string*, $type as xs:string*) {
 		for $work in $w/@xml:id
 		return exptit:printTitleID($work)
 	return if (exists($w) or $worksid = "") then (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -187,21 +169,14 @@ function workmap:workmap($worksid as xs:string*, $type as xs:string*) {
 			</body>
 		</html>
 	) else (
-		<rest:response>
-			<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
-		error:error($Cmap)
+		roaster:response(400, "text/html", error:error($Cmap))
 	)
 };
 
 (: get a placemark for each manuscript which contains a given work :)
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/workmap/KML/{$workid}")
-	%rest:query-param("type", "{$type}", "repo")
-	%output:method("xml")
-function workmap:kml($workid as xs:string, $type as xs:string*) {
-	$config:response200,
+declare function workmap:kml($request as map(*)) {
+	let $workid as xs:string := $request?parameters?workid
+	let $type as xs:string* := $request?parameters?type
 	let $work := "https://betamasaheft.eu/" || $workid
 	let $log := log:add-log-message("/workmap/" || $work || "/KML/", sm:id()//sm:real/sm:username/string(), "workmap")
 	let $thisworkmss := $workmap:collection-rootMS//t:title[@ref = $work]

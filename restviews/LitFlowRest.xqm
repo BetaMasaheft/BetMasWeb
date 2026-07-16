@@ -8,22 +8,14 @@ xquery version "3.1" encoding "UTF-8";
 
 module namespace LitFlowRest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlowRest";
 
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
-import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace rest = "http://exquery.org/ns/restxq";
-import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
 
-declare
-	%rest:GET %rest:POST %rest:path("/BetMasWeb/LitFlow") %rest:query-param("subj", "{$subj}", "") %output:method("html5")
-function LitFlowRest:compareSelected($subj as xs:string*) {
+declare function LitFlowRest:compareSelected($request as map(*)) {
+	let $subj as xs:string* := $request?parameters?subj
 	let $list :=
 		for $s in $subj
 		return $s
@@ -37,9 +29,6 @@ function LitFlowRest:compareSelected($subj as xs:string*) {
 	let $Cmap := map {"type": "item", "name": $list, "path": $fullurl}
 
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />

@@ -10,19 +10,12 @@ module namespace collatex = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/c
 
 declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-(: For REST annotations :)
 declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
-declare namespace test = "http://exist-db.org/xquery/xqsuite";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
-import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace dtslib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtslib.xqm";
-import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $collatex:meta := <meta
@@ -35,15 +28,10 @@ declare variable $collatex:expanded := collection("/db/apps/expanded");
 (:~
  : given a series of dts urn of witness passages, produces the json required for a request to collatex and posts it
  :)
-declare
-	%rest:POST
-	%rest:GET
-	%rest:path("/api/collatex")
-	%rest:query-param("dts", "{$dts}", "")
-	%rest:query-param("nU", "{$nU}", "")
-	%rest:query-param("format", "{$format}", "tei+xml")
-function collatex:collatex($nU as xs:string*, $dts as xs:string*, $format as xs:string*) {
-	$config:response200,
+declare function collatex:collatex($request as map(*)) {
+	let $nU as xs:string* := $request?parameters?nU
+	let $dts as xs:string* := $request?parameters?dts
+	let $format as xs:string* := $request?parameters?format
 	let $urns :=
 		for $u in tokenize($dts, ",")
 		return $u
@@ -71,21 +59,13 @@ function collatex:collatex($nU as xs:string*, $dts as xs:string*, $format as xs:
 	)
 };
 
-declare
-	%rest:GET
-	%rest:POST
-	%rest:path("/BetMasWeb/collate")
-	%rest:query-param("dtsURNs", "{$dtsURNs}", "")
-	%output:method("html5")
-function collatex:collateSelected($dtsURNs as xs:string*) {
+declare function collatex:collateSelected($request as map(*)) {
+	let $dtsURNs as xs:string* := $request?parameters?dtsURNs
 	let $list := $dtsURNs
 	let $fullurl := ("?dtsURNs=" || $dtsURNs)
 	let $Cmap := map {"type": "item", "name": $list, "path": $fullurl}
 
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />

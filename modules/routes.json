@@ -1,0 +1,5192 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "BetMasWeb Roaster router",
+		"description": "Internal route table for the Roaster OpenAPI router that replaces the RESTXQ (%rest:*) dispatch previously handled by controller.xql + eXist's RestXqServlet. Not meant as public API documentation (see the root api.json for that) - only lists operations that have a real backing function.",
+		"version": "1.0.0"
+	},
+	"security": [],
+	"paths": {
+		"/BetMas/api/academics": {
+			"get": {
+				"operationId": "aka:academics",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/{api}/template": {
+			"get": {
+				"operationId": "dts:URItemplates",
+				"parameters": [
+					{
+						"name": "api",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/xml": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/indexes": {
+			"get": {
+				"operationId": "dts:Indexes",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "indexName",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "level",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "begin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "groupBy",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "max",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/annotations": {
+			"get": {
+				"operationId": "dts:WebAnnotationsMain",
+				"parameters": [
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/annotations/{coll}": {
+			"get": {
+				"operationId": "dts:WebAnnotationsColl",
+				"parameters": [
+					{
+						"name": "coll",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/annotations/{coll}/{indexName}": {
+			"get": {
+				"operationId": "dts:WebAnnotationsIndex",
+				"parameters": [
+					{
+						"name": "coll",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "indexName",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "begin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/annotations/{coll}/items/{BMid}": {
+			"get": {
+				"operationId": "dts:WebAnnotationsItem",
+				"parameters": [
+					{
+						"name": "coll",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "BMid",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "begin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/BetMas/api/dts/annotations/{coll}/items/{BMid}/{indexName}": {
+			"get": {
+				"operationId": "dts:WebAnnotationsItemIndex",
+				"parameters": [
+					{
+						"name": "coll",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "BMid",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "indexName",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "begin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "1"
+						}
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/viewer": {
+			"get": {
+				"operationId": "viewer:allmirador",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/{repoid}/list/viewer": {
+			"get": {
+				"operationId": "viewer:allinRepo",
+				"parameters": [
+					{
+						"name": "repoid",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/viewer": {
+			"get": {
+				"operationId": "viewer:mirador",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "FirstCanv",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/chojnacki/viewer": {
+			"get": {
+				"operationId": "viewer:allchojnacki",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{id}/main": {
+			"get": {
+				"operationId": "restItem:getItem",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/main": {
+			"get": {
+				"operationId": "restItem:getItemC",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/geoBrowser": {
+			"get": {
+				"operationId": "restItem:getgeoBrowser",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/text": {
+			"get": {
+				"operationId": "restItem:gettext",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/analytic": {
+			"get": {
+				"operationId": "restItem:getanalytic",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/{id}/graph": {
+			"get": {
+				"operationId": "restItem:getgraph",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{id}/corpus": {
+			"get": {
+				"operationId": "restItem:getcorpus",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "end",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "ref",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "edition",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{id}/main": {
+			"get": {
+				"operationId": "PermRestItem:getItem",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{collection}/{id}/main": {
+			"get": {
+				"operationId": "PermRestItem:getItemC",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{collection}/{id}/geoBrowser": {
+			"get": {
+				"operationId": "PermRestItem:getgeoBrowser",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{collection}/{id}/text": {
+			"get": {
+				"operationId": "PermRestItem:gettext",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{collection}/{id}/analytic": {
+			"get": {
+				"operationId": "PermRestItem:getanalytic",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{collection}/{id}/graph": {
+			"get": {
+				"operationId": "PermRestItem:getgraph",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permanent/{sha}/{id}/corpus": {
+			"get": {
+				"operationId": "PermRestItem:getcorpus",
+				"parameters": [
+					{
+						"name": "sha",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "hi",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/browse": {
+			"get": {
+				"operationId": "list:browseMS",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/Uni{unitType}/browse": {
+			"get": {
+				"operationId": "list:browseUnits",
+				"parameters": [
+					{
+						"name": "unitType",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/art-themes/list": {
+			"get": {
+				"operationId": "list:artthemes",
+				"parameters": [
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/{collection}/list": {
+			"get": {
+				"operationId": "list:getlist",
+				"parameters": [
+					{
+						"name": "collection",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "mainname",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "clavisID",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "CAeID",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "clavistype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "cp",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tabot",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "placetype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "authors",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "occupation",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "faith",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "gender",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "period",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "restorations",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bindingtype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "country",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "settlement",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/listChart": {
+			"get": {
+				"operationId": "list:getlistChart",
+				"parameters": [
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "mainname",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "clavisID",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "clavistype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "cp",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tabot",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "placetype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "authors",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "occupation",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "faith",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "gender",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "period",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "restorations",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bindingtype",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "country",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "settlement",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/{repoID}/list": {
+			"get": {
+				"operationId": "list:getrepolist",
+				"parameters": [
+					{
+						"name": "repoID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "mainname",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/{repoID}/listChart": {
+			"get": {
+				"operationId": "list:getrepolistchart",
+				"parameters": [
+					{
+						"name": "repoID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "mainname",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/place/list": {
+			"get": {
+				"operationId": "list:getplacelist",
+				"parameters": [
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "place",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "mainname",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/manuscripts/place/listChart": {
+			"get": {
+				"operationId": "list:getregionchart",
+				"parameters": [
+					{
+						"name": "place",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/catalogues/list": {
+			"get": {
+				"operationId": "list:getcatalogues",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/catalogues/{catalogueID}/list": {
+			"get": {
+				"operationId": "list:getcataloguelist",
+				"parameters": [
+					{
+						"name": "catalogueID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/catalogues/{catalogueID}/listChart": {
+			"get": {
+				"operationId": "list:getcataloguelistChart",
+				"parameters": [
+					{
+						"name": "catalogueID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "start",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 1
+						}
+					},
+					{
+						"name": "keyword",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "prms",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "per-page",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "date-range",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "min-hits",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						}
+					},
+					{
+						"name": "max-pages",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						}
+					},
+					{
+						"name": "numberOfParts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "height",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "width",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "columnsNum",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "tmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "rmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "lmargin",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "intercolumn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "folia",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "qcn",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "wL",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "script",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "scribe",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "donor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "patron",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "owner",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "binder",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "parchmentMaker",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "objectType",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "material",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "bmaterial",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "origPlace",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/litcomp": {
+			"get": {
+				"operationId": "litcomp:litcomp",
+				"parameters": [
+					{
+						"name": "worksid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "formsPart"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "litcomp:litcomp",
+				"parameters": [
+					{
+						"name": "worksid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "formsPart"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/LitFlow": {
+			"get": {
+				"operationId": "LitFlowRest:compareSelected",
+				"parameters": [
+					{
+						"name": "subj",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "LitFlowRest:compareSelected",
+				"parameters": [
+					{
+						"name": "subj",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/collatex": {
+			"get": {
+				"operationId": "collatex:collatex",
+				"parameters": [
+					{
+						"name": "dts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "nU",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "format",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "tei+xml"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/xml": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "collatex:collatex",
+				"parameters": [
+					{
+						"name": "dts",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "nU",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "format",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "tei+xml"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/xml": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/collate": {
+			"get": {
+				"operationId": "collatex:collateSelected",
+				"parameters": [
+					{
+						"name": "dtsURNs",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "collatex:collateSelected",
+				"parameters": [
+					{
+						"name": "dtsURNs",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/comparems": {
+			"get": {
+				"operationId": "comparems:compareSelected",
+				"parameters": [
+					{
+						"name": "mss",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "comparems:compareSelected",
+				"parameters": [
+					{
+						"name": "mss",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/compare": {
+			"get": {
+				"operationId": "compare:compare",
+				"parameters": [
+					{
+						"name": "workid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "compare:compare",
+				"parameters": [
+					{
+						"name": "workid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/compareSelected": {
+			"get": {
+				"operationId": "compare:compareSelected",
+				"parameters": [
+					{
+						"name": "mss",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "compare:compareSelected",
+				"parameters": [
+					{
+						"name": "mss",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/rels": {
+			"get": {
+				"operationId": "genderInfo:relNodes",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender": {
+			"get": {
+				"operationId": "genderInfo:landingpage",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/data": {
+			"get": {
+				"operationId": "genderInfo:data",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/table": {
+			"get": {
+				"operationId": "genderInfo:table",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/table/female": {
+			"get": {
+				"operationId": "genderInfo:tableF",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/table/male": {
+			"get": {
+				"operationId": "genderInfo:tableM",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/page": {
+			"get": {
+				"operationId": "genderInfo:page",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/gender/graph": {
+			"get": {
+				"operationId": "genderInfo:graph",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/idlookup": {
+			"get": {
+				"operationId": "lookID:IDSlookup",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/listIds": {
+			"get": {
+				"operationId": "listIds:getlist",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/{username}": {
+			"get": {
+				"operationId": "user:personalPage",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/workmap": {
+			"get": {
+				"operationId": "workmap:workmap",
+				"parameters": [
+					{
+						"name": "worksid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "repo"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "workmap:workmap",
+				"parameters": [
+					{
+						"name": "worksid",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					},
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "repo"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"text/html": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/workmap/KML/{workid}": {
+			"get": {
+				"operationId": "workmap:kml",
+				"parameters": [
+					{
+						"name": "workid",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "repo"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/xml": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

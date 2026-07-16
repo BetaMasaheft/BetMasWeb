@@ -9,17 +9,13 @@ xquery version "3.1" encoding "UTF-8";
 module namespace aka = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/aka";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-(: For REST annotations :)
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace wiki = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/wiki" at "xmldb:exist:///db/apps/BetMasWeb/modules/wikitable.xqm";
 
-declare %rest:GET %rest:path("/BetMas/api/academics") %output:method("json") function aka:academics() {
+declare function aka:academics($request as map(*)) {
 	for $academic in collection($config:data-rootPr)//t:occupation[@type eq "academic"]
 	let $title := normalize-space(string(exptit:printTitle($academic)))
 	let $zoterurl := "https://www.zotero.org/groups/ethiostudies/items/q/" || xmldb:encode-uri($title)

@@ -10,30 +10,16 @@ module namespace PermRestItem = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 
 (: For interacting with the TEI document :)
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace dcterms = "http://purl.org/dc/terms";
-declare namespace saws = "http://purl.org/saws/ontology";
-declare namespace cmd = "http://www.clarin.eu/cmd/";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
-import module namespace tl = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/timeline" at "xmldb:exist:///db/apps/BetMasWeb/modules/timeline.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
-import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
-import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";
-import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
-import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace dtsc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtsc" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtsclient.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
@@ -47,41 +33,25 @@ declare function PermRestItem:capitalize-first($arg as xs:string?) as xs:string?
 
 (: parameter hi is used to highlight searched word when coming query from Dillmann
 parameters start and perpage are for the text visualization with pagination as per standard usage :)
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$id}/main")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getItem(
-	$sha as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:getItem($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $item := item2:getTEIbyID($id)
 	let $col := switch2:col($item/@type)
 	let $log := log:add-log-message("/" || $id || "/main", sm:id()//sm:real/sm:username/string(), "item")
 	return PermRestItem:ITEM("main", $id, $col, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$collection}/{$id}/main")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getItemC(
-	$sha as xs:string*,
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:getItemC($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/main",
 		sm:id()//sm:real/sm:username/string(),
@@ -90,21 +60,13 @@ function PermRestItem:getItemC(
 	return PermRestItem:ITEM("main", $id, $collection, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$collection}/{$id}/geoBrowser")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getgeoBrowser(
-	$sha as xs:string*,
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:getgeoBrowser($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/geoBrowser",
 		sm:id()//sm:real/sm:username/string(),
@@ -113,21 +75,13 @@ function PermRestItem:getgeoBrowser(
 	return PermRestItem:ITEM("geobrowser", $id, $collection, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$collection}/{$id}/text")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:gettext(
-	$sha as xs:string*,
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:gettext($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/text",
 		sm:id()//sm:real/sm:username/string(),
@@ -136,21 +90,13 @@ function PermRestItem:gettext(
 	return PermRestItem:ITEM("text", $id, $collection, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$collection}/{$id}/analytic")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getanalytic(
-	$sha as xs:string*,
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:getanalytic($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/analytic",
 		sm:id()//sm:real/sm:username/string(),
@@ -159,38 +105,22 @@ function PermRestItem:getanalytic(
 	return PermRestItem:ITEM("analytic", $id, $collection, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$collection}/{$id}/graph")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getgraph(
-	$sha as xs:string*,
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
-	PermRestItem:ITEM("graph", $id, $collection, $start, $per-page, $hi, $sha)
+declare function PermRestItem:getgraph($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
+	return PermRestItem:ITEM("graph", $id, $collection, $start, $per-page, $hi, $sha)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/permanent/{$sha}/{$id}/corpus")
-	%rest:query-param("start", "{$start}", 1)
-	%rest:query-param("per-page", "{$per-page}", 1)
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function PermRestItem:getcorpus(
-	$sha as xs:string*,
-	$id as xs:string*,
-	$start as xs:integer*,
-	$per-page as xs:integer*,
-	$hi as xs:string*
-) {
+declare function PermRestItem:getcorpus($request as map(*)) {
+	let $sha as xs:string* := $request?parameters?sha
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:integer* := $request?parameters?start
+	let $per-page as xs:integer* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message("/corpus/" || $id, sm:id()//sm:real/sm:username/string(), "item")
 	return PermRestItem:ITEM("corpus", $id, "corpora", $start, $per-page, $hi, $sha)
 };
@@ -238,9 +168,6 @@ declare function PermRestItem:ITEM(
 	let $Cmap := map {"type": "collection", "name": $collection, "path": $coll}
 	let $Imap := map {"type": "item", "name": $id, "path": $collection}
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml" version="XHTML+RDFa 1.1">
 			<head>
 				{ scriptlinks:app-title($title) }
