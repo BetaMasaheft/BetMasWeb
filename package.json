@@ -4,6 +4,7 @@
 	"description": "BetMasWeb - Exist-db application",
 	"private": true,
 	"devDependencies": {
+		"cypress": "^15.18.1",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.8",
 		"prettier": "^3.9.4",
@@ -12,6 +13,7 @@
 	"scripts": {
 		"format:check": "prettier --check .",
 		"format:write": "prettier --write . && prettier --write .",
+		"test": "cypress run",
 		"prepare": "husky"
 	},
 	"lint-staged": {
