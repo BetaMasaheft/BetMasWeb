@@ -777,18 +777,27 @@ declare %private function q:par-clavisType($clavisID, $clavisType) {
 };
 
 declare %private function q:par-date-range($element, $dateRange) {
-    let $from := substring-before($dateRange, ',')
-    let $to := substring-after($dateRange, ',')
+    let $combinedString := string-join($dateRange, ',')
+    let $parts          := tokenize($combinedString, ',')
+    
+    let $cleanFrom := substring(string(head($parts)), 1, 4)
+    let $cleanTo   := substring(string(if (count($parts) gt 1) then $parts[2] else $parts[1]), 1, 4)
+    
+    let $fromYear := substring(concat('0000', $cleanFrom), string-length($cleanFrom) + 1)
+    let $toYear   := substring(concat('0000', $cleanTo), string-length($cleanTo) + 1)
+    
     return
-        if ($dateRange = '0,2000')
+        if (($fromYear = '0001' and $toYear = '2000') or empty($dateRange) or $dateRange = '')
         then
             ()
         else
-            "[descendant::t:" || $element || "
-                [xs:integer((if (contains(@notBefore, '-')) then (substring-before(@notBefore, '-')) else @notBefore)[. !='']) ge " || $from || " or
-                xs:integer((if (contains(@notAfter, '-')) then    (substring-before(@notAfter, '-')) else    @notAfter)[. != '']) ge " || $from || "]
-                [xs:integer((if (contains(@notBefore, '-')) then (substring-before(@notBefore, '-')) else @notBefore)[. !='']) le " || $to || " or
-                xs:integer((if (contains(@notAfter, '-')) then (substring-before(@notAfter, '-')) else @notAfter)[. != '']) le " || $to || "]]"
+            "[
+                descendant::t:origDate[
+                    (@notBefore >= '" || $fromYear || "' and @notBefore <= '" || $toYear || "-12-31')
+                    or
+                    (@notAfter >= '" || $fromYear || "' and @notAfter <= '" || $toYear || "-12-31')
+                ]
+            ]"
 };
 
 declare %private function q:par-folia($Pfolia) {
@@ -1136,20 +1145,24 @@ return
 
 declare function q:text($q, $params) {
     (:    let $test := util:log('info', $q:allopts):)
-    let $qscheck := if(matches($q, '([A-Z]{1,3}-\d{3})')) then q:querystring($q, 'phrase') else q:querystring($q, $q:mode)
-    let $qs := if ($qscheck = '' or $qscheck = ' ') then
+    let $phrase := starts-with($q, '"') and ends-with($q, '"')
+    let $mode := if(matches($q, '([A-Z]{1,3}-\d{3})') or $phrase) then 'phrase' else $q:mode
+    let $qscheck := q:querystring($q, $mode)
+    let $qs := if (normalize-space($qscheck) = '') then
         ()
     else
         $qscheck
     let $querycontext := '$q:col//t:TEI'
-    let $ftquery := if (exists($qs)) then '[ft:query(., $qs, $q:allopts)]' else ()
+    let $ftquery := if (exists($qs)) then if ($mode eq 'phrase') then '[ft:query(., ''"' || translate($q, '"', '') || '"'', <options><default-operator>and</default-operator></options>)]'
+            else '[ft:query(., $qs, $q:allopts)]' else ()
     let $parmstoquery := q:parameters2arguments($params)
     let $querytext := concat($querycontext, $parmstoquery, $ftquery)
-    (:    let $test2 := util:log('info', $querytext):)
-    let $query := 
+          let $test2 := util:log('info', ('query:', $q || ' mode:', $mode))
+    let $query := util:eval($querytext)
+(: let $query := 
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
-          return $r
+          return $r ~~ excluding bibl suppressed not to slow down:)
     let $allTEI :=
     if (count($query) gt 300)
     then
@@ -1637,7 +1650,20 @@ declare function q:facetGroup($group, $groupname, $subsequence) {
         {
             for $f in $group
             let $facetTitle := q:facetName($f)
-            let $facets := ft:facets($subsequence, string($f), ())
+            let $facets :=  
+            if ($f = 'authors') then
+                let $values := $subsequence//t:relation[@name=('dcterms:creator','saws:isAttributedToAuthor')]/@passive
+                for $v in distinct-values($values)
+                return map { $v : count($subsequence//t:relation[@passive = $v]) }
+        else if ($f = 'witness') then
+               let $values := $subsequence//t:witness/@corresp
+               for $v in distinct-values($values)
+               return map { $v : count($subsequence//t:witness[@corresp = $v]) }
+         else if ($f = 'sawsVersionOf') then
+            let $values := $subsequence//t:relation[@name='saws:isVersionOf']/@passive
+            for $v in distinct-values($values)
+            return map { $v : count($subsequence//t:relation[@passive = $v]) }
+        else ft:facets($subsequence, string($f), ())
                 order by $facetTitle
             return
                 q:facetDiv($f, $facets, $facetTitle)
@@ -1680,15 +1706,15 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
                                                 $q:languages//t:item[@xml:id eq $label]/text()
                                             else
                                                 if ($f = 'keywords') then
-                                                    let $cleanlabel := if (starts-with($label, $config:appUrl)) then
-                                                        replace(substring-after($label, $config:appUrl), '/', '')
+                                                    let $cleanlabel := if (starts-with($label, $config:BMurl)) then
+                                                        substring-after($label, $config:BMurl)
                                                     else
                                                         $label
                                                     let $taxname := (id($cleanlabel, $q:tax)/self::t:category | $q:tax//t:category[t:catDesc eq $cleanlabel])[1]/t:catDesc/text()
                                                     return
                                                         $taxname
                                                 else
-                                                    if (starts-with($label, $config:appUrl)) then
+                                                    if (starts-with($label, $config:BMurl)) then
                                                         exptit:printTitle($label)
                                                     else
                                                         $label
@@ -1700,8 +1726,8 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
                                 if ($f = 'keywords') then
                                     (for $input in $inputs
                                     let $val := $input/*:input/@value
-                                    let $cleanval := if (starts-with($val, $config:appUrl)) then
-                                        replace(substring-after($val, $config:appUrl), '/', '')
+                                    let $cleanval := if (starts-with($val, $config:BMurl)) then
+                                        substring-after($val, $config:BMurl)
                                     else
                                         $val
                                     let $kk := ($q:tax//t:category[t:catDesc eq $val] | $q:tax//t:category[@xml:id eq $val])
@@ -3309,7 +3335,7 @@ declare function q:summaryWork($item, $id) {
                             else
                                 $rpass
                         for $author in distinct-values($attributions)
-                        let $id := replace($author, 'https://betamasaheft.eu/', '')
+                        let $id := replace($author, $config:BMurl, '')
                         return
                             <li><a
                                     href="{$config:appUrl}/{$author}">{
@@ -3335,7 +3361,7 @@ declare function q:summaryWork($item, $id) {
                     {
                         for $witness in $item//t:listWit/t:witness
                         let $corr := $witness/@corresp
-                        let $id := replace($corr, 'https://betamasaheft.eu/', '')
+                        let $id := replace($corr, $config:BMurl, '')
                         return
                             <li><a
                                     href="{$config:appUrl}/{$corr}">{exptit:printTitleID($id)}</a></li>
@@ -3346,7 +3372,7 @@ declare function q:summaryWork($item, $id) {
                     {
                         for $parallel in ($isVersion, $anotherlang)
                         let $p := $parallel/@active
-                        let $id := replace($parallel, 'https://betamasaheft.eu/', '')
+                        let $id := replace($parallel, $config:BMurl, '')
                         return
                             <li><a
                                     href="{$config:appUrl}/{$p}">{$id}</a></li>
@@ -3766,10 +3792,10 @@ let $t2 := util:log('info', $count):)
     (:let $t3 := util:log('info', $formatoptions):)
     let $options := for $option in $formatoptions
     return
-        if (starts-with($key, 'https://betamasaheft.eu/') and contains($key, '#'))
+        if (starts-with($key, $config:BMurl) and contains($key, '#'))
         then
             try {
-                let $id := replace($key, 'https://betamasaheft.eu/', '')
+                let $id := replace($key, $config:BMurl, '')
                 let $subid := substring-after($key, '#')
                 let $mainid := substring-before($key, '#')
                     group by $MAIN := $mainid
@@ -3808,9 +3834,9 @@ declare function q:formatOption($rangeindexname, $key, $count) {
                     value="{$key}">{editors:editorKey(substring-after($key, '#'))} ({$count[2]})</option>
 
             else
-                if (starts-with($key, 'https://betamasaheft.eu/'))
+                if (starts-with($key, $config:BMurl))
                 then
-                    let $id := replace($key, 'https://betamasaheft.eu/', '')
+                    let $id := replace($key, $config:BMurl, '')
                     let $title := ($q:lists//t:item[@xml:id = $id] | $q:lists//t:item[@corresp = $id])/text()
                     let $titlesel := if ($title) then
                         $title
@@ -4116,7 +4142,11 @@ declare function q:selectors($nodeName, $nodes, $type) {
 
                         for $n in $nodes[. != ''][. != ' ']
                         (:                        let $t := util:log('info', $n):)
-                        let $id := if (starts-with($n, $config:appUrl)) then
+                        (: the data carries the canonical prefix ($config:BMurl),
+                         : not the host this instance is served from :)
+                        let $id := if (starts-with($n, $config:BMurl)) then
+                            substring-after($n, $config:BMurl)
+                        else if ($config:appUrl != '' and starts-with($n, $config:appUrl)) then
                             substring-after($n, ($config:appUrl || '/'))
                         else
                             $n

@@ -1555,7 +1555,7 @@ function app:paginateNew($node as node(), $model as map(*), $start as xs:int, $p
         then(count($model("hits")))
         else
         for $x in $model("hits")
-                                  group by $t := root($x)/t:TEI/@type
+                                  group by $t := string((root($x)/t:TEI/@type)[1])
                                 return
                                 count($x)
         let $count := xs:integer(ceiling(max($types)) div $per-page) + 1
@@ -1878,7 +1878,7 @@ declare function app:searchResNotMatches($model, $start, $per-page){
 
                  for $text in $model('hits')
         let $root := root($text)
-        let $t := $root/t:TEI/@type
+        let $t := string($root/t:TEI/@type[1])
         group by $type := $t
         let $collection := switch2:col($type)
 

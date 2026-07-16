@@ -1,7 +1,6 @@
 xquery version "1.0";
 
 import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
-declare namespace sm="http://exist-db.org/xquery/securitymanager";
 
 (: The following external variables are set by the repo:deploy function :)
 
@@ -36,5 +35,4 @@ xmldb:store-files-from-pattern(
   concat("/system/config", $target),
   $dir,
   "*.xconf"
-),
-sm:add-group-member('dba', 'BetaMasaHeftAdmin')
+)

@@ -415,14 +415,14 @@ case 'manuscripts' return
              let $repoplace := if ($repodoc//t:settlement[1]/@ref) then exptit:printTitleID($repodoc//t:settlement[1]/@ref) else if ($repodoc//t:settlement[1]/text()) then $repodoc//t:settlement[1]/text() else if ($repodoc//t:country[1]/@ref) then exptit:printTitleID($repodoc//t:country[1]/@ref) else ()
 return
             (<a target="_blank"
-            href="{$config:appUrl}/newSearch.html?searchType=text&amp;mode=any&amp;reporef={replace($repo, concat($config:appUrl, '/'), '')}"
+            href="{$config:appUrl}/newSearch.html?searchType=text&amp;mode=any&amp;reporef={if (starts-with($repo, $config:BMurl)) then substring-after($repo, $config:BMurl) else $repo}"
             role="button"
             class="w3-tag w3-gray w3-large w3-margin-top"
             property="http://www.cidoc-crm.org/cidoc-crm/P55_has_current_location"
             resource="{$repo}">{if($repoplace) then ($repoplace, ', ') else ()}
                    {string($this//t:msIdentifier/t:repository/text())}</a>,
                   <a target="_blank"
-            href="{replace($repo, $config:appUrl, '')}">
+            href="/{if (starts-with($repo, $config:BMurl)) then substring-after($repo, $config:BMurl) else $repo}">
                    <sup>[view repository]</sup></a>)
                   }
 
@@ -513,7 +513,7 @@ declare function item2:AdminLocTable($adminLoc as element()*){
                                            <td>{if($s/@type) then exptit:printTitleID($s/@type/data()) else $s/local-name()}</td>
                                            <td>{
                                            if($s/@ref) then
-                                           (<a target="_blank" href="{$config:appUrl}/{if(starts-with($s/@ref, $config:appUrl)) then substring-after($s/@ref, concat($config:appUrl, '/')) else $s/@ref}">{if ($s/text()) then $s/text() else viewItem:namedEntityPlace($s)}</a>,
+                                           (<a target="_blank" href="{$config:appUrl}/{if(starts-with($s/@ref, $config:BMurl)) then substring-after($s/@ref, $config:BMurl) else $s/@ref}">{if ($s/text()) then $s/text() else viewItem:namedEntityPlace($s)}</a>,
                                            <a xmlns="http://www.w3.org/1999/xhtml"
                                            id="{generate-id($s)}Ent{$s/@ref}relations"> <i class="fa fa-hand-o-left"/>
                                            </a>)
@@ -1349,7 +1349,9 @@ let $witnesses := $apprest:collection-rootMS//t:title[contains(@ref, $c)][parent
 let $countwitnesses := for $wit in $witnesses
  let $wid :=  string(root($wit)/t:TEI/@xml:id )
  group by $id := $wid return $id
-let $tit := exptit:printTitleID($c)
+(: relation values carry the canonical prefix; the title lookup and app links need the bare id :)
+let $cid := if (starts-with($c, $config:BMurl)) then substring-after($c, $config:BMurl) else $c
+let $tit := exptit:printTitleID($cid)
 let $subids := for $subid in $work//t:div[@type eq 'textpart'][@corresp eq $c]/@xml:id return $id || '#' || string($subid)
 let $stringsubids:=string-join($subids, ',')
 
@@ -1372,7 +1374,7 @@ let $stringsubids:=string-join($subids, ',')
 return <p><a target="_blank" href="{$config:appUrl}/compare?workid={$stringsubids},{$c}">Click to compare manuscripts of both {$stringsubids} and {$c}.</a></p> else ()}
 </div>
 ) else <p>
-<a target="_blank" href="{$config:appUrl}/{$c}">{$tit}</a> is listed also as {$c}, but not recorded with this reference in any manuscript at the moment.</p>
+<a target="_blank" href="{$config:appUrl}/{$cid}">{$tit}</a> is listed also as {$c}, but not recorded with this reference in any manuscript at the moment.</p>
 ) else ()
 }
     </span> </div>
