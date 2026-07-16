@@ -19,6 +19,12 @@ RUN ant -f /src/BetMas/db/apps/BetMasService/build.xml
 # Ge'ez morphological parser - queries.xqm imports it unconditionally, so
 # BetMasWeb won't even compile without it installed
 RUN ant -f /src/BetMas/db/apps/parser/build.xml
+# Reference lists (prefixDef, person/place name labels, textparts titles, ...)
+# read via doc("/db/apps/lists/*.xml") by exptit.xqm/apprest.xqm/titles.xqm.
+# Without this installed those doc() calls silently return the empty
+# sequence instead of 404ing, which is what was producing the apparent
+# exptit:printTitleID / apprest:decidelink crashes - not a code bug.
+RUN ant -f /src/BetMas/db/apps/lists/build.xml
 
 WORKDIR /src/BetMasWeb
 COPY . .
@@ -40,9 +46,10 @@ ENV EXISTDB_SERVER=http://localhost:8080 \
 # explode: pre-extract jars into their own cached layer
 RUN [ "java", "org.exist.start.Main", "client", "--no-gui", "-l", "-u", "admin", "-P", "", "-x", "'HelloWorld!'" ]
 
-# slow-changing deps: shared-resources, BetMasService, parser
+# slow-changing deps: shared-resources, BetMasService, parser, lists
 COPY --from=build-stage /src/BetMas/db/apps/BetMasService/build/*.xar /install/BetMasService/
 COPY --from=build-stage /src/BetMas/db/apps/parser/build/*.xar /install/parser/
+COPY --from=build-stage /src/BetMas/db/apps/lists/build/*.xar /install/lists/
 
 RUN java org.exist.start.Main jetty & \
     EXIST_PID=$! && \
@@ -53,6 +60,7 @@ RUN java org.exist.start.Main jetty & \
     xst execute "for \$c in ('authority-files','manuscripts','institutions','narratives','persons','places','studies','works') where not(xmldb:collection-available('/db/apps/expanded/' || \$c)) return xmldb:create-collection('/db/apps/expanded', \$c)" && \
     xst package install local-files /install/BetMasService/*.xar && \
     xst package install local-files /install/parser/*.xar && \
+    xst package install local-files /install/lists/*.xar && \
     kill $EXIST_PID && \
     wait $EXIST_PID; true
 
