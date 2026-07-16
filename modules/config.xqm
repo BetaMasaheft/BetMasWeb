@@ -1,20 +1,21 @@
 xquery version "3.0";
+
 (:~
  : A set of helper functions to access the application context from
  : within a module.
  :)
-module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config";
+module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config";
 
-import module namespace http="http://expath.org/ns/http-client";
-import module namespace loc="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/loc" at "./loc.xqm";
+declare namespace repo = "http://exist-db.org/xquery/repo";
+declare namespace expath = "http://expath.org/ns/pkg";
+declare namespace jmx = "http://exist-db.org/jmx";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace http = "http://expath.org/ns/http-client";
+import module namespace loc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/loc" at "./loc.xqm";
+import module namespace templates = "http://exist-db.org/xquery/templates";
 
-declare namespace repo="http://exist-db.org/xquery/repo";
-declare namespace expath="http://expath.org/ns/pkg";
-declare namespace jmx="http://exist-db.org/jmx";
-
-declare variable $config:sparqlPrefixes := "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+declare variable $config:sparqlPrefixes :=
+	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
          PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
          PREFIX lawd: <http://lawd.info/ontology/>
          PREFIX oa: <http://www.w3.org/ns/oa#>
@@ -39,10 +40,11 @@ declare variable $config:sparqlPrefixes := "PREFIX rdf: <http://www.w3.org/1999/
          PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
          PREFIX foaf: <http://xmlns.com/foaf/0.1/>
          PREFIX sdc: <https://w3id.org/sdc/ontology#>";
+
 (:
  : In practice this is `https://betamasaheft.eu/' for production and something like `localhost:8080/exist/apps/BetMasWeb` for development
-:)
-(:declare variable $config:appUrl := 'https://betamasaheft.eu';:)
+ :)
+(: declare variable $config:appUrl := 'https://betamasaheft.eu'; :)
 declare variable $config:appUrl := $loc:appUrl;
 
 declare variable $config:baseURI := $config:appUrl || "/";
@@ -57,7 +59,7 @@ declare variable $config:baseURI := $config:appUrl || "/";
  : instance is currently served (and is empty in the container), whereas
  : the data always carries this canonical prefix regardless of host.
  :)
-declare variable $config:BMurl := 'https://betamasaheft.eu/';
+declare variable $config:BMurl := "https://betamasaheft.eu/";
 
 (:~
  : Resolve an external service endpoint. A deployment relocates a service
@@ -69,13 +71,9 @@ declare variable $config:BMurl := 'https://betamasaheft.eu/';
  : default (= production wiring) when the document or entry is missing.
  :)
 declare function config:service-url($env-name as xs:string, $default as xs:string) as xs:string {
-    try {
-        (doc('/db/apps/BetMasWeb/services.xml')
-            //service[@env eq $env-name][normalize-space(.) ne '']/string(),
-         $default)[1]
-    } catch * {
-        $default
-    }
+	try {
+		(doc("/db/apps/BetMasWeb/services.xml")//service[@env eq $env-name][normalize-space(.) ne ""]/string(), $default)[1]
+	} catch * { $default }
 };
 
 (:~
@@ -83,223 +81,157 @@ declare function config:service-url($env-name as xs:string, $default as xs:strin
  : servlet deployment on the production host; the containerised
  : collatex-service serves the same API at http://<host>:17105/collate.
  :)
-declare variable $config:collatexUrl :=
-    config:service-url('COLLATEX_URL', 'http://localhost:8081/collatex-servlet-1.7.1/collate');
+declare variable $config:collatexUrl := config:service-url(
+	"COLLATEX_URL",
+	"http://localhost:8081/collatex-servlet-1.7.1/collate"
+);
 
-declare variable $config:DOI := '10.25592/BetaMasaheft';
+declare variable $config:DOI := "10.25592/BetaMasaheft";
 
 declare variable $config:response200 := <rest:response>
-        <http:response
-            status="200">
+	<http:response status="200"><http:header name="Access-Control-Allow-Origin" value="*" /></http:response>
+</rest:response>;
 
-            <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-        </http:response>
-    </rest:response>;
-
-    declare variable $config:response404 := <rest:response>
-        <http:response
-            status="404">
-
-        </http:response>
-    </rest:response>;
+declare variable $config:response404 := <rest:response><http:response status="404" /></rest:response>;
 
 declare variable $config:response200Json := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/json; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/json; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-        declare variable $config:response200JsonLD := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/ld+json;charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response200JsonLD := <rest:response>
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/ld+json;charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-           declare variable $config:response404JsonLD := <rest:response>
-            <http:response
-                status="404">
-                <http:header
-                    name="Content-Type"
-                    value="application/ld+json; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response404JsonLD := <rest:response>
+	<http:response status="404">
+		<http:header name="Content-Type" value="application/ld+json; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-         declare variable $config:response400JsonLD := <rest:response>
-            <http:response
-                status="400">
-                <http:header
-                    name="Content-Type"
-                    value="application/ld+json; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response400JsonLD := <rest:response>
+	<http:response status="400">
+		<http:header name="Content-Type" value="application/ld+json; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
 declare variable $config:response200XML := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/xml; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/xml; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-        declare variable $config:response200TEIXML := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/tei+xml; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response200TEIXML := <rest:response>
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/tei+xml; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-        declare variable $config:response200RDFXML := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/rdf+xml; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response200RDFXML := <rest:response>
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/rdf+xml; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
-        declare variable $config:response200RDFJSON := <rest:response>
-            <http:response
-                status="200">
-                <http:header
-                    name="Content-Type"
-                    value="application/rdf+json; charset=utf-8"/>
-                <http:header
-                    name="Access-Control-Allow-Origin"
-                    value="*"
-                    />
-            </http:response>
-        </rest:response>;
+declare variable $config:response200RDFJSON := <rest:response>
+	<http:response status="200">
+		<http:header name="Content-Type" value="application/rdf+json; charset=utf-8" />
+		<http:header name="Access-Control-Allow-Origin" value="*" />
+	</http:response>
+</rest:response>;
 
 declare variable $config:response400 := <rest:response>
-            <http:response
-                status="400">
-                <http:header
-                    name="Content-Type"
-                    value="application/json; charset=utf-8"/>
-            </http:response>
-        </rest:response>;
+	<http:response status="400">
+		<http:header name="Content-Type" value="application/json; charset=utf-8" />
+	</http:response>
+</rest:response>;
 
 declare variable $config:response400XML := <rest:response>
-            <http:response
-                status="400">
-                <http:header
-                    name="Content-Type"
-                    value="application/xml; charset=utf-8"/>
-            </http:response>
-        </rest:response>;
+	<http:response status="400"><http:header name="Content-Type" value="application/xml; charset=utf-8" /></http:response>
+</rest:response>;
 
-declare variable $config:ADMIN := environment-variable('ExistAdmin');
-declare variable $config:ppw := environment-variable('ExistAdminPw');
+declare variable $config:ADMIN := environment-variable("ExistAdmin");
 
+declare variable $config:ppw := environment-variable("ExistAdminPw");
 
-declare variable $config:app-root :=
-    let $rawPath := system:get-module-load-path()
-    let $modulePath :=
-        (: strip the xmldb: part :)
-        if (starts-with($rawPath, "xmldb:exist://")) then
-            if (starts-with($rawPath, "xmldb:exist://embedded-eXist-server")) then
-                substring($rawPath, 36)
-            else
-                substring($rawPath, 15)
-        else
-            $rawPath
-    return
-        substring-before($modulePath, "/modules")
-;
+declare variable $config:app-root := let $rawPath := system:get-module-load-path()
+let $modulePath := (: strip the xmldb: part :) if (starts-with($rawPath, "xmldb:exist://")) then
+	if (starts-with($rawPath, "xmldb:exist://embedded-eXist-server")) then
+		substring($rawPath, 36)
+	else
+		substring($rawPath, 15)
+else
+	$rawPath
+return substring-before($modulePath, "/modules");
 
-declare variable $config:app-title := "Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea" ;
+declare variable $config:app-title := "Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea";
+
 declare variable $config:xslt-root := $config:app-root || "/xslt";
-declare variable $config:bmdata-root := "/db/apps/BetMasData";
-declare variable $config:data-root := "/db/apps/expanded";
-declare variable $config:add-data-root := "/db/apps/expanded";
-declare variable $config:schema-root := $config:app-root || "/schema";
-declare variable $config:data-rootMS := $config:data-root || "/manuscripts";
-declare variable $config:data-rootN := $config:data-root || "/narratives";
-declare variable $config:data-rootW := $config:data-root || "/works";
-declare variable $config:data-rootS := $config:data-root || "/studies";
-declare variable $config:data-rootPl := $config:data-root || "/places";
-declare variable $config:data-rootPr := $config:data-root || "/persons";
-declare variable $config:data-rootIn := $config:data-root || "/institutions";
-declare variable $config:data-rootA := $config:data-root || "/authority-files";
-declare variable $config:data-rootCh := $config:bmdata-root || "/Chojnacki";
-declare variable $config:data-rootTraces := $config:app-root || "/traces";
 
+declare variable $config:bmdata-root := "/db/apps/BetMasData";
+
+declare variable $config:data-root := "/db/apps/expanded";
+
+declare variable $config:add-data-root := "/db/apps/expanded";
+
+declare variable $config:schema-root := $config:app-root || "/schema";
+
+declare variable $config:data-rootMS := $config:data-root || "/manuscripts";
+
+declare variable $config:data-rootN := $config:data-root || "/narratives";
+
+declare variable $config:data-rootW := $config:data-root || "/works";
+
+declare variable $config:data-rootS := $config:data-root || "/studies";
+
+declare variable $config:data-rootPl := $config:data-root || "/places";
+
+declare variable $config:data-rootPr := $config:data-root || "/persons";
+
+declare variable $config:data-rootIn := $config:data-root || "/institutions";
+
+declare variable $config:data-rootA := $config:data-root || "/authority-files";
+
+declare variable $config:data-rootCh := $config:bmdata-root || "/Chojnacki";
+
+declare variable $config:data-rootTraces := $config:app-root || "/traces";
 
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 
 declare variable $config:expath-descriptor := doc(concat($config:app-root, "/expath-pkg.xml"))/expath:package;
 
-
 (:~
  : Call like <a data-template="config:prefix-href"  data-template-href="/bladiblah"/>
  : Results in <a href="whatevertheprefixis/bladiblah"/>
  :)
-declare function config:prefix-href (
-  $node as node(),
-  $model as map(*),
-  $href as xs:string
-) as element(*) {
-  element {name($node)} {
-    attribute href { $config:appUrl || $href },
+declare function config:prefix-href($node as node(), $model as map(*), $href as xs:string) as element(*) {
+	element {name($node)} {
+		attribute href { $config:appUrl || $href },
 		$node/@* except ($node/@data-template, $node/@data-template-href),
-	  $node/node()!templates:process(., $model)
-  }
+		$node/node()!templates:process(., $model)
+	}
 };
 
 (:~
  : Call like <script data-template="config:prefix-src"  data-template-src="/bladiblah"/>
  : Results in <script src="whatevertheprefixis/bladiblah"/>
  :)
-declare function config:prefix-src (
-  $node as node(),
-  $model as map(*),
-  $src as xs:string
-) as element(*) {
-  element {name($node)} {
-    attribute src { $config:appUrl || $src },
+declare function config:prefix-src($node as node(), $model as map(*), $src as xs:string) as element(*) {
+	element {name($node)} {
+		attribute src { $config:appUrl || $src },
 		$node/@* except ($node/@data-template, $node/@data-template-src),
-	  $node/node()!templates:process(., $model)
-  }
+		$node/node()!templates:process(., $model)
+	}
 };
 
 (:~
@@ -307,46 +239,50 @@ declare function config:prefix-src (
  : If the app resides in the file system,
  :)
 declare function config:resolve($relPath as xs:string) {
-    if (starts-with($config:app-root, "/db")) then
-        doc(concat($config:app-root, "/", $relPath))
-    else
-        doc(concat("file://", $config:app-root, "/", $relPath))
+	if (starts-with($config:app-root, "/db")) then
+		doc(concat($config:app-root, "/", $relPath))
+	else
+		doc(concat("file://", $config:app-root, "/", $relPath))
 };
 
 declare function config:get-configuration() as element(configuration) {
-    doc(concat($config:app-root, "/configuration.xml"))/configuration
+	doc(concat($config:app-root, "/configuration.xml"))/configuration
 };
 
 (:~
  : Returns the repo.xml descriptor for the current application.
  :)
 declare function config:repo-descriptor() as element(repo:meta) {
-    $config:repo-descriptor
+	$config:repo-descriptor
 };
 
 (:~
  : Returns the expath-pkg.xml descriptor for the current application.
  :)
 declare function config:expath-descriptor() as element(expath:package) {
-    $config:expath-descriptor
+	$config:expath-descriptor
 };
 
 declare %templates:wrap function config:app-title($node as node(), $model as map(*)) as text() {
-    $config:expath-descriptor/expath:title/text()
+	$config:expath-descriptor/expath:title/text()
 };
 
-
-declare function config:app-meta-rest(){
-    <meta xmlns="http://www.w3.org/1999/xhtml" name="description" content="{$config:repo-descriptor/repo:description/text()}"/>,
-    for $author in $config:repo-descriptor/repo:author
-    return
-        <meta xmlns="http://www.w3.org/1999/xhtml" name="creator" content="{$author/text()}"/>
+declare function config:app-meta-rest() {
+	<meta
+		xmlns="http://www.w3.org/1999/xhtml"
+		content="{ $config:repo-descriptor/repo:description/text() }"
+		name="description" />,
+	for $author in $config:repo-descriptor/repo:author
+	return <meta xmlns="http://www.w3.org/1999/xhtml" content="{ $author/text() }" name="creator" />
 };
+
 declare function config:app-meta($node as node(), $model as map(*)) as element()* {
-    <meta xmlns="http://www.w3.org/1999/xhtml" name="description" content="{$config:repo-descriptor/repo:description/text()}"/>,
-    for $author in $config:repo-descriptor/repo:author
-    return
-        <meta xmlns="http://www.w3.org/1999/xhtml" name="creator" content="{$author/text()}"/>
+	<meta
+		xmlns="http://www.w3.org/1999/xhtml"
+		content="{ $config:repo-descriptor/repo:description/text() }"
+		name="description" />,
+	for $author in $config:repo-descriptor/repo:author
+	return <meta xmlns="http://www.w3.org/1999/xhtml" content="{ $author/text() }" name="creator" />
 };
 
 (:~
@@ -354,76 +290,56 @@ declare function config:app-meta($node as node(), $model as map(*)) as element()
  : in the application descriptors.
  :)
 declare function config:app-info($node as node(), $model as map(*)) {
-    let $expath := config:expath-descriptor()
-    let $repo := config:repo-descriptor()
-    return
-        <table class="app-info">
-            <tr>
-                <td>app collection:</td>
-                <td>{$config:app-root}</td>
-            </tr>
-            {
-                for $attr in ($expath/@*, $expath/*, $repo/*)
-                return
-                    <tr>
-                        <td>{node-name($attr)}:</td>
-                        <td>{$attr/string()}</td>
-                    </tr>
-            }
-            <tr>
-                <td>Controller:</td>
-                <td>{ request:get-attribute("$exist:controller") }</td>
-            </tr>
-        </table>
-
-
+	let $expath := config:expath-descriptor()
+	let $repo := config:repo-descriptor()
+	return <table class="app-info">
+		<tr><td>app collection:</td><td>{ $config:app-root }</td></tr>
+		{
+			for $attr in ($expath/@*, $expath/*, $repo/*)
+			return <tr><td>{ node-name($attr) }:</td><td>{ $attr/string() }</td></tr>
+		}
+		<tr><td>Controller:</td><td>{ request:get-attribute("$exist:controller") }</td></tr>
+	</table>
 };
-
 
 declare function config:get-data-dir() as xs:string? {
-    try {
-        let $request := <http:request http-version="1.1" method="GET" href="http://localhost:8080/{request:get-context-path()}/status?c=disk"/>
-        let $response := http:send-request($request)
-        return
-            if ($response[1]/@status eq  "200") then
-                let $dir := $response[2]//jmx:DataDirectory/string()
-                return
-                    if (matches($dir, "^\w:")) then
-                        (: windows path? :)
-                        "/" || translate($dir, "\", "/")
-                    else
-                        $dir
-            else
-                ()
-    } catch * {
-        ()
-    }
+	try {
+		let $request := <http:request
+			href="http://localhost:8080/{ request:get-context-path() }/status?c=disk"
+			http-version="1.1"
+			method="GET" />
+		let $response := http:send-request($request)
+		return if ($response[1]/@status eq "200") then
+			let $dir := $response[2]//jmx:DataDirectory/string()
+			return if (matches($dir, "^\w:")) then
+				(: windows path? :)
+				"/" || translate($dir, "\", "/")
+			else
+				$dir
+		else (
+		)
+	} catch * { () }
 };
-
 
 declare function config:get-repo-dir() {
-    let $dataDir := config:get-data-dir()
-    let $pkgRoot := $config:expath-descriptor/@abbrev || "-" || $config:expath-descriptor/@version
-    return
-        if ($dataDir) then
-            $dataDir || "/expathrepo/fonts-0.1"
-        else
-            ()
+	let $dataDir := config:get-data-dir()
+	let $pkgRoot := $config:expath-descriptor/@abbrev || "-" || $config:expath-descriptor/@version
+	return if ($dataDir) then
+		$dataDir || "/expathrepo/fonts-0.1"
+	else (
+	)
 };
-
 
 declare function config:get-fonts-dir() as xs:string? {
-    let $repoDir := config:get-repo-dir()
-    return
-        if ($repoDir) then
-            $repoDir || "/fonts"
-        else
-            ()
+	let $repoDir := config:get-repo-dir()
+	return if ($repoDir) then
+		$repoDir || "/fonts"
+	else (
+	)
 };
 
-declare function config:distinct-values($values){
-for $value in $values
-   group by $value
-   return
-       $value
+declare function config:distinct-values($values) {
+	for $value in $values
+	group by $value
+	return $value
 };

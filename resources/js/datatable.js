@@ -1,3 +1,3 @@
-  $(document).ready(function() {
-            $('#completeList').dataTable();
-            });
+$(document).ready(function () {
+	$("#completeList").dataTable();
+});
