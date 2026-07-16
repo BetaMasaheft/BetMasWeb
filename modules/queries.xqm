@@ -777,18 +777,27 @@ declare %private function q:par-clavisType($clavisID, $clavisType) {
 };
 
 declare %private function q:par-date-range($element, $dateRange) {
-    let $from := substring-before($dateRange, ',')
-    let $to := substring-after($dateRange, ',')
+    let $combinedString := string-join($dateRange, ',')
+    let $parts          := tokenize($combinedString, ',')
+    
+    let $cleanFrom := substring(string(head($parts)), 1, 4)
+    let $cleanTo   := substring(string(if (count($parts) gt 1) then $parts[2] else $parts[1]), 1, 4)
+    
+    let $fromYear := substring(concat('0000', $cleanFrom), string-length($cleanFrom) + 1)
+    let $toYear   := substring(concat('0000', $cleanTo), string-length($cleanTo) + 1)
+    
     return
-        if ($dateRange = '0,2000')
+        if (($fromYear = '0001' and $toYear = '2000') or empty($dateRange) or $dateRange = '')
         then
             ()
         else
-            "[descendant::t:" || $element || "
-                [xs:integer((if (contains(@notBefore, '-')) then (substring-before(@notBefore, '-')) else @notBefore)[. !='']) ge " || $from || " or
-                xs:integer((if (contains(@notAfter, '-')) then    (substring-before(@notAfter, '-')) else    @notAfter)[. != '']) ge " || $from || "]
-                [xs:integer((if (contains(@notBefore, '-')) then (substring-before(@notBefore, '-')) else @notBefore)[. !='']) le " || $to || " or
-                xs:integer((if (contains(@notAfter, '-')) then (substring-before(@notAfter, '-')) else @notAfter)[. != '']) le " || $to || "]]"
+            "[
+                descendant::t:origDate[
+                    (@notBefore >= '" || $fromYear || "' and @notBefore <= '" || $toYear || "-12-31')
+                    or
+                    (@notAfter >= '" || $fromYear || "' and @notAfter <= '" || $toYear || "-12-31')
+                ]
+            ]"
 };
 
 declare %private function q:par-folia($Pfolia) {
@@ -1136,20 +1145,24 @@ return
 
 declare function q:text($q, $params) {
     (:    let $test := util:log('info', $q:allopts):)
-    let $qscheck := if(matches($q, '([A-Z]{1,3}-\d{3})')) then q:querystring($q, 'phrase') else q:querystring($q, $q:mode)
-    let $qs := if ($qscheck = '' or $qscheck = ' ') then
+    let $phrase := starts-with($q, '"') and ends-with($q, '"')
+    let $mode := if(matches($q, '([A-Z]{1,3}-\d{3})') or $phrase) then 'phrase' else $q:mode
+    let $qscheck := q:querystring($q, $mode)
+    let $qs := if (normalize-space($qscheck) = '') then
         ()
     else
         $qscheck
     let $querycontext := '$q:col//t:TEI'
-    let $ftquery := if (exists($qs)) then '[ft:query(., $qs, $q:allopts)]' else ()
+    let $ftquery := if (exists($qs)) then if ($mode eq 'phrase') then '[ft:query(., ''"' || translate($q, '"', '') || '"'', <options><default-operator>and</default-operator></options>)]'
+            else '[ft:query(., $qs, $q:allopts)]' else ()
     let $parmstoquery := q:parameters2arguments($params)
     let $querytext := concat($querycontext, $parmstoquery, $ftquery)
-    (:    let $test2 := util:log('info', $querytext):)
-    let $query := 
+          let $test2 := util:log('info', ('query:', $q || ' mode:', $mode))
+    let $query := util:eval($querytext)
+(: let $query := 
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
-          return $r
+          return $r ~~ excluding bibl suppressed not to slow down:)
     let $allTEI :=
     if (count($query) gt 300)
     then
@@ -1637,7 +1650,20 @@ declare function q:facetGroup($group, $groupname, $subsequence) {
         {
             for $f in $group
             let $facetTitle := q:facetName($f)
-            let $facets := ft:facets($subsequence, string($f), ())
+            let $facets :=  
+            if ($f = 'authors') then
+                let $values := $subsequence//t:relation[@name=('dcterms:creator','saws:isAttributedToAuthor')]/@passive
+                for $v in distinct-values($values)
+                return map { $v : count($subsequence//t:relation[@passive = $v]) }
+        else if ($f = 'witness') then
+               let $values := $subsequence//t:witness/@corresp
+               for $v in distinct-values($values)
+               return map { $v : count($subsequence//t:witness[@corresp = $v]) }
+         else if ($f = 'sawsVersionOf') then
+            let $values := $subsequence//t:relation[@name='saws:isVersionOf']/@passive
+            for $v in distinct-values($values)
+            return map { $v : count($subsequence//t:relation[@passive = $v]) }
+        else ft:facets($subsequence, string($f), ())
                 order by $facetTitle
             return
                 q:facetDiv($f, $facets, $facetTitle)
