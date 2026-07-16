@@ -8,27 +8,10 @@ xquery version "3.1" encoding "UTF-8";
 
 module namespace comparems = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/comparems";
 
-(: For interacting with the TEI document :)
-declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace dcterms = "http://purl.org/dc/terms";
-declare namespace saws = "http://purl.org/saws/ontology";
-declare namespace cmd = "http://www.clarin.eu/cmd/";
-declare namespace test = "http://exist-db.org/xquery/xqsuite";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
-
-import module namespace rest = "http://exquery.org/ns/restxq";
-import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
-import module namespace compare = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/compare" at "xmldb:exist:///db/apps/BetMasWeb/restviews/compare.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
-import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";
-import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
 
 declare variable $comparems:meta := (
 	<meta
@@ -39,17 +22,13 @@ declare variable $comparems:meta := (
 	return <meta xmlns="http://www.w3.org/1999/xhtml" content="{ $genauthor/text() }" name="creator" />
 );
 
-declare
-	%rest:GET %rest:POST %rest:path("/BetMasWeb/comparems") %rest:query-param("mss", "{$mss}", "") %output:method("html5")
-function comparems:compareSelected($mss as xs:string*) {
+declare function comparems:compareSelected($request as map(*)) {
+	let $mss as xs:string* := $request?parameters?mss
 	let $list := $mss
 	let $fullurl := ("?mss=" || $mss)
 	let $Cmap := map {"type": "item", "name": $list, "path": $fullurl}
 
 	return (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>

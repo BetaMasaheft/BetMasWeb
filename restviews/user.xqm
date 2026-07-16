@@ -11,26 +11,19 @@ module namespace user = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/user"
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 (: made up namespace for log :)
 declare namespace l = "http://log.log";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
-import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";
-import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
 
 declare variable $user:logs := collection("/db/apps/log");
 
-declare %rest:GET %rest:path("/BetMasWeb/user/{$username}") %output:method("html5") function user:personalPage(
-	$username as xs:string
-) {
+declare function user:personalPage($request as map(*)) {
+	let $username as xs:string := $request?parameters?username
 	let $un := sm:id()//sm:username/text()
 
 	let $Imap := map {"type": "user", "name": ($un || "/" || $username)}
@@ -40,9 +33,6 @@ declare %rest:GET %rest:path("/BetMasWeb/user/{$username}") %output:method("html
 			(($username = $un) and sm:is-account-enabled($un) and sm:is-authenticated()) or
 			doc("/db/apps/lists/editors.xml")//t:item[@n eq $username]
 	) then (
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -451,9 +441,6 @@ declare %rest:GET %rest:path("/BetMasWeb/user/{$username}") %output:method("html
 			</body>
 		</html>
 	) else (
-		<rest:response>
-			<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
-		error:error($Imap)
+		roaster:response(400, "text/html", error:error($Imap))
 	)
 };

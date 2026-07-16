@@ -21,6 +21,8 @@ module namespace dts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dts";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace exist = "http://exist.sourceforge.net/NS/exist";
+(: still used by the dead dts:member/dts:docs helpers below, kept for those :)
+declare namespace rest = "http://exquery.org/ns/restxq";
 declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace http = "http://expath.org/ns/http-client";
 declare namespace json = "http://www.json.org";
@@ -29,7 +31,7 @@ declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 
 import module namespace functx = "http://www.functx.com";
-import module namespace rest = "http://exquery.org/ns/restxq";
+import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titles.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
@@ -1708,13 +1710,11 @@ declare function dts:extension($id) {
 (:~
  : not being sure about what to do with the URI templates in the documentation draft, the templates answer to this call, and can be thus retrived
  :)
-declare %rest:GET %rest:path("/BetMas/api/dts/{$api}/template") %output:method("xml") function dts:URItemplates(
-	$api as xs:string*
-) {
-	switch ($api)
+declare function dts:URItemplates($request as map(*)) {
+	let $api as xs:string* := $request?parameters?api
+	return switch ($api)
 		case "navigation" return
 			(
-				$config:response200JsonLD,
 				map {
 					"@context":
 						map {
@@ -1729,18 +1729,17 @@ declare %rest:GET %rest:path("/BetMas/api/dts/{$api}/template") %output:method("
 					"variableRepresentation": "BasicRepresentation",
 					"mapping":
 						[
-							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": true},
-							map {"@type": "IriTemplateMapping", "variable": "passage", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "page", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "level", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "start", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "end", "required": false}
+							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": true()},
+							map {"@type": "IriTemplateMapping", "variable": "passage", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "page", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "level", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "start", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "end", "required": false()}
 						]
 				}
 			)
 		case "document" return
 			(
-				$config:response200JsonLD,
 				map {
 					"@context":
 						map {
@@ -1755,16 +1754,15 @@ declare %rest:GET %rest:path("/BetMas/api/dts/{$api}/template") %output:method("
 					"variableRepresentation": "BasicRepresentation",
 					"mapping":
 						[
-							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": true},
-							map {"@type": "IriTemplateMapping", "variable": "passage", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "start", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "end", "required": false}
+							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": true()},
+							map {"@type": "IriTemplateMapping", "variable": "passage", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "start", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "end", "required": false()}
 						]
 				}
 			)
 		case "collection" return
 			(
-				$config:response200JsonLD,
 				map {
 					"@context":
 						map {
@@ -1778,14 +1776,16 @@ declare %rest:GET %rest:path("/BetMas/api/dts/{$api}/template") %output:method("
 					"variableRepresentation": "BasicRepresentation",
 					"mapping":
 						[
-							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": false},
-							map {"@type": "IriTemplateMapping", "variable": "page", "required": false}
+							map {"@type": "IriTemplateMapping", "variable": "collection_id", "required": false()},
+							map {"@type": "IriTemplateMapping", "variable": "page", "required": false()}
 						]
 				}
 			)
 		default return
-			$config:response400JsonLD,
-	map {"info": ("You can have collection, document or navigation UIR templates, " || $api || " is none of them.")}
+			roaster:response(
+				400,
+				map {"info": ("You can have collection, document or navigation UIR templates, " || $api || " is none of them.")}
+			)
 };
 
 (:
@@ -1804,73 +1804,62 @@ using xml:id and xpath to point to parts of the description
 
  :)
 
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/indexes")
-	%rest:query-param("id", "{$id}", "")
-	%rest:query-param("indexName", "{$indexName}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("level", "{$level}", "")
-	%rest:query-param("begin", "{$begin}", "1")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("page", "{$page}", "1")
-	%rest:query-param("groupBy", "{$groupBy}", "")
-	%rest:query-param("max", "{$max}", "")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:Indexes(
-	$id as xs:string*,
-	$indexName as xs:string*,
-	$ref as xs:string*,
-	$level as xs:string*,
-	$begin as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$groupBy as xs:string*,
-	$page as xs:string*,
-	$max as xs:string*,
-	$version as xs:string*
-) {
-	let $id := if ($id = "") then
-		"http://betamasaheft.eu"
-	else
-		$id
-	let $parsedURN := dts:parseDTS($id)
-	let $specificID := $parsedURN//s:group[@nr = 3]/text()
-	let $edition := $parsedURN//s:group[@nr = 4]
-	let $indexes := if (matches($parsedURN//s:group[@nr = 2], "(textualunits|narrativeunits|transcriptions)")) then (
-		dts:CollIndex($id, $page, $version)
-	) else if (matches($specificID, "[a-zA-Z\d]+")) then (
-		dts:CollIndexMember($id, $edition, $specificID, $page, $version)
-	) else (
-		dts:CollIndex($id, $page, $version)
-	)
+declare function dts:Indexes($request as map(*)) {
+	let $id as xs:string* := $request?parameters?id
+	let $indexName as xs:string* := $request?parameters?indexName
+	let $ref as xs:string* := $request?parameters?ref
+	let $level as xs:string* := $request?parameters?level
+	let $begin as xs:string* := $request?parameters?begin
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $groupBy as xs:string* := $request?parameters?groupBy
+	let $page as xs:string* := $request?parameters?page
+	let $max as xs:string* := $request?parameters?max
+	let $version as xs:string* := $request?parameters?version
+	return let $id := if ($id = "") then
+			"http://betamasaheft.eu"
+		else
+			$id
+		let $parsedURN := dts:parseDTS($id)
+		let $specificID := $parsedURN//s:group[@nr = 3]/text()
+		let $edition := $parsedURN//s:group[@nr = 4]
+		let $indexes := if (matches($parsedURN//s:group[@nr = 2], "(textualunits|narrativeunits|transcriptions)")) then (
+			dts:CollIndex($id, $page, $version)
+		) else if (matches($specificID, "[a-zA-Z\d]+")) then (
+			dts:CollIndexMember($id, $edition, $specificID, $page, $version)
+		) else (
+			dts:CollIndex($id, $page, $version)
+		)
 
-	let $response := if ($indexName = "") then
-		map {"@context": $dts:context, "@id": $id, "member": $indexes, "dts:collection": "/api/dts/collections?id=" || $id}
-	else
-		(: an index is named :)
-		let $indexEntries := dts:indexentries($specificID, $indexName)
-		return map {
-			"@context": $dts:context,
-			"@id": $id,
-			"view": dts:indexEntriesView($id, $indexName, $indexEntries, $page),
-			"dts:attestations": dts:indexEntriesAttestations($id, $indexName, $indexEntries, $page),
-			"dts:collection": "/api/dts/collections?id=" || $id
-		}
-	let $dtsPass := "/api/dts/documents?id=" || $id
-	let $dtsNav := "/api/dts/navigation?id=" || $id
-	let $resultPass := if (matches($parsedURN//s:group[@nr = 3], "[a-zA-Z\d]+")) then
-		map:put($response, "dts:passage", $dtsPass)
-	else
-		$response
-	let $resultNav := if (matches($parsedURN//s:group[@nr = 3], "[a-zA-Z\d]+")) then
-		map:put($resultPass, "dts:references", $dtsNav)
-	else
-		$resultPass
+		let $response := if ($indexName = "") then
+			map {
+				"@context": $dts:context,
+				"@id": $id,
+				"member": $indexes,
+				"dts:collection": "/api/dts/collections?id=" || $id
+			}
+		else
+			(: an index is named :)
+			let $indexEntries := dts:indexentries($specificID, $indexName)
+			return map {
+				"@context": $dts:context,
+				"@id": $id,
+				"view": dts:indexEntriesView($id, $indexName, $indexEntries, $page),
+				"dts:attestations": dts:indexEntriesAttestations($id, $indexName, $indexEntries, $page),
+				"dts:collection": "/api/dts/collections?id=" || $id
+			}
+		let $dtsPass := "/api/dts/documents?id=" || $id
+		let $dtsNav := "/api/dts/navigation?id=" || $id
+		let $resultPass := if (matches($parsedURN//s:group[@nr = 3], "[a-zA-Z\d]+")) then
+			map:put($response, "dts:passage", $dtsPass)
+		else
+			$response
+		let $resultNav := if (matches($parsedURN//s:group[@nr = 3], "[a-zA-Z\d]+")) then
+			map:put($resultPass, "dts:references", $dtsNav)
+		else
+			$resultPass
 
-	return ($config:response200JsonLD, $resultNav)
+		return $resultNav
 };
 
 declare function dts:indexEntriesAttestations($id, $indexName, $indexEntries, $page) {
@@ -2108,29 +2097,22 @@ declare function dts:CollIndexMember($id, $edition, $specificID, $page, $version
  : annotations main collection, returns a list of collections of annotations, one for each
  : resource type and one for all items in the db with indexable terms
  :)
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/annotations")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:WebAnnotationsMain($version as xs:string*) {
+declare function dts:WebAnnotationsMain($request as map(*)) {
+	let $version as xs:string* := $request?parameters?version
 	let $topmembers :=
 		for $topcol in ("works", "mss", "narr", "all")
 		return dts:annotationCollection($topcol, 7, 1)
-	return (
-		$config:response200JsonLD,
-		map {
-			"@context": $dts:context,
-			"@type": "AnnotationCollection",
-			"@id": $config:appUrl || "/api/dts/annotations",
-			"totalItems": 4,
-			"dts:totalParents": 0,
-			"dts:totalChildren": 4,
-			"member": $topmembers,
-			"title": "Annotations Root Collection",
-			"dts:dublincore": $dts:publisher
-		}
-	)
+	return map {
+		"@context": $dts:context,
+		"@type": "AnnotationCollection",
+		"@id": $config:appUrl || "/api/dts/annotations",
+		"totalItems": 4,
+		"dts:totalParents": 0,
+		"dts:totalChildren": 4,
+		"member": $topmembers,
+		"title": "Annotations Root Collection",
+		"dts:dublincore": $dts:publisher
+	}
 };
 
 (:~
@@ -2141,19 +2123,16 @@ function dts:WebAnnotationsMain($version as xs:string*) {
  : An additiona Annotation Collaction for
  : each item is added whcih is instead an annotation collection of annotation collections.
  :)
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/annotations/{$coll}")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:WebAnnotationsColl($coll as xs:string*, $version as xs:string*) {
+declare function dts:WebAnnotationsColl($request as map(*)) {
+	let $coll as xs:string* := $request?parameters?coll
+	let $version as xs:string* := $request?parameters?version
 	let $indexnames := ("persons", "places", "keywords", "loci", "works")
 	let $indexes := dts:CollAnno($coll, $indexnames)
 	let $itemsIndex := dts:ItemAnnotationCollection($coll, 1)
 	let $all := ($indexes, $itemsIndex)
 	let $topinfo := dts:annotationCollection($coll, count($all), 1)
 	let $contents := map {"@context": $dts:context, "member": $all, "dts:dublincore": $dts:publisher}
-	return ($config:response200JsonLD, map:merge(($topinfo, $contents)))
+	return map:merge(($topinfo, $contents))
 };
 
 (:~
@@ -2164,50 +2143,41 @@ function dts:WebAnnotationsColl($coll as xs:string*, $version as xs:string*) {
  : is provided. the annotations in the single reference  annotation collation are retrieved by
  : adding an $id parameter with the full reference
  :)
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/annotations/{$coll}/{$indexName}")
-	%rest:query-param("begin", "{$begin}", "1")
-	%rest:query-param("page", "{$page}", "1")
-	%rest:query-param("id", "{$id}", "")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:WebAnnotationsIndex(
-	$coll as xs:string*,
-	$id as xs:string*,
-	$indexName as xs:string*,
-	$begin as xs:string*,
-	$page as xs:string*,
-	$version as xs:string*
-) {
-	let $parsedURN := dts:parseDTS($id)
-	let $BMid := if (contains($id, $config:BMurl)) then
-		$parsedURN//s:group[@nr = 3]//text()
-	else
-		$id
-	(: if $indexName is items then list each item in the collection as annotation collection
+declare function dts:WebAnnotationsIndex($request as map(*)) {
+	let $coll as xs:string* := $request?parameters?coll
+	let $id as xs:string* := $request?parameters?id
+	let $indexName as xs:string* := $request?parameters?indexName
+	let $begin as xs:string* := $request?parameters?begin
+	let $page as xs:string* := $request?parameters?page
+	let $version as xs:string* := $request?parameters?version
+	return let $parsedURN := dts:parseDTS($id)
+		let $BMid := if (contains($id, $config:BMurl)) then
+			$parsedURN//s:group[@nr = 3]//text()
+		else
+			$id
+		(: if $indexName is items then list each item in the collection as annotation collection
 else print all paginated values for that index in the collection :)
-	let $indexEntries := if ($indexName = "items") then
-		dts:AnnoItems($coll)
-	else
-		dts:indexentriesColl($BMid, $coll, $indexName)
-	let $c := count($indexEntries)
-	let $indexes := if ($indexName = "items") then
-		dts:AnnoItemInfo($coll, $indexEntries, $page)
-	else if ($id = "") then
-		dts:AnnoEntriesAttestations($indexName, $indexEntries, $page)
-	else
-		dts:WebAnn($id, $indexEntries, $page)
-	let $path := "/api/dts/annotations/" || $coll || "/" || $indexName
-	let $v := dts:AnnoEntriesView($path, $id, $indexName, $indexEntries, $page)
-	let $topinfo := if ($indexName = "items") then
-		dts:ItemsAnnotationsCollections($coll, $c)
-	else if ($id != "") then
-		dts:refannocol($BMid, $c, $indexName)
-	else
-		dts:CollAnno($coll, $indexName)
-	let $response := map {"@context": $dts:context, "view": $v, "member": $indexes, "dts:dublincore": $dts:publisher}
-	return ($config:response200JsonLD, map:merge(($topinfo, $response)))
+		let $indexEntries := if ($indexName = "items") then
+			dts:AnnoItems($coll)
+		else
+			dts:indexentriesColl($BMid, $coll, $indexName)
+		let $c := count($indexEntries)
+		let $indexes := if ($indexName = "items") then
+			dts:AnnoItemInfo($coll, $indexEntries, $page)
+		else if ($id = "") then
+			dts:AnnoEntriesAttestations($indexName, $indexEntries, $page)
+		else
+			dts:WebAnn($id, $indexEntries, $page)
+		let $path := "/api/dts/annotations/" || $coll || "/" || $indexName
+		let $v := dts:AnnoEntriesView($path, $id, $indexName, $indexEntries, $page)
+		let $topinfo := if ($indexName = "items") then
+			dts:ItemsAnnotationsCollections($coll, $c)
+		else if ($id != "") then
+			dts:refannocol($BMid, $c, $indexName)
+		else
+			dts:CollAnno($coll, $indexName)
+		let $response := map {"@context": $dts:context, "view": $v, "member": $indexes, "dts:dublincore": $dts:publisher}
+		return map:merge(($topinfo, $response))
 };
 
 (:~
@@ -2216,20 +2186,12 @@ else print all paginated values for that index in the collection :)
  : if available annotations are  present in the item for each type
  : 'persons', 'places','keywords', 'loci', 'works'.
  :)
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/annotations/{$coll}/items/{$BMid}")
-	%rest:query-param("begin", "{$begin}", "1")
-	%rest:query-param("page", "{$page}", "1")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:WebAnnotationsIndex(
-	$coll as xs:string*,
-	$BMid as xs:string*,
-	$begin as xs:string*,
-	$page as xs:string*,
-	$version as xs:string*
-) {
+declare function dts:WebAnnotationsItem($request as map(*)) {
+	let $coll as xs:string* := $request?parameters?coll
+	let $BMid as xs:string* := $request?parameters?BMid
+	let $begin as xs:string* := $request?parameters?begin
+	let $page as xs:string* := $request?parameters?page
+	let $version as xs:string* := $request?parameters?version
 	let $indexes := ("persons", "places", "keywords", "loci", "works")
 	let $file := dts:switchContext($coll)/id($BMid)
 	let $title := titles:printTitleMainID($BMid)
@@ -2250,7 +2212,7 @@ function dts:WebAnnotationsIndex(
 	}
 
 	let $contents := map {"@context": $dts:context, "member": $availableIndexesForItem, "dts:dublincore": $dts:publisher}
-	return ($config:response200JsonLD, map:merge(($topinfo, $contents)))
+	return map:merge(($topinfo, $contents))
 };
 
 (:~
@@ -2261,23 +2223,14 @@ function dts:WebAnnotationsIndex(
  : adding an $id parameter with the full reference
  : .
  :)
-declare
-	%rest:GET
-	%rest:path("/BetMas/api/dts/annotations/{$coll}/items/{$BMid}/{$indexName}")
-	%rest:query-param("id", "{$id}", "")
-	%rest:query-param("begin", "{$begin}", "1")
-	%rest:query-param("page", "{$page}", "1")
-	%rest:query-param("version", "{$version}", "")
-	%output:method("json")
-function dts:WebAnnotationsIndex(
-	$coll as xs:string*,
-	$BMid as xs:string*,
-	$indexName as xs:string*,
-	$id as xs:string*,
-	$begin as xs:string*,
-	$page as xs:string*,
-	$version as xs:string*
-) {
+declare function dts:WebAnnotationsItemIndex($request as map(*)) {
+	let $coll as xs:string* := $request?parameters?coll
+	let $BMid as xs:string* := $request?parameters?BMid
+	let $indexName as xs:string* := $request?parameters?indexName
+	let $id as xs:string* := $request?parameters?id
+	let $begin as xs:string* := $request?parameters?begin
+	let $page as xs:string* := $request?parameters?page
+	let $version as xs:string* := $request?parameters?version
 	let $file := dts:switchContext($coll)/id($BMid)
 	let $title := titles:printTitleMainID($BMid)
 	let $count := dts:ItemAnnotationsEntries($file, $indexName)
@@ -2291,7 +2244,7 @@ function dts:WebAnnotationsIndex(
 	let $path := "/api/dts/annotations/" || $coll || "/items/" || $BMid || "/" || $indexName
 	let $v := dts:AnnoEntriesView($path, $id, $indexName, $indexEntries, $page)
 	let $response := map {"@context": $dts:context, "view": $v, "member": $indexes, "dts:dublincore": $dts:publisher}
-	return ($config:response200JsonLD, map:merge(($topinfo, $response)))
+	return map:merge(($topinfo, $response))
 };
 
 declare function dts:AnnoItems($coll) {
