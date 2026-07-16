@@ -1,0 +1,40 @@
+node_modules/
+package-lock.json
+build/
+
+# emacs/editor backups and legacy snapshots
+*~
+*.html.txt
+
+# pre-existing syntax errors prettier can't parse - not ours to silently
+# rewrite here; see PR description / follow-up issue
+as.html
+forms/formgender.html
+pid.html
+resources/js/mapsettings.js
+
+# vendored third-party libraries - not ours to reformat
+resources/mirador/
+resources/openseadragon/
+resources/alpheios/
+resources/bootstrap-slider/
+resources/font-awesome-4.7.0/
+resources/slick/
+resources/js/Fuse-master/
+resources/js/leaflet-ajax-gh-pages/
+resources/**/*.min.js
+resources/js/jquery-1.7.1.min.js
+resources/js/leaflet.js
+resources/js/leaflet-search.js
+resources/js/Leaflet.fullscreen.min.js
+resources/js/yui-min.js
+resources/js/mapbox.js
+resources/js/colorbrewer.js
+resources/js/d3sparql.js
+resources/js/Slider.js
+resources/css/mirador-combined.css
+resources/css/leaflet.css
+resources/css/leaflet-search.css
+resources/css/leaflet.fullscreen.css
+resources/css/vis.css
+resources/css/vis.min.css

@@ -1,0 +1,23 @@
+{
+	"name": "betmas-web",
+	"version": "1.0.0",
+	"description": "BetMasWeb - Exist-db application",
+	"private": true,
+	"devDependencies": {
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.8",
+		"prettier": "^3.9.4",
+		"prettier-plugin-xquery": "^1.6.2"
+	},
+	"scripts": {
+		"format:check": "prettier --check .",
+		"format:write": "prettier --write . && prettier --write .",
+		"prepare": "husky"
+	},
+	"lint-staged": {
+		"*": [
+			"prettier --write --ignore-unknown",
+			"prettier --write --ignore-unknown"
+		]
+	}
+}

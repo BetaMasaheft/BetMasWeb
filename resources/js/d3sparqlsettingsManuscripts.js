@@ -1,8 +1,11 @@
-$(document).on('ready', function () {
-    var id = $("#graph").data("id")
-    var SdCquery = "SELECT DISTINCT  ?resourceName ?relName ?partName \
+$(document).on("ready", function () {
+	var id = $("#graph").data("id");
+	var SdCquery =
+		"SELECT DISTINCT  ?resourceName ?relName ?partName \
     WHERE { \
-    BIND('" + id + "' as ?id) \
+    BIND('" +
+		id +
+		"' as ?id) \
     ?resource ?rel ?part . \
     BIND(STR(?resource) AS ?r) \
     BIND(STR(?part) AS ?p) \
@@ -15,118 +18,114 @@ $(document).on('ready', function () {
     BIND(IF(contains(?r, 'betamasaheft'), strafter(?r, 'https://betamasaheft.eu/'), strafter(?r, '#')) as ?ruri) \
     BIND(replace(?ruri , '/', ' ') AS ?resourceName) \
     BIND(IF(contains(?strel, 'betamasaheft'), strafter(?strel, 'https://betamasaheft.eu/'), strafter(?strel, '#')) as ?reluri) \
-    BIND(replace(?reluri , '/', ' ') AS ?relName)}"
-    $("#graphloadingstatus").text('building the structural graph')
-    apicall = "/api/SPARQL/json?query=" + encodeURIComponent(SdCquery)
-    $.getJSON(apicall, function (data) {
+    BIND(replace(?reluri , '/', ' ') AS ?relName)}";
+	$("#graphloadingstatus").text("building the structural graph");
+	apicall = "/api/SPARQL/json?query=" + encodeURIComponent(SdCquery);
+	$.getJSON(apicall, function (data) {
+		//console.log(data)
+		var SPARQLnodes = [];
+		var SPARQLedges = [];
+		var ids = [];
+		var results = data.results.bindings;
+		var reslength = results.length;
 
-        //console.log(data)
-        var SPARQLnodes =[]
-        var SPARQLedges =[]
-        var ids =[]
-        var results = data.results.bindings
-        var reslength = results.length
+		for (var i = 0; i < reslength; i++) {
+			var unit = results[i];
+			var Rid = unit.resourceName.value;
+			var Pid = unit.partName.value;
+			if ($.inArray(Rid, ids) === -1) {
+				ids.push(Rid);
+			} //else (console.log(Rid + ' is already a listed id'))
+			if ($.inArray(Pid, ids) === -1) {
+				ids.push(Pid);
+			} //else (console.log(Pid + ' is already a listed id'))
 
-        for (var i = 0; i < reslength; i++) {
-            var unit = results[i]
-            var Rid = unit.resourceName.value
-            var Pid = unit.partName.value
-            if ($.inArray(Rid, ids) === -1) {ids.push(Rid)
+			var edge = new makeedge(Rid.replace("\s", "_"), unit.relName.value, Pid.replace("\s", "_"));
+			SPARQLedges.push(edge);
+		}
+		// console.log(ids)
+		for (var i = 0; i < ids.length; i++) {
+			var id = ids[i];
+			var node = new makenode(id);
+			SPARQLnodes.push(node);
+		}
 
-            } //else (console.log(Rid + ' is already a listed id'))
-            if ($.inArray(Pid, ids) === -1) {
-                ids.push(Pid)
-            } //else (console.log(Pid + ' is already a listed id'))
+		function makenode(unit) {
+			this.label = unit;
+			this.id = unit.replace("\s", "_");
+		}
 
-            var edge = new makeedge(Rid.replace('\s', '_'), unit.relName.value, Pid.replace('\s', '_'))
-            SPARQLedges.push(edge)
+		function makeedge(idfrom, relname, idto) {
+			this.from = idfrom;
+			this.label = relname;
+			this.to = idto;
+		}
+		//console.log(SPARQLnodes)
+		//console.log(SPARQLedges)
+		var nodes = new vis.DataSet(SPARQLnodes);
+		var edges = new vis.DataSet(SPARQLedges);
+		var hier = false;
+		var edgedrag = false;
+		var container = document.getElementById("SdCGraph");
 
-        }
-         // console.log(ids)
-        for (var i = 0; i < ids.length; i++) {
-        var id = ids[i]
-            var node = new makenode(id)
-            SPARQLnodes.push(node)
-        }
+		var data = {
+			nodes: nodes,
+			edges: edges,
+		};
 
-        function makenode(unit) {
-            this.label = unit
-            this.id = unit.replace('\s', '_')
-        }
+		var options = {
+			layout: {
+				improvedLayout: false,
+				hierarchical: hier,
+			},
+			edges: {
+				color: {
+					inherit: true,
+				},
+				width: 0.15,
+				smooth: {
+					enabled: false,
+					type: "horizontal",
+				},
+				arrows: {
+					to: true,
+				},
+			},
+			nodes: {
+				font: {
+					size: 15,
+					color: "rgb(0, 0, 0)",
+				},
+			},
 
-        function makeedge(idfrom, relname, idto) {
-            this. from = idfrom
-            this.label = relname
-            this.to = idto
-        }
-        //console.log(SPARQLnodes)
-        //console.log(SPARQLedges)
-        var nodes = new vis.DataSet(SPARQLnodes);
-        var edges = new vis.DataSet(SPARQLedges);
-        var hier = false;
-        var edgedrag = false;
-        var container = document.getElementById('SdCGraph');
+			physics: {
+				adaptiveTimestep: false,
+				stabilization: {
+					enabled: true,
+					iterations: 2000,
+				},
+				barnesHut: {
+					gravitationalConstant: -8000,
+					springConstant: 0.001,
+					springLength: 40,
+				},
+			},
+			interaction: {
+				hideEdgesOnDrag: edgedrag,
+				tooltipDelay: 200,
+			},
+		};
 
-        var data = {
-            nodes: nodes,
-            edges: edges
-        };
+		if (ids.length >= 1) {
+			container.style.height = "600px";
+		} // only give an height to the box if there is a graph, i.e. if there are ids to make nodes
 
-        var options = {
-            layout: {
-                improvedLayout: false,
-                hierarchical: hier
-            },
-            edges: {
+		var network = new vis.Network(container, data, options);
+	});
 
-                color: {
-                    inherit: true
-                },
-                width: 0.15,
-                smooth: {
-                    enabled: false,
-                    type: "horizontal"
-                },
-                arrows: {
-                    to: true
-                }
-            },
-            nodes: {
-                font: {
-                    size: 15,
-                    color: 'rgb(0, 0, 0)'
-                }
-            },
+	// in this attribute is stored a full api query line to the rdf needed in json. it will call a function which gets the rdf file as it is stored and transform it to json. no query is made for this.
 
-            physics: {
-                adaptiveTimestep: false,
-                stabilization: {
-                    enabled: true,
-                    iterations: 2000
-                },
-                barnesHut: {
-                    gravitationalConstant: -8000,
-                    springConstant: 0.001,
-                    springLength: 40
-                }
-            },
-            interaction: {
-                hideEdgesOnDrag: edgedrag,
-                tooltipDelay: 200
-            }
-        };
-
-
-         if(ids.length >= 1){container.style.height = '600px'} // only give an height to the box if there is a graph, i.e. if there are ids to make nodes
-
-        var network = new vis.Network(container, data, options);
-         });
-
-
-
-    // in this attribute is stored a full api query line to the rdf needed in json. it will call a function which gets the rdf file as it is stored and transform it to json. no query is made for this.
-
-    /*
+	/*
     $("#graphloadingstatus").text('building the general graph representation')
     var rdf = "SELECT DISTINCT  ?resourceName ?partName \
     WHERE { \

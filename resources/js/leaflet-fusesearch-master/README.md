@@ -4,7 +4,7 @@ Search features in a GeoJSON layer using the lightweight JavaScript fuzzy search
 
 <h2>Usage</h2>
 
-First download Fuse.js from <a href="https://github.com/krisk/Fuse">this repo<a/> or 
+First download Fuse.js from <a href="https://github.com/krisk/Fuse">this repo<a/> or
 from <a href="http://kiro.me/projects/fuse.html">Kiro's site</a>, and load it in your page before leaflet-fusesearch.js.<br/>
 <br/>
 Create the control L.Control.FuseSearch and add it to the Map.
@@ -28,7 +28,7 @@ L.geoJson(data, {
 });
 </pre>
 
-This is it !  By default the search control will appear on the top right corner of the map.
+This is it ! By default the search control will appear on the top right corner of the map.
 This opens the search pane on the same side where you can type in the search string.
 The matching features are listed, with the indexed properties displayed. Clicking a feature
 on the list opens up the matching pop-up on the map, provided one is associated with it.

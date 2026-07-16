@@ -1,3 +1,3 @@
-declare namespace sm="http://exist-db.org/xquery/securitymanager";
+declare namespace sm = "http://exist-db.org/xquery/securitymanager";
 
-sm:add-group-member('dba', 'BetaMasaHeftAdmin')
+sm:add-group-member("dba", "BetaMasaHeftAdmin")
