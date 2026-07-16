@@ -1878,7 +1878,7 @@ function list:getregionchart($place as xs:string*) {
 	let $log := log:add-log-message("/manuscripts/region/listChart", sm:id()//sm:real/sm:username/string(), "list")
 	let $Cmap := map {"type": "reporegion", "name": $place, "path": $repos}
 
-	let $file := $apprest:collection-rootPl//id($place)[self::t:TEI]
+	let $file := $apprest:collection-rootPlIn//id($place)[self::t:TEI]
 	return if ($file or starts-with($place, "wd:")) then (
 		<rest:response>
 			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
