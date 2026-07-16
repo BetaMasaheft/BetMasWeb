@@ -20,6 +20,9 @@ jobs:
           - exist-version: 7.0.0-beta3
             experimental: true
 
+    env:
+      EXISTDB_VERSION: ${{ matrix.exist-version }}
+
     steps:
       - uses: actions/checkout@v7
 
@@ -28,21 +31,37 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install bats
 
-      - name: Build Expath Package
-        uses: actions/setup-java@v5
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
-          java-version: 21
-          distribution: temurin
+          node-version: 20
+          cache: npm
 
-      - run: ant
+      - name: Install npm dependencies
+        run: npm ci
 
-      - name: Install package and start eXist instance
-        run: docker run -dit -p 8080:8080 -p 8443:8443 -v ${{ github.workspace }}/build:/exist/autodeploy:ro --name exist-ci existdb/existdb:${{ matrix.exist-version }}
+      - uses: docker/setup-buildx-action@v3
+
+      # Builds shared-resources, BetMasService, the parser and this package
+      # into a fully installed eXist image - see Dockerfile. Cached across
+      # runs, so a push that only touches this repo's source rebuilds fast.
+      - name: Build eXist image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: EXISTDB_VERSION=${{ matrix.exist-version }}
+          tags: betmasweb-exist:${{ matrix.exist-version }}
+          load: true
+          cache-from: type=gha,scope=exist-${{ matrix.exist-version }}
+          cache-to: type=gha,mode=max,scope=exist-${{ matrix.exist-version }}
+
+      - name: Start the stack
+        run: docker compose up -d
 
       - name: Wait for eXist to start
         timeout-minutes: 2
         run: |
-          until docker logs exist-ci 2>&1 | grep -q "Server has started"; do
+          until docker compose logs exist 2>&1 | grep -q "Server has started"; do
             echo "Still waiting..."
             sleep 2
           done
@@ -50,6 +69,18 @@ jobs:
       - name: Run bats smoke tests
         run: bats --tap test/*.bats
 
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v7
+        with:
+          install: false
+
       - name: Show eXist logs on failure
         if: failure()
-        run: docker logs exist-ci
+        run: docker compose logs exist
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cypress-screenshots-${{ matrix.exist-version }}
+          path: test/cypress/screenshots/

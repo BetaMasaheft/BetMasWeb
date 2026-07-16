@@ -5,8 +5,8 @@ module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace xi = "http://www.w3.org/2001/XInclude";
 
-import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titles.xqm";
-import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMas/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titles.xqm";
+import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");

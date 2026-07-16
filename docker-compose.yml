@@ -1,0 +1,18 @@
+services:
+  exist:
+    build:
+      context: .
+      args:
+        EXISTDB_VERSION: ${EXISTDB_VERSION:-6.4.1}
+    image: betmasweb-exist:${EXISTDB_VERSION:-6.4.1}
+    ports:
+      - "8080:8080"
+
+  # in-memory SPARQL store used by fuseki.xqm for the RDF/SPARQL-backed
+  # pages (charts, DTS, etc). Not persisted - fine for testing, not for
+  # real data. Reachable as localhost:3030 from inside the exist container
+  # since it shares its network namespace.
+  fuseki:
+    image: stain/jena-fuseki:latest
+    command: ["/jena-fuseki/fuseki-server", "--mem", "/betamasaheft"]
+    network_mode: "service:exist"
