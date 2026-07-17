@@ -1,0 +1,29 @@
+modules/dtsclient.xqm
+  s_16a6cdccdd371f::t_c4d7550b0cfaed 59-60,62-66
+  s_16a6cdccdd371f::t_99a7f2d70c612b 204
+  s_16a6cdccdd371f::t_5593719500508b 30
+  s_16a6cdccdd371f::t_09d7b6c68cffb9 67
+  s_16a6cdccdd371f::t_506184d03f111a 71,75,79,223
+modules/scriptlinks.xqm
+  s_16a6cdccdd371f::t_2000897a562dd7 97-99
+  s_16a6cdccdd371f::t_beba068e4710b4 100
+resources/js/dtsAnno.js
+  s_16a6cdccdd371f::t_19b64f07c16192 102
+  s_16a6cdccdd371f::t_7681d9e246b363 1-22,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "6636b373767e23aad623692044907ba57aa85f94",
+  "prompts": {},
+  "sessions": {
+    "s_16a6cdccdd371f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc75cbc0-e576-4db7-a2e7-0e4670c53636",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
