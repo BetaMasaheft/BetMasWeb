@@ -27,8 +27,7 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 	(: let $t := util:log('info', string-join(($edition, $ref, $start, $end), ' - ')) :)
 	(: this instance's own DTS API, not a hardcoded host: the client
        otherwise send-requests production's endpoints from any deployment :)
-	let $approot := $config:appUrl
-	let $APIroot := "/api/dts/"
+	let $APIroot := $config:BMurl || "api/dts/"
 	let $NavAPI := "navigation"
 	let $ColAPI := "collections"
 	let $DocAPI := "document"
@@ -57,27 +56,27 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 		"." || $start || "-" || $end
 	) else (
 	)
-	let $citationuri := ($approot || "/" || $id || $edition || $refstart)
-	let $fullid := $approot || "/" || $id || $edition
+	let $citationuri := ($config:BMurl || $id || $edition || $refstart)
+	let $fullid := $config:BMurl || $id || $edition
 	let $fullidpar := $baseid || $id || $edition
-	let $uricol := ($approot || $APIroot || $ColAPI || $fullidpar)
-	let $urinav := ($approot || $APIroot || $NavAPI || $fullidpar || $parm)
-	let $uridoc := ($approot || $APIroot || $DocAPI || $fullidpar || $parm)
-	let $urianno := ($approot || $APIroot || $AnnoAPI || "/" || $collection || "/items/" || $id)
-	let $fullxml := $approot || "/" || $id || ".xml"
-	let $DTScol := if (starts-with($fullid, $approot)) then
+	let $uricol := ($APIroot || $ColAPI || $fullidpar)
+	let $urinav := ($APIroot || $NavAPI || $fullidpar || $parm)
+	let $uridoc := ($APIroot || $DocAPI || $fullidpar || $parm)
+	let $urianno := ($APIroot || $AnnoAPI || "/" || $collection || "/items/" || $id)
+	let $fullxml := $config:BMurl || $id || ".xml"
+	let $DTScol := if (starts-with($fullid, $config:BMurl)) then
 		localdts:Collection($fullid, 1, "children")
 	else
 		dtsc:request($uricol)
-	let $DTSnav := if (starts-with($fullid, $approot)) then
+	let $DTSnav := if (starts-with($fullid, $config:BMurl)) then
 		localdts:Navigation($fullid, $ref, "", $start, $end, "", "", "", "no")
 	else
 		dtsc:request($urinav)
-	let $DTSanno := if (starts-with($fullid, $approot)) then
+	let $DTSanno := if (starts-with($fullid, $config:BMurl)) then
 		localdts:Annotations($collection, $id, "1", "1", "no")
 	else
 		dtsc:request($urianno)
-	let $DTSdoc := if (starts-with($fullid, $approot)) then
+	let $DTSdoc := if (starts-with($fullid, $config:BMurl)) then
 		localdts:Document($fullid, $ref, $start, $end)
 	else
 		dtsc:requestXML($uridoc)
@@ -202,7 +201,11 @@ DTSannoCollectionLink">
 						<span class="w3-tooltip w3-border-0">
 							<a href="/{ $id }{ $edition }.{ $r }">{ $r }</a>
 							<a class="page-scroll w3-right" href="#{ $r }">↓</a>
-							<span class="w3-text w3-tag" style="word-break:break-all;">{ $approot }/{ $id }{ $edition }.{ $r }</span>
+							<span class="w3-text w3-tag" style="word-break:break-all;">
+								{ $config:BMurl }
+								{ $id }
+								{ $edition }.{ $r }
+							</span>
 						</span>
 					</div>
 				}
@@ -221,7 +224,7 @@ DTSannoCollectionLink">
 		</div>
 		<div class="w3-rest">
 			{ (: Cache the XML request outside the loop to avoid making the same HTTP request multiple times :)
-				let $fullxmlDoc := if (starts-with($fullid, $approot)) then
+				let $fullxmlDoc := if (starts-with($fullid, $config:BMurl)) then
 					(: For local requests, use the DTSdoc we already have or fetch from collection :)
 					if ($DTSdoc instance of element()) then
 						$DTSdoc
