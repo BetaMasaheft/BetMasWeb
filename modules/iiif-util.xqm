@@ -4,6 +4,16 @@ module namespace iiifut = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/iii
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
+import module namespace cache = "http://exist-db.org/xquery/cache";
+
+(: Manifest lookups hit third-party IIIF hosts (e.g. digi.vatlib.it), which rate-limit us when
+   the same manuscript's manifest is requested once per <locus> in the document. Memoize by
+   manifest URL, including failures, so a burst of loci or repeated requests only fetches once
+   per TTL window. :)
+declare variable $iiifut:CANVAS-CACHE := "iiif-manifest-canvas";
+
+declare variable $iiifut:CANVAS-CACHE-TTL := 3600;
+
 (:~
  : Helper to resolve the @facs string via an internal facsimile link reference if needed
  :)
@@ -17,20 +27,40 @@ declare function iiifut:facs-switch($idnofacs as element()) as xs:string {
 
 (: firstcanvas :)
 declare function iiifut:get-first-canvas($manifestUrl as xs:string) as xs:string? {
-	try {
-		let $json := json-doc(normalize-space($manifestUrl))
-		return (: Check for IIIF v3 structure ('items') :) if (map:contains($json, "items")) then
-			let $firstCanvas := $json?items(1)?items(1)?items(1)
-			return if (map:contains($firstCanvas, "id")) then
-				$firstCanvas?id
+	let $key := normalize-space($manifestUrl)
+	let $ensureCache := cache:create(
+		$iiifut:CANVAS-CACHE,
+		map {"type": "lru", "size": 500, "ttl": $iiifut:CANVAS-CACHE-TTL}
+	)
+	let $cached := cache:get($iiifut:CANVAS-CACHE, $key)
+	return if (exists($cached)) then
+		if ($cached eq "") then (
+		) (: negative cache: a previous lookup failed or returned nothing :) else
+			$cached
+	else
+		let $fresh := try {
+			let $json := json-doc($key)
+			return (: Check for IIIF v3 structure ('items') :) if (map:contains($json, "items")) then
+				let $firstCanvas := $json?items(1)?items(1)?items(1)
+				return if (map:contains($firstCanvas, "id")) then
+					$firstCanvas?id
+				else
+					$json?items(1)?id
+			(: Fallback to IIIF v2 structure ('sequences/canvases') :)
+			else if (map:contains($json, "sequences")) then
+				$json?sequences(1)?canvases(1)?("@id")
+			else (
+			)
+		} catch * { () (: Return empty sequence if the remote server is down or returns a 404 :) }
+		let $store := cache:put(
+			$iiifut:CANVAS-CACHE,
+			$key,
+			if (exists($fresh)) then
+				$fresh
 			else
-				$json?items(1)?id
-		(: Fallback to IIIF v2 structure ('sequences/canvases') :)
-		else if (map:contains($json, "sequences")) then
-			$json?sequences(1)?canvases(1)?("@id")
-		else (
+				""
 		)
-	} catch * { () (: Return empty sequence if the remote server is down or returns a 404 :) }
+		return $fresh
 };
 
 (:~
