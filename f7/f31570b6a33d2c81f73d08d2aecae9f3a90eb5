@@ -1,0 +1,26 @@
+docker-compose.yml
+  s_f621eb37f8854e::t_d058b2439f16db 6-10,13-36,46-49
+docker/seed.xq.example
+  s_f621eb37f8854e::t_1aeca517bb3f8d 1-14
+.gitignore
+  s_f621eb37f8854e::t_de5172a177d9b7 5-6
+Dockerfile
+  s_f621eb37f8854e::t_16c6a946496bd7 1-4,8-9,11-12,25-27,30-42
+  s_f621eb37f8854e::t_52dbd3a143bdc7 28-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "f7f31570b6a33d2c81f73d08d2aecae9f3a90eb5",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
