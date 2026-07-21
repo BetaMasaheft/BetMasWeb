@@ -144,7 +144,7 @@ declare function PermRestItem:ITEM(
 			".xml"
 	) else
 		replace(
-			PermRestItem:capitalize-first(substring-after(base-uri(item2:getTEIbyID($id)), "/db/apps/BetMasData/")),
+			PermRestItem:capitalize-first(substring-after(base-uri(item2:getTEIbyID($id)), $config:data-root || "/")),
 			$capCol,
 			""
 		)
