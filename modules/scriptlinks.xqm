@@ -94,6 +94,10 @@ declare function scriptlinks:footerjsSelector() as element()* {
  :)
 declare function scriptlinks:scriptStyle() {
 	(
+		(: App base for client-side JS: lets scripts build URLs under the app
+		   base on any deployment instead of hardcoding a host or assuming the
+		   app is served at the origin root. :)
+		<script type="text/javascript">{ 'var BM_APP_URL = "' || $config:appUrl || '";' }</script>,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link
 			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"
