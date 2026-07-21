@@ -9,15 +9,8 @@ module namespace restItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/r
 
 (: For interacting with the TEI document :)
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace dcterms = "http://purl.org/dc/terms";
-declare namespace saws = "http://purl.org/saws/ontology";
-declare namespace cmd = "http://www.clarin.eu/cmd/";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare namespace json = "http://www.json.org";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
+import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
@@ -28,7 +21,6 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
-import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace dtsc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtsc" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtsclient.xqm";
 
@@ -36,52 +28,29 @@ declare variable $restItem:deleted := doc("/db/apps/lists/deleted.xml");
 
 (: parameter hi is used to highlight searched word when coming query from Dillmann
 parameters start and perpage are for the text visualization with pagination as per standard usage :)
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$id}/main")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%output:method("html5")
-function restItem:getItem(
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:getItem($request as map(*)) {
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $item := item2:getTEIbyID($id)
 	let $col := switch2:col($item/@type)
 	let $log := log:add-log-message("/" || $id || "/main", sm:id()//sm:real/sm:username/string(), "item")
 	return restItem:ITEM("main", $id, $col, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/main")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function restItem:getItemC(
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:getItemC($request as map(*)) {
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/main",
 		sm:id()//sm:real/sm:username/string(),
@@ -90,27 +59,15 @@ function restItem:getItemC(
 	return restItem:ITEM("main", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/geoBrowser")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function restItem:getgeoBrowser(
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:getgeoBrowser($request as map(*)) {
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/geoBrowser",
 		sm:id()//sm:real/sm:username/string(),
@@ -119,26 +76,15 @@ function restItem:getgeoBrowser(
 	return restItem:ITEM("geobrowser", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/text")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%output:method("html5")
-function restItem:gettext(
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:gettext($request as map(*)) {
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/text",
 		sm:id()//sm:real/sm:username/string(),
@@ -147,27 +93,15 @@ function restItem:gettext(
 	return restItem:ITEM("text", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/analytic")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function restItem:getanalytic(
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:getanalytic($request as map(*)) {
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message(
 		"/" || $collection || "/" || $id || "/analytic",
 		sm:id()//sm:real/sm:username/string(),
@@ -176,50 +110,26 @@ function restItem:getanalytic(
 	return restItem:ITEM("analytic", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/graph")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function restItem:getgraph(
-	$collection as xs:string*,
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
-	restItem:ITEM("graph", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
+declare function restItem:getgraph($request as map(*)) {
+	let $collection as xs:string* := $request?parameters?collection
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
+	return restItem:ITEM("graph", $id, $collection, $start, $end, $ref, $edition, $per-page, $hi)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$id}/corpus")
-	%rest:query-param("start", "{$start}", "")
-	%rest:query-param("end", "{$end}", "")
-	%rest:query-param("ref", "{$ref}", "")
-	%rest:query-param("edition", "{$edition}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%rest:query-param("per-page", "{$per-page}", "")
-	%rest:query-param("hi", "{$hi}", "")
-	%output:method("html5")
-function restItem:getcorpus(
-	$id as xs:string*,
-	$start as xs:string*,
-	$end as xs:string*,
-	$ref as xs:string*,
-	$edition as xs:string*,
-	$per-page as xs:string*,
-	$hi as xs:string*
-) {
+declare function restItem:getcorpus($request as map(*)) {
+	let $id as xs:string* := $request?parameters?id
+	let $start as xs:string* := $request?parameters?start
+	let $end as xs:string* := $request?parameters?end
+	let $ref as xs:string* := $request?parameters?ref
+	let $edition as xs:string* := $request?parameters?edition
+	let $per-page as xs:string* := $request?parameters?per-page
+	let $hi as xs:string* := $request?parameters?hi
 	let $log := log:add-log-message("/corpus/" || $id, sm:id()//sm:real/sm:username/string(), "item")
 	return restItem:ITEM("corpus", $id, "corpora", $start, $end, $ref, $edition, $per-page, $hi)
 };
@@ -239,45 +149,37 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 				contains(@passive, $id)][1]
 			return if (count($formerlyListed) = 1) then
 				(: redirect to record containing formerly listed as :)
-				<rest:response>
-					<http:response status="301">
-						<http:header name="Location" value="/{ string($formerlyListed/@active) }" />
-						<http:header name="Connection" value="close" />
-					</http:response>
-				</rest:response>
+				roaster:response(301, (), (), map {"Location": "/" || string($formerlyListed/@active), "Connection": "close"})
 			else
-				<rest:response>
-					<http:response status="410">
-						<http:header name="Content-Type" value="text/html; charset=utf-8" />
-					</http:response>
-				</rest:response>,
-			<html xmlns="http://www.w3.org/1999/xhtml">
-				<head><title>Not here any more... 410 - Gone</title></head>
-				<body>
-					<p>Sorry! { $id } has been marked as deleted.</p>
-					<p>You can check the list of <a href="/deleted.html">all deleted records here </a></p>
-				</body>
-			</html>
+				roaster:response(
+					410,
+					"text/html",
+					<html xmlns="http://www.w3.org/1999/xhtml">
+						<head><title>Not here any more... 410 - Gone</title></head>
+						<body>
+							<p>Sorry! { $id } has been marked as deleted.</p>
+							<p>You can check the list of <a href="/deleted.html">all deleted records here </a></p>
+						</body>
+					</html>
+				)
 		) (: check if there is more then one :) else if (count($this) gt 1) then (
-			<rest:response>
-				<http:response status="409"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-			</rest:response>,
-			<html xmlns="http://www.w3.org/1999/xhtml">
-				<head><title>More than one { $id }</title></head>
-				<body>
-					<p>Something has gone wrong and there are more than one item with id { $id }.</p>
-					<ul>
-						{
-							for $i in $this
-							return <li>{ base-uri($i) }</li>
-						}
-					</ul>
-				</body>
-			</html>
+			roaster:response(
+				409,
+				"text/html",
+				<html xmlns="http://www.w3.org/1999/xhtml">
+					<head><title>More than one { $id }</title></head>
+					<body>
+						<p>Something has gone wrong and there are more than one item with id { $id }.</p>
+						<ul>
+							{
+								for $i in $this
+								return <li>{ base-uri($i) }</li>
+							}
+						</ul>
+					</body>
+				</html>
+			)
 		) (: check that the item exists :) else if (count($this) = 1) then (
-			<rest:response>
-				<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-			</rest:response>,
 			<html xmlns="http://www.w3.org/1999/xhtml" version="XHTML+RDFa 1.1">
 				<head>
 					<!-- Global site tag (gtag.js) - Google Analytics 
@@ -626,16 +528,10 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 				</body>
 			</html>
 		) else (: error message if item does not exist :) (
-			<rest:response>
-				<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-			</rest:response>,
-			error:error($Imap)
+			roaster:response(400, "text/html", error:error($Imap))
 		)
 	) else (: error message if the collection does not exist :) (
-		<rest:response>
-			<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
-		error:error($Cmap)
+		roaster:response(400, "text/html", error:error($Cmap))
 	)
 };
 

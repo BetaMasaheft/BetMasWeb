@@ -55,6 +55,7 @@ RUN java org.exist.start.Main jetty & \
     EXIST_PID=$! && \
     timeout 120 bash -c 'until curl -sf http://localhost:8080/exist/rest/ > /dev/null 2>&1; do echo "Waiting..."; sleep 3; done' && \
     xst package install from-registry shared-resources && \
+    xst package install from-registry roaster && \
     xst execute "if (sm:user-exists('BetaMasaheftAdmin')) then () else sm:create-account('BetaMasaheftAdmin', 'test', 'dba')" && \
     xst execute "if (xmldb:collection-available('/db/apps/expanded')) then () else xmldb:create-collection('/db/apps', 'expanded')" && \
     xst execute "for \$c in ('authority-files','manuscripts','institutions','narratives','persons','places','studies','works') where not(xmldb:collection-available('/db/apps/expanded/' || \$c)) return xmldb:create-collection('/db/apps/expanded', \$c)" && \

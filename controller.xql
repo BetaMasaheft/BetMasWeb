@@ -265,16 +265,6 @@ else if (contains($exist:path, "morpho")) then
 			<set-header name="Cache-Control" value="no-cache" />
 		</forward>
 	</dispatch>
-else if (contains($exist:path, "/permanent/")) then
-	if (ends-with($exist:path, "/")) then
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $config:appUrl }/apidoc.html" /></dispatch>
-	else
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward absolute="yes" url="{ concat("/restxq", $exist:path) }">
-				{ login:set-user($domain, (), false()) }
-				<set-header name="Cache-Control" value="no-cache" />
-			</forward>
-		</dispatch>
 else if (contains($exist:path, "Dillmann") and not(contains($exist:path, "PRS"))) then
 	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 		<forward absolute="yes" url="{ concat("/restxq", $exist:path) }">
@@ -282,8 +272,24 @@ else if (contains($exist:path, "Dillmann") and not(contains($exist:path, "PRS"))
 			<set-header name="Cache-Control" value="no-cache" />
 		</forward>
 	</dispatch>
+
+(: RDF content negotiation - not implemented by any %rest: function in this app (served by
+another installed package under the shared /restxq/ mount), so this keeps going through the
+classic RestXQ dispatch rather than BetMasWeb's own Roaster router below :)
+else if (ends-with($exist:path, "/rdf")) then
+	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+		<forward absolute="yes" url="{ concat("/restxq/BetMasWeb/", $exist:path) }">
+			{ login:set-user($domain, (), false()) }
+			<set-header name="Cache-Control" value="no-cache" />
+		</forward>
+	</dispatch>
+
+(: everything served by BetMasWeb's own Roaster router (modules/api.xql + modules/routes.json)
+- replaces the classic RESTXQ dispatch, so there is no more prefix-guessing here: the
+router matches $exist:path literally against routes.json's path templates :)
 else if (
-	ends-with($exist:path, "/rdf") or
+	contains($exist:path, "/permanent/") or
+		contains($exist:path, "/api/") or
 		ends-with($exist:path, "/list") or
 		ends-with($exist:path, "/listChart") or
 		ends-with($exist:path, "/browse") or
@@ -309,17 +315,7 @@ else if (
 		<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $config:appUrl }/apidoc.html" /></dispatch>
 	else
 		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward absolute="yes" url="{ concat("/restxq/BetMasWeb/", $exist:path) }">
-				{ login:set-user($domain, (), false()) }
-				<set-header name="Cache-Control" value="no-cache" />
-			</forward>
-		</dispatch>
-else if (contains($exist:path, "/api/")) then
-	if (ends-with($exist:path, "/")) then
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $config:appUrl }/apidoc.html" /></dispatch>
-	else
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward absolute="yes" url="{ concat("/restxq", $exist:path) }">
+			<forward url="{ $exist:controller }/modules/api.xql">
 				{ login:set-user($domain, (), false()) }
 				<set-header name="Cache-Control" value="no-cache" />
 			</forward>

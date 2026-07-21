@@ -4,11 +4,7 @@ module namespace viewer = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/iii
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace marc = "http://www.loc.gov/MARC21/slim";
-(: For REST annotations :)
-declare namespace http = "http://expath.org/ns/http-client";
-declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace rest = "http://exquery.org/ns/restxq";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
@@ -19,12 +15,9 @@ import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
-declare %rest:GET %rest:path("/BetMasWeb/manuscripts/viewer") %output:method("html5") function viewer:allmirador() {
+declare function viewer:allmirador($request as map(*)) {
 	(
 		log:add-log-message("/manuscripts/viewer", sm:id()//sm:real/sm:username/string(), "viewer"),
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -51,14 +44,10 @@ declare %rest:GET %rest:path("/BetMasWeb/manuscripts/viewer") %output:method("ht
 	)
 };
 
-declare
-	%rest:GET %rest:path("/BetMasWeb/manuscripts/{$repoid}/list/viewer") %output:method("html5")
-function viewer:allinRepo($repoid as xs:string) {
-	(
+declare function viewer:allinRepo($request as map(*)) {
+	let $repoid as xs:string := $request?parameters?repoid
+	return (
 		log:add-log-message("/manuscripts/" || $repoid || "/viewer", sm:id()//sm:real/sm:username/string(), "viewer"),
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -85,12 +74,10 @@ function viewer:allinRepo($repoid as xs:string) {
 	)
 };
 
-declare
-	%rest:GET
-	%rest:path("/BetMasWeb/{$collection}/{$id}/viewer")
-	%rest:query-param("FirstCanv", "{$FirstCanv}", "")
-	%output:method("html5")
-function viewer:mirador($collection as xs:string, $id as xs:string, $FirstCanv as xs:string*) {
+declare function viewer:mirador($request as map(*)) {
+	let $collection as xs:string := $request?parameters?collection
+	let $id as xs:string := $request?parameters?id
+	let $FirstCanv as xs:string* := $request?parameters?FirstCanv
 	let $c := switch2:collectionVar($collection)
 	let $coll := $config:data-root || "/" || $collection
 	let $this := $c/id($id)
@@ -218,11 +205,6 @@ function viewer:mirador($collection as xs:string, $id as xs:string, $FirstCanv a
 					sm:id()//sm:real/sm:username/string(),
 					"viewer"
 				),
-				<rest:response>
-					<http:response status="200">
-						<http:header name="Content-Type" value="text/html; charset=utf-8" />
-					</http:response>
-				</rest:response>,
 				<html xmlns="http://www.w3.org/1999/xhtml">
 					<head>
 						<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -280,17 +262,9 @@ var canvasid = "' ||
 					</body>
 				</html>
 			) else (
-				<rest:response>
-					<http:response status="400">
-						<http:header name="Content-Type" value="text/html; charset=utf-8" />
-					</http:response>
-				</rest:response>,
 				error:error($Imap)
 			)
 		) else (
-			<rest:response>
-				<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-			</rest:response>,
 			error:error($Cmap)
 		)
 	) (: if there are more  facs, then print a multiple view mirador :) else (
@@ -348,11 +322,6 @@ var canvasid = "' ||
 					sm:id()//sm:real/sm:username/string(),
 					"viewer"
 				),
-				<rest:response>
-					<http:response status="200">
-						<http:header name="Content-Type" value="text/html; charset=utf-8" />
-					</http:response>
-				</rest:response>,
 				<html xmlns="http://www.w3.org/1999/xhtml">
 					<head>
 						<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
@@ -408,17 +377,9 @@ var windowobjs =  [" ||
 					</body>
 				</html>
 			) else (
-				<rest:response>
-					<http:response status="400">
-						<http:header name="Content-Type" value="text/html; charset=utf-8" />
-					</http:response>
-				</rest:response>,
 				error:error($Imap)
 			)
 		) else (
-			<rest:response>
-				<http:response status="400"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-			</rest:response>,
 			error:error($Cmap)
 		)
 	)
@@ -472,12 +433,9 @@ declare function viewer:location($this) {
 		string-join($this//t:idno, ", ")
 };
 
-declare %rest:GET %rest:path("/BetMasWeb/chojnacki/viewer") %output:method("html5") function viewer:allchojnacki() {
+declare function viewer:allchojnacki($request as map(*)) {
 	(
 		log:add-log-message("/chojnacki/viewer", sm:id()//sm:real/sm:username/string(), "viewer"),
-		<rest:response>
-			<http:response status="200"><http:header name="Content-Type" value="text/html; charset=utf-8" /></http:response>
-		</rest:response>,
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
