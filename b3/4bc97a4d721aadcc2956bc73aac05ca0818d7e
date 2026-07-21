@@ -1,0 +1,20 @@
+.github/workflows/exist.yml
+  s_f621eb37f8854e::t_9498e94acbd5f6 3-11,30,32,38-39,47-52,54,57,59-61,69,73-77,89,93,95
+  s_f621eb37f8854e::t_84d1995556b39b 40-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b34bc97a4d721aadcc2956bc73aac05ca0818d7e",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
