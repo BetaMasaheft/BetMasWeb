@@ -11,10 +11,15 @@ it("GET /permanent/{sha}/{id}/main (as /permanent/{sha}/BAVet1/main)", () => {
 	});
 });
 
-it("GET /permanent/{sha}/{id}/corpus (as /permanent/{sha}/BAVet1/corpus)", () => {
-	cy.request({ url: `/permanent/${sha}/BAVet1/corpus`, method: "GET", failOnStatusCode: false }).then((res) => {
-		expect(res.status, `GET /permanent/${sha}/BAVet1/corpus responded with ${res.status}`).to.not.equal(500);
-		expect(res.status, `GET /permanent/${sha}/BAVet1/corpus responded with ${res.status}`).to.not.equal(405);
+// This route resolves the id against the corpora collection, not
+// manuscripts - BAVet1 (reused above) doesn't belong there and 500s.
+// Real commit touching corpus8.xml in betamasaheft/corpora instead.
+const corpusSha = "12c4b9c285696c700149261bf5dc0295acd7772e";
+
+it("GET /permanent/{sha}/{id}/corpus (as /permanent/{sha}/corpus8/corpus)", () => {
+	cy.request({ url: `/permanent/${corpusSha}/corpus8/corpus`, method: "GET", failOnStatusCode: false }).then((res) => {
+		expect(res.status, `GET /permanent/${corpusSha}/corpus8/corpus responded with ${res.status}`).to.not.equal(500);
+		expect(res.status, `GET /permanent/${corpusSha}/corpus8/corpus responded with ${res.status}`).to.not.equal(405);
 	});
 });
 
