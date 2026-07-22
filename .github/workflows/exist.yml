@@ -1,6 +1,12 @@
 name: exist-db CI
 
-on: [push, pull_request]
+# Scope push to master/main only - a PR branch push would otherwise also
+# fire push, double-triggering this workflow and showing a spurious red check.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
 
 concurrency:
   group: betmasweb-ci-${{ github.head_ref || github.ref_name }}
@@ -9,19 +15,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - exist-version: 6.4.1
-            experimental: false
-          # unstable dev build; failures here are early warnings, not blockers
-          - exist-version: 7.0.0-beta3
-            experimental: true
-
-    env:
-      EXISTDB_VERSION: ${{ matrix.exist-version }}
 
     steps:
       - uses: actions/checkout@v7
@@ -32,28 +25,42 @@ jobs:
           sudo apt-get -y install bats
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install npm dependencies
         run: npm ci
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
-      # Builds shared-resources, BetMasService, the parser and this package
-      # into a fully installed eXist image - see Dockerfile. Cached across
-      # runs, so a push that only touches this repo's source rebuilds fast.
+      # betmas-data is a private ghcr.io package; pulling needs auth too.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: betmas-bot
+          password: ${{ secrets.BOT_CONTAINER_PAT }}
+
+      # Configure under Settings -> Secrets -> Actions as SEED_XQ
+      # (see docker/seed.xq.example).
+      - name: Write seed.xq
+        run: printf '%s\n' "$SEED_XQ" > docker/seed.xq
+        env:
+          SEED_XQ: ${{ secrets.SEED_XQ }}
+
+      # Builds BetMasService + parser from source and layers them + this
+      # repo's own package onto the published betmas-data base.
       - name: Build eXist image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
-          build-args: EXISTDB_VERSION=${{ matrix.exist-version }}
-          tags: betmasweb-exist:${{ matrix.exist-version }}
+          tags: betmasweb-exist:local
           load: true
-          cache-from: type=gha,scope=exist-${{ matrix.exist-version }}
-          cache-to: type=gha,mode=max,scope=exist-${{ matrix.exist-version }}
+          cache-from: type=gha,scope=exist
+          cache-to: type=gha,mode=max,scope=exist
+          secret-files: seed=docker/seed.xq
 
       - name: Start the stack
         run: docker compose up -d
@@ -61,10 +68,12 @@ jobs:
       - name: Wait for eXist to start
         timeout-minutes: 2
         run: |
-          until docker compose logs exist 2>&1 | grep -q "Server has started"; do
+          until docker logs exist 2>&1 | grep -q "Server has started"; do
             echo "Still waiting..."
             sleep 2
           done
+          # Bounded settle sleep, not a wait-for-healthy loop.
+          sleep 15
 
       - name: Run bats smoke tests
         run: bats --tap test/*.bats
@@ -76,11 +85,11 @@ jobs:
 
       - name: Show eXist logs on failure
         if: failure()
-        run: docker compose logs exist
+        run: docker logs exist
 
       - name: Upload Cypress screenshots
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: cypress-screenshots-${{ matrix.exist-version }}
+          name: cypress-screenshots
           path: test/cypress/screenshots/
