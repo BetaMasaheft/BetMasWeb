@@ -1,0 +1,48 @@
+name: Install smoke
+
+# Pure install smoke: does this package autodeploy cleanly into a bare
+# eXist? The full stack + Cypress integration lane lives in exist.yml.
+#
+# BetMasService and parser aren't standalone registry-published repos yet,
+# so a sibling job builds them from source and hands the xars over as an
+# artifact. monex is installed explicitly ahead of them: parser imports
+# the console module without declaring monex as a dependency, so it needs
+# monex present before *it* deploys, not just before this package (which
+# does declare monex) gets installed last.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build-extra-xars:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "8"
+
+      - name: Build BetMasService and parser from source
+        run: |
+          git clone --depth 1 https://github.com/BetaMasaheft/BetMas.git /tmp/BetMas
+          ant -f /tmp/BetMas/db/apps/BetMasService/build.xml
+          ant -f /tmp/BetMas/db/apps/parser/build.xml
+          mkdir extra-xars
+          cp /tmp/BetMas/db/apps/BetMasService/build/*.xar extra-xars/01-BetMasService.xar
+          cp /tmp/BetMas/db/apps/parser/build/*.xar extra-xars/02-parser.xar
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: betmasweb-extra-xars
+          path: extra-xars/*.xar
+          retention-days: 1
+
+  smoke:
+    needs: build-extra-xars
+    uses: BetaMasaheft/.github/.github/workflows/install-smoke.yml@main
+    with:
+      extra-packages: monex
+      extra-xars-artifact: betmasweb-extra-xars
