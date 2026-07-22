@@ -1,0 +1,26 @@
+.github/workflows/smoke.yml
+  s_f621eb37f8854e::t_ddb784e8748e9d 3-4
+  s_f621eb37f8854e::t_c3737fd2659bdc 8-11
+  s_f621eb37f8854e::t_e3adc4a051efea 47
+Dockerfile
+  s_f621eb37f8854e::t_b07d8d098a2d6e 27-31
+  s_f621eb37f8854e::t_1fa7013cbd56be 36-37
+expath-pkg.xml
+  s_f621eb37f8854e::t_7996936f024eb2 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "5ebc0e03fa0cc4b00ab3086f87b7a97e2756aeae",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
