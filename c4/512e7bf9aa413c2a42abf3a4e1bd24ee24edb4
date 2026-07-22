@@ -1,0 +1,19 @@
+test/connect_spec.bats
+  s_f621eb37f8854e::t_6833954dd4f03b 4-9,16-20,22,26-36,38-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c4512e7bf9aa413c2a42abf3a4e1bd24ee24edb4",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}

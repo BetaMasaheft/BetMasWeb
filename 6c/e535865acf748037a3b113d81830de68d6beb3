@@ -1,0 +1,21 @@
+test/cypress/e2e/list.cy.js
+  s_f621eb37f8854e::t_9114c97ca9938d 24-28
+test/cypress/e2e/items.cy.js
+  s_f621eb37f8854e::t_4130eadb5f53dd 3-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "6ce535865acf748037a3b113d81830de68d6beb3",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
