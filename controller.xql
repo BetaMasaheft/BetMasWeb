@@ -321,12 +321,11 @@ else if (
 			</forward>
 		</dispatch>
 
-(: redirects to api for geoJson :)
+(: redirects to api for geoJson - BetMasApi's own app (its `places:json` is Roaster-routed,
+not %rest:-annotated, so it's no longer reachable through the classic /restxq/ mount) :)
 else if (ends-with($exist:path, ".json")) then
 	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-		<forward
-			absolute="yes"
-			url="{ $config:appUrl }/restxq/api/geoJson/places/{ substring-before($exist:resource, ".json") }" />
+		<forward absolute="yes" url="/apps/BetMasApi/api/geoJson/places/{ substring-before($exist:resource, ".json") }" />
 	</dispatch>
 
 (: tei tranformed :)

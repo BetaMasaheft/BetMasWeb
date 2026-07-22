@@ -25,6 +25,13 @@ RUN ant -f /src/BetMas/db/apps/parser/build.xml
 # sequence instead of 404ing, which is what was producing the apparent
 # exptit:printTitleID / apprest:decidelink crashes - not a code bug.
 RUN ant -f /src/BetMas/db/apps/lists/build.xml
+# BetMasApi - controller.xql forwards .json (geoJson) requests to its Roaster
+# router; depends on BetMasWeb itself, so it's installed after BetMasWeb below,
+# not alongside the other slow-changing deps. Its own standalone repo, NOT the
+# (stale) db/apps/BetMasApi mirror inside the BetMas monorepo above - that copy
+# is missing controller.xql/modules entirely.
+ADD https://github.com/BetaMasaheft/BetMasApi.git /src/BetMasApi
+RUN ant -f /src/BetMasApi/build.xml
 
 WORKDIR /src/BetMasWeb
 COPY . .
@@ -67,12 +74,14 @@ RUN java org.exist.start.Main jetty & \
 
 # this package: rebuilds fast on every local change
 COPY --from=build-stage /src/BetMasWeb/build/*.xar /install/BetMasWeb/
+COPY --from=build-stage /src/BetMasApi/build/*.xar /install/BetMasApi/
 COPY test/fixtures /install/fixtures
 
 RUN java org.exist.start.Main jetty & \
     EXIST_PID=$! && \
     timeout 120 bash -c 'until curl -sf http://localhost:8080/exist/rest/ > /dev/null 2>&1; do echo "Waiting..."; sleep 3; done' && \
     xst package install local-files /install/BetMasWeb/*.xar && \
+    xst package install local-files /install/BetMasApi/*.xar && \
     xst upload /install/fixtures /db/apps/expanded && \
     kill $EXIST_PID && \
     wait $EXIST_PID; true

@@ -23,10 +23,12 @@ it("GET /{id}.rdf (as /BAVet1.rdf)", () => {
 	});
 });
 
-it("GET /{id}.json (as /BAVet1.json)", () => {
-	cy.request({ url: "/BAVet1.json", method: "GET", failOnStatusCode: false }).then((res) => {
-		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(500);
-		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(405);
+it("GET /{id}.json (as /LOC5374Rome.json)", () => {
+	// .json only exists as a geoJson/places branch (forwards to /api/geoJson/places/{id}),
+	// not a generic per-id route — use a place id so this actually exercises it
+	cy.request({ url: "/LOC5374Rome.json", method: "GET", failOnStatusCode: false }).then((res) => {
+		expect(res.status, `GET /LOC5374Rome.json responded with ${res.status}`).to.not.equal(500);
+		expect(res.status, `GET /LOC5374Rome.json responded with ${res.status}`).to.not.equal(405);
 	});
 });
 
