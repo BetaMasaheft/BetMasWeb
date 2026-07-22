@@ -135,7 +135,7 @@ else if (starts-with($exist:path, "/CAe")) then
 (: Resource paths starting with $shared are loaded from the shared-resources app :)
 else if (contains($exist:path, "/$shared/")) then
 	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-		<forward url="{ $config:appUrl }/shared-resources/{ substring-after($exist:path, "/$shared/") }" />
+		<forward absolute="yes" url="/apps/shared-resources/{ substring-after($exist:path, "/$shared/") }" />
 	</dispatch>
 
 else if (starts-with($exist:path, "/openapi/")) then
