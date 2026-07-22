@@ -1,0 +1,29 @@
+test/cypress/e2e/ids.cy.js
+  s_f621eb37f8854e::t_90ecb8ef1561c1 5
+  s_f621eb37f8854e::t_430e603f49a4aa 3
+test/cypress/e2e/items.cy.js
+  s_f621eb37f8854e::t_4130eadb5f53dd 7
+  s_f621eb37f8854e::t_6a3caf57b7a768 3-6
+test/cypress/e2e/list.cy.js
+  s_f621eb37f8854e::t_535c0d827185cf 107
+  s_f621eb37f8854e::t_bc86a1d2aeb5ee 24-25
+  s_f621eb37f8854e::t_a8a29eb2ec5273 75-76,105-106
+  s_f621eb37f8854e::t_180ab45fde7549 77
+  s_f621eb37f8854e::t_9114c97ca9938d 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "039bde52de5fe896084dc41f5f7069b2e64c7327",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": null
+    }
+  }
+}
