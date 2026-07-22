@@ -4,6 +4,7 @@
 	"description": "BetMasWeb - Exist-db application",
 	"private": true,
 	"devDependencies": {
+		"@existdb/xst": "^4.1.2",
 		"cypress": "^15.18.1",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.8",
@@ -14,6 +15,7 @@
 		"format:check": "prettier --check .",
 		"format:write": "prettier --write . && prettier --write .",
 		"test": "cypress run",
+		"deploy:dev": "ant && EXISTDB_SERVER=http://localhost:8080 EXISTDB_USER=admin EXISTDB_PASS= xst package install local-files build/*.xar",
 		"prepare": "husky"
 	},
 	"lint-staged": {
