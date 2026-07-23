@@ -1,0 +1,23 @@
+modules/dts.xqm
+  s_f621eb37f8854e::t_b9425843355e7f 78-84
+  s_f621eb37f8854e::t_532397381104a4 86
+modules/dtslib.xqm
+  s_f621eb37f8854e::t_10392722a77f70 70-76
+  s_f621eb37f8854e::t_501d71a12b9649 78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "8088ec21bf8cf15da3d4d23db2440f1ac1bd7628",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
