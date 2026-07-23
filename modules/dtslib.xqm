@@ -67,8 +67,15 @@ declare variable $dtslib:publisher := map {
 
 declare variable $dtslib:regexCol := "(https://betamasaheft.eu/)(textualunits|narrativeunits|transcriptions)?";
 
+(:
+ : Leading ID group is mandatory (unlike the rest) so this can never match a
+ : zero-length string - analyze-string() (dtslib:parseDTSid) forbids that
+ : outright (err:FORX0003). Every real DTS reference starts with an ID
+ : (see restviews/collatex.xqm's format docs), so this doesn't narrow what
+ : the pattern is meant to accept.
+ :)
 declare variable $dtslib:regexID :=
-	"([a-zA-Z\d]+)?(_(ED|TR)_([a-zA-Z0-9]+)?)?(\.)?(((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?(\-)?((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?)";
+	"([a-zA-Z\d]+)(_(ED|TR)_([a-zA-Z0-9]+)?)?(\.)?(((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?(\-)?((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?)";
 
 declare variable $dtslib:collection-rootMS := collection($config:data-rootMS);
 
