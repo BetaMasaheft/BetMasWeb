@@ -1,0 +1,26 @@
+modules/resources.xqm
+  s_f621eb37f8854e::t_5cc62965e3a684 56-57
+  s_f621eb37f8854e::t_4d89df2287b131 135-141,143-149
+  s_f621eb37f8854e::t_fa55b7eb9324b6 191
+  s_f621eb37f8854e::t_0e3536e5239939 318-326
+  s_f621eb37f8854e::t_a050bf549186bb 163,352
+  s_f621eb37f8854e::t_ad2de8a79a4504 443-449
+  s_f621eb37f8854e::t_17c91bc56f54dd 185,243-256
+  s_f621eb37f8854e::t_233d6a0e960e24 58-62,150-162,164-184,186-190,233-242,257-266,317,327-351,353-362,424-442,510-516,566-570,572-600,604-632,636-664,670-713
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6c7689a90e5c3d96664f3dfd5b30ab79fd8d9d9b",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
