@@ -86,8 +86,12 @@ td ul.nodot {
 	margin: 0;
 }
 
-.urlexample pre {
-	white-space: pre-line;
+/* .urlexample is always a .w3-quarter column; broadened so plain
+   example <pre> blocks in the same columns wrap too, instead of
+   overflowing (betmas-e2e#3) */
+.w3-quarter pre {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
 }
 
 .APIexampleJSON {
