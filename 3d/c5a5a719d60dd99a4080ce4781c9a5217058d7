@@ -1,0 +1,19 @@
+resources/geo/geojsonmap.js
+  s_f621eb37f8854e::t_3b5d3ac2454ab2 123-137,139-142,144-146,148-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3dc5a5a719d60dd99a4080ce4781c9a5217058d7",
+  "prompts": {},
+  "sessions": {
+    "s_f621eb37f8854e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "50c55e94-39a7-4bfc-8532-53c810e8d334",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
