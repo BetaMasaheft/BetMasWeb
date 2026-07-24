@@ -141,12 +141,19 @@ function lists:additions(
 			for $ty in $target-language
 			return "@xml:lang eq '" || $ty || "'"
 		return "[descendant::t:q[" || string-join($pars, " or ") || "]]"
+	(:
+	 : $path is built as a string and util:eval'd below, so a literal
+	 : apostrophe in free-text input (unlike the other filters, which only
+	 : ever carry server-controlled option values) would close the '...'
+	 : string literal early and break the query - '' is XQuery's own
+	 : escape for a literal apostrophe inside a '...'-delimited string.
+	 :)
 	let $termText := if ($termText) then (
-		"[descendant::t:term[contains(.,'" || $termText || "')]]"
+		"[descendant::t:term[contains(.,'" || replace($termText, "'", "''") || "')]]"
 	) else (
 	)
 	let $otherText := if ($otherText) then (
-		"[descendant::t:q[ft:query(.,'" || $otherText || "')]]"
+		"[descendant::t:q[ft:query(.,'" || replace($otherText, "'", "''") || "')]]"
 	) else (
 	)
 	let $interpret := if ($interpret = "all") then (
@@ -316,11 +323,11 @@ function lists:SearchDeco(
 			return "@key eq  '" || $ty || "'"
 		return "[descendant::t:term[" || string-join($pars, " or ") || "]]"
 	let $legendText := if ($legendText) then (
-		"[descendant::t:q[@xml:lang][ft:query(.,'" || $legendText || "')]]"
+		"[descendant::t:q[@xml:lang][ft:query(.,'" || replace($legendText, "'", "''") || "')]]"
 	) else (
 	)
 	let $otherText := if ($otherText) then (
-		"[descendant::t:foreign[@xml:lang='gez'][ft:query(.,'" || $otherText || "')]]"
+		"[descendant::t:foreign[@xml:lang='gez'][ft:query(.,'" || replace($otherText, "'", "''") || "')]]"
 	) else (
 	)
 	let $path := "$lists:collection-rootMS//t:decoNote[starts-with(@xml:id, 'd')]" ||
@@ -471,7 +478,7 @@ function lists:SearchTitles(
 		return "[" || string-join($pars, " or ") || "]"
 
 	let $textquery := if ($query) then (
-		"[ft:query(.,'" || $query || "')]"
+		"[ft:query(.,'" || replace($query, "'", "''") || "')]"
 	) else (
 	)
 	let $works := if ($limit-work = "") then (
