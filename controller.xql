@@ -258,7 +258,7 @@ else if ($exist:path = "/studies/list") then
 
 (: redirect to api all calls starting with /api/ ending with one of the specific rest modules :)
 else if (contains($exist:path, "morpho")) then
-	let $url := concat("/restxq", util:unescape-uri($exist:path, "UTF-8"))
+	let $url := concat("/apps/parser", util:unescape-uri($exist:path, "UTF-8"))
 	return <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 		<forward absolute="yes" url="{ $url }">
 			{ login:set-user($domain, (), false()) }
