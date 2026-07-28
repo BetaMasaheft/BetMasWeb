@@ -4,7 +4,6 @@ declare namespace sm = "http://exist-db.org/xquery/securitymanager";
 
 declare variable $target external;
 
-util:eval(xs:anyURI("/db/apps/BetMasService/modules/registerRESTXQ.xql")),
 (: Create the groups needed in this app :)
 for $group in ("Editors", "Cataloguers")
 where not(sm:group-exists($group))
