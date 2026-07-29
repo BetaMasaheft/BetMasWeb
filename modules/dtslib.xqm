@@ -27,6 +27,7 @@ declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 
 import module namespace functx = "http://www.functx.com";
+import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
@@ -315,48 +316,45 @@ declare function dtslib:PrevNextRef($text, $ref, $prevornext) {
 };
 
 declare function dtslib:redirectToCollections() {
-	<rest:response>
-		<http:response status="302">
-			<http:header name="location" value="/api/dts/collections?id=https://betamasaheft.eu" />
-			<http:header name="Access-Control-Allow-Origin" value="*" />
-		</http:response>
-	</rest:response>
+	roaster:response(
+		302,
+		(),
+		(),
+		map {"Location": "/api/dts/collections?id=https://betamasaheft.eu", "Access-Control-Allow-Origin": "*"}
+	)
 };
 
 declare function dtslib:redirectToRDF($id) {
-	<rest:response>
-		<http:response status="302">
-			<http:header name="location" value="/{ $id }" />
-			<http:header name="Access-Control-Allow-Origin" value="*" />
-		</http:response>
-	</rest:response>
+	roaster:response(302, (), (), map {"Location": "/" || $id, "Access-Control-Allow-Origin": "*"})
 };
 
 declare function dtslib:redirectToPDF($id) {
-	<rest:response>
-		<http:response status="302">
-			<http:header name="location" value="/{ $id }.pdf" />
-			<http:header name="Access-Control-Allow-Origin" value="*" />
-		</http:response>
-	</rest:response>
+	roaster:response(302, (), (), map {"Location": "/" || $id || ".pdf", "Access-Control-Allow-Origin": "*"})
 };
 
 declare function dtslib:redirectToHTML($id, $ref, $start) {
-	<rest:response>
-		<http:response status="302">
-			<http:header
-				name="location"
-				value="/{ switch2:col(switch2:switchPrefix($id)) }/{ $id }/text?start={
-					if ($ref != "") then
-						$ref
-					else if ($start != "") then
-						$start
-					else
-						"1"
-				}" />
-			<http:header name="Access-Control-Allow-Origin" value="*" />
-		</http:response>
-	</rest:response>
+	roaster:response(
+		302,
+		(),
+		(),
+		map {
+			"Location":
+				"/" ||
+					switch2:col(switch2:switchPrefix($id)) ||
+					"/" ||
+					$id ||
+					"/text?start=" ||
+					(
+						if ($ref != "") then
+							$ref
+						else if ($start != "") then
+							$start
+						else
+							"1"
+					),
+			"Access-Control-Allow-Origin": "*"
+		}
+	)
 };
 
 declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end, $Content-Type) {
@@ -378,17 +376,23 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 
 		(: let $t2 := console:log($start) :)(: let $t3 := console:log($end) :)
 		return if ($ref != "" and (($start != "") or ($end != ""))) then (
-			$config:response400XML,
-			<error xmlns="https://w3id.org/dts/api#" statusCode="400">
-				<title>Bad Request</title>
-				<description>You should use start and end, or passage only</description>
-			</error>
+			roaster:response(
+				400,
+				"application/xml",
+				<error xmlns="https://w3id.org/dts/api#" statusCode="400">
+					<title>Bad Request</title>
+					<description>You should use start and end, or passage only</description>
+				</error>
+			)
 		) else if (($start = "" and $end != "") or ($start != "" and $end = "")) then (
-			$config:response400XML,
-			<error xmlns="https://w3id.org/dts/api#" statusCode="400">
-				<title>Bad Request</title>
-				<description>You cannot use start and end disjunted</description>
-			</error>
+			roaster:response(
+				400,
+				"application/xml",
+				<error xmlns="https://w3id.org/dts/api#" statusCode="400">
+					<title>Bad Request</title>
+					<description>You cannot use start and end disjunted</description>
+				</error>
+			)
 		) else
 			let $links := if ($ref = "") then (
 			) else if ($start != "") then
@@ -409,6 +413,15 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 						dtslib:PrevNextRef($text, $ref, "next")
 					}&gt; ; rel='next'" />
 
+			let $headers := map:merge(
+				(
+					map {"Access-Control-Allow-Origin": "*"},
+					if ($links) then
+						map {"Link": string($links/@value)}
+					else (
+					)
+				)
+			)
 			return (: we need a restxq redirect in case the id contains already the passage.
 it should redirect the urn with passage to one which splits it and
 redirect it to a parametrized query :) if (count($parsedURN//s:group[@nr = 8]//text()) ge 1) then
@@ -429,12 +442,7 @@ redirect it to a parametrized query :) if (count($parsedURN//s:group[@nr = 8]//t
 						"&amp;ref=" ||
 						$parsedURN//s:group[@nr = 8]//text()
 				)
-				return <rest:response>
-					<http:response status="302">
-						<http:header name="location" value="{ $location }" />
-						<http:header name="Access-Control-Allow-Origin" value="*" />
-					</http:response>
-				</rest:response>
+				return roaster:response(302, (), (), map:merge(($headers, map {"Location": $location})))
 			else
 				let $doc := dtslib:fragment($file, $edition, $ref, $start, $end, $text)
 
@@ -446,28 +454,15 @@ redirect it to a parametrized query :) if (count($parsedURN//s:group[@nr = 8]//t
 					case "text/html" return
 						dtslib:redirectToHTML($thisid, $ref, $start)
 					case "text/plain" return
-						(
-							<rest:response>
-								<http:response status="200">
-									<http:header name="Content-Type" value="{ $Content-Type }; charset=utf-8" />
-									<http:header name="Access-Control-Allow-Origin" value="*" />
-									{ $links }
-								</http:response>
-							</rest:response>,
-							string:tei2string($doc/node()[not(name() = "teiHeader")])
+						roaster:response(
+							200,
+							$Content-Type || "; charset=utf-8",
+							string:tei2string($doc/node()[not(name() = "teiHeader")]),
+							$headers
 						)
 					(: default is on XML TEI :)
 					default return
-						(
-							<rest:response>
-								<http:response status="200">
-									<http:header name="Content-Type" value="{ $Content-Type }; charset=utf-8" />
-									<http:header name="Access-Control-Allow-Origin" value="*" />
-									{ $links }
-								</http:response>
-							</rest:response>,
-							$doc
-						)
+						roaster:response(200, $Content-Type || "; charset=utf-8", $doc, $headers)
 };
 
 declare %private function dtslib:fragment($file, $edition, $ref, $start, $end, $text) {
@@ -1139,7 +1134,6 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
 		$doc//t:div[@type eq "edition"], $doc//t:div[@type eq "translation"]
 	)
 	return if (count($doc) eq 1) then (
-		$config:response200JsonLD,
 		(: let $t := console:log($id) :)
 		let $memberInfo := dtslib:member($bmID, $edition, $eds, $version)
 		let $addcontext := map:put($memberInfo, "@context", $dtslib:context)
@@ -1173,14 +1167,16 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
 			$addcontext
 		return $addnav
 	) else (
-		$config:response400JsonLD,
-		map {
-			"@context": "http://www.w3.org/ns/hydra/context.jsonld",
-			"@type": "Status",
-			"statusCode": 400,
-			"title": "Bad Request",
-			"description": "There is none or too many " || $bmID
-		}
+		roaster:response(
+			400,
+			map {
+				"@context": "http://www.w3.org/ns/hydra/context.jsonld",
+				"@type": "Status",
+				"statusCode": 400,
+				"title": "Bad Request",
+				"description": "There is none or too many " || $bmID
+			}
+		)
 	)
 };
 
@@ -1203,7 +1199,6 @@ declare function dtslib:Coll($id, $page, $nav, $version) {
 	let $countN := count($n)
 	return (
 		if ($id = $availableCollectionIDs) then (
-			$config:response200JsonLD,
 			switch ($id)
 				case "https://betamasaheft.eu/textualunits" return
 					dtslib:mainColl($id, $countW, $w, $page, $nav)
@@ -1247,14 +1242,16 @@ declare function dtslib:Coll($id, $page, $nav, $version) {
 							]
 					}
 		) else (
-			$config:response404JsonLD,
-			map {
-				"@context": "http://www.w3.org/ns/hydra/context.jsonld",
-				"@type": "Status",
-				"statusCode": 404,
-				"title": "Not Found",
-				"description": "Unknown Collection"
-			}
+			roaster:response(
+				404,
+				map {
+					"@context": "http://www.w3.org/ns/hydra/context.jsonld",
+					"@type": "Status",
+					"statusCode": 404,
+					"title": "Not Found",
+					"description": "Unknown Collection"
+				}
+			)
 		)
 	)
 };
@@ -1372,9 +1369,7 @@ declare %private function dtslib:manifest($doc, $id) {
  :)
 declare function dtslib:member($collURN, $edition, $document, $vers, $nosparql) {
 	if (not($document)) then
-		<rest:response>
-			<http:response status="204"><http:header name="Access-Control-Allow-Origin" value="*" /></http:response>
-		</rest:response>
+		roaster:response(204, (), (), map {"Access-Control-Allow-Origin": "*"})
 	else if (count($document) = 1) then
 		dtslib:membercontent($document, $edition, $vers, $nosparql)
 	(: if there are more editions, then this has to be treated as a collection resource, and each
@@ -1416,9 +1411,7 @@ edition or translation gets its own identifier :)
  :)
 declare function dtslib:member($collURN, $edition, $document, $vers) {
 	if (not($document)) then
-		<rest:response>
-			<http:response status="204"><http:header name="Access-Control-Allow-Origin" value="*" /></http:response>
-		</rest:response>
+		roaster:response(204, (), (), map {"Access-Control-Allow-Origin": "*"})
 	else if (count($document) = 1) then
 		dtslib:membercontent($document, $edition, $vers)
 	(: if there are more editions, then this has to be treated as a collection resource, and each
