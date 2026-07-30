@@ -8,7 +8,7 @@ xquery version "3.0" encoding "UTF-8";
 module namespace indexesNE = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/indexesNE";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace templates = "http://exist-db.org/xquery/templates";
+declare namespace templates = "http://exist-db.org/xquery/html-templating";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
