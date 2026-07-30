@@ -3,8 +3,7 @@ xquery version "3.0" encoding "UTF-8";
 declare namespace saxon = "http://saxon.sf.net/";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace templates = "http://exist-db.org/xquery/templates";
-import module namespace site = "http://exist-db.org/apps/site-utils";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 import module namespace apidoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apidoc" at "xmldb:exist:///db/apps/BetMasWeb/modules/apidocumentation.xqm";

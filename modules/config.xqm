@@ -12,7 +12,7 @@ declare namespace jmx = "http://exist-db.org/jmx";
 
 import module namespace http = "http://expath.org/ns/http-client";
 import module namespace loc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/loc" at "./loc.xqm";
-import module namespace templates = "http://exist-db.org/xquery/templates";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 
 declare variable $config:sparqlPrefixes :=
 	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

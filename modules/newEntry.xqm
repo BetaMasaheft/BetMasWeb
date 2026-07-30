@@ -8,7 +8,7 @@ module namespace new = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/new";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
-import module namespace templates = "http://exist-db.org/xquery/templates";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "xmldb:exist:///db/apps/BetMasWeb/modules/app.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
