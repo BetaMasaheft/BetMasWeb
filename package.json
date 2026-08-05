@@ -4,7 +4,6 @@
 	"description": "BetMasWeb - Exist-db application",
 	"private": true,
 	"devDependencies": {
-		"@existdb/xst": "^4.1.2",
 		"cypress": "^15.19.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.2.0",
