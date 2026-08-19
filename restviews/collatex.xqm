@@ -199,6 +199,18 @@ declare function collatex:collateSelected($request as map(*)) {
 	)
 };
 
+declare %private function collatex:dts-response-body($response as map(*)) as node()* {
+	let $body-key := head(
+		for $key in map:keys($response)
+		where ends-with(string($key), "RESPONSE_BODY")
+		return $key
+	)
+	return if (exists($body-key)) then
+		map:get($response, $body-key)
+	else (
+	)
+};
+
 (:~
  : Produces as string a json object which contains the id of the manuscript witnesses selected and the text passege as of the urn  which can be used to build the body of a post request to collatex
  :)
@@ -234,7 +246,7 @@ declare function collatex:getCollatexWitnessText($dtsURN) {
 	else
 		dtslib:docs(("https://betamasaheft.eu/" || $id || $edition), $cleanref, "", "", "application/tei+xml")
 
-	let $cleantext := collatex:cleanforcollatex(string-join($passage[2]//text()))
+	let $cleantext := collatex:cleanforcollatex(string-join(collatex:dts-response-body($passage)//text()))
 	(: let $t := console:log($passage) :)
 	let $tokenizetext := <ts>
 		{
