@@ -14,6 +14,9 @@
 		"format:check": "prettier --check .",
 		"format:write": "prettier --write . && prettier --write .",
 		"test": "cypress run",
+		"test:xqsuite": "XQS_URL=${XQS_URL:-http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq} EXISTDB_USER=${EXISTDB_USER:-admin} EXISTDB_PASS=${EXISTDB_PASS:-} node --test test/xqs/xqSuite.js",
+		"test:work-text": "bats --tap test/stack/work_text_spec.bats",
+		"test:regress": "npm run test:xqsuite && npm run test:work-text",
 		"deploy:dev": "ant && EXISTDB_SERVER=http://localhost:8080 EXISTDB_USER=admin EXISTDB_PASS= xst package install local-files build/*.xar",
 		"prepare": "husky"
 	},
