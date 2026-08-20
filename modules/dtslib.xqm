@@ -376,12 +376,20 @@ declare function dtslib:redirectToHTML($id, $ref, $start) {
  : @param $start optional range start (with $end)
  : @param $end   optional range end (with $start)
  : @return map with keys status, body?, headers?, thisid?, follow?
+ : Empty `$id` → status 400 + error body (in-process); HTTP empty id is
+ : handled by dtslib:docs → redirectToCollections before this function.
  :)
 declare function dtslib:document-result($id as xs:string*, $ref as xs:string*, $start, $end) as map(*) {
+	(: Empty id: HTTP uses dtslib:docs → redirectToCollections. In-process content
+	   cannot follow that redirect, so return a DTS error element instead. :)
 	if ($id = "") then
 		map {
-			"status": 302,
-			"headers": map {"Location": "/api/dts/collections?id=" || $dtslib:bmId, "Access-Control-Allow-Origin": "*"}
+			"status": 400,
+			"body":
+				<error xmlns="https://w3id.org/dts/api#" statusCode="400">
+					<title>Bad Request</title>
+					<description>Missing resource id</description>
+				</error>
 		}
 	else
 		let $parsedURN := dtslib:parseDTS($id)
