@@ -524,7 +524,7 @@ declare function app:team($node as node(), $model as map(*)) {
 declare function app:deleted($node as node(), $model as map(*)) {
 	<ul class="w3-ul w3-hoverable w3-padding">
 		{
-			for $deleted in $app:deleted//t:item[string-length(normalize-space(.)) > 0]
+			for $deleted in $app:deleted//t:item[normalize-space()]
 			order by $deleted
 			let $coll := switch2:col(switch2:switchPrefix($deleted))
 			return <li
