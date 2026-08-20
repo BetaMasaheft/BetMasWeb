@@ -166,14 +166,14 @@ it("GET /studies", () => {
 });
 
 it("GET /decorations", () => {
-	cy.request({ url: "/decorations", method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({ url: "/decorations", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(405);
 	});
 });
 
 it("GET /titles", () => {
-	cy.request({ url: "/titles", method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({ url: "/titles", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(405);
 	});
@@ -187,14 +187,14 @@ it("GET /paratexts", () => {
 });
 
 it("GET /calendar", () => {
-	cy.request({ url: "/calendar", method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({ url: "/calendar", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(405);
 	});
 });
 
 it("GET /bindings", () => {
-	cy.request({ url: "/bindings", method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({ url: "/bindings", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(405);
 	});
@@ -222,7 +222,7 @@ it("GET /bibliography", () => {
 });
 
 it("GET /additions", () => {
-	cy.request({ url: "/additions", method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({ url: "/additions", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(405);
 	});

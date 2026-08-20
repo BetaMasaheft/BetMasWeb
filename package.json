@@ -22,5 +22,8 @@
 			"prettier --write --ignore-unknown",
 			"prettier --write --ignore-unknown"
 		]
+	},
+	"allowScripts": {
+		"cypress@15.20.1": true
 	}
 }

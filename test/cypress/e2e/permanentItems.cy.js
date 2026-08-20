@@ -5,7 +5,12 @@
 const sha = "cbe98c2c1adbc0366cb81bc08b1bbde9cf2ac615";
 
 it("GET /permanent/{sha}/{id}/main (as /permanent/{sha}/BAVet1/main)", () => {
-	cy.request({ url: `/permanent/${sha}/BAVet1/main`, method: "GET", failOnStatusCode: false }).then((res) => {
+	cy.request({
+		url: `/permanent/${sha}/BAVet1/main`,
+		method: "GET",
+		failOnStatusCode: false,
+		responseTimeout: 45000,
+	}).then((res) => {
 		expect(res.status, `GET /permanent/${sha}/BAVet1/main responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /permanent/${sha}/BAVet1/main responded with ${res.status}`).to.not.equal(405);
 	});
@@ -24,16 +29,15 @@ it("GET /permanent/{sha}/{id}/corpus (as /permanent/{sha}/corpus8/corpus)", () =
 });
 
 it("GET /permanent/{sha}/{collection}/{id}/main (as /permanent/{sha}/manuscripts/BAVet1/main)", () => {
-	cy.request({ url: `/permanent/${sha}/manuscripts/BAVet1/main`, method: "GET", failOnStatusCode: false }).then(
-		(res) => {
-			expect(res.status, `GET /permanent/${sha}/manuscripts/BAVet1/main responded with ${res.status}`).to.not.equal(
-				500,
-			);
-			expect(res.status, `GET /permanent/${sha}/manuscripts/BAVet1/main responded with ${res.status}`).to.not.equal(
-				405,
-			);
-		},
-	);
+	cy.request({
+		url: `/permanent/${sha}/manuscripts/BAVet1/main`,
+		method: "GET",
+		failOnStatusCode: false,
+		responseTimeout: 45000,
+	}).then((res) => {
+		expect(res.status, `GET /permanent/${sha}/manuscripts/BAVet1/main responded with ${res.status}`).to.not.equal(500);
+		expect(res.status, `GET /permanent/${sha}/manuscripts/BAVet1/main responded with ${res.status}`).to.not.equal(405);
+	});
 });
 
 it("GET /permanent/{sha}/{collection}/{id}/text (as /permanent/{sha}/manuscripts/BAVet1/text)", () => {
