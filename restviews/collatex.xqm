@@ -16,6 +16,7 @@ import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace dtslib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtslib.xqm";
+import module namespace router = "http://e-editiones.org/roaster/router";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $collatex:meta := <meta
@@ -199,18 +200,6 @@ declare function collatex:collateSelected($request as map(*)) {
 	)
 };
 
-declare %private function collatex:dts-response-body($response as map(*)) as node()* {
-	let $body-key := head(
-		for $key in map:keys($response)
-		where ends-with(string($key), "RESPONSE_BODY")
-		return $key
-	)
-	return if (exists($body-key)) then
-		map:get($response, $body-key)
-	else (
-	)
-};
-
 (:~
  : Produces as string a json object which contains the id of the manuscript witnesses selected and the text passege as of the urn  which can be used to build the body of a post request to collatex
  :)
@@ -246,7 +235,7 @@ declare function collatex:getCollatexWitnessText($dtsURN) {
 	else
 		dtslib:docs(("https://betamasaheft.eu/" || $id || $edition), $cleanref, "", "", "application/tei+xml")
 
-	let $cleantext := collatex:cleanforcollatex(string-join(collatex:dts-response-body($passage)//text()))
+	let $cleantext := collatex:cleanforcollatex(string-join($passage($router:RESPONSE_BODY)//text()))
 	(: let $t := console:log($passage) :)
 	let $tokenizetext := <ts>
 		{
