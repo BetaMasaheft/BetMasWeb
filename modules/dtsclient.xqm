@@ -21,6 +21,7 @@ import module namespace functx = "http://www.functx.com";
 import module namespace localdts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/localdts" at "xmldb:exist:///db/apps/BetMasWeb/modules/localdts.xqm";
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace router = "http://e-editiones.org/roaster/router";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
@@ -76,13 +77,26 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 		localdts:Annotations($collection, $id, "1", "1", "no")
 	else
 		dtsc:request($urianno)
-	let $DTSdoc := if (starts-with($fullid, $config:BMurl)) then
+	(: localdts:Document → dtslib:docs returns a Roaster response map (body +
+	   headers). Remote dtsc:requestXML still returns the EXPath http sequence.
+	   Unwrap so XPath on TEI / Link headers works for both. :)
+	let $DTSdocResponse := if (starts-with($fullid, $config:BMurl)) then
 		localdts:Document($fullid, $ref, $start, $end)
 	else
 		dtsc:requestXML($uridoc)
+	let $DTSdoc := if ($DTSdocResponse instance of map(*)) then
+		$DTSdocResponse($router:RESPONSE_BODY)
+	else
+		$DTSdocResponse
 	(: let $test := util:log('info', $DTSdoc) :)
+	let $linkHeader := if ($DTSdocResponse instance of map(*)) then
+		string(
+			($DTSdocResponse($router:RESPONSE_HEADERS)?("Link"), $DTSdocResponse($router:RESPONSE_HEADERS)?("link"), "")[1]
+		)
+	else
+		string-join($DTSdocResponse//http:header[lower-case(@name) = "link"]/string(@value), ",")
 	let $links :=
-		for $link in tokenize($DTSdoc//http:header[@name = "link"]/string(@value), ",")
+		for $link in tokenize($linkHeader, ",")
 		return <link>
 			<val>{ substring-after(substring-before($link, "&gt;"), "ref=") }</val>
 			<dir>{ replace(substring-after($link, "&gt; ; rel="), "'", "") }</dir>
