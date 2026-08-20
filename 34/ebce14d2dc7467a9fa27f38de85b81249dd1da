@@ -1,0 +1,20 @@
+restviews/collatex.xqm
+  s_6f344296aa289a::t_c152f17605418b 238
+  s_6f344296aa289a::t_c479ef25b4c5e9 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "34ebce14d2dc7467a9fa27f38de85b81249dd1da",
+  "prompts": {},
+  "sessions": {
+    "s_6f344296aa289a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ec01ec47-5ef3-4804-9ec3-c1bda4281db1",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
