@@ -1,0 +1,22 @@
+test/xqs/ts-dtslib-document.xqm
+  s_6f344296aa289a::t_72b1fcd919eb17 10,31-62
+modules/dtslib.xqm
+  s_6f344296aa289a::t_7c94c20298e1a1 379-380
+  s_6f344296aa289a::t_ab0d22bd7717ba 383-384,387-392
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c15a9c5e69650de7f7171f2e3b96d8c459b9fe64",
+  "prompts": {},
+  "sessions": {
+    "s_6f344296aa289a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ec01ec47-5ef3-4804-9ec3-c1bda4281db1",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
