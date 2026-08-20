@@ -36,7 +36,7 @@ async function fetchReport(target) {
 }
 
 function casesFromSuite(suite) {
-	if (suite.testcase === undefined) return [];
+	if (!suite || suite.testcase === undefined) return [];
 	return Array.isArray(suite.testcase) ? suite.testcase : [suite.testcase];
 }
 
@@ -53,6 +53,7 @@ function assertCase(xqstCase) {
 
 test("XQSuite", async (t) => {
 	const report = await fetchReport(url);
+	assert.ok(report.testsuite, `XQSuite runner returned no testsuite: ${JSON.stringify(report).slice(0, 500)}`);
 	const suites = Array.isArray(report.testsuite) ? report.testsuite : [report.testsuite];
 
 	for (const suite of suites) {

@@ -209,14 +209,6 @@ declare function localdts:DocumentPack($id as xs:string*, $ref as xs:string*, $s
 	dtslib:document-pack($id, $ref, $start, $end)
 };
 
-(:~
- : In-process TEI (or DTS error) for a document id — never a Roaster map.
- : @see dtslib:document-content
- :)
-declare function localdts:Document($id as xs:string*, $ref as xs:string*, $start, $end) {
-	dtslib:document-content($id, $ref, $start, $end)
-};
-
 declare function localdts:Navigation(
 	$id as xs:string*,
 	$ref as xs:string*,

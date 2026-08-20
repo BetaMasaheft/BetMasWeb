@@ -71,21 +71,22 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 	)
 	let $citationuri := ($config:BMurl || $id || $edition || $refstart)
 	let $fullid := $config:BMurl || $id || $edition
+	let $isLocal := starts-with($fullid, $config:BMurl)
 	let $fullidpar := $baseid || $id || $edition
 	let $uricol := ($APIroot || $ColAPI || $fullidpar)
 	let $urinav := ($APIroot || $NavAPI || $fullidpar || $parm)
 	let $uridoc := ($APIroot || $DocAPI || $fullidpar || $parm)
 	let $urianno := ($APIroot || $AnnoAPI || "/" || $collection || "/items/" || $id)
 	let $fullxml := $config:BMurl || $id || ".xml"
-	let $DTScol := if (starts-with($fullid, $config:BMurl)) then
+	let $DTScol := if ($isLocal) then
 		localdts:Collection($fullid, 1, "children")
 	else
 		dtsc:request($uricol)
-	let $DTSnav := if (starts-with($fullid, $config:BMurl)) then
+	let $DTSnav := if ($isLocal) then
 		localdts:Navigation($fullid, $ref, "", $start, $end, "", "", "", "no")
 	else
 		dtsc:request($urinav)
-	let $DTSanno := if (starts-with($fullid, $config:BMurl)) then
+	let $DTSanno := if ($isLocal) then
 		localdts:Annotations($collection, $id, "1", "1", "no")
 	else
 		dtsc:request($urianno)
@@ -93,11 +94,11 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 	 : Local BM resources: DocumentPack returns TEI + Link (data path).
 	 : Remote: EXPath http sequence; rutil unwraps body/headers.
 	 :)
-	let $localDoc := if (starts-with($fullid, $config:BMurl)) then
+	let $localDoc := if ($isLocal) then
 		localdts:DocumentPack($fullid, $ref, $start, $end)
 	else (
 	)
-	let $remoteDoc := if (starts-with($fullid, $config:BMurl)) then (
+	let $remoteDoc := if ($isLocal) then (
 	) else
 		dtsc:requestXML($uridoc)
 	let $DTSdoc := if (exists($localDoc)) then
