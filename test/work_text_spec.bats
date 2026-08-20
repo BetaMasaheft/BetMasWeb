@@ -5,7 +5,7 @@
 #
 #   npm run test:regress
 
-BASE_URL="${BETMAS_BASE_URL:-http://localhost:8080}"
+BASE_URL="${BETMAS_BASE_URL:-http://localhost:8080/exist/apps/BetMasWeb}"
 
 @test "GET /works/LIT1709Kebran/text returns 200 (not Roaster-map XPath 500)" {
   code=$(curl -so /dev/null -w '%{http_code}' --max-time 90 "$BASE_URL/works/LIT1709Kebran/text")
