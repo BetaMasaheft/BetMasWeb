@@ -6,6 +6,10 @@ module.exports = defineConfig({
 		// that's what actually decides which RESTXQ module (if any) serves a
 		// given api.json path right now
 		baseUrl: "http://localhost:8080/exist/apps/BetMasWeb",
+		retries: {
+			runMode: 1,
+			openMode: 0,
+		},
 		supportFile: false,
 		specPattern: "test/cypress/e2e/**/*.cy.js",
 		screenshotsFolder: "test/cypress/screenshots",

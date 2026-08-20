@@ -230,11 +230,11 @@ declare function collatex:getCollatexWitnessText($dtsURN) {
 	else
 		$file//t:div[@type = "edition"]
 	let $passage := if (count($cleanref) = 2) then
-		dtslib:docs(("https://betamasaheft.eu/" || $id || $edition), "", $cleanref[1], $cleanref[2], "application/tei+xml")
+		dtslib:document-content(($config:BMurl || $id || $edition), "", $cleanref[1], $cleanref[2])
 	else
-		dtslib:docs(("https://betamasaheft.eu/" || $id || $edition), $cleanref, "", "", "application/tei+xml")
+		dtslib:document-content(($config:BMurl || $id || $edition), $cleanref, "", "")
 
-	let $cleantext := collatex:cleanforcollatex(string-join($passage[2]//text()))
+	let $cleantext := collatex:cleanforcollatex(string-join($passage//text()))
 	(: let $t := console:log($passage) :)
 	let $tokenizetext := <ts>
 		{

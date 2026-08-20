@@ -16,7 +16,7 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
 (: this is a small form that points to the xquery generating the new file and prompting the editor to save it in the correct location :)
 declare function new:newentry($node as node()*, $model as map(*)) {
 	let $taxonomy := doc("/db/apps/lists/canonicaltaxonomy.xml")//t:taxonomy
-	let $schema := doc("/db/apps/BetMas/schema/tei-betamesaheft.xml")
+	let $schema := doc("/db/apps/guidelines/schema/tei-betamesaheft.xml")
 	let $option := switch ($app:collection)
 		case "manuscripts" return
 			""

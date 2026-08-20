@@ -18,11 +18,26 @@ import module namespace console = "http://exist-db.org/xquery/console";
 
 declare option output:method "json";
 
+(:~
+ : Canonical data-entity base without trailing slash. See $config:BMurl.
+ :)
+declare variable $localdts:bmId := replace($config:BMurl, "/$", "");
+
+(:~
+ : Local DTS collections entry (in-process, no HTTP).
+ :
+ : @param $id  collection or member id (canonical $config:BMurl data entity)
+ : @param $page pagination
+ : @param $nav  parent|children navigation hint
+ : @return Hydra/DTS collection map
+ :)
 declare function localdts:Collection($id as xs:string*, $page as xs:integer*, $nav as xs:string*) as map(*) {
 	if (
 		matches(
 			$id,
-			"(https://betamasaheft.eu/)?(textualunits/|narrativeunits/|transcriptions/|studies/)?([a-zA-Z\d]+)?(:)?(((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?(\-)?((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?)"
+			"(" ||
+				$config:BMurl ||
+				")?(textualunits/|narrativeunits/|transcriptions/|studies/)?([a-zA-Z\d]+)?(:)?(((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?(\-)?((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?)"
 		)
 	) then
 		let $parsedURN := dtslib:parseDTS($id)
@@ -38,13 +53,22 @@ declare function localdts:Collection($id as xs:string*, $page as xs:integer*, $n
 	)
 };
 
+(:~
+ : Root or named collection listing for known BM collection ids.
+ :
+ : @param $id      one of $localdts:bmId or $config:BMurl || {textualunits|…}
+ : @param $page    page number
+ : @param $nav     navigation hint
+ : @param $version unused here (API parity)
+ : @return collection map or 404 status map
+ :)
 declare function localdts:Coll($id, $page, $nav, $version) {
 	let $availableCollectionIDs := (
-		"https://betamasaheft.eu",
-		"https://betamasaheft.eu/textualunits",
-		"https://betamasaheft.eu/narrativeunits",
-		"https://betamasaheft.eu/transcriptions",
-		"https://betamasaheft.eu/studies"
+		$localdts:bmId,
+		($config:BMurl || "textualunits"),
+		($config:BMurl || "narrativeunits"),
+		($config:BMurl || "transcriptions"),
+		($config:BMurl || "studies")
 	)
 	let $ms := $dtslib:collection-rootMS//t:div[@type eq "edition"][descendant::t:ab[text()]]
 	let $w := $dtslib:collection-rootW//t:div[@type eq "edition"][descendant::t:ab[text()]]
@@ -57,13 +81,13 @@ declare function localdts:Coll($id, $page, $nav, $version) {
 	return (
 		if ($id = $availableCollectionIDs) then (
 			switch ($id)
-				case "https://betamasaheft.eu/textualunits" return
+				case ($config:BMurl || "textualunits") return
 					dtslib:mainColl($id, $countW, $w, $page, $nav)
-				case "https://betamasaheft.eu/narrativeunits" return
+				case ($config:BMurl || "narrativeunits") return
 					dtslib:mainColl($id, $countN, $n, $page, $nav)
-				case "https://betamasaheft.eu/transcriptions" return
+				case ($config:BMurl || "transcriptions") return
 					dtslib:mainColl($id, $countMS, $ms, $page, $nav)
-				case "https://betamasaheft.eu/studies" return
+				case ($config:BMurl || "studies") return
 					dtslib:mainColl($id, $countS, $ms, $page, $nav)
 				default return
 					map {
@@ -78,28 +102,28 @@ declare function localdts:Coll($id, $page, $nav, $version) {
 						"member":
 							[
 								map {
-									"@id": "https://betamasaheft.eu/textualunits",
+									"@id": ($config:BMurl || "textualunits"),
 									"title": "Beta maṣāḥǝft Textual Units",
 									"description": "Collection of textual units of the Ethiopic tradition",
 									"@type": "Collection",
 									"totalItems": $countW
 								},
 								map {
-									"@id": "https://betamasaheft.eu/narrativeunits",
+									"@id": ($config:BMurl || "narrativeunits"),
 									"title": "Beta maṣāḥǝft Narrative Units",
 									"description": "Collection of narrative units of the Ethiopic tradition",
 									"@type": "Collection",
 									"totalItems": $countN
 								},
 								map {
-									"@id": "https://betamasaheft.eu/transcriptions",
+									"@id": ($config:BMurl || "transcriptions"),
 									"title": "Beta maṣāḥǝft Manuscripts",
 									"description": "Collection of Ethiopic Manuscript transcriptions",
 									"@type": "Collection",
 									"totalItems": $countMS
 								},
 								map {
-									"@id": "https://betamasaheft.eu/studies",
+									"@id": ($config:BMurl || "studies"),
 									"title": "Beta maṣāḥǝft Studies",
 									"description": "Collection of Studies on Ethiopic Manuscript tradition",
 									"@type": "Collection",
@@ -132,7 +156,7 @@ declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version
 		let $addnav := if ($nav = "parent") then
 			let $parent := if ($doc/@type eq "mss") then
 				map {
-					"@id": "https://betamasaheft.eu/transcriptions",
+					"@id": ($config:BMurl || "transcriptions"),
 					"title": "Beta maṣāḥǝft Manuscripts",
 					"description": "Collection of Ethiopic Manuscript transcriptions",
 					"@type": "Collection",
@@ -140,7 +164,7 @@ declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version
 				}
 			else if ($doc/@type eq "nar") then
 				map {
-					"@id": "https://betamasaheft.eu/narrativeunits",
+					"@id": ($config:BMurl || "narrativeunits"),
 					"title": "Beta maṣāḥǝft Manuscripts",
 					"description": "Collection of narrative units of the Ethiopic tradition",
 					"@type": "Collection",
@@ -148,7 +172,7 @@ declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version
 				}
 			else if ($doc/@type eq "studies") then
 				map {
-					"@id": "https://betamasaheft.eu/narrativeunits",
+					"@id": ($config:BMurl || "narrativeunits"),
 					"title": "Beta maṣāḥǝft Manuscripts",
 					"description": "Collection of Studies on the Ethiopic manuscript tradition",
 					"@type": "Collection",
@@ -156,7 +180,7 @@ declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version
 				}
 			else
 				map {
-					"@id": "https://betamasaheft.eu/textualunits",
+					"@id": ($config:BMurl || "textualunits"),
 					"title": "Beta maṣāḥǝft Textual Units",
 					"description": "Collection of literary textual units of the Ethiopic tradition",
 					"@type": "Collection",
@@ -177,8 +201,12 @@ declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version
 	)
 };
 
-declare function localdts:Document($id as xs:string*, $ref as xs:string*, $start, $end) {
-	dtslib:docs($id, $ref, $start, $end, "application/tei+xml")
+(:~
+ : In-process document body plus Link header value.
+ : @see dtslib:document-pack
+ :)
+declare function localdts:DocumentPack($id as xs:string*, $ref as xs:string*, $start, $end) as map(*) {
+	dtslib:document-pack($id, $ref, $start, $end)
 };
 
 declare function localdts:Navigation(

@@ -21,10 +21,10 @@ xquery version "3.1";
  :
  :)
 
-import module namespace gitsync = "http://syriaca.org/ns/gitsync" at "xmldb:exist:///db/apps/BetMas/modules/gitsync.xqm";
+import module namespace gitsync = "http://syriaca.org/ns/gitsync" at "xmldb:exist:///db/apps/BetMasWeb/modules/gitsync.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace crypto = "http://expath.org/ns/crypto";
-import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas/config" at "xmldb:exist:///db/apps/BetMas/modules/config.xqm";
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 
 declare option exist:serialize "method=xml media-type=text/xml indent=yes";
 
@@ -34,7 +34,7 @@ return if (not(empty($post-data))) then
 	let $payload := util:base64-decode($post-data)
 	let $json-data := parse-json($payload)
 
-	let $data-collection := "/db/apps/BetMas/schema"
+	let $data-collection := "/db/apps/guidelines/schema"
 
 	let $login := xmldb:login($data-collection, "BetaMasaheftAdmin", "BMAdmin")
 

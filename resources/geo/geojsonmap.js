@@ -120,56 +120,62 @@ var baseLayers = {
 	Streets: streets,
 };
 
-var map = L.map("map", {
-	center: [10.55, 39.2833],
-	zoom: 6,
-	layers: [outdoor, ins, pla],
-	fullscreenControl: true,
-	// OR
-	fullscreenControl: {
-		pseudoFullscreen: false, // if true, fullscreen to page width and height
-	},
-});
+// index.html/about.html load this script but have no #map element -
+// L.map() throws "Map container not found" if called regardless
+// (betmas-e2e#1). Only geojsonmap.html/indextest.html/index-old.html
+// actually have the container.
+if (document.getElementById("map")) {
+	var map = L.map("map", {
+		center: [10.55, 39.2833],
+		zoom: 6,
+		layers: [outdoor, ins, pla],
+		fullscreenControl: true,
+		// OR
+		fullscreenControl: {
+			pseudoFullscreen: false, // if true, fullscreen to page width and height
+		},
+	});
 
-var overlays = {
-	Repositories: ins,
-	Places: pla,
-};
+	var overlays = {
+		Repositories: ins,
+		Places: pla,
+	};
 
-var legend = L.control({
-	position: "bottomright",
-});
+	var legend = L.control({
+		position: "bottomright",
+	});
 
-legend.onAdd = function (map) {
-	var div = L.DomUtil.create("div", "info legend");
+	legend.onAdd = function (map) {
+		var div = L.DomUtil.create("div", "info legend");
 
-	div.innerHTML +=
-		'<i style="background: rgb(255, 212, 128)"></i> repositories <br></br> <i style="background: rgb(172, 230, 0)"></i> places';
+		div.innerHTML +=
+			'<i style="background: rgb(255, 212, 128)"></i> repositories <br></br> <i style="background: rgb(172, 230, 0)"></i> places';
 
-	return div;
-};
+		return div;
+	};
 
-legend.addTo(map);
-var options = {
-	position: "topright",
-	title: "Search",
-	placeholder: "ex: Aksumite, Gondar, town",
-	maxResultLength: 15,
-	threshold: 0.5,
-	showInvisibleFeatures: true,
-	showResultFct: function (feature, container) {
-		props = feature.properties;
-		var name = L.DomUtil.create("b", null, container);
-		name.innerHTML = props.title;
+	legend.addTo(map);
+	var options = {
+		position: "topright",
+		title: "Search",
+		placeholder: "ex: Aksumite, Gondar, town",
+		maxResultLength: 15,
+		threshold: 0.5,
+		showInvisibleFeatures: true,
+		showResultFct: function (feature, container) {
+			props = feature.properties;
+			var name = L.DomUtil.create("b", null, container);
+			name.innerHTML = props.title;
 
-		container.appendChild(L.DomUtil.create("br", null, container));
+			container.appendChild(L.DomUtil.create("br", null, container));
 
-		var info = props.title;
-		container.appendChild(document.createTextNode(info));
-	},
-};
-/*var searchCtrl = L.control.fuseSearch(options);*/
-var tobeindexed = ["title"];
-/*searchCtrl.addTo(map);
-searchCtrl.indexFeatures(institutions, tobeindexed);*/
-L.control.layers(baseLayers, overlays).addTo(map);
+			var info = props.title;
+			container.appendChild(document.createTextNode(info));
+		},
+	};
+	/*var searchCtrl = L.control.fuseSearch(options);*/
+	var tobeindexed = ["title"];
+	/*searchCtrl.addTo(map);
+	searchCtrl.indexFeatures(institutions, tobeindexed);*/
+	L.control.layers(baseLayers, overlays).addTo(map);
+}

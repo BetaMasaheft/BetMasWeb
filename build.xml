@@ -5,6 +5,11 @@
     <property name="build.dir" value="build"/>
     <target name="xar">
         <mkdir dir="${build.dir}"/>
-        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/*, services.xml"/>
+        <!-- node_modules needs the /** suffix to recurse - a bare "node_modules"
+             pattern only excludes the directory entry itself, not its contents,
+             and silently ships every dev dependency into the .xar. -->
+        <!-- Ship XQSuite under test/xqs/ with the package (exist-markdown /
+             issue #44). Keep Cypress fixtures/specs and host bats out of the xar. -->
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/** .github/** test/cypress/** test/fixtures/** test/*.bats test/xqs/*.js docker/** node_modules/** .husky/** .gitignore services.xml .codacy/** .cursor/**"/>
     </target>
 </project>
