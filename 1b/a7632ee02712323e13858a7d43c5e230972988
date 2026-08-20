@@ -1,0 +1,37 @@
+test/xqs/xqSuite.js
+  s_53c10a783d9578::t_b01c001b327b26 39
+  s_53c10a783d9578::t_a349e2dd1429f5 56
+test/work_text_spec.bats
+  s_6f344296aa289a::t_400f809f17a234 1-19
+modules/dtsclient.xqm
+  s_53c10a783d9578::t_7cc949cb9d2135 81,85,89,97,101
+  s_53c10a783d9578::t_563d8f9ac9f2f1 74
+build.xml
+  s_53c10a783d9578::t_096b5d18c5eda6 13
+package.json
+  s_53c10a783d9578::t_32b1f48084d6ac 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1ba7632ee02712323e13858a7d43c5e230972988",
+  "prompts": {},
+  "sessions": {
+    "s_53c10a783d9578": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b50e3f0-d44c-49f4-a258-ee9296a2b57a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_6f344296aa289a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ec01ec47-5ef3-4804-9ec3-c1bda4281db1",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
