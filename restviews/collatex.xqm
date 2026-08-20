@@ -16,6 +16,7 @@ import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace dtslib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtslib.xqm";
+import module namespace router = "http://e-editiones.org/roaster/router";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $collatex:meta := <meta
@@ -234,7 +235,7 @@ declare function collatex:getCollatexWitnessText($dtsURN) {
 	else
 		dtslib:docs(("https://betamasaheft.eu/" || $id || $edition), $cleanref, "", "", "application/tei+xml")
 
-	let $cleantext := collatex:cleanforcollatex(string-join($passage[2]//text()))
+	let $cleantext := collatex:cleanforcollatex(string-join($passage($router:RESPONSE_BODY)//text()))
 	(: let $t := console:log($passage) :)
 	let $tokenizetext := <ts>
 		{
