@@ -1,0 +1,20 @@
+modules/dtsclient.xqm
+  s_6f344296aa289a::t_78de7882c5b922 24
+  s_6f344296aa289a::t_0ebe0fd8636954 80-83,87-90,92-97,99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "16635444565326747348f5f0b52ed913ace51608",
+  "prompts": {},
+  "sessions": {
+    "s_6f344296aa289a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ec01ec47-5ef3-4804-9ec3-c1bda4281db1",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
