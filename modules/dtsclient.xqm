@@ -21,19 +21,32 @@ import module namespace functx = "http://www.functx.com";
 import module namespace localdts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/localdts" at "xmldb:exist:///db/apps/BetMasWeb/modules/localdts.xqm";
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace rutil = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/rutil" at "xmldb:exist:///db/apps/BetMasWeb/modules/roaster-util.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
+(:~
+ : HTML text view for a work, preferring in-process localdts for BM resources.
+ :
+ : Distinguishes:
+ : - HTTP entity — DTS API paths on this deployment ($config:baseURI)
+ : - Data entity — resource `?id=` values always use canonical $config:BMurl
+ :
+ : @param $id         BM short id
+ : @param $edition    optional edition suffix from the URN
+ : @param $ref        optional passage ref
+ : @param $start      optional range start
+ : @param $end        optional range end
+ : @param $collection works|mss|…
+ : @return HTML fragment
+ :)
 declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
-	(: let $t := util:log('info', string-join(($edition, $ref, $start, $end), ' - ')) :)
-	(: this instance's own DTS API, not a hardcoded host: the client
-       otherwise send-requests production's endpoints from any deployment :)
-	let $APIroot := $config:BMurl || "api/dts/"
+	(: HTTP entity: this deployment's DTS API :)
+	let $APIroot := $config:baseURI || "api/dts/"
 	let $NavAPI := "navigation"
 	let $ColAPI := "collections"
 	let $DocAPI := "document"
 	let $AnnoAPI := "annotations"
-	(: the ?id= value is the canonical corpus URN baked into the data, not
-       the serving host, so it stays $config:BMurl regardless of deployment :)
+	(: Data entity: canonical corpus URN baked into the records :)
 	let $baseid := "?id=" || $config:BMurl
 	let $ps := (
 		if ($ref = "") then (
@@ -58,31 +71,49 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 	)
 	let $citationuri := ($config:BMurl || $id || $edition || $refstart)
 	let $fullid := $config:BMurl || $id || $edition
+	let $isLocal := starts-with($fullid, $config:BMurl)
 	let $fullidpar := $baseid || $id || $edition
 	let $uricol := ($APIroot || $ColAPI || $fullidpar)
 	let $urinav := ($APIroot || $NavAPI || $fullidpar || $parm)
 	let $uridoc := ($APIroot || $DocAPI || $fullidpar || $parm)
 	let $urianno := ($APIroot || $AnnoAPI || "/" || $collection || "/items/" || $id)
 	let $fullxml := $config:BMurl || $id || ".xml"
-	let $DTScol := if (starts-with($fullid, $config:BMurl)) then
+	let $DTScol := if ($isLocal) then
 		localdts:Collection($fullid, 1, "children")
 	else
 		dtsc:request($uricol)
-	let $DTSnav := if (starts-with($fullid, $config:BMurl)) then
+	let $DTSnav := if ($isLocal) then
 		localdts:Navigation($fullid, $ref, "", $start, $end, "", "", "", "no")
 	else
 		dtsc:request($urinav)
-	let $DTSanno := if (starts-with($fullid, $config:BMurl)) then
+	let $DTSanno := if ($isLocal) then
 		localdts:Annotations($collection, $id, "1", "1", "no")
 	else
 		dtsc:request($urianno)
-	let $DTSdoc := if (starts-with($fullid, $config:BMurl)) then
-		localdts:Document($fullid, $ref, $start, $end)
-	else
+	(:~
+	 : Local BM resources: DocumentPack returns TEI + Link (data path).
+	 : Remote: EXPath http sequence; rutil unwraps body/headers.
+	 :)
+	let $localDoc := if ($isLocal) then
+		localdts:DocumentPack($fullid, $ref, $start, $end)
+	else (
+	)
+	let $remoteDoc := if ($isLocal) then (
+	) else
 		dtsc:requestXML($uridoc)
-	(: let $test := util:log('info', $DTSdoc) :)
+	let $DTSdoc := if (exists($localDoc)) then
+		$localDoc?body
+	else
+		rutil:body($remoteDoc)
+	let $linkHeader := (
+		if (exists($localDoc)) then
+			$localDoc?link
+		else
+			rutil:header($remoteDoc, "Link"),
+		""
+	)[1]
 	let $links :=
-		for $link in tokenize($DTSdoc//http:header[@name = "link"]/string(@value), ",")
+		for $link in tokenize($linkHeader, ",")
 		return <link>
 			<val>{ substring-after(substring-before($link, "&gt;"), "ref=") }</val>
 			<dir>{ replace(substring-after($link, "&gt; ; rel="), "'", "") }</dir>
@@ -128,7 +159,7 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 DTSannoCollectionLink">
 							{
 								(
-									attribute data-value { replace($index?("@id"), "https://betamasaheft.eu", "") },
+									attribute data-value { replace($index?("@id"), replace($config:BMurl, "/$", ""), "") },
 									substring-before($index?title, " for")
 								)
 							}
@@ -303,73 +334,27 @@ DTSannoCollectionLink">
         </div>
 };
 
-declare function dtsc:DTStext($base, $id) {
-	(: support entering what as DTS url? only collection for a given text already?
-
-if collection provided
-e.g.
-https://dts.perseids.org/collection?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2
-follow dts:references for
-https://dts.perseids.org/navigation?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2
-https://dts.perseids.org/navigation?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2&ref=12
-https://dts.perseids.org/navigation?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2&start=12&end=15
-and follow dts:passage
-https://dts.perseids.org/document?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2&ref=12
-
-if navigation provided
-https://dts.perseids.org/navigation?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2&start=12&end=15
-and follow dts:passage
-https://dts.perseids.org/document?id=urn:cts:greekLit:tlg0099.tlg001.perseus-grc2&ref=12
-
-
-if document, simply render the TEI returned
-
-although this works in principle, it does not in practice, too many small divergencies in patterns
-and encoded or non encoded parts in urns . also adding to a viewer would mean limiting space, i.e.
-much better to just open another window...
-
-tested with the following sandbox module
-xquery version "3.1";
-declare namespace t="http://www.tei-c.org/ns/1.0";
-import module namespace config="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace dtsc="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtsc" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtsclient.xqm";
-
-let $DTSURL :=
-<pairs>
-<pair>
-<base>http://localhost:8080/exist/apps/BetMasWeb/api/dts</base>
-<id>https://betamasaheft.eu/LIT1349EpistlEusebius</id>
-</pair>
-<!--<pair>
-<base>https://dts.perseids.org</base>
-<id>urn:cts:greekLit:tlg0099.tlg001.perseus-grc2</id>
-</pair>-->
-<!--<pair>
-<base>https://texts.alpheios.net/api/dts</base>
-<id>urn:cts:greekLit:tlg0085.tlg001.alpheios-text-grc1</id>
-</pair>-->
-<!--<pair>
-<base>https://dev.chartes.psl.eu/api/nautilus/dts</base>
-<id>urn:cts:froLit:geste.jns5911</id>
-</pair>-->
-</pairs>
-
-for $d in $DTSURL//*:pair
-let $base := $d/*:base/text()
-let $id := $d/*:id/text()
-return
-dtsc:DTStext($base, $id)
+(:~
+ : Render a remote or local DTS text given an API base URL and resource id.
+ :
+ : Accepts collection, navigation, or document-style entry points and follows
+ : dts:references / dts:passage where present. Divergences between endpoints
+ : make this best-effort; prefer opening remote texts in a separate window.
+ :
+ : @param $base DTS API root (HTTP entity); empty → canonical data host
+ : @param $id   collection/document id (data entity; use $config:BMurl for BM)
+ : @return HTML viewer fragment
  :)
+declare function dtsc:DTStext($base, $id) {
 	let $cleanbase := (
 		if ($base = "") then
-			"https://betamasaheft.eu"
+			replace($config:BMurl, "/$", "")
 		else if (contains($base, "/api")) then
 			substring-before($base, "/api")
 		else
 			$base
 	)
 	let $dtsCollection := $cleanbase || dtsc:request($base)?collections || "?id=" || $id
-	(: let $t := console:log($dtsCollection) :)
 	let $DTScol := dtsc:request($dtsCollection)
 	let $context := $DTScol?("@context")
 	let $vocab := $context?("@vocab")
@@ -377,14 +362,11 @@ dtsc:DTStext($base, $id)
 	) else
 		"dts:"
 	let $dtsReferences := $cleanbase || $DTScol?($dtsprefix || "references")
-	(: let $t1 := console:log(normalize-unicode($dtsReferences)) :)
 	let $DTSnav := dtsc:request(normalize-unicode($dtsReferences))
 	let $dtsPassage := $cleanbase || $DTSnav?($dtsprefix || "passage")
-	(: let $t2 := util:log('info', 'dtspass ' ||$dtsPassage) :)
 	let $cleanDTSpass := replace($dtsPassage, "\{&amp;ref\}\{&amp;start\}\{&amp;end\}", "")
 	let $memberprefix := $member?($dtsprefix || "ref")
 	let $citetype := $member?($dtsprefix || "citeType")
-	(: let $t3 := util:log('info', 'all ' ||$dtsReferences||'&amp;ref=' ||$memberprefix||$citetype ) :)
 	let $DTSdoc := dtsc:requestXML($cleanDTSpass)
 	let $voyantPassage := substring-after($dtsPassage, "?id=")
 	return <div class="w3-container">

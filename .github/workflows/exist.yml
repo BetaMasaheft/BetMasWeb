@@ -78,6 +78,14 @@ jobs:
       - name: Run bats smoke tests
         run: bats --tap test/*.bats
 
+      # Runner + suites ship in the xar (build.xml).
+      - name: Run XQSuite (node:test + xqSuite.js)
+        env:
+          EXISTDB_USER: admin
+          EXISTDB_PASS: ""
+          XQS_URL: http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq
+        run: npm run test:xqsuite
+
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         with:
