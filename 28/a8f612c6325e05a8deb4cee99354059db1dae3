@@ -1,0 +1,24 @@
+test/cypress/e2e/permanentItems.cy.js
+  s_6f344296aa289a::t_89e652b58d3bf9 8-13,32-37
+  s_6f344296aa289a::t_15bd528975a340 38-40
+cypress.config.cjs
+  s_6f344296aa289a::t_e45a937c87bbf1 9-12
+test/cypress/e2e/controller.cy.js
+  s_6f344296aa289a::t_b9110042a40e45 169,176,190,197,225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "28a8f612c6325e05a8deb4cee99354059db1dae3",
+  "prompts": {},
+  "sessions": {
+    "s_6f344296aa289a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ec01ec47-5ef3-4804-9ec3-c1bda4281db1",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
