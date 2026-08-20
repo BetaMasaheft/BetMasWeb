@@ -66,7 +66,7 @@ declare variable $dtslib:publisher := map {
 		]
 };
 
-declare variable $dtslib:regexCol := "(https://betamasaheft.eu/)(textualunits|narrativeunits|transcriptions)?";
+declare variable $dtslib:regexCol := "(" || $config:BMurl || ")(textualunits|narrativeunits|transcriptions)?";
 
 (:
  : Leading ID group is mandatory (unlike the rest) so this can never match a
@@ -87,6 +87,12 @@ declare variable $dtslib:collection-rootN := collection($config:data-rootN);
 declare variable $dtslib:collection-rootS := collection($config:data-rootS);
 
 declare variable $dtslib:collection-root := $exptit:col;
+
+(:~
+ : Canonical data-entity base without trailing slash ($config:BMurl has one).
+ : Use $config:BMurl when concatenating path segments; $dtslib:bmId for bare host/@id.
+ :)
+declare variable $dtslib:bmId := replace($config:BMurl, "/$", "");
 
 declare %private function dtslib:capitalize-first($arg as xs:string?) as xs:string? {
 	concat(upper-case(substring($arg, 1, 1)), substring($arg, 2))
@@ -320,7 +326,7 @@ declare function dtslib:redirectToCollections() {
 		302,
 		(),
 		(),
-		map {"Location": "/api/dts/collections?id=https://betamasaheft.eu", "Access-Control-Allow-Origin": "*"}
+		map {"Location": "/api/dts/collections?id=" || $dtslib:bmId, "Access-Control-Allow-Origin": "*"}
 	)
 };
 
@@ -357,43 +363,59 @@ declare function dtslib:redirectToHTML($id, $ref, $start) {
 	)
 };
 
-declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end, $Content-Type) {
-	(: redirect if id not specified :)
+(:~
+ : Resolve a DTS document request to status, body, and headers — without a
+ : Roaster envelope. Callers that speak HTTP use dtslib:docs; in-process
+ : callers use dtslib:document-content / dtslib:document-pack.
+ :
+ : Resource `$id` values are data entities (canonical $config:BMurl prefix).
+ : Link / Location paths under `/api/dts/...` are HTTP entities on this host.
+ :
+ : @param $id    DTS resource id (canonical BM URI or empty → collections)
+ : @param $ref   optional passage reference
+ : @param $start optional range start (with $end)
+ : @param $end   optional range end (with $start)
+ : @return map with keys status, body?, headers?, thisid?, follow?
+ :)
+declare function dtslib:document-result($id as xs:string*, $ref as xs:string*, $start, $end) as map(*) {
 	if ($id = "") then
-		dtslib:redirectToCollections()
+		map {
+			"status": 302,
+			"headers": map {"Location": "/api/dts/collections?id=" || $dtslib:bmId, "Access-Control-Allow-Origin": "*"}
+		}
 	else
 		let $parsedURN := dtslib:parseDTS($id)
 		let $thisid := $parsedURN//s:group[@nr = 3]/text()
 		let $edition := $parsedURN//s:group[@nr = 4]
-
-		(: let $t2 := util:log("info",$thisid) :)
 		let $file := $dtslib:collection-root/id($thisid)
-		(: let $t2 := util:log("info",count($file)) :)
 		let $text := if ($edition/node()) then
 			dtslib:pickDivText($file, $edition)
 		else
 			$file//t:div[@type eq "edition"]
-
-		(: let $t2 := console:log($start) :)(: let $t3 := console:log($end) :)
-		return if ($ref != "" and (($start != "") or ($end != ""))) then (
-			roaster:response(
-				400,
-				"application/xml",
-				<error xmlns="https://w3id.org/dts/api#" statusCode="400">
-					<title>Bad Request</title>
-					<description>You should use start and end, or passage only</description>
-				</error>
-			)
-		) else if (($start = "" and $end != "") or ($start != "" and $end = "")) then (
-			roaster:response(
-				400,
-				"application/xml",
-				<error xmlns="https://w3id.org/dts/api#" statusCode="400">
-					<title>Bad Request</title>
-					<description>You cannot use start and end disjunted</description>
-				</error>
-			)
-		) else
+		return if ($ref != "" and (($start != "") or ($end != ""))) then
+			map {
+				"status": 400,
+				"thisid": $thisid,
+				"body":
+					<error xmlns="https://w3id.org/dts/api#" statusCode="400">
+						<title>Bad Request</title>
+						<description>You should use start and end, or passage only</description>
+					</error>
+			}
+		else if (($start = "" and $end != "") or ($start != "" and $end = "")) then
+			map {
+				"status": 400,
+				"thisid": $thisid,
+				"body":
+					<error xmlns="https://w3id.org/dts/api#" statusCode="400">
+						<title>Bad Request</title>
+						<description>You cannot use start and end disjunted</description>
+					</error>
+			}
+		else
+			let $baseId := $parsedURN//s:group[@nr = 1]//text() ||
+				$parsedURN//s:group[@nr = 2]//text() ||
+				$parsedURN//s:group[@nr = 3]//text()
 			let $links := if ($ref = "") then (
 			) else if ($start != "") then
 				<http:header
@@ -403,7 +425,6 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 					}&gt; ; rel='prev', &lt;/api/dts/document/?id={ $id }&amp;ref={
 						dtslib:PrevNextRef($text, $end, "next")
 					}&gt; ; rel='next'" />
-
 			else
 				<http:header
 					name="Link"
@@ -412,7 +433,6 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 					}&gt; ; rel='prev', &lt;/api/dts/document/?id={ $id }&amp;ref={
 						dtslib:PrevNextRef($text, $ref, "next")
 					}&gt; ; rel='next'" />
-
 			let $headers := map:merge(
 				(
 					map {"Access-Control-Allow-Origin": "*"},
@@ -422,47 +442,105 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 					)
 				)
 			)
-			return (: we need a restxq redirect in case the id contains already the passage.
-it should redirect the urn with passage to one which splits it and
-redirect it to a parametrized query :) if (count($parsedURN//s:group[@nr = 8]//text()) ge 1) then
-				let $location := if ($parsedURN//s:group[@nr = 18]/text() = "-") then (
-					"/api/dts/document?id=" ||
-						$parsedURN//s:group[@nr = 1]//text() ||
-						$parsedURN//s:group[@nr = 2]//text() ||
-						$parsedURN//s:group[@nr = 3]//text() ||
-						"&amp;start=" ||
-						$parsedURN//s:group[@nr = 9]//text() ||
-						"&amp;end=" ||
-						$parsedURN//s:group[@nr = 19]//text()
-				) else (
-					"/api/dts/document?id=" ||
-						$parsedURN//s:group[@nr = 1]//text() ||
-						$parsedURN//s:group[@nr = 2]//text() ||
-						$parsedURN//s:group[@nr = 3]//text() ||
-						"&amp;ref=" ||
-						$parsedURN//s:group[@nr = 8]//text()
-				)
-				return roaster:response(302, (), (), map:merge(($headers, map {"Location": $location})))
+			return if (count($parsedURN//s:group[@nr = 8]//text()) ge 1) then
+				let $isRange := $parsedURN//s:group[@nr = 18]/text() = "-"
+				let $follow := if ($isRange) then
+					map {
+						"id": $baseId,
+						"ref": "",
+						"start": $parsedURN//s:group[@nr = 9]//text(),
+						"end": $parsedURN//s:group[@nr = 19]//text()
+					}
+				else
+					map {"id": $baseId, "ref": $parsedURN//s:group[@nr = 8]//text(), "start": "", "end": ""}
+				let $location := if ($isRange) then
+					"/api/dts/document?id=" || $baseId || "&amp;start=" || $follow?start || "&amp;end=" || $follow?end
+				else
+					"/api/dts/document?id=" || $baseId || "&amp;ref=" || $follow?ref
+				return map {
+					"status": 302,
+					"thisid": $thisid,
+					"headers": map:merge(($headers, map {"Location": $location})),
+					"follow": $follow
+				}
 			else
-				let $doc := dtslib:fragment($file, $edition, $ref, $start, $end, $text)
+				map {
+					"status": 200,
+					"thisid": $thisid,
+					"body": dtslib:fragment($file, $edition, $ref, $start, $end, $text),
+					"headers": $headers
+				}
+};
 
-				return switch ($Content-Type)
-					case "application/rdf+xml" return
-						dtslib:redirectToRDF($thisid)
-					case "application/pdf" return
-						dtslib:redirectToPDF($thisid)
-					case "text/html" return
-						dtslib:redirectToHTML($thisid, $ref, $start)
-					case "text/plain" return
-						roaster:response(
-							200,
-							$Content-Type || "; charset=utf-8",
-							string:tei2string($doc/node()[not(name() = "teiHeader")]),
-							$headers
-						)
-					(: default is on XML TEI :)
-					default return
-						roaster:response(200, $Content-Type || "; charset=utf-8", $doc, $headers)
+(:~
+ : In-process document result: TEI body plus optional Link header value.
+ : Follows embedded-passage data URNs instead of exposing a 302.
+ :
+ : @param $id    DTS resource id (canonical $config:BMurl prefix)
+ : @param $ref   optional passage reference
+ : @param $start optional range start
+ : @param $end   optional range end
+ : @return map with keys status, body, link
+ :)
+declare function dtslib:document-pack($id as xs:string*, $ref as xs:string*, $start, $end) as map(*) {
+	let $r := dtslib:document-result($id, $ref, $start, $end)
+	return if ($r?status eq 302 and map:contains($r, "follow")) then
+		dtslib:document-pack($r?follow?id, $r?follow?ref, $r?follow?start, $r?follow?end)
+	else
+		map {"status": ($r?status, 200)[1], "body": $r?body, "link": $r?headers?Link}
+};
+
+(:~
+ : In-process document body only (TEI or DTS error element).
+ : Never returns a Roaster response map — use dtslib:docs for HTTP.
+ :
+ : @param $id    DTS resource id (canonical $config:BMurl prefix)
+ : @param $ref   optional passage reference
+ : @param $start optional range start
+ : @param $end   optional range end
+ : @return TEI document, DTS error element, or empty
+ :)
+declare function dtslib:document-content($id as xs:string*, $ref as xs:string*, $start, $end) as item()* {
+	dtslib:document-pack($id, $ref, $start, $end)?body
+};
+
+(:~
+ : HTTP handler for `/api/dts/document`: wraps dtslib:document-result in
+ : roaster:response (status, media type, body, headers).
+ :
+ : @param $id           DTS resource id (canonical $config:BMurl prefix)
+ : @param $ref          optional passage reference
+ : @param $start        optional range start
+ : @param $end          optional range end
+ : @param $Content-Type requested representation (tei+xml, text/plain, …)
+ : @return Roaster response map
+ :)
+declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end, $Content-Type) {
+	if ($id = "") then
+		dtslib:redirectToCollections()
+	else
+		let $r := dtslib:document-result($id, $ref, $start, $end)
+		return if ($r?status eq 400) then
+			roaster:response(400, "application/xml", $r?body)
+		else if ($r?status eq 302) then
+			roaster:response(302, (), (), $r?headers)
+		else
+			switch ($Content-Type)
+				case "application/rdf+xml" return
+					dtslib:redirectToRDF($r?thisid)
+				case "application/pdf" return
+					dtslib:redirectToPDF($r?thisid)
+				case "text/html" return
+					dtslib:redirectToHTML($r?thisid, $ref, $start)
+				case "text/plain" return
+					roaster:response(
+						200,
+						$Content-Type || "; charset=utf-8",
+						string:tei2string($r?body/node()[not(name() = "teiHeader")]),
+						$r?headers
+					)
+				default return
+					roaster:response(200, $Content-Type || "; charset=utf-8", $r?body, $r?headers)
 };
 
 declare %private function dtslib:fragment($file, $edition, $ref, $start, $end, $text) {
@@ -475,7 +553,7 @@ declare %private function dtslib:fragment($file, $edition, $ref, $start, $end, $
 		</TEI>
 	else if ($ref != "") then
 		(: fetch narrative unit passage :)
-		if (starts-with($ref, "NAR") or starts-with($ref, "https://betasamaheft.eu/NAR")) then (
+		if (starts-with($ref, "NAR") or starts-with($ref, ($config:BMurl || "NAR"))) then (
 			(: will match the content of any div with a corresp corresponding to that narrative unit, if any :)
 
 			let $narrative := $text//t:div[ends-with(@corresp, $ref)]
@@ -1140,7 +1218,7 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
 		let $addnav := if ($nav = "parent") then
 			let $parent := if ($doc/@type eq "mss") then
 				map {
-					"@id": "https://betamasaheft.eu/transcriptions",
+					"@id": ($config:BMurl || "transcriptions"),
 					"title": "Beta maṣāḥǝft Manuscripts",
 					"description": "Collection of Ethiopic Manuscript trasncriptions",
 					"@type": "Collection",
@@ -1148,7 +1226,7 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
 				}
 			else if ($doc/@type eq "nar") then
 				map {
-					"@id": "https://betamasaheft.eu/narrativeunits",
+					"@id": ($config:BMurl || "narrativeunits"),
 					"title": "Beta maṣāḥǝft Manuscripts",
 					"description": "Collection of narrative units of the Ethiopic tradition",
 					"@type": "Collection",
@@ -1156,7 +1234,7 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
 				}
 			else
 				map {
-					"@id": "https://betamasaheft.eu/textualunits",
+					"@id": ($config:BMurl || "textualunits"),
 					"title": "Beta maṣāḥǝft Textual Units",
 					"description": "Collection of literary textual units of the Ethiopic tradition",
 					"@type": "Collection",
@@ -1186,10 +1264,10 @@ declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) 
  :)
 declare function dtslib:Coll($id, $page, $nav, $version) {
 	let $availableCollectionIDs := (
-		"https://betamasaheft.eu",
-		"https://betamasaheft.eu/textualunits",
-		"https://betamasaheft.eu/narrativeunits",
-		"https://betamasaheft.eu/transcriptions"
+		$dtslib:bmId,
+		($config:BMurl || "textualunits"),
+		($config:BMurl || "narrativeunits"),
+		($config:BMurl || "transcriptions")
 	)
 	let $ms := $dtslib:collection-rootMS//t:div[@type eq "edition"][descendant::t:ab[text()]]
 	let $w := $dtslib:collection-rootW//t:div[@type eq "edition"][descendant::t:ab[text()]]
@@ -1200,11 +1278,11 @@ declare function dtslib:Coll($id, $page, $nav, $version) {
 	return (
 		if ($id = $availableCollectionIDs) then (
 			switch ($id)
-				case "https://betamasaheft.eu/textualunits" return
+				case ($config:BMurl || "textualunits") return
 					dtslib:mainColl($id, $countW, $w, $page, $nav)
-				case "https://betamasaheft.eu/narrativeunits" return
+				case ($config:BMurl || "narrativeunits") return
 					dtslib:mainColl($id, $countN, $n, $page, $nav)
-				case "https://betamasaheft.eu/transcriptions" return
+				case ($config:BMurl || "transcriptions") return
 					dtslib:mainColl($id, $countMS, $ms, $page, $nav)
 				default return
 					map {
@@ -1219,21 +1297,21 @@ declare function dtslib:Coll($id, $page, $nav, $version) {
 						"member":
 							[
 								map {
-									"@id": "https://betamasaheft.eu/textualunits",
+									"@id": ($config:BMurl || "textualunits"),
 									"title": "Beta maṣāḥǝft Textual Units",
 									"description": "Collection of textual units of the Ethiopic tradition",
 									"@type": "Collection",
 									"totalItems": $countW
 								},
 								map {
-									"@id": "https://betamasaheft.eu/narrativeunits",
+									"@id": ($config:BMurl || "narrativeunits"),
 									"title": "Beta maṣāḥǝft Narrative Units",
 									"description": "Collection of narrative units of the Ethiopic tradition",
 									"@type": "Collection",
 									"totalItems": $countN
 								},
 								map {
-									"@id": "https://betamasaheft.eu/transcriptions",
+									"@id": ($config:BMurl || "transcriptions"),
 									"title": "Beta maṣāḥǝft Manuscripts",
 									"description": "Collection of Ethiopic Manuscript trasncriptions",
 									"@type": "Collection",
@@ -1340,7 +1418,7 @@ declare %private function dtslib:manifest($doc, $id) {
 			"@type": "edm:WebResource",
 			"svcs:has_service":
 				map {
-					"@id": "https://betamasaheft.eu/api/iiif/" || $id || "/manifest",
+					"@id": ($config:BMurl || "api/iiif/") || $id || "/manifest",
 					"@type": "svcs:Service",
 					"dcterms:conformsTo": "http://iiif.io/api/image",
 					"doap:implements": "http://iiif.io/api/image/2/level1.json"
@@ -1388,7 +1466,7 @@ edition or translation gets its own identifier :)
 				$title ||
 				" in Beta maṣāḥǝft. " ||
 				normalize-space(string-join(string:tei2string($doc//t:abstract), ""))
-		let $resourceURN := "https://betamasaheft.eu/" || $id
+		let $resourceURN := $config:BMurl || $id
 		let $members :=
 			for $d in $document
 			let $divuri := ($resourceURN || "_" || upper-case(substring(string($d/@type), 1, 2)) || "_" || string($d/@xml:id))
@@ -1430,7 +1508,7 @@ edition or translation gets its own identifier :)
 				$title ||
 				" in Beta maṣāḥǝft. " ||
 				normalize-space(string-join(string:tei2string($doc//t:abstract), ""))
-		let $resourceURN := "https://betamasaheft.eu/" || $id
+		let $resourceURN := $config:BMurl || $id
 		let $members :=
 			for $d in $document
 			let $divuri := ($resourceURN || "_" || upper-case(substring(string($d/@type), 1, 2)) || "_" || string($d/@xml:id))
@@ -1476,7 +1554,7 @@ declare %private function dtslib:distinctW($witnesses) {
 			if (starts-with($w, "http")) then
 				$w
 			else (
-				"https://betamasaheft.eu/" || $w
+				$config:BMurl || $w
 			),
 		"@type": "lawd:AssembledWork",
 		"dc:title": exptit:printTitleID($w)
@@ -1508,7 +1586,7 @@ declare %private function dtslib:membercontent($document, $edition, $vers, $nosp
 	else
 		$dcAndWitnesses
 	(: $dc :)
-	let $resourceURN := "https://betamasaheft.eu/" || $id || $edition
+	let $resourceURN := $config:BMurl || $id || $edition
 	let $versions := if ($vers = "yes") then
 		dtslib:fileingitCommits($resourceURN, $id, "collections")
 	else (
@@ -1525,7 +1603,7 @@ declare %private function dtslib:membercontent($document, $edition, $vers, $nosp
 	let $parts := $addmanifest
 	let $dtsPass := "/api/dts/document?id=" || $resourceURN
 	let $dtsNav := "/api/dts/navigation?id=" || $resourceURN
-	let $download := "https://betamasaheft.eu/tei/" || $id || ".xml"
+	let $download := ($config:BMurl || "tei/") || $id || ".xml"
 	let $citeDepth := if ($doc/@type eq "mss" and not($doc//t:objectDesc/@form = "Inscription")) then
 		3
 	else
@@ -1596,7 +1674,7 @@ declare %private function dtslib:membercontent($document, $edition, $vers) {
 	else
 		$dcAndWitnesses
 	(: $dc :)
-	let $resourceURN := "https://betamasaheft.eu/" || $id || $edition
+	let $resourceURN := $config:BMurl || $id || $edition
 	let $versions := if ($vers = "yes") then
 		dtslib:fileingitCommits($resourceURN, $id, "collections")
 	else (
@@ -1618,7 +1696,7 @@ declare %private function dtslib:membercontent($document, $edition, $vers) {
 		$addmanifest
 	let $dtsPass := "/api/dts/document?id=" || $resourceURN
 	let $dtsNav := "/api/dts/navigation?id=" || $resourceURN
-	let $download := "https://betamasaheft.eu/tei/" || $id || ".xml"
+	let $download := ($config:BMurl || "tei/") || $id || ".xml"
 	let $citeDepth := if ($doc/@type eq "mss" and not($doc//t:objectDesc/@form = "Inscription")) then
 		3
 	else
@@ -1691,13 +1769,13 @@ declare %private function dtslib:manifests($witnesses, $id) {
 			if ($witness//t:msItem[t:title[@ref = $id]]) then
 				for $x in $witness//t:msItem[t:title[@ref = $id]]
 				return map {
-					"@id": "https://betamasaheft.eu/api/iiif/" || $w || "/range/" || string($x/@xml:id),
+					"@id": ($config:BMurl || "api/iiif/") || $w || "/range/" || string($x/@xml:id),
 					"@type": "sc:Range",
 					"dc:title": ("IIIF Range for images of " || exptit:printTitleID(concat($w, "#", string($x/@xml:id))))
 				}
 			else
 				map {
-					"@id": "https://betamasaheft.eu/api/iiif/" || $w || "/manifest",
+					"@id": ($config:BMurl || "api/iiif/") || $w || "/manifest",
 					"@type": "sc:Manifest",
 					"dc:title": ("IIIF Manifest for images of " || exptit:printTitleID($w))
 				}
@@ -1741,7 +1819,7 @@ declare %private function dtslib:editioncontent($divuri, $type, $xmlid, $documen
 	else
 		$dcAndWitnesses
 	(: $dc :)
-	let $resourceURN := "https://betamasaheft.eu/" || $id
+	let $resourceURN := $config:BMurl || $id
 	let $versions := if ($vers = "yes") then
 		dtslib:fileingitCommits($resourceURN, $id, "collections")
 	else (
@@ -1758,7 +1836,7 @@ declare %private function dtslib:editioncontent($divuri, $type, $xmlid, $documen
 	let $parts := $addmanifest
 	let $dtsPass := "/api/dts/document?id=" || $divuri
 	let $dtsNav := "/api/dts/navigation?id=" || $divuri
-	let $download := "https://betamasaheft.eu/tei/" || $id || ".xml"
+	let $download := ($config:BMurl || "tei/") || $id || ".xml"
 	let $citeDepth := if ($doc/@type eq "mss" and not($doc//t:objectDesc/@form = "Inscription")) then
 		3
 	else
@@ -1839,7 +1917,7 @@ declare %private function dtslib:editioncontent($divuri, $type, $xmlid, $documen
 	else
 		$dcAndWitnesses
 	(: $dc :)
-	let $resourceURN := "https://betamasaheft.eu/" || $id
+	let $resourceURN := $config:BMurl || $id
 	let $versions := if ($vers = "yes") then
 		dtslib:fileingitCommits($resourceURN, $id, "collections")
 	else (
@@ -1861,7 +1939,7 @@ declare %private function dtslib:editioncontent($divuri, $type, $xmlid, $documen
 		$addmanifest
 	let $dtsPass := "/api/dts/document?id=" || $divuri
 	let $dtsNav := "/api/dts/navigation?id=" || $divuri
-	let $download := "https://betamasaheft.eu/tei/" || $id || ".xml"
+	let $download := ($config:BMurl || "tei/") || $id || ".xml"
 	let $citeDepth := if ($doc/@type eq "mss" and not($doc//t:objectDesc/@form = "Inscription")) then
 		3
 	else
@@ -2182,7 +2260,7 @@ declare function dtslib:indexEntriesAttestations($id, $indexName, $indexEntries,
 				else
 					$refval
 				return $reflang
-		return map {"@id": "https://betamasaheft.eu/" || $ref, "title": exptit:printTitleID($ref), "member": $members}
+		return map {"@id": $config:BMurl || $ref, "title": exptit:printTitleID($ref), "member": $members}
 	return subsequence($refs, $start, $end)
 };
 
@@ -2598,7 +2676,7 @@ declare function dtslib:refannocol($i, $c, $indexName) {
 	let $IDentityorlocus := if (matches($i, "urn") or matches($i, "betmas:")) then
 		$i
 	else
-		"https://betamasaheft.eu/" || $i
+		$config:BMurl || $i
 	return map {
 		"@id": $IDentityorlocus,
 		"title": "Annotations of " || $entityorlocus || " in " || $indexName || " index.",
@@ -2617,7 +2695,7 @@ declare function dtslib:refannocolItem($BMid, $title, $i, $c, $indexName, $entit
 	else if (starts-with($i, "pleiades:")) then
 		replace($i, "pleaides:", "https://pleiades.stoa.org/places/")
 	else
-		"https://betamasaheft.eu/" || $i
+		$config:BMurl || $i
 	return map {
 		"@id": $IDentityorlocus,
 		"shortTitle": $entityorlocus,

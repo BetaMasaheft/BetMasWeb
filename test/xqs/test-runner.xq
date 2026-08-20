@@ -14,8 +14,14 @@ import module namespace test = "http://exist-db.org/xquery/xqsuite" at "resource
 import module namespace inspect = "http://exist-db.org/xquery/inspection";
 (: Relative imports resolve when this runner lives under /db/apps/BetMasWeb/test/xqs/. :)
 import module namespace tsrutil = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-roaster-util" at "ts-roaster-util.xqm";
+import module namespace tsdtsdoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-document" at "ts-dtslib-document.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
 
-test:suite((inspect:module-functions(xs:anyURI("ts-roaster-util.xqm"))))
+test:suite(
+	(
+		inspect:module-functions(xs:anyURI("ts-roaster-util.xqm")),
+		inspect:module-functions(xs:anyURI("ts-dtslib-document.xqm"))
+	)
+)
