@@ -296,8 +296,9 @@ then you will see visualizations based on La Syntaxe du Codex, by Andrist, Canar
 					<div class="w3-container">{ item2:EntityRelsTable($document, $collection) }</div>
 					<div class="w3-container w3-hide-small">
 						{
-							if (item2:RestPersRole($document, $collection)) then
-								item2:RestPersRole($document, $collection)
+							let $persRole := item2:RestPersRole($document, $collection)
+							return if ($persRole) then
+								$persRole
 							else (
 							)
 						}
@@ -305,8 +306,9 @@ then you will see visualizations based on La Syntaxe du Codex, by Andrist, Canar
 					<div class="w3-container w3-hide-small" id="timeLine" />
 					<script type="text/javascript">
 						{
-							if (item2:timeline($document, $collection)) then
-								item2:timeline($document, $collection)
+							let $timeline := item2:timeline($document, $collection)
+							return if ($timeline) then
+								$timeline
 							else (
 							)
 						}
@@ -2452,11 +2454,12 @@ declare function item2:RestSeeAlso($this, $collection) {
 								<ul class="w3-ul">
 									{
 										for $m in $mss
+										let $title := exptit:printTitle($m)
 										return <li>
 											<a href="{ $config:appUrl }/{ string($m/ancestor::t:TEI/@xml:id) }" target="blank">
 												{
-													if (exptit:printTitle($m)) then
-														exptit:printTitle($m)
+													if ($title) then
+														$title
 													else
 														string($m/ancestor::t:TEI/@xml:id)
 												}
