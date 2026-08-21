@@ -1,0 +1,19 @@
+modules/resources.xqm
+  s_53c10a783d9578::t_81f432e5c97fa4 844-846,867-869,890-892,935-937,1003-1005,1261-1263,1283-1285,1306-1308,1331-1333,1356-1358,1382-1384
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "9652ce1b48fbb212f0e1097e3cd7f4f3535bd1f9",
+  "prompts": {},
+  "sessions": {
+    "s_53c10a783d9578": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b50e3f0-d44c-49f4-a258-ee9296a2b57a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
