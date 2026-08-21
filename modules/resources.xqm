@@ -1755,87 +1755,178 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 	</div>
 };
 
-declare %templates:wrap function lists:addRes($node as node(), $model as map(*)) {
+(:~
+ : Renders w3-css pager controls for a group-paginated results view (see
+ : lists:addRes/decoRes/titlesRes). Mirrors the visual style and link
+ : construction of apprest:paginate-rest / app:paginateNew, but takes the
+ : already-known group count directly rather than deriving it from a
+ : $model("hits") grouping - addRes/decoRes/titlesRes each group by a
+ : different key, so a single shared count parameter avoids re-encoding
+ : each view's grouping logic a second time just to build the pager.
+ :
+ : @param $groupCount total number of distinct groups (accordion entries)
+ : @param $start the current page's start offset, as passed to the caller
+ : @param $per-page groups per page, as passed to the caller
+ : @return the pager markup, or the empty sequence when everything fits on
+ : one page
+ :)
+declare function lists:groupPager($groupCount as xs:integer, $start as xs:integer, $per-page as xs:integer) as node()* {
+	if ($groupCount le $per-page) then (
+	) else
+		let $pageCount := xs:integer(ceiling($groupCount div $per-page))
+		let $currentPage := xs:integer(ceiling($start div $per-page))
+		let $params := string-join(
+			for $param in request:get-parameter-names()
+			for $value in request:get-parameter($param, ())
+			return if ($param = "start") then (
+			) else
+				$param || "=" || $value,
+			"&amp;"
+		)
+		return <div class="w3-bar w3-border w3-round w3-margin-bottom">
+			{
+				if ($start = 1) then (
+					<a class="w3-button w3-disabled"><i class="fa fa-fast-backward" /></a>,
+					<a class="w3-button w3-disabled"><i class="fa fa-backward" /></a>
+				) else (
+					<a class="w3-button" href="?{ $params }&amp;start=1"><i class="fa fa-fast-backward" /></a>,
+					<a class="w3-button" href="?{ $params }&amp;start={ max(($start - $per-page, 1)) }">
+						<i class="fa fa-backward" />
+					</a>
+				),
+				for $i in 1 to $pageCount
+				return if ($i = $currentPage) then
+					<a class="w3-button w3-gray" href="?{ $params }&amp;start={ (($i - 1) * $per-page) + 1 }">{ $i }</a>
+				else
+					<a class="w3-button" href="?{ $params }&amp;start={ (($i - 1) * $per-page) + 1 }">{ $i }</a>,
+				if ($start + $per-page < $groupCount) then (
+					<a class="w3-button" href="?{ $params }&amp;start={ $start + $per-page }"><i class="fa fa-forward" /></a>,
+					<a class="w3-button" href="?{ $params }&amp;start={ (($pageCount - 1) * $per-page) + 1 }">
+						<i class="fa fa-fast-forward" />
+					</a>
+				) else (
+					<a class="w3-button w3-disabled"><i class="fa fa-forward" /></a>,
+					<a class="w3-button w3-disabled"><i class="fa fa-fast-forward" /></a>
+				)
+			}
+		</div>
+};
+
+declare %templates:wrap %templates:default("start", 1) %templates:default("per-page", 20) function lists:addRes(
+	$node as node(),
+	$model as map(*),
+	$start as xs:integer,
+	$per-page as xs:integer
+) {
 	let $data := $model("hits")
-	return for $addition at $p in $data
+	(:
+	 : group-level pagination - the data-template-per-page attribute this
+	 : results div used to have did nothing (the templating framework has no
+	 : such mechanism), so every accordion group rendered unconditionally
+	 : regardless of page size. This computes the same distinct-type set the
+	 : group-by below produces, slices it to the current page, and only
+	 : renders groups within that slice - the expensive part (per-item HTML
+	 : construction inside each group) is skipped entirely for other pages,
+	 : not just hidden client-side.
+	 :)
+	let $allTypes := (
+		for $type in
+			distinct-values(
+				for $addition in $data
+				return if ($addition//t:desc/@type) then
+					string-join($addition//t:desc/@type)
+				else
+					"undefined"
+			)
+		order by $type
+		return $type
+	)
+	let $pagedTypes := subsequence($allTypes, $start, $per-page)
+	return (
+		lists:groupPager(count($allTypes), $start, $per-page),
+		for $addition at $p in $data
 		let $t := if ($addition//t:desc/@type) then
 			string-join($addition//t:desc/@type)
 		else
 			"undefined"
 		group by $type := $t
 		order by $type
-		let $tit := exptit:printTitleID($type)
-		return (
-			<button class="w3-button w3-block w3-gray w3-margin-bottom" onclick="openAccordion('{ data($type) }')">
-				<span class="w3-badge w3-right">
-					{
-						if ($type = "undefined") then
-							count($data[not(descendant::t:desc/@type)])
-						else
-							count($data/t:desc[@type eq $type])
-					}
-				</span>
-				<span class="w3-left additionType" data-value="{ $type }">
-					{
-						if ($type = "undefined") then
-							$type
-						else
-							$tit
-					}
-				</span>
-			</button>,
-			<div class="w3-container w3-hide" id="{ data($type) }">
-				<div>
-					{
-						if (count($addition) gt 100) then
-							<span> (showing up to 100 results; use filters to narrow down your search)</span>
-						else (
-						)
-					}
-				</div>
-				<ul class="w3-ul w3-padding w3-hoverable">
-					{
-						let $start := xs:integer(request:get-parameter("start", "1"))
-						let $num := xs:integer(request:get-parameter("num", "100"))
-						for $a in subsequence($addition, $start, $num)
+		return if (not($type = $pagedTypes)) then (
+		) else
+			let $tit := exptit:printTitleID($type)
+			return (
+				<button class="w3-button w3-block w3-gray w3-margin-bottom" onclick="openAccordion('{ data($type) }')">
+					<span class="w3-badge w3-right">
+						{
+							if ($type = "undefined") then
+								count($data[not(descendant::t:desc/@type)])
+							else
+								count($data/t:desc[@type eq $type])
+						}
+					</span>
+					<span class="w3-left additionType" data-value="{ $type }">
+						{
+							if ($type = "undefined") then
+								$type
+							else
+								$tit
+						}
+					</span>
+				</button>,
+				<div class="w3-container w3-hide" id="{ data($type) }">
+					<div>
+						{
+							if (count($addition) gt 100) then
+								<span> (showing up to 100 results; use filters to narrow down your search)</span>
+							else (
+							)
+						}
+					</div>
+					<ul class="w3-ul w3-padding w3-hoverable">
+						{
+							let $start := xs:integer(request:get-parameter("start", "1"))
+							let $num := xs:integer(request:get-parameter("num", "100"))
+							for $a in subsequence($addition, $start, $num)
 
-						let $fileID := data($a/ancestor::t:TEI/@xml:id)
-						let $additionID := data($a/@xml:id)
-						order by $fileID
-						return <li>
-							<a href="{ $fileID }#{ $additionID }">{ $fileID },{ $additionID }</a> |
+							let $fileID := data($a/ancestor::t:TEI/@xml:id)
+							let $additionID := data($a/@xml:id)
+							order by $fileID
+							return <li>
+								<a href="{ $fileID }#{ $additionID }">{ $fileID },{ $additionID }</a> |
             <div
-								class="additionTextContent w3-container"
-							>
-								<div id="{ $fileID }_{ $additionID }">
-									{
-										if ($a//t:relation[@name eq "saws:formsPartOf"][contains(@passive, "corpus")]) then (
-											<p>Document in Corpus <a href="/{ $a//t:relation/@passive }/corpus">
-													{ string($a//t:relation/@passive) }
-												</a>
+									class="additionTextContent w3-container"
+								>
+									<div id="{ $fileID }_{ $additionID }">
+										{
+											if ($a//t:relation[@name eq "saws:formsPartOf"][contains(@passive, "corpus")]) then (
+												<p>Document in Corpus <a href="/{ $a//t:relation/@passive }/corpus">
+														{ string($a//t:relation/@passive) }
+													</a>
+												</p>
+											) else (
+											)
+										}
+										{
+											for $q in $a//t:q
+											return <p>
+												{
+													if ($q[@xml:lang = "gez"]) then
+														attribute class { "gez" }
+													else (
+													)
+												}
+												{ $q }
 											</p>
-										) else (
-										)
-									}
-									{
-										for $q in $a//t:q
-										return <p>
-											{
-												if ($q[@xml:lang = "gez"]) then
-													attribute class { "gez" }
-												else (
-												)
-											}
-											{ $q }
-										</p>
-									}
+										}
+									</div>
 								</div>
-							</div>
-						</li>
-					}
-				</ul>
-			</div>
-		)
+							</li>
+						}
+					</ul>
+				</div>
+			),
+		lists:groupPager(count($allTypes), $start, $per-page)
+	)
 };
 
 declare %templates:wrap function lists:bindingRes($node as node(), $model as map(*)) {
@@ -1956,119 +2047,136 @@ declare %templates:wrap function lists:calendarRes($node as node(), $model as ma
 	)
 };
 
-declare %templates:wrap function lists:decoRes($node as node(), $model as map(*)) {
-	for $decoration at $p in $model("hits")
-	let $t := $decoration/@type
-	(: group by type :)
-	group by $type := $t
-	order by $type
+declare %templates:wrap %templates:default("start", 1) %templates:default("per-page", 20) function lists:decoRes(
+	$node as node(),
+	$model as map(*),
+	$start as xs:integer,
+	$per-page as xs:integer
+) {
+	(: group-level pagination - see the matching comment in lists:addRes :)
+	let $allTypes := (
+		for $type in distinct-values($model("hits")/@type)
+		order by $type
+		return $type
+	)
+	let $pagedTypes := subsequence($allTypes, $start, $per-page)
 	return (
-		<button class="w3-button w3-block w3-gray w3-padding w3-margin-bottom" onclick="openAccordion('{ data($type) }')">
-			<span class="w3-badge w3-right">{ count($decoration) }</span>
-			<span class="w3-left additionType" data-value="{ $type }">{ string($type) }</span>
-		</button>,
-		<div class="w3-container w3-hide" id="{ data($type) }">
-			<div class="w3-container" id="{ data($type) }">
-				{
-					if (count($decoration) gt 400) then
-						<div>Showing up to 400 results; use filters to narrow down the search results</div>
-					else (
-					),
-					let $start := xs:integer(request:get-parameter("start", "1"))
-					let $num := xs:integer(request:get-parameter("num", "400"))
-					for $d in subsequence($decoration, $start, $num)
-					let $msid := $d/ancestor::t:TEI/@xml:id
-					(: group by containing ms :)
-					group by $ms := $msid
-					order by $ms
-					return (
-						<button
-							class="w3-button w3-block w3-red  w3-margin-bottom"
-							onclick="openAccordion('{ data($ms) }{ data($type) }')"
-						>
-							<span class="w3-left">{ $lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno }</span>
-							<span class="w3-badge w3-right">{ count($d) }</span>
-						</button>,
-						<div class="w3-container w3-hide" id="{ data($ms) }{ data($type) }">
-							<ul class="w3-ul w3-hoverable">
-								{
-									for $sd in $d
-									let $images := root($sd)//t:msIdentifier/t:idno
-									let $locusfacs := string($sd/t:locus[1]/@facs)
-									let $locusfirst := if (contains($locusfacs, " ")) then
-										substring-before($locusfacs, " ")
-									else
-										$locusfacs
-									let $locus := replace($locusfirst, "[a-z\s]", "")
-									order by $sd/@xml:id
-									return <li class="w3-container">
-										{
-											if ($images/@facs and $locus) then (
-												<a href="/manuscripts/{ $ms }/viewer" target="_blank">
-													<img
-														class="thumb"
-														src="{
-															if (starts-with($ms, "BML")) then
-																$config:appUrl ||
-																	"/iiif/" ||
-																	string($images/@facs) ||
-																	$locus ||
-																	".tif/full/150,/0/default.jpg"
-															else if (starts-with($ms, "ES")) then
-																$config:appUrl ||
-																	"/iiif/" ||
-																	string($images/@facs) ||
-																	"_" ||
-																	$locus ||
-																	".tif/full/150,/0/default.jpg"
-															else if (starts-with($ms, "EMIP")) then
-																$config:appUrl ||
-																	"/iiif/" ||
-																	string($images/@facs) ||
-																	$locus ||
-																	".tif/full/150,/0/default.jpg"
-															else if (starts-with($ms, "BNF")) then
-																replace($images/@facs, "ark:", "iiif/ark:") ||
-																	"/" ||
-																	$locus ||
-																	"/full/150,/0/native.jpg"
-															else if (starts-with($ms, "BAV")) then
-																replace(substring-before($images/@facs, "/manifest.json"), "iiif", "pub/digit") ||
-																	"/thumb/" ||
-																	substring-before(substring-after($images/@facs, "MSS_"), "/manifest.json") ||
-																	"_" ||
-																	$locus ||
-																	".tif.jpg"
-															else (
-															)
-														}"
-														style="width:10%" />
-												</a>
-											) else (
-											)
-										}
-										<p class="w3-rest">
-											<a href="{ data($ms) }#{ data($sd/@xml:id) }">{ data($sd/@xml:id) }</a>
-											<br />
+		lists:groupPager(count($allTypes), $start, $per-page),
+		for $decoration at $p in $model("hits")
+		let $t := $decoration/@type
+		(: group by type :)
+		group by $type := $t
+		order by $type
+		return if (not($type = $pagedTypes)) then (
+		) else (
+			<button class="w3-button w3-block w3-gray w3-padding w3-margin-bottom" onclick="openAccordion('{ data($type) }')">
+				<span class="w3-badge w3-right">{ count($decoration) }</span>
+				<span class="w3-left additionType" data-value="{ $type }">{ string($type) }</span>
+			</button>,
+			<div class="w3-container w3-hide" id="{ data($type) }">
+				<div class="w3-container" id="{ data($type) }">
+					{
+						if (count($decoration) gt 400) then
+							<div>Showing up to 400 results; use filters to narrow down the search results</div>
+						else (
+						),
+						let $start := xs:integer(request:get-parameter("start", "1"))
+						let $num := xs:integer(request:get-parameter("num", "400"))
+						for $d in subsequence($decoration, $start, $num)
+						let $msid := $d/ancestor::t:TEI/@xml:id
+						(: group by containing ms :)
+						group by $ms := $msid
+						order by $ms
+						return (
+							<button
+								class="w3-button w3-block w3-red  w3-margin-bottom"
+								onclick="openAccordion('{ data($ms) }{ data($type) }')"
+							>
+								<span class="w3-left">{ $lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno }</span>
+								<span class="w3-badge w3-right">{ count($d) }</span>
+							</button>,
+							<div class="w3-container w3-hide" id="{ data($ms) }{ data($type) }">
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $sd in $d
+										let $images := root($sd)//t:msIdentifier/t:idno
+										let $locusfacs := string($sd/t:locus[1]/@facs)
+										let $locusfirst := if (contains($locusfacs, " ")) then
+											substring-before($locusfacs, " ")
+										else
+											$locusfacs
+										let $locus := replace($locusfirst, "[a-z\s]", "")
+										order by $sd/@xml:id
+										return <li class="w3-container">
 											{
-												if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
-													<span>Art themes: </span>
-												else (
-												),
-												for $at in $sd//t:ref[@type eq "authFile"]
-												return <a href="{ string($at/@corresp) }">
-													{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
-												</a>
+												if ($images/@facs and $locus) then (
+													<a href="/manuscripts/{ $ms }/viewer" target="_blank">
+														<img
+															class="thumb"
+															src="{
+																if (starts-with($ms, "BML")) then
+																	$config:appUrl ||
+																		"/iiif/" ||
+																		string($images/@facs) ||
+																		$locus ||
+																		".tif/full/150,/0/default.jpg"
+																else if (starts-with($ms, "ES")) then
+																	$config:appUrl ||
+																		"/iiif/" ||
+																		string($images/@facs) ||
+																		"_" ||
+																		$locus ||
+																		".tif/full/150,/0/default.jpg"
+																else if (starts-with($ms, "EMIP")) then
+																	$config:appUrl ||
+																		"/iiif/" ||
+																		string($images/@facs) ||
+																		$locus ||
+																		".tif/full/150,/0/default.jpg"
+																else if (starts-with($ms, "BNF")) then
+																	replace($images/@facs, "ark:", "iiif/ark:") ||
+																		"/" ||
+																		$locus ||
+																		"/full/150,/0/native.jpg"
+																else if (starts-with($ms, "BAV")) then
+																	replace(substring-before($images/@facs, "/manifest.json"), "iiif", "pub/digit") ||
+																		"/thumb/" ||
+																		substring-before(substring-after($images/@facs, "MSS_"), "/manifest.json") ||
+																		"_" ||
+																		$locus ||
+																		".tif.jpg"
+																else (
+																)
+															}"
+															style="width:10%" />
+													</a>
+												) else (
+												)
 											}
-										</p>
-									</li>
-								}
-							</ul>
-						</div>
-					)
-				}
+											<p class="w3-rest">
+												<a href="{ data($ms) }#{ data($sd/@xml:id) }">{ data($sd/@xml:id) }</a>
+												<br />
+												{
+													if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
+														<span>Art themes: </span>
+													else (
+													),
+													for $at in $sd//t:ref[@type eq "authFile"]
+													return <a href="{ string($at/@corresp) }">
+														{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+													</a>
+												}
+											</p>
+										</li>
+									}
+								</ul>
+							</div>
+						)
+					}
+				</div>
 			</div>
-		</div>
+		),
+		lists:groupPager(count($allTypes), $start, $per-page)
 	)
 };
 
@@ -2124,313 +2232,336 @@ declare function lists:typeGroupsMap($hits) as map(*) {
 	)
 };
 
-declare %templates:wrap function lists:titlesRes($node as node(), $model as map(*)) {
+declare %templates:wrap %templates:default("start", 1) %templates:default("per-page", 20) function lists:titlesRes(
+	$node as node(),
+	$model as map(*),
+	$start as xs:integer,
+	$per-page as xs:integer
+) {
 	let $groupsMap := if (exists($model("typeGroups"))) then
 		$model("typeGroups")
 	else
 		lists:typeGroupsMap($model("hits"))
+	(: group-level pagination - see the matching comment in lists:addRes :)
+	let $sortedTags := (
+		for $tag in map:keys($groupsMap)
+		order by $tag
+		return $tag
+	)
+	let $pagedTags := subsequence($sortedTags, $start, $per-page)
 
-	for $i in map:keys($groupsMap)
-	order by $i
-	let $group := $groupsMap($i)
 	return (
-		<button class="w3-button w3-block w3-gray w3-padding w3-margin-bottom" onclick="openAccordion('{ $i }')">
-			<span class="w3-badge w3-right">{ count($group) }</span>
-			<span class="w3-left additionType" data-value="{ $i }">{ $i }</span>
-		</button>,
-		<div class="w3-container w3-hide" id="{ $i }">
-			<div class="w3-container" id="{ $i }">
-				{
-					for $d at $p in $group
-					let $tei := $d/ancestor::t:TEI
-					let $msid := $tei/@xml:id
+		lists:groupPager(count($sortedTags), $start, $per-page),
+		for $i in $pagedTags
+		let $group := $groupsMap($i)
+		return (
+			<button class="w3-button w3-block w3-gray w3-padding w3-margin-bottom" onclick="openAccordion('{ $i }')">
+				<span class="w3-badge w3-right">{ count($group) }</span>
+				<span class="w3-left additionType" data-value="{ $i }">{ $i }</span>
+			</button>,
+			<div class="w3-container w3-hide" id="{ $i }">
+				<div class="w3-container" id="{ $i }">
+					{
+						for $d at $p in $group
+						let $tei := $d/ancestor::t:TEI
+						let $msid := $tei/@xml:id
 
-					(: group by containing ms :)
-					group by $ms := $msid
-					let $itemtype := distinct-values($tei/@type)[1]
-					let $htmlid := concat(data($ms), "-", $i)
-					order by $ms
-					return (
-						<button class="w3-button w3-block w3-red  w3-margin-bottom" onclick="openAccordion('{ $htmlid }')">
-							<span class="w3-left">
-								{
-									if ($itemtype eq "mss") then
-										$lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno
-									else
-										try { exptit:printTitleID($ms) } catch * { util:log("WARNING", $ms) }
-								}
-							</span>
-							<span class="w3-badge w3-right">{ count($d) }</span>
-						</button>,
-						<div class="w3-container w3-hide" id="{ $htmlid }">
-							<ul class="w3-ul w3-hoverable">
-								{
-									if ($itemtype eq "mss") then
-										for $sd in $d
-										let $images := root($sd)//t:msIdentifier/t:idno
-										let $locus := string($sd/t:locus/@facs)
-										let $uid := if ($sd/@xml:id) then
-											$sd/@xml:id
+						(: group by containing ms :)
+						group by $ms := $msid
+						let $itemtype := distinct-values($tei/@type)[1]
+						let $htmlid := concat(data($ms), "-", $i)
+						order by $ms
+						return (
+							<button class="w3-button w3-block w3-red  w3-margin-bottom" onclick="openAccordion('{ $htmlid }')">
+								<span class="w3-left">
+									{
+										if ($itemtype eq "mss") then
+											$lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno
 										else
-											generate-id($sd)
-										order by $uid
-										return if (exists($sd/node())) then
-											try {
-												<li class="w3-container">
-													{
-														if ($images/@facs and $locus) then (
-															<a href="/manuscripts/{ $ms }/viewer" target="_blank">
-																<img
-																	class="thumb"
-																	src="{
-																		if (starts-with($ms, "BML")) then
-																			$config:appUrl ||
-																				"/iiif/" ||
-																				string($images/@facs) ||
-																				$locus ||
-																				".tif/full/150,/0/default.jpg"
-																		else if (starts-with($ms, "ES")) then
-																			$config:appUrl ||
-																				"/iiif/" ||
-																				string($images/@facs) ||
-																				"_" ||
-																				$locus ||
-																				".tif/full/150,/0/default.jpg"
-																		else if (starts-with($ms, "BNF")) then
-																			replace($images/@facs, "ark:", "iiif/ark:") ||
-																				"/" ||
-																				$locus ||
-																				"/full/150,/0/native.jpg"
-																		else if (starts-with($ms, "BAV")) then
-																			replace(substring-before($images/@facs, "/manifest.json"), "iiif", "pub/digit") ||
-																				"/thumb/" ||
-																				substring-before(substring-after($images/@facs, "MSS_"), "/manifest.json") ||
-																				"_" ||
-																				$locus ||
-																				".tif.jpg"
+											try { exptit:printTitleID($ms) } catch * { util:log("WARNING", $ms) }
+									}
+								</span>
+								<span class="w3-badge w3-right">{ count($d) }</span>
+							</button>,
+							<div class="w3-container w3-hide" id="{ $htmlid }">
+								<ul class="w3-ul w3-hoverable">
+									{
+										if ($itemtype eq "mss") then
+											for $sd in $d
+											let $images := root($sd)//t:msIdentifier/t:idno
+											let $locus := string($sd/t:locus/@facs)
+											let $uid := if ($sd/@xml:id) then
+												$sd/@xml:id
+											else
+												generate-id($sd)
+											order by $uid
+											return if (exists($sd/node())) then
+												try {
+													<li class="w3-container">
+														{
+															if ($images/@facs and $locus) then (
+																<a href="/manuscripts/{ $ms }/viewer" target="_blank">
+																	<img
+																		class="thumb"
+																		src="{
+																			if (starts-with($ms, "BML")) then
+																				$config:appUrl ||
+																					"/iiif/" ||
+																					string($images/@facs) ||
+																					$locus ||
+																					".tif/full/150,/0/default.jpg"
+																			else if (starts-with($ms, "ES")) then
+																				$config:appUrl ||
+																					"/iiif/" ||
+																					string($images/@facs) ||
+																					"_" ||
+																					$locus ||
+																					".tif/full/150,/0/default.jpg"
+																			else if (starts-with($ms, "BNF")) then
+																				replace($images/@facs, "ark:", "iiif/ark:") ||
+																					"/" ||
+																					$locus ||
+																					"/full/150,/0/native.jpg"
+																			else if (starts-with($ms, "BAV")) then
+																				replace(
+																					substring-before($images/@facs, "/manifest.json"),
+																					"iiif",
+																					"pub/digit"
+																				) ||
+																					"/thumb/" ||
+																					substring-before(substring-after($images/@facs, "MSS_"), "/manifest.json") ||
+																					"_" ||
+																					$locus ||
+																					".tif.jpg"
+																			else (
+																			)
+																		}"
+																		style="width:10%" />
+																</a>
+															) else
+																<div class="w3-third">No image found</div>
+														}
+														<div class="w3-third">
+															{
+																if (exists($sd/node())) then
+																	string:tei2string($sd/node())
+																else
+																	"div"
+															}
+														</div>
+														<div class="w3-third">
+															<div class="w3-third">
+																<a href="/{ $ms }">
+																	<b>{ $sd/name() }</b>
+																	{ " | " }
+																	{
+																		if ($sd/@subtype) then
+																			string($sd/@subtype)
+																		else
+																			string($sd/@type)
+																	}
+																</a>
+															</div>
+															<div class="w3-third">Refers to {
+																	if ($sd/name() = "div" and $itemtype eq "work") then
+																		<span>{ exptit:printTitle($ms) }</span>
+																	else if ($sd/name() = "div" and $itemtype eq "mss") then (
+																		let $corr := $sd/@corresp
+																		let $msitem := if (exists($corr)) then
+																			$sd/ancestor::t:TEI//t:msItem[@xml:id = $corr]
 																		else (
 																		)
-																	}"
-																	style="width:10%" />
-															</a>
-														) else
-															<div class="w3-third">No image found</div>
-													}
-													<div class="w3-third">
-														{
-															if (exists($sd/node())) then
-																string:tei2string($sd/node())
-															else
-																"div"
-														}
-													</div>
-													<div class="w3-third">
-														<div class="w3-third">
-															<a href="/{ $ms }">
-																<b>{ $sd/name() }</b>
-																{ " | " }
-																{
-																	if ($sd/@subtype) then
-																		string($sd/@subtype)
-																	else
-																		string($sd/@type)
+																		let $work := if (exists($msitem)) then
+																			$msitem/t:title/@ref
+																		else (
+																		)
+																		return if (exists($work)) then
+																			<span>{ exptit:printTitle(string($work[1])) }</span>
+																		else
+																			<span class="w3-text-grey">[no work reference]</span>
+																	) else if (
+																		$sd/name() = "colophon" or
+																			$sd/name() = "incipit" or
+																			$d/name() = "explicit" or
+																			$sd/name() = "title"
+																	) then (
+																		let $msitem := $sd/ancestor::t:msItem
+																		let $work := $msitem/t:title/@ref
+																		return <span>{ exptit:printTitle(string($work[1])) }</span>
+																	) else
+																		"unable to retrieve reference"
 																}
-															</a>
-														</div>
-														<div class="w3-third">Refers to {
-																if ($sd/name() = "div" and $itemtype eq "work") then
-																	<span>{ exptit:printTitle($ms) }</span>
-																else if ($sd/name() = "div" and $itemtype eq "mss") then (
-																	let $corr := $sd/@corresp
-																	let $msitem := if (exists($corr)) then
-																		$sd/ancestor::t:TEI//t:msItem[@xml:id = $corr]
-																	else (
-																	)
-																	let $work := if (exists($msitem)) then
-																		$msitem/t:title/@ref
-																	else (
-																	)
-																	return if (exists($work)) then
-																		<span>{ exptit:printTitle(string($work[1])) }</span>
-																	else
-																		<span class="w3-text-grey">[no work reference]</span>
-																) else if (
-																	$sd/name() = "colophon" or
-																		$sd/name() = "incipit" or
-																		$d/name() = "explicit" or
-																		$sd/name() = "title"
-																) then (
-																	let $msitem := $sd/ancestor::t:msItem
-																	let $work := $msitem/t:title/@ref
-																	return <span>{ exptit:printTitle(string($work[1])) }</span>
-																) else
-																	"unable to retrieve reference"
-															}
-														</div>
-														<div class="w3-third">
-															<a href="{ data($ms) }#{ $uid }">{ data($uid) }</a>
-															<br />
-															{
-																if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
-																	<span>Art themes: </span>
-																else (
-																),
-																for $at in $sd//t:ref[@type eq "authFile"]
-																return <a href="{ string($at/@corresp) }">
-																	{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
-																</a>
-															}
-														</div>
-													</div>
-												</li>
-											} catch * {
-												util:log(
-													"ERROR",
-													concat(
-														"Problematic node: ",
-														$sd/name(),
-														"(",
-														$uid,
-														") in TEI ",
-														string($sd/ancestor::t:TEI/@xml:id),
-														" for type ",
-														$i,
-														" || Error: ",
-														$err:code,
-														" ",
-														$err:description
-													)
-												)
-											}
-										else (
-										)
-									else
-										for $sd in $d
-										return <li class="w3-container">
-											<div class="w3-half">{ string:tei2string($sd/node()) }</div>
-											<div class="w3-half">
-												<div class="w3-third">
-													<a href="/{ $ms }">
-														<b>{ $sd/name() }</b>
-														{ " | " }
-														{
-															if ($sd/@subtype) then
-																string($sd/@subtype)
-															else
-																string($sd/@type)
-														}
-													</a>
-												</div>
-												<div class="w3-third">Refers to {
-														if ($sd/name() = "div" and $itemtype eq "work") then (
-															<a href="/{ $ms }"><span>{ $ms }</span></a>,
-															<br />,
-															<div class="w3-bar w3-gray w3-small">
-																<a
-																	class="w3-bar-item w3-button"
-																	href="/titles?limit-work={ $ms }"
-																>limit results to this work</a>
-																<a class="w3-bar-item w3-button" href="/compare?workid={ $ms }">compare mss</a>
-																<a class="w3-bar-item w3-button" href="/workmap?worksid={ $ms }">map mss</a>
-																<a class="w3-bar-item w3-button" href="/litcomp?worksid={ $ms }">literature view</a>
 															</div>
-														) else if ($sd/name() = "div" and $itemtype eq "mss") then (
-															let $corr := $sd/@corresp
-															let $msitem := $sd/ancestor::t:TEI//t:msItem[@xml:id = $corr]
-															let $work := $msitem/t:title/@ref
-															return (
-																<a href="{ string($work[1]) }"><span>{ exptit:printTitle(string($work[1])) }</span></a>,
-																<br />,
-																<div class="w3-bar w3-gray w3-small">
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/titles?limit-work={ string($work[1]) }"
-																	>limit results to this work</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/compare?workid={ string($work[1]) }"
-																	>compare mss</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/workmap?worksid={ string($work[1]) }"
-																	>map mss</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/litcomp?worksid={ string($work[1]) }"
-																	>literature view</a>
-																</div>
-															)
-														) else if (
-															$sd/name() = "colophon" or
-																$sd/name() = "incipit" or
-																$d/name() = "explicit" or
-																$sd/name() = "title"
-														) then (
-															let $msitem := $sd/ancestor::t:msItem
-															let $work := $msitem/t:title/@ref
-															return (
-																<a href="{ string($work[1]) }"><span>{ exptit:printTitle(string($work[1])) }</span></a>,
-																<br />,
-																<div class="w3-bar w3-gray w3-small">
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/titles?limit-work={ string($work[1]) }"
-																	>limit results to this work</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/compare?workid={ string($work[1]) }"
-																	>compare mss</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/workmap?worksid={ string($work[1]) }"
-																	>map mss</a>
-																	<a
-																		class="w3-bar-item w3-button"
-																		href="/litcomp?worksid={ string($work[1]) }"
-																	>literature view</a>
-																</div>
-															)
-														) else
-															"unable to retrieve reference"
-													}
-												</div>
-												<div class="w3-third">
-													<a
-														href="{ data($ms) }#{
-															if ($sd/@xml:id) then
-																concat("#", $sd/@xml:id)
-															else (
-															)
-														}"
-													>
-														{
-															if ($sd/@xml:id) then
-																data($sd/@xml:id)
-															else
-																"[item]"
-														}
-													</a>
-													<br />
-													{
-														if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
-															<span>Art themes: </span>
-														else (
-														),
-														for $at in $sd//t:ref[@type eq "authFile"]
-														return <a href="{ string($at/@corresp) }">
-															{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+															<div class="w3-third">
+																<a href="{ data($ms) }#{ $uid }">{ data($uid) }</a>
+																<br />
+																{
+																	if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
+																		<span>Art themes: </span>
+																	else (
+																	),
+																	for $at in $sd//t:ref[@type eq "authFile"]
+																	return <a href="{ string($at/@corresp) }">
+																		{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+																	</a>
+																}
+															</div>
+														</div>
+													</li>
+												} catch * {
+													util:log(
+														"ERROR",
+														concat(
+															"Problematic node: ",
+															$sd/name(),
+															"(",
+															$uid,
+															") in TEI ",
+															string($sd/ancestor::t:TEI/@xml:id),
+															" for type ",
+															$i,
+															" || Error: ",
+															$err:code,
+															" ",
+															$err:description
+														)
+													)
+												}
+											else (
+											)
+										else
+											for $sd in $d
+											return <li class="w3-container">
+												<div class="w3-half">{ string:tei2string($sd/node()) }</div>
+												<div class="w3-half">
+													<div class="w3-third">
+														<a href="/{ $ms }">
+															<b>{ $sd/name() }</b>
+															{ " | " }
+															{
+																if ($sd/@subtype) then
+																	string($sd/@subtype)
+																else
+																	string($sd/@type)
+															}
 														</a>
-													}
+													</div>
+													<div class="w3-third">Refers to {
+															if ($sd/name() = "div" and $itemtype eq "work") then (
+																<a href="/{ $ms }"><span>{ $ms }</span></a>,
+																<br />,
+																<div class="w3-bar w3-gray w3-small">
+																	<a
+																		class="w3-bar-item w3-button"
+																		href="/titles?limit-work={ $ms }"
+																	>limit results to this work</a>
+																	<a class="w3-bar-item w3-button" href="/compare?workid={ $ms }">compare mss</a>
+																	<a class="w3-bar-item w3-button" href="/workmap?worksid={ $ms }">map mss</a>
+																	<a class="w3-bar-item w3-button" href="/litcomp?worksid={ $ms }">literature view</a>
+																</div>
+															) else if ($sd/name() = "div" and $itemtype eq "mss") then (
+																let $corr := $sd/@corresp
+																let $msitem := $sd/ancestor::t:TEI//t:msItem[@xml:id = $corr]
+																let $work := $msitem/t:title/@ref
+																return (
+																	<a href="{ string($work[1]) }">
+																		<span>{ exptit:printTitle(string($work[1])) }</span>
+																	</a>,
+																	<br />,
+																	<div class="w3-bar w3-gray w3-small">
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/titles?limit-work={ string($work[1]) }"
+																		>limit results to this work</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/compare?workid={ string($work[1]) }"
+																		>compare mss</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/workmap?worksid={ string($work[1]) }"
+																		>map mss</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/litcomp?worksid={ string($work[1]) }"
+																		>literature view</a>
+																	</div>
+																)
+															) else if (
+																$sd/name() = "colophon" or
+																	$sd/name() = "incipit" or
+																	$d/name() = "explicit" or
+																	$sd/name() = "title"
+															) then (
+																let $msitem := $sd/ancestor::t:msItem
+																let $work := $msitem/t:title/@ref
+																return (
+																	<a href="{ string($work[1]) }">
+																		<span>{ exptit:printTitle(string($work[1])) }</span>
+																	</a>,
+																	<br />,
+																	<div class="w3-bar w3-gray w3-small">
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/titles?limit-work={ string($work[1]) }"
+																		>limit results to this work</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/compare?workid={ string($work[1]) }"
+																		>compare mss</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/workmap?worksid={ string($work[1]) }"
+																		>map mss</a>
+																		<a
+																			class="w3-bar-item w3-button"
+																			href="/litcomp?worksid={ string($work[1]) }"
+																		>literature view</a>
+																	</div>
+																)
+															) else
+																"unable to retrieve reference"
+														}
+													</div>
+													<div class="w3-third">
+														<a
+															href="{ data($ms) }#{
+																if ($sd/@xml:id) then
+																	concat("#", $sd/@xml:id)
+																else (
+																)
+															}"
+														>
+															{
+																if ($sd/@xml:id) then
+																	data($sd/@xml:id)
+																else
+																	"[item]"
+															}
+														</a>
+														<br />
+														{
+															if (count($sd//t:ref[@type eq "authFile"]) ge 1) then
+																<span>Art themes: </span>
+															else (
+															),
+															for $at in $sd//t:ref[@type eq "authFile"]
+															return <a href="{ string($at/@corresp) }">
+																{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+															</a>
+														}
+													</div>
 												</div>
-											</div>
-										</li>
-								}
-							</ul>
-						</div>
-					)
-				}
+											</li>
+									}
+								</ul>
+							</div>
+						)
+					}
+				</div>
 			</div>
-		</div>
+		),
+		lists:groupPager(count($sortedTags), $start, $per-page)
 	)
 };
 
