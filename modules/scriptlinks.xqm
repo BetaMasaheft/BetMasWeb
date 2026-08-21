@@ -272,8 +272,7 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="resources/js/resp.js" type="text/javascript" />,
 	<script src="resources/js/relatedItems.js" type="text/javascript" />,
 	<script src="resources/js/citations.js" type="text/javascript" />,
-	<script src="resources/js/hypothesis.js" type="text/javascript" />,
-	<script defer="defer" src="https://unpkg.com/website-carbon-badges@1.1.3/b.min.js" />
+	<script src="resources/js/hypothesis.js" type="text/javascript" />
 };
 
 (:~
