@@ -95,6 +95,20 @@ it("GET /manuscripts/place/listChart", () => {
 	});
 });
 
+// Regression #21: institution records store the full wikidata URI, not the
+// "wd:" shorthand this endpoint accepts as a place param - the eq
+// comparison never matched, $repositoriesIDS came up empty, and eXist's
+// range-index optimizer threw XPTY0004 instead of just returning 0 hits.
+it("GET /manuscripts/place/listChart?place=wd:{Qid} does not error and finds real manuscripts (regression #21)", () => {
+	cy.request({ url: "/manuscripts/place/listChart?place=wd:Q1055", method: "GET", failOnStatusCode: false }).then(
+		(res) => {
+			expect(res.status, `GET /manuscripts/place/listChart?place=wd:Q1055 responded with ${res.status}`).to.eq(200);
+			expect(res.body, "response should not contain an XPTY0004 error").to.not.include("XPTY0004");
+			expect(res.body, "hit-count should not be 0").to.not.match(/w3-tag w3-gray">0</);
+		},
+	);
+});
+
 it("GET /catalogues/list", () => {
 	cy.request({ url: "/catalogues/list", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /catalogues/list responded with ${res.status}`).to.not.equal(500);

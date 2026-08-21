@@ -7,67 +7,6 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace locallogin = "https://www.betamasaheft.eu/login";
 
-import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace request = "http://exist-db.org/xquery/request";
-
-declare variable $locallogin:login := let $tryImport := try {
-	util:import-module(
-		xs:anyURI("http://exist-db.org/xquery/login"),
-		"login",
-		xs:anyURI("resource:org/exist/xquery/modules/persistentlogin/login.xql")
-	),
-	true()
-} catch * { false() }
-return if ($tryImport) then
-	function-lookup(xs:QName("login:set-user"), 3)
-
-else
-	locallogin:fallback-login#3;
-
-(:~
- : Fallback login function used when the persistent login module is not available.
- : Stores user/password in the HTTP session.
- :)
-declare function locallogin:fallback-login($domain as xs:string, $maxAge as xs:dayTimeDuration?, $asDba as xs:boolean) {
-	let $user := request:get-parameter("user", ())
-	let $password := request:get-parameter("password", ())
-	let $logout := request:get-parameter("logout", ())
-	return if ($logout) then
-		session:invalidate()
-	else if ($user) then
-		let $isLoggedIn := xmldb:login("/db", $user, $password, true())
-		return (
-			session:set-attribute("BetMas.user", $user),
-			session:set-attribute("BetMas.password", $password),
-			request:set-attribute($domain || ".user", $user),
-			request:set-attribute("xquery.user", $user),
-			request:set-attribute("xquery.password", $password)
-		)
-
-	else
-		let $user := session:get-attribute("BetMas.user")
-		let $password := session:get-attribute("BetMas.password")
-		return (
-			request:set-attribute($domain || ".user", $user),
-			request:set-attribute("xquery.user", $user),
-			request:set-attribute("xquery.password", $password)
-		)
-};
-
-declare function locallogin:user-allowed() {
-	(request:get-attribute("org.exist.login.user") and request:get-attribute("org.exist.login.user") != "guest") or
-		config:get-configuration()/restrictions/@guest = "yes"
-};
-
-(: declare function locallogin:logout(){
-$locallogin:login("org.exist.login", (), false())
-};
-
-declare function locallogin:loginhere(){
-$locallogin:login("org.exist.login", (), false())
-};
- :)
-
 (:~
  : login function to be called from navigation template. if the user is guest, then show login, if not it is a logged user, then show logout
  :)

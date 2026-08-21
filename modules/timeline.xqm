@@ -284,8 +284,16 @@ document.getElementById('imperial').onclick = function() {
   
   "
 
+	(:
+	 : guarded like resources/js/allRels.js and visgraphspec.js already are -
+	 : /text views never load vis.js (restviews/items.xqm skips
+	 : scriptlinks:ItemScriptStyle() there), but item2:RestItemHeader still
+	 : always emits this script, so it throws "vis is not defined" unguarded
+	 : (issue #58).
+	 :)
 	return (
-		"var container = document.getElementById('timeLine'); " ||
+		"if (typeof vis !== 'undefined') { " ||
+			"var container = document.getElementById('timeLine'); " ||
 			$data//links ||
 			" 
     var groups = new vis.DataSet([
@@ -326,7 +334,8 @@ timeline.setOptions(options);
 					$buttonFunctions
 				else (
 				)
-			)
+			) ||
+			" }"
 	)
 };
 
