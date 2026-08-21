@@ -102,8 +102,7 @@ declare function scriptlinks:scriptStyle() {
 		   client-side JS build root-absolute-looking "/api/..." calls that
 		   still land under the app's actual mount point on any deployment
 		   (empty in production, where nginx already rewrites the mount path
-		   away; "/exist/apps/BetMasWeb" in dev/CI) - see
-		   .claude/notes/base-path-client-js.plan.md, BetMasWeb#32. :)
+		   away; "/exist/apps/BetMasWeb" in dev/CI) - see BetMasWeb#32. :)
 		<script type="text/javascript">{ 'var appBase = "' || $config:appBase || '";' }</script>,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link

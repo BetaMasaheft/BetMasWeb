@@ -756,8 +756,7 @@ function lists:SearchTitles(
 	 : computed once here and shared via $model with the descendant
 	 : lists:titlesform/lists:titlesRes templates (both nested inside this
 	 : function's own div in titles.html), instead of each of them calling
-	 : lists:typeGroupsMap($allTitles) separately - see
-	 : .claude/notes/performance.plan.md item 7
+	 : lists:typeGroupsMap($allTitles) separately.
 	 :)
 	let $typeGroups := lists:typeGroupsMap($allTitles)
 	return map {"hits": $allTitles, "typeGroups": $typeGroups}
@@ -2195,8 +2194,7 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
  : Single-pass replacement for the former lists:typedistvalues +
  : lists:typegroups pair, which re-scanned $hits once per distinct
  : type/subtype tag (O(distinct-tags × |hits|), the dominant cost of an
- : unscoped /titles or /additions-style page - see
- : .claude/notes/performance.plan.md item 1). Tokenizes each relevant
+ : unscoped /titles or /additions-style page. Tokenizes each relevant
  : node's @type/@subtype once and groups natively, instead of re-testing
  : every node against every candidate tag.
  :
