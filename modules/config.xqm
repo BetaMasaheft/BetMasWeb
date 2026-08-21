@@ -64,8 +64,7 @@ declare variable $config:BMurl := "https://betamasaheft.eu/";
 (:~
  : The path prefix the app is mounted under, for client-side JS that has to
  : build request URLs at runtime (root-absolute "/api/..." literals scattered
- : across resources/js/*.js - see .claude/notes/base-path-client-js.plan.md,
- : BetMasWeb#32).
+ : across resources/js/*.js - see BetMasWeb#32).
  :
  : Deliberately NOT $config:appUrl: appUrl describes the origin this
  : instance is served from (domain-level, empty in dev/CI containers), not
