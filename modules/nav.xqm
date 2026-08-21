@@ -171,7 +171,7 @@ declare function nav:barNew() {
 									class="w3-hide w3-red w3-center w3-padding"
 									id="loddata"
 								>
-                                    In this section our Linked Open Data principles are explained.
+                                    In this section our Linked Data principles are explained.
                                     </span>
 								<span
 									class="w3-hide w3-red w3-center w3-padding"
