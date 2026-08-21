@@ -27,58 +27,6 @@ declare function local:get-uri() {
 	(request:get-header("nginx-request-uri"), request:get-uri())[1]
 };
 
-(:
-declare variable $login :=
-    let $tryImport :=
-        try {
-            util:import-module(xs:anyURI("http://exist-db.org/xquery/login"),
-            "login", xs:anyURI("resource:org/exist/xquery/modules/persistentlogin/login.xql")),
-            true()
-        } catch * {
-            false()
-        }
-    return
-        if ($tryImport) then
-            function-lookup(xs:QName("login:set-user"), 3)
-
-        else
-            local:fallback-login#3
-; :)
-
-(:~
- : Fallback login function used when the persistent login module is not available.
- : Stores user/password in the HTTP session.
- :)
-declare function local:fallback-login($domain as xs:string, $maxAge as xs:dayTimeDuration?, $asDba as xs:boolean) {
-	let $user := request:get-parameter("user", ())
-	let $password := request:get-parameter("password", ())
-	let $logout := request:get-parameter("logout", ())
-	return if ($logout) then
-		session:invalidate()
-	else if ($user) then
-		let $isLoggedIn := xmldb:login("/db", $user, $password, true())
-		return (
-			session:set-attribute("BetMas.user", $user),
-			session:set-attribute("BetMas.password", $password),
-			request:set-attribute($domain || ".user", $user),
-			request:set-attribute("xquery.user", $user),
-			request:set-attribute("xquery.password", $password)
-		)
-	else
-		let $user := session:get-attribute("BetMas.user")
-		let $password := session:get-attribute("BetMas.password")
-		return (
-			request:set-attribute($domain || ".user", $user),
-			request:set-attribute("xquery.user", $user),
-			request:set-attribute("xquery.password", $password)
-		)
-};
-
-declare function local:user-allowed() {
-	(request:get-attribute("org.exist.login.user") and request:get-attribute("org.exist.login.user") != "guest") or
-		config:get-configuration()/restrictions/@guest = "yes"
-};
-
 declare function local:switchCol($type) {
 	switch ($type)
 		case "work" return
