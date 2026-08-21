@@ -752,7 +752,15 @@ function lists:SearchTitles(
 		else (
 		)
 	let $allTitles := ($titles | $divsResult | $segs | $colincex)
-	return map {"hits": $allTitles}
+	(:
+	 : computed once here and shared via $model with the descendant
+	 : lists:titlesform/lists:titlesRes templates (both nested inside this
+	 : function's own div in titles.html), instead of each of them calling
+	 : lists:typeGroupsMap($allTitles) separately - see
+	 : .claude/notes/performance.plan.md item 7
+	 :)
+	let $typeGroups := lists:typeGroupsMap($allTitles)
+	return map {"hits": $allTitles, "typeGroups": $typeGroups}
 };
 
 declare function lists:biblform($node as node(), $model as map(*)) {
@@ -1057,10 +1065,12 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			<select class="w3-select w3-border" multiple="multiple" name="typeval">
 				<option selected="selected" val="marked">marked</option>
 				{
-					let $types := lists:typedistvalues($model("hits"))
-					for $d in config:distinct-values($types)
-					let $group := lists:typegroups($model("hits"), $d)
-					return <option value="{ $d }">{ $d } ({ count($group) })</option>
+					let $groupsMap := if (exists($model("typeGroups"))) then
+						$model("typeGroups")
+					else
+						lists:typeGroupsMap($model("hits"))
+					for $d in map:keys($groupsMap)
+					return <option value="{ $d }">{ $d } ({ count($groupsMap($d)) })</option>
 				}
 				<option value="all">all</option>
 			</select>
@@ -2062,55 +2072,67 @@ declare %templates:wrap function lists:decoRes($node as node(), $model as map(*)
 	)
 };
 
-declare function lists:typedistvalues($hits) {
-	distinct-values(
-		for $title in
-			$hits[self::t:seg[ancestor::t:text][not(ancestor::t:bibl)] or
-				self::t:incipit or
-				self::t:explicit or
-				self::t:colophon or
-				self::t:div or
-				self::t:title]
-		let $t := if ($title/@subtype) then
-			string($title/@subtype)
-		else
-			string($title/@type)
-		return tokenize(normalize-space(string-join($t, " ")), " ")
+(:~
+ : Single-pass replacement for the former lists:typedistvalues +
+ : lists:typegroups pair, which re-scanned $hits once per distinct
+ : type/subtype tag (O(distinct-tags × |hits|), the dominant cost of an
+ : unscoped /titles or /additions-style page - see
+ : .claude/notes/performance.plan.md item 1). Tokenizes each relevant
+ : node's @type/@subtype once and groups natively, instead of re-testing
+ : every node against every candidate tag.
+ :
+ : Preserves the original two-scope behaviour exactly (verified 2026-08-21
+ : against a real corpus - a naive single-scope rewrite surfaced 5 extra
+ : tags that only exist on nested descendants): the original's tag *set*
+ : came from a narrow scan of $hits' own direct members only
+ : (lists:typedistvalues), while each tag's *content* came from a broader
+ : scan that also reaches matching descendants of $hits members
+ : (lists:typegroups) - so a nested title inside a matched div contributes
+ : to an already-known tag's group, but never creates a new tag of its
+ : own. $validTags enforces that boundary; distinct-values() per node
+ : avoids double-counting a node that carries the same tag word in both
+ : @type and @subtype.
+ :
+ : @param $hits the node sequence to group (title/div/seg/colophon/
+ : incipit/explicit elements, or their ancestors' descendants of same)
+ : @return a map from tag string to the matching node sequence
+ :)
+declare function lists:typeGroupsMap($hits) as map(*) {
+	let $narrow := $hits[self::t:seg[ancestor::t:text][not(ancestor::t:bibl)] or
+		self::t:incipit or
+		self::t:explicit or
+		self::t:colophon or
+		self::t:title or
+		self::t:div]
+	(: matches lists:typedistvalues' original "prefer @subtype, else @type" rule exactly - not a union of both, unlike the broader per-tag content match below :)
+	let $validTags := distinct-values(
+		for $node in $narrow
+		let $tagSource := ($node/@subtype, $node/@type)[1]
+		return tokenize($tagSource, "\s+")[.]
+	)
+	let $broad := $hits//self::t:seg[ancestor::t:text][not(ancestor::t:bibl)] |
+		$hits//self::t:incipit |
+		$hits//self::t:explicit |
+		$hits//self::t:colophon |
+		$hits//self::t:title |
+		$hits//self::t:div
+	return map:merge(
+		for $node in $broad
+		for $tag in distinct-values((tokenize($node/@type, "\s+"), tokenize($node/@subtype, "\s+"))[.])[. = $validTags]
+		group by $tag
+		return map:entry($tag, $node)
 	)
 };
 
-declare function lists:typegroups($hits, $i) {
-	let $segs := $hits//self::t:seg[ancestor::t:text][not(ancestor::t:bibl)][some
-		$k in
-		tokenize(@type, "\s+") satisfies
-		$k = $i] |
-		$hits//self::t:seg[ancestor::t:text][not(ancestor::t:bibl)][some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $incipits := $hits//self::t:incipit[some $k in tokenize(@type, "\s+") satisfies $k = $i] |
-		$hits//self::t:incipit[some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $explicits := $hits//self::t:explicit[some $k in tokenize(@type, "\s+") satisfies $k = $i] |
-		$hits//self::t:explicit[some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $colophons := $hits//self::t:colophon[some $k in tokenize(@type, "\s+") satisfies $k = $i] |
-		$hits//self::t:colophon[some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $titles := $hits//self::t:title[some $k in tokenize(@type, "\s+") satisfies $k = $i] |
-		$hits//self::t:title[some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $divs := $hits//self::t:div[some $k in tokenize(@type, "\s+") satisfies $k = $i] |
-		$hits//self::t:div[some $k in tokenize(@subtype, "\s+") satisfies $k = $i]
-	let $all := $segs | $incipits | $colophons | $explicits | $titles | $divs
-	return if (empty($all)) then (
-	) else
-		$all
-};
-
 declare %templates:wrap function lists:titlesRes($node as node(), $model as map(*)) {
-	let $hits := $model("hits")
-	let $individualvalues := lists:typedistvalues($hits)
+	let $groupsMap := if (exists($model("typeGroups"))) then
+		$model("typeGroups")
+	else
+		lists:typeGroupsMap($model("hits"))
 
-	(: group by tokenized type :)
-	for $i in distinct-values($individualvalues)
-	(: let $log := util:log('INFO', $i) :)
+	for $i in map:keys($groupsMap)
 	order by $i
-	let $group := lists:typegroups($hits, $i)
-	let $log := util:log("INFO", count($group))
+	let $group := $groupsMap($i)
 	return (
 		<button class="w3-button w3-block w3-gray w3-padding w3-margin-bottom" onclick="openAccordion('{ $i }')">
 			<span class="w3-badge w3-right">{ count($group) }</span>
