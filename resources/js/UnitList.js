@@ -1,6 +1,6 @@
 $(document).on("ready", function () {
 	var type = $("#result").data("value");
-	var apicall = "/api/SPARQL/SdCunits/" + type;
+	var apicall = appBase + "/api/SPARQL/SdCunits/" + type;
 	$.getJSON(apicall, function (data) {
 		$("#result").append('<div class="w3-panel w3-card-4 w3-gray">There are ' + data.total + " Uni" + type + "</div>");
 		console.log(data);

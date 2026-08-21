@@ -27,7 +27,7 @@ $(document).on("ready", function () {
     BIND(strafter(?p, 'https://betamasaheft.eu/') as ?uri)\
     BIND(replace(?uri , '/', ' ') AS ?name)}";
 
-	var apicall = "/api/SPARQL/json?query=" + encodeURIComponent(query);
+	var apicall = appBase + "/api/SPARQL/json?query=" + encodeURIComponent(query);
 
 	$("#graphloadingstatus").text("Querying SPARQL data");
 	$.getJSON(apicall, function (sparqlresult) {
@@ -378,7 +378,7 @@ $("#enrichTable").on("click", function () {
 	$(".enrichable").each(function () {
 		var anchor = $(this).data("anchor");
 		/*     console.log(anchor)*/
-		var apicallenrich = "/api/enrichMe/" + id + "/" + anchor;
+		var apicallenrich = appBase + "/api/enrichMe/" + id + "/" + anchor;
 		/*    console.log(apicallenrich)*/
 		var el = $(this);
 		$.getJSON(apicallenrich, function (data) {

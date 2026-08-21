@@ -62,6 +62,27 @@ declare variable $config:baseURI := $config:appUrl || "/";
 declare variable $config:BMurl := "https://betamasaheft.eu/";
 
 (:~
+ : The path prefix the app is mounted under, for client-side JS that has to
+ : build request URLs at runtime (root-absolute "/api/..." literals scattered
+ : across resources/js/*.js - see .claude/notes/base-path-client-js.plan.md,
+ : BetMasWeb#32).
+ :
+ : Deliberately NOT $config:appUrl: appUrl describes the origin this
+ : instance is served from (domain-level, empty in dev/CI containers), not
+ : the path the app is mounted under *within* that origin - a client using
+ : appUrl alone as a prefix would still build root-absolute "/api/..." URLs
+ : in dev/CI, where the app actually lives under
+ : "/exist/apps/BetMasWeb/...". In production, nginx rewrites the mount
+ : path away before the request reaches eXist, so requests already arrive
+ : root-absolute there and no prefix is needed - detected via the same
+ : "nginx-request-uri" header controller.xql itself checks for routing.
+ :)
+declare variable $config:appBase := if (request:get-header("nginx-request-uri")) then
+	""
+else
+	request:get-context-path() || "/apps/BetMasWeb";
+
+(:~
  : Resolve an external service endpoint. A deployment relocates a service
  : by setting the corresponding environment variable on the eXist process
  : (e.g. `docker run -e COLLATEX_URL=...`); betmas-init captures set
@@ -137,6 +158,18 @@ declare variable $config:data-rootTraces := $config:app-root || "/traces";
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 
 declare variable $config:expath-descriptor := doc(concat($config:app-root, "/expath-pkg.xml"))/expath:package;
+
+(:~
+ : Injects the $config:appBase value as a client-side global, for the
+ : standalone page-wrapper templates (newpage.html, newindex2.html,
+ : newsearch.html, sparql.html) that build their own <head> rather than
+ : going through modules/scriptlinks.xqm's scriptStyle()/listScriptStyle()
+ : (which inject it themselves). Call like
+ : <script data-template="config:appBaseScript" />.
+ :)
+declare function config:appBaseScript($node as node(), $model as map(*)) as element(script) {
+	<script type="text/javascript">{ 'var appBase = "' || $config:appBase || '";' }</script>
+};
 
 (:~
  : Call like <a data-template="config:prefix-href"  data-template-href="/bladiblah"/>

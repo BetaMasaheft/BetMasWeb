@@ -1,6 +1,6 @@
 $("#persRole").change(function (showthefilters) {
 	var role = $("#persRole").val();
-	var apiurl = "/api/hasrole/";
+	var apiurl = appBase + "/api/hasrole/";
 	$.getJSON(apiurl + role, function (data) {
 		var items = [];
 		var heading = "";
@@ -67,7 +67,7 @@ $(document).on("click", ".roleid", function () {
 	console.log(role);
 	console.log(person);
 
-	var hasRole = "/api/hasrole/" + role + "/" + person;
+	var hasRole = appBase + "/api/hasrole/" + role + "/" + person;
 	console.log(hasRole);
 
 	$.getJSON(hasRole, function (data) {

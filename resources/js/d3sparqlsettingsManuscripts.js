@@ -20,7 +20,7 @@ $(document).on("ready", function () {
     BIND(IF(contains(?strel, 'betamasaheft'), strafter(?strel, 'https://betamasaheft.eu/'), strafter(?strel, '#')) as ?reluri) \
     BIND(replace(?reluri , '/', ' ') AS ?relName)}";
 	$("#graphloadingstatus").text("building the structural graph");
-	apicall = "/api/SPARQL/json?query=" + encodeURIComponent(SdCquery);
+	apicall = appBase + "/api/SPARQL/json?query=" + encodeURIComponent(SdCquery);
 	$.getJSON(apicall, function (data) {
 		//console.log(data)
 		var SPARQLnodes = [];
@@ -142,7 +142,7 @@ $(document).on("ready", function () {
     BIND(replace(?uri , '/', ' ') AS ?partName) \
     BIND(IF(contains(?r, 'betamasaheft'), strafter(?r, 'http://betamasaheft.eu/'), strafter(?r, 'https://w3id.org/sdc/ontology#')) as ?ruri) \
     BIND(replace(?ruri , '/', ' ') AS ?resourceName)} LIMIT 250"
-    var endpoint = '/api/SPARQL/json'
+    var endpoint = appBase + '/api/SPARQL/json'
     d3sparql.query(endpoint, rdf, renderforce)
     function renderforce(json) {
 

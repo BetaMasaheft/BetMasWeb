@@ -3,7 +3,7 @@ var attestations = $("<div/>");
 $("#showattestations").on("click", function () {
 	var type = $(this).data("value");
 	var id = $(this).data("id");
-	var apicall = "/api/attestations/" + type + "/" + id;
+	var apicall = appBase + "/api/attestations/" + type + "/" + id;
 	$.getJSON(apicall, function (data) {
 		if (data.results == null) {
 			$("#allattestations").append("No attestations of this entity could be found.");
@@ -155,7 +155,7 @@ function loadMsItems(mainid, msitemid, start) {
 	var msContainer = "#msitemloadcontainer" + msitemid;
 	$(msContainer).find(".msitemloader").remove();
 
-	var apiCall = "/api/loadmsItems/" + mainid + "/" + msitemid + "?start=" + start + "&limit=" + limit;
+	var apiCall = appBase + "/api/loadmsItems/" + mainid + "/" + msitemid + "?start=" + start + "&limit=" + limit;
 
 	$.getJSON(apiCall, function (data) {
 		if (data.msitems.length === 0) {

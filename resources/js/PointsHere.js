@@ -15,7 +15,7 @@ $("span[id$='relations']").on("click", function () {
 		var trimmedID = id.substring(id.indexOf("Ent") + 3, id.indexOf("relations"));
 
 		/*        make the query to the api */
-		var callsparql = "/api/SPARQL/relations/" + trimmedID;
+		var callsparql = appBase + "/api/SPARQL/relations/" + trimmedID;
 		/*        disable the button*/
 		$(el).attr("disabled", "disabled");
 		$.getJSON(callsparql, function (data) {

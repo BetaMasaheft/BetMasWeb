@@ -8,7 +8,7 @@ $("#BetMasRelView").each(function () {
 	var entity = $("#BetMasRelView").data("value");
 	console.log(entity);
 
-	var apiurl = "/api/relations/";
+	var apiurl = appBase + "/api/relations/";
 
 	var apicall = apiurl + entity;
 	console.log(apicall);

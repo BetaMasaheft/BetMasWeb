@@ -4,7 +4,7 @@ $(document).ready(function () {
 		var number = $(this).data("currentid");
 		var ugarit = "http://ugarit.ialigner.com/api.php";
 		var password = "&u=BetaMasaheft&p=3et4M4s4heft";
-		var getText = "/api/dts/text/" + workid + "/" + number; // this is the base for all calls here.
+		var getText = appBase + "/api/dts/text/" + workid + "/" + number; // this is the base for all calls here.
 
 		/*on click query the api and send to ugarit reference and text */
 		$.getJSON(getText, function (d) {

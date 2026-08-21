@@ -62,9 +62,9 @@ $(document).on("ready", function () {
 			// this will look ONLY in one element for each type of record
 			var apiurl = "";
 			if (type == 2) {
-				apiurl = "/api/search?element=" + element + "&collection=" + collection + " &q=";
+				apiurl = appBase + "/api/search?element=" + element + "&collection=" + collection + " &q=";
 			} else {
-				apiurl = "/api/idlookup?id=";
+				apiurl = appBase + "/api/idlookup?id=";
 			}
 			var searchurl = apiurl + searchterm;
 			console.log(searchurl);
@@ -100,7 +100,7 @@ $(document).on("ready", function () {
 		var searchterm = $("#GoToId").val();
 		if (searchterm.length >= 3) {
 			// this will look ONLY in one element for each type of record
-			var apiurl = "/api/idlookup?id=";
+			var apiurl = appBase + "/api/idlookup?id=";
 			var searchurl = apiurl + searchterm;
 
 			$.getJSON(searchurl, function (data) {

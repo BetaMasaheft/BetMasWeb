@@ -10,7 +10,7 @@ $(document).on({
 $(".AttestationsWithSameRole").on("click", function () {
 	var el = this;
 	var role = $(this).data("value");
-	var hasRole = "/api/RoleAttestations?role=" + role;
+	var hasRole = appBase + "/api/RoleAttestations?role=" + role;
 
 	$.ajax(hasRole, {
 		success: function (data) {
@@ -25,7 +25,7 @@ $(".role").on("click", function () {
 	var el = this;
 	var role = $(this).text();
 
-	var hasRole = "/api/hasrole/" + role;
+	var hasRole = appBase + "/api/hasrole/" + role;
 	$.getJSON(hasRole, function (data) {
 		var results = data.hits;
 		var length = results.length;
@@ -61,7 +61,7 @@ $(document).on("click", ".roleid", function () {
 	console.log(role);
 	console.log(person);
 
-	var hasRole = "/api/hasrole/" + role + "/" + person;
+	var hasRole = appBase + "/api/hasrole/" + role + "/" + person;
 	console.log(hasRole);
 
 	$.getJSON(hasRole, function (data) {
