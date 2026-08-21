@@ -1,0 +1,21 @@
+.gitignore
+  s_53c10a783d9578::t_1d697593c10429 6-10
+build.xml
+  s_53c10a783d9578::t_3dcc6bee08c979 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bb483a79f96356242c9c7a44d14490ff93f90df2",
+  "prompts": {},
+  "sessions": {
+    "s_53c10a783d9578": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b50e3f0-d44c-49f4-a258-ee9296a2b57a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
