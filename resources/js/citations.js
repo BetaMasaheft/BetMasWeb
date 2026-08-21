@@ -5,7 +5,7 @@ $(document).ready(function () {
 		var splitref = reference.split("/");
 		var sourceReference = $(this).data("ref");
 		var bmid = $(this).data("bmid");
-		var apiDTS = "/api/dts/text/";
+		var apiDTS = appBase + "/api/dts/text/";
 		var result = "";
 
 		$.getJSON(apiDTS + reference, function (data) {

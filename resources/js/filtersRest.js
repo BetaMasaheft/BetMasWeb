@@ -8,7 +8,7 @@ $(document).on({
 });
 
 function callformpart(paraname, id, context) {
-	var call = "/api/SearchFormParts/" + paraname + "?cont=" + context;
+	var call = appBase + "/api/SearchFormParts/" + paraname + "?cont=" + context;
 	// check first that the element is not there already
 	var myElem = document.getElementById(id);
 	// if it is not there, load it

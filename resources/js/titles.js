@@ -25,7 +25,7 @@ function printWC() {
 		var el = this;
 		var MSid = $(this).data("msid");
 		var Wid = $(this).data("wid");
-		var WDcall = "/api/WordCount/" + MSid + "/" + Wid;
+		var WDcall = appBase + "/api/WordCount/" + MSid + "/" + Wid;
 		$(el).load(WDcall);
 	});
 }
@@ -58,9 +58,9 @@ function printTitle() {
 		var els = $("[data-value='" + id + "'][class='MainTitle']");
 		//console.log(els)
 		/*        the call for the title takes id/subid/title and returns a string*/
-		var restcall = "/api/" + escapedid + "/title";
+		var restcall = appBase + "/api/" + escapedid + "/title";
 		/*        the call for the clavis ids takes clavis/id WITHOUT anchors and returns a JSON object*/
-		var claviscall = "/api/clavis/" + mainid;
+		var claviscall = appBase + "/api/clavis/" + mainid;
 
 		/*        put in the element the title from the api call for it. */
 		$(els).load(restcall);

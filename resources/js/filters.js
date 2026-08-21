@@ -273,7 +273,7 @@ $(document).ready(function () {
 
 $(document).on("change", "#target-ins", function () {
 	var ins = $(this).val();
-	var apicall = "/api/manuscripts/list/json?perpage=2000&repo=" + ins;
+	var apicall = appBase + "/api/manuscripts/list/json?perpage=2000&repo=" + ins;
 	$.getJSON(apicall, function (data) {
 		console.log(data);
 		var options = "";

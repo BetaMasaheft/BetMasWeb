@@ -66,13 +66,6 @@ declare variable $app:search-title := "Search: ";
 
 declare variable $app:searchphrase := request:get-parameter("query", ());
 
-declare variable $app:APP_ROOT := let $nginx-request-uri := request:get-header("nginx-request-uri")
-return (: if request received from nginx :) if ($nginx-request-uri) then
-	""
-(: otherwise we're in the eXist URL space :)
-else
-	request:get-context-path() || "/apps/BetMas";
-
 declare %private function functx:capitalize-first($arg as xs:string?) as xs:string? {
 	concat(upper-case(substring($arg, 1, 1)), substring($arg, 2))
 };

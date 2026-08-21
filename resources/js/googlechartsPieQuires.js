@@ -1,4 +1,4 @@
-var apiurl = "/api/quiresChart/";
+var apiurl = appBase + "/api/quiresChart/";
 $.getJSON(apiurl + role, function (data) {
 	google.charts.load("current", { packages: ["corechart"] });
 	google.charts.setOnLoadCallback(drawChart);

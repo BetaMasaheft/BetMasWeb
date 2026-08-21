@@ -94,10 +94,17 @@ declare function scriptlinks:footerjsSelector() as element()* {
  :)
 declare function scriptlinks:scriptStyle() {
 	(
-		(: App base for client-side JS: lets scripts build URLs under the app
-		   base on any deployment instead of hardcoding a host or assuming the
-		   app is served at the origin root. :)
+		(: BM_APP_URL: the origin (scheme+host) this instance is served from,
+		   empty in dev/CI containers - used to strip/re-root absolute URLs
+		   that already carry a host. Not the app's mount path - see appBase. :)
 		<script type="text/javascript">{ 'var BM_APP_URL = "' || $config:appUrl || '";' }</script>,
+		(: appBase: the path prefix the app is mounted under. Lets
+		   client-side JS build root-absolute-looking "/api/..." calls that
+		   still land under the app's actual mount point on any deployment
+		   (empty in production, where nginx already rewrites the mount path
+		   away; "/exist/apps/BetMasWeb" in dev/CI) - see
+		   .claude/notes/base-path-client-js.plan.md, BetMasWeb#32. :)
+		<script type="text/javascript">{ 'var appBase = "' || $config:appBase || '";' }</script>,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link
 			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"
@@ -125,6 +132,10 @@ declare function scriptlinks:scriptStyle() {
 
 declare function scriptlinks:listScriptStyle() {
 	(
+		(: appBase - see the matching comment in scriptlinks:scriptStyle().
+		   This function doesn't call scriptStyle(), so it needs its own
+		   copy for the pages that only include this one. :)
+		<script type="text/javascript">{ 'var appBase = "' || $config:appBase || '";' }</script>,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
 			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"

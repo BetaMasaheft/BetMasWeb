@@ -1,5 +1,5 @@
 $(document).on("ready", function () {
-	$.getJSON("/api/latest", function (data) {
+	$.getJSON(appBase + "/api/latest", function (data) {
 		var latest = $("#latest");
 		var length = data.length;
 		for (i = 0; i < length; i++) {

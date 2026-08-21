@@ -2,7 +2,7 @@ $("#seealsoSelector").change(function (showthefilters) {
 	var keyword = $("#seealsoSelector").val();
 	//    console.log(keyword)
 	var element = $("#seealsoSelector option:selected").parent().attr("label");
-	var apiurl = "/api/sharedKeyword/";
+	var apiurl = appBase + "/api/sharedKeyword/";
 	var param = "?element=" + encodeURIComponent(element);
 	var call = apiurl + keyword + param;
 	$.getJSON(call, function (data) {

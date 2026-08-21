@@ -1,6 +1,6 @@
 $(document).on("ready", function () {
 	var id = $("#Chojnacki").data("id");
-	var restcall = "/api/Chojnacki/" + id;
+	var restcall = appBase + "/api/Chojnacki/" + id;
 	$.getJSON(restcall, function (data) {
 		// check the data for images
 		//console.log(data)

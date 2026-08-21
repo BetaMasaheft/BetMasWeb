@@ -74,7 +74,7 @@ BIND(bm:husbandOf as ?relName) \
 }  }";
 
 	$("#graphloadingstatus").text("building the structural graph");
-	apicall = "/api/SPARQL/json?query=" + encodeURIComponent(SNAPquery);
+	apicall = appBase + "/api/SPARQL/json?query=" + encodeURIComponent(SNAPquery);
 	$.getJSON(apicall, function (data) {
 		// console.log(data)
 		var SPARQLnodes = [];
@@ -204,7 +204,7 @@ OPTIONAL{ ?person bm:hasRole ?R . \
 ?R bm:roleType ?roleType; \
 bm:roleName ?role .}}ORDER BY ?person ";
 
-	var endpoint = "/api/SPARQL/json";
+	var endpoint = appBase + "/api/SPARQL/json";
 
 	apicall = endpoint + "?query=" + encodeURIComponent(rdf);
 

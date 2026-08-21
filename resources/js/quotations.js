@@ -2,7 +2,7 @@ $("a[id^='quotation']").on("click", function () {
 	/*        takes the data to put in the api query, the chapter xml:id and the id of the current item*/
 	var workid = $(this).data("textid");
 	var unit = $(this).data("unit");
-	var getquotations = "/api/quotations/" + workid + "/" + unit; // this is the base for all calls here.
+	var getquotations = appBase + "/api/quotations/" + workid + "/" + unit; // this is the base for all calls here.
 	/*on click query the api and send to ugarit reference and text */
 	$.getJSON(getquotations, function (d) {
 		console.log(d);

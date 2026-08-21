@@ -1,6 +1,6 @@
 $(document).on("ready", function () {
 	/*(:displaies on the hompage the totals of the portal:)*/
-	$.getJSON("/api/count", function (data) {
+	$.getJSON(appBase + "/api/count", function (data) {
 		var count = $("#count");
 		var total = data.total;
 		var tms = data.totalMS;

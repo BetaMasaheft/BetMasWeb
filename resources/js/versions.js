@@ -2,7 +2,7 @@ $(".parallelversion").on("click", function () {
 	/*        takes the data to put in the api query, the chapter xml:id and the id of the current item*/
 	var workid = $(this).data("textid");
 	var unit = $(this).data("unit");
-	var getVersions = "/api/SPARQL/versions/" + workid + "/" + unit; // this is the base for all calls here.
+	var getVersions = appBase + "/api/SPARQL/versions/" + workid + "/" + unit; // this is the base for all calls here.
 	/*on click query the api and send to ugarit reference and text */
 	$.getJSON(getVersions, function (d) {
 		// console.log(d)

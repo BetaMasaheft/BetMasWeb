@@ -17,7 +17,7 @@ WHERE { {bm:" +
     } UNION {?s2 ?p2 bm:" +
 		id +
 		"} } LIMIT 250";
-	jsonUri = "/api/SPARQL/json?query=" + encodeURIComponent(sparqlquery);
+	jsonUri = appBase + "/api/SPARQL/json?query=" + encodeURIComponent(sparqlquery);
 	query = "https://betamasaheft.eu/" + id;
 	url = query;
 

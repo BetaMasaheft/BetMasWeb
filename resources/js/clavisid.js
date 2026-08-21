@@ -2,7 +2,7 @@ $("a[id^='clavis']").each(function () {
 	var id = this.id;
 	var trimmedID = id.substr(id.indexOf("clavis") + 6);
 	var el = this;
-	var apiurl = "/api/clavis/";
+	var apiurl = appBase + "/api/clavis/";
 	$.getJSON(apiurl + trimmedID, function (data) {
 		var content = "";
 		for (var i = 0; i < data.clavis.length; i++) {
