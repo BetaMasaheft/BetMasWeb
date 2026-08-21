@@ -841,8 +841,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					order by exptit:printTitle($d)
-					return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+					let $title := exptit:printTitle($d)
+					order by $title
+					return <option value="{ $d }">{ $title }</option>
 				}
 			</select>
 		</div>
@@ -863,8 +864,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -885,8 +887,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -929,8 +932,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -996,8 +1000,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref[not(contains(., ".xml"))])
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -1253,8 +1258,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					order by exptit:printTitle($d)
-					return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+					let $title := exptit:printTitle($d)
+					order by $title
+					return <option value="{ $d }">{ $title }</option>
 				}
 			</select>
 		</div>
@@ -1274,8 +1280,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -1296,8 +1303,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -1320,8 +1328,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:persName/@ref)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -1344,8 +1353,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
@@ -1369,8 +1379,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							order by exptit:printTitle($d)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							let $title := exptit:printTitle($d)
+							order by $title
+							return <option value="{ $d }">{ $title }</option>
 						}
 					</select>
 				</div>
