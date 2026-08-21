@@ -1,0 +1,23 @@
+test/cypress/e2e/list.cy.js
+  s_53c10a783d9578::t_bbfe1cb964a7f7 98-111
+modules/resources.xqm
+  s_53c10a783d9578::t_f8967b4ffafc72 550-557,559,563,567,571
+test/cypress/e2e/controller.cy.js
+  s_53c10a783d9578::t_5d4b2e97969895 182-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "90e94404ba026fddefba11d8bfd995b3f24f1d7f",
+  "prompts": {},
+  "sessions": {
+    "s_53c10a783d9578": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b50e3f0-d44c-49f4-a258-ee9296a2b57a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
