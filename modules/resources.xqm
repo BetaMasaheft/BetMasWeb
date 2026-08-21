@@ -525,14 +525,52 @@ function lists:SearchTitles(
 	let $mss := if ($limit-mss = "") then (
 	) else
 		$lists:collection-rootMS//id($limit-mss)
-	let $mssWork := $lists:collection-rootMS//t:msItem[t:title[@ref eq $limit-work]]
-	let $msitems := $mss//t:msItem[t:title[@ref eq $limit-work]]
+	(: t:title/@ref stores the full canonical URL, not the bare @xml:id this parameter arrives as :)
+	let $limit-work-ref := if ($limit-work = "") then
+		""
+	else
+		$config:BMurl || $limit-work
+	(:
+	 : $mssWork/$msitems are only ever read from $context below, in the
+	 : "limit-work only" and "limit-work + limit-mss" branches respectively -
+	 : guarding them here skips a $lists:collection-rootMS scan on the two
+	 : other branches (no limits at all, or limit-mss only), which is the
+	 : common case for a plain /titles page load.
+	 :)
+	let $mssWork := if ($limit-work-ref != "" and $limit-mss = "") then
+		$lists:collection-rootMS//t:msItem[t:title[@ref eq $limit-work-ref]]
+	else (
+	)
+	let $msitems := if ($limit-work-ref != "" and $limit-mss != "") then
+		$mss//t:msItem[t:title[@ref eq $limit-work-ref]]
+	else (
+	)
 	let $msitemsIDS := $msitems/@xml:id
 	let $msSitemsIDS := $mssWork/@xml:id
-	let $divs := $mss//t:div[@corresp eq $msitemsIDS]
-	let $mssdivs := $mssWork/following::t:div[@corresp eq $msSitemsIDS]
-	let $additions := $mss//t:item[@corresp eq $msitemsIDS]
-	let $mssadditions := $mssWork/following::t:item[@corresp eq $msSitemsIDS]
+	(:
+	 : eq eq eq: eXist's range-index optimizer throws XPTY0004 on a
+	 : zero-cardinality key sequence instead of returning zero hits (hence
+	 : the exists() guards), and plain eq also rejects a many-item key
+	 : sequence outright (a value comparison requires singleton operands) -
+	 : realistic here whenever $limit-work matches more than one manuscript.
+	 : = (general comparison) tolerates any cardinality on both sides.
+	 :)
+	let $divs := if (exists($msitemsIDS)) then
+		$mss//t:div[@corresp = $msitemsIDS]
+	else (
+	)
+	let $mssdivs := if (exists($msSitemsIDS)) then
+		$mssWork/following::t:div[@corresp = $msSitemsIDS]
+	else (
+	)
+	let $additions := if (exists($msitemsIDS)) then
+		$mss//t:item[@corresp = $msitemsIDS]
+	else (
+	)
+	let $mssadditions := if (exists($msSitemsIDS)) then
+		$mssWork/following::t:item[@corresp = $msSitemsIDS]
+	else (
+	)
 	let $workdivs := $works//t:div[@type eq "edition"]
 
 	(:

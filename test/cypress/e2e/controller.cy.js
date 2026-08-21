@@ -179,6 +179,40 @@ it("GET /titles", () => {
 	});
 });
 
+// Regression #45: lists:SearchTitles used to throw XPTY0004 whenever
+// limit-mss was set - the range-index optimizer can't handle a
+// zero-cardinality key sequence (here, an empty limit-work).
+it("GET /titles?limit-mss={id} does not error (regression #45)", () => {
+	cy.request({
+		url: "/titles?limit-mss=BAVet1&typeval=all",
+		method: "GET",
+		failOnStatusCode: false,
+		responseTimeout: 45000,
+	}).then((res) => {
+		expect(res.status, `GET /titles?limit-mss=BAVet1 responded with ${res.status}`).to.eq(200);
+		expect(res.body, "response should not contain an XPTY0004 error").to.not.include("XPTY0004");
+	});
+});
+
+// Regression #45: limit-work compared the bare @xml:id against t:title/@ref,
+// which stores the full canonical URL - the eq comparison silently matched
+// nothing (200 OK, 0 hits) instead of erroring, so it read as "working".
+// Separately, once that's fixed, a work referenced by more than one
+// manuscript hits a second bug: @corresp eq <many-item sequence> is a plain
+// XPath cardinality violation (LIT1560Gospel matches 95 manuscripts here).
+it("GET /titles?limit-work={id} does not silently drop or error on a multi-manuscript work (regression #45)", () => {
+	cy.request({
+		url: "/titles?limit-work=LIT1560Gospel&typeval=all",
+		method: "GET",
+		failOnStatusCode: false,
+		responseTimeout: 45000,
+	}).then((res) => {
+		expect(res.status, `GET /titles?limit-work=LIT1560Gospel responded with ${res.status}`).to.eq(200);
+		expect(res.body, "response should not contain an XPTY0004 error").to.not.include("XPTY0004");
+		expect(res.body, "hit-count should not be 0").to.not.match(/id="hit-count">0</);
+	});
+});
+
 it("GET /paratexts", () => {
 	cy.request({ url: "/paratexts", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /paratexts responded with ${res.status}`).to.not.equal(500);

@@ -1605,6 +1605,17 @@ declare function list:getplacelist($request as map(*)) {
 		)
 };
 
+(:~
+ : Chart of manuscripts held by repositories in a given place (settlement,
+ : region, or country), keyed off the place's ancestor institution records.
+ :
+ : @param $request the roaster request map; @parameters@place is either a
+ : local xml:id or a "wd:<Qid>" wikidata shorthand
+ : @return an HTML page with the region chart, or a 400 error response if
+ : neither the place record nor a "wd:" id was recognised
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/21 wd: shorthand /
+ : bare-id vs. canonical-URL @ref mismatches causing XPTY0004 or 0 hits
+ :)
 declare function list:getregionchart($request as map(*)) {
 	let $place as xs:string* := $request?parameters?place
 	return (: the file for that institution :) let $repos := $config:data-rootIn || "/"
@@ -1628,16 +1639,29 @@ declare function list:getregionchart($request as map(*)) {
 					{ nav:barNew() }
 					{ nav:modalsNew() }
 					{
+						(: institution records store the full wikidata URI, not the "wd:" shorthand used by this endpoint's callers :)
+						let $normalizedPlace := if (starts-with($place, "wd:")) then
+							"https://www.wikidata.org/entity/" || substring-after($place, "wd:")
+						else
+							$place
 						let $allrepositories :=
 							for $repo in
 								(
-									$apprest:collection-rootIn//t:settlement[@ref eq $place],
-									$apprest:collection-rootIn//t:region[@ref eq $place],
-									$apprest:collection-rootIn//t:country[@ref eq $place]
+									$apprest:collection-rootIn//t:settlement[@ref eq $normalizedPlace],
+									$apprest:collection-rootIn//t:region[@ref eq $normalizedPlace],
+									$apprest:collection-rootIn//t:country[@ref eq $normalizedPlace]
 								)
 							return $repo/ancestor::t:TEI/@xml:id
 						let $repositoriesIDS := config:distinct-values($allrepositories)
-						let $allmssinregion := $apprest:collection-rootMS//t:repository[@ref eq $repositoriesIDS]/ancestor::t:TEI
+						(: t:repository/@ref stores the full canonical URL, not the bare @xml:id gathered above :)
+						let $repositoriesRefs :=
+							for $id in $repositoriesIDS
+							return $config:BMurl || $id
+						(: eXist's range-index optimizer throws XPTY0004 on a zero-cardinality key sequence instead of returning zero hits :)
+						let $allmssinregion := if (exists($repositoriesRefs)) then
+							$apprest:collection-rootMS//t:repository[@ref eq $repositoriesRefs]/ancestor::t:TEI
+						else (
+						)
 						let $hits := map {"hits": $allmssinregion}
 						return <div class="w3-container w3-margin w3-padding-64">
 							<div class="w3-panel w3-margin-bottom w3-card-4" id="listTopInfo">
