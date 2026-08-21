@@ -1,0 +1,87 @@
+resources/js/filters.js
+  s_53c10a783d9578::t_326e70f9369844 276
+templates/sparql.html
+  s_53c10a783d9578::t_857e6afe3c8644 4
+resources/js/samerole.js
+  s_53c10a783d9578::t_326e70f9369844 13,28,64
+resources/js/titles.js
+  s_53c10a783d9578::t_326e70f9369844 28,61,63
+modules/config.xqm
+  s_53c10a783d9578::t_2f4be829628e50 164-173
+  s_53c10a783d9578::t_1377d06fa7baf5 65-84
+  s_53c10a783d9578::t_e67b89ef70a054 64,162-163
+resources/js/loadcatalogues.js
+  s_53c10a783d9578::t_326e70f9369844 12,18
+modules/scriptlinks.xqm
+  s_53c10a783d9578::t_43f9e23b3ba5e1 135-138
+  s_53c10a783d9578::t_d455c6a5882a78 97-99,101-107
+resources/js/reldata.js
+  s_53c10a783d9578::t_326e70f9369844 11
+resources/js/filtersRest.js
+  s_53c10a783d9578::t_326e70f9369844 11
+resources/js/PointsHere.js
+  s_53c10a783d9578::t_326e70f9369844 18
+templates/newpage.html
+  s_53c10a783d9578::t_5fcc620d74d801 4
+resources/js/index.js
+  s_53c10a783d9578::t_326e70f9369844 3
+resources/js/SdCtable.js
+  s_53c10a783d9578::t_326e70f9369844 30,381
+resources/js/visgraphspec.js
+  s_53c10a783d9578::t_326e70f9369844 15
+resources/js/googlechartsPieQuires.js
+  s_53c10a783d9578::t_326e70f9369844 1
+resources/js/lookup.js
+  s_53c10a783d9578::t_326e70f9369844 65,67,103
+templates/newindex2.html
+  s_53c10a783d9578::t_6ca026186421dc 4
+resources/js/academics.js
+  s_53c10a783d9578::t_326e70f9369844 2
+resources/js/allattestations.js
+  s_53c10a783d9578::t_326e70f9369844 6,158
+resources/js/citations.js
+  s_53c10a783d9578::t_326e70f9369844 8
+resources/js/clavisid.js
+  s_53c10a783d9578::t_326e70f9369844 5
+resources/js/d3sparqlsettingsITEM.js
+  s_53c10a783d9578::t_326e70f9369844 20
+resources/js/UnitList.js
+  s_53c10a783d9578::t_326e70f9369844 3
+resources/js/versions.js
+  s_53c10a783d9578::t_326e70f9369844 5
+templates/newsearch.html
+  s_53c10a783d9578::t_4533bd16a2c50b 4
+resources/js/quotations.js
+  s_53c10a783d9578::t_326e70f9369844 5
+resources/js/ugarit.js
+  s_53c10a783d9578::t_326e70f9369844 7
+resources/js/personswithrole.js
+  s_53c10a783d9578::t_326e70f9369844 3,70
+resources/js/d3sparqlsettingsManuscripts.js
+  s_53c10a783d9578::t_326e70f9369844 23
+  s_53c10a783d9578::t_0c0cae21105e34 145
+resources/js/relatedItems.js
+  s_53c10a783d9578::t_326e70f9369844 5
+resources/js/gnisci.js
+  s_53c10a783d9578::t_326e70f9369844 3
+resources/js/latests.js
+  s_53c10a783d9578::t_326e70f9369844 2
+resources/js/SNAPGraph.js
+  s_53c10a783d9578::t_326e70f9369844 77,207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "1387be63351c66df8e7d1eb75367bf248c6c8ce7",
+  "prompts": {},
+  "sessions": {
+    "s_53c10a783d9578": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b50e3f0-d44c-49f4-a258-ee9296a2b57a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
