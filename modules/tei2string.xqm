@@ -13,6 +13,7 @@ declare namespace http = "http://expath.org/ns/http-client";
 
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "editors.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare function string:date($node) {
 	let $cal := if ($node/@calendar) then (
@@ -173,13 +174,17 @@ declare function string:additionstitles($nodes as node()*) {
 };
 
 declare function string:Zotero($ZoteroUniqueBMtag as xs:string) {
-	let $xml-url := concat(
-		"https://api.zotero.org/groups/358366/items?tag=",
-		$ZoteroUniqueBMtag,
-		"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies&amp;linkwrap=1"
-	)
-	let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-	let $data := http:send-request($request)[2]
-	let $datawithlink := string:tei2string($data//div[@class eq "csl-entry"])
-	return $datawithlink
+	let $cached := zc:bib("citations.xml", $ZoteroUniqueBMtag)
+	let $entry := if (exists($cached)) then
+		$cached
+	else
+		let $xml-url := concat(
+			"https://api.zotero.org/groups/358366/items?tag=",
+			$ZoteroUniqueBMtag,
+			"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies&amp;linkwrap=1"
+		)
+		let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+		let $data := http:send-request($request)[2]
+		return $data//div[@class eq "csl-entry"]
+	return string:tei2string($entry)
 };
