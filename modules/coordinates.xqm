@@ -105,6 +105,13 @@ declare function coord:GNorWD($placeexternalid as xs:string) {
 
 	else if (starts-with($placeexternalid, "https://www.wikidata.org/entity/")) then
 		coord:invertCoord(coord:getWikiDataCoord($placeexternalid))
+	(: @sameAs in the data stores the short wd: CURIE (e.g. "wd:Q220"), not the
+	full entity url getWikiDataCoord expects - normalize before calling it
+	(BetMasApi#47). :)
+	else if (starts-with($placeexternalid, "wd:")) then
+		coord:invertCoord(
+			coord:getWikiDataCoord("https://www.wikidata.org/entity/" || substring-after($placeexternalid, "wd:"))
+		)
 	else (
 		"no valid external id" || $placeexternalid
 	)
