@@ -23,12 +23,18 @@ it("GET /{id}.rdf (as /BAVet1.rdf)", () => {
 	});
 });
 
-// Skipped: forwards to a BetMasApi-owned route this standalone container
-// doesn't have installed at all - no test value fixes this. #36
-it.skip("GET /{id}.json (as /BAVet1.json)", () => {
+// This standalone container never installs BetMasApi (confirmed:
+// xmldb:collection-available("/db/apps/BetMasApi") is false here), so this
+// exercises the guard's "not installed" branch specifically, not the real
+// forward - that needs BetMasApi installed alongside BetMasWeb, which only
+// happens in the assembled image (see BetMasApi's own compose stack). #36
+it("GET /{id}.json (as /BAVet1.json) - BetMasApi not installed, guarded", () => {
 	cy.request({ url: "/BAVet1.json", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "should explain that BetMasApi isn't installed, not just fail opaquely").to.include(
+			"GeoJSON export",
+		);
 	});
 });
 
