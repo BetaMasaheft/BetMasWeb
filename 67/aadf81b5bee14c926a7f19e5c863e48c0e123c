@@ -1,0 +1,32 @@
+modules/routes.json
+  s_bb26d03d17ba5a::t_3c2c7bf64a52c2 5190-5220
+api.json
+  s_bb26d03d17ba5a::t_c9c3742ba20fc9 153,170-175,177-178
+modules/crossapp.xqm
+  s_bb26d03d17ba5a::t_f9ef38756581b4 1-32,47-73
+  s_bb26d03d17ba5a::t_98b57ae75bc981 33-46
+  s_bb26d03d17ba5a::t_b1a58102d1d54a 74-75
+modules/api.xql
+  s_bb26d03d17ba5a::t_20b36c97b06ffe 14
+  s_bb26d03d17ba5a::t_5c32edb3e87065 33-36
+test/cypress/e2e/crossapp.cy.js
+  s_bb26d03d17ba5a::t_d751e8aee80b5c 1-20
+controller.xql
+  s_bb26d03d17ba5a::t_9aa5fa889e207a 260-261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "67aadf81b5bee14c926a7f19e5c863e48c0e123c",
+  "prompts": {},
+  "sessions": {
+    "s_bb26d03d17ba5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64773ba2-9cdd-4c86-9562-e18db4f2140c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
