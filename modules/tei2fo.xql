@@ -121,7 +121,7 @@ return <fop version="1.0">
 declare function fo:zoteroCit($ZoteroUniqueBMtag as xs:string) {
 	let $cached := zc:cit("citations-short-main.xml", $ZoteroUniqueBMtag)
 	return if (exists($cached)) then
-		string-join($cached ! string(.), "")
+		string-join($cached!string(.), "")
 	else
 		let $xml-url := concat(
 			"https://api.zotero.org/groups/358366/items?&amp;tag=",
