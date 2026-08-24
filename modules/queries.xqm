@@ -1020,10 +1020,11 @@ declare function q:text($q, $params) {
 	(: let $query :=
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
-          return $r ~~ excluding bibl suppressed not to slow down :)(: group-by only dedupes ft:query() hits landing on the same doc; with no active text query
-	$query can't contain duplicates, so grouping is pure overhead - measured ~900ms wasted on
-	20240 already-distinct nodes, see BetMasWeb#3 :)
-	let $needsDedup := exists($qs)
+          return $r ~~ excluding bibl suppressed not to slow down :)(: group-by only dedupes ft:query() hits landing on the same doc - check the constructed query
+	text directly rather than $qs, since some filter params (q:parameters2arguments' "search" mode:
+	origPlace/bmaterial/placetype/authors/occtype/faithtype/period) add their own ft:query() too,
+	independent of the free-text box. See BetMasWeb#3 :)
+	let $needsDedup := contains($querytext, "ft:query(")
 	let $sizeClass := if (count($query) gt 300) then
 		"large"
 	else if ($q:sort = "") then
