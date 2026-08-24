@@ -173,13 +173,18 @@ declare function string:additionstitles($nodes as node()*) {
 };
 
 declare function string:Zotero($ZoteroUniqueBMtag as xs:string) {
-	let $xml-url := concat(
-		"https://api.zotero.org/groups/358366/items?tag=",
-		$ZoteroUniqueBMtag,
-		"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies&amp;linkwrap=1"
-	)
-	let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-	let $data := http:send-request($request)[2]
-	let $datawithlink := string:tei2string($data//div[@class eq "csl-entry"])
-	return $datawithlink
+	let $cached := collection("/db/apps/EthioStudies")
+		//*[@tag = $ZoteroUniqueBMtag]//*:div[@class = "csl-entry"]
+	let $entry := if (exists($cached)) then
+		$cached[1]
+	else
+		let $xml-url := concat(
+			"https://api.zotero.org/groups/358366/items?tag=",
+			$ZoteroUniqueBMtag,
+			"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies&amp;linkwrap=1"
+		)
+		let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+		let $data := http:send-request($request)[2]
+		return $data//div[@class eq "csl-entry"]
+	return string:tei2string($entry)
 };
