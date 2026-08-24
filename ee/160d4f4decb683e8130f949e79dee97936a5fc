@@ -1,0 +1,34 @@
+modules/generateFormattedBibliography.xqm
+  s_bb26d03d17ba5a::t_1d29a566fc5b2f 33
+restviews/list.xqm
+  s_bb26d03d17ba5a::t_76567ae76b31c4 1750
+  s_bb26d03d17ba5a::t_38f3595c4c243a 1897,2076
+modules/zoteroCache.xqm
+  s_bb26d03d17ba5a::t_fc07d518f27b88 12-14,16
+  s_bb26d03d17ba5a::t_f0575854628c04 21-22,24
+  s_bb26d03d17ba5a::t_5d34048d12839a 19-20
+modules/viewItem.xqm
+  s_bb26d03d17ba5a::t_23dd4b0a345f00 964
+modules/error.xqm
+  s_bb26d03d17ba5a::t_ef7200e5bbec6c 80
+modules/tei2fo.xql
+  s_bb26d03d17ba5a::t_93e2621ec0c0fe 141
+modules/tei2string.xqm
+  s_bb26d03d17ba5a::t_6b6221eac9bcac 179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "ee160d4f4decb683e8130f949e79dee97936a5fc",
+  "prompts": {},
+  "sessions": {
+    "s_bb26d03d17ba5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64773ba2-9cdd-4c86-9562-e18db4f2140c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
