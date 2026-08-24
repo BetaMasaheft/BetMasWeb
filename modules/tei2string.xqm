@@ -13,6 +13,7 @@ declare namespace http = "http://expath.org/ns/http-client";
 
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "editors.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare function string:date($node) {
 	let $cal := if ($node/@calendar) then (
@@ -173,8 +174,7 @@ declare function string:additionstitles($nodes as node()*) {
 };
 
 declare function string:Zotero($ZoteroUniqueBMtag as xs:string) {
-	let $cached := collection("/db/apps/EthioStudies")
-		//*[@tag = $ZoteroUniqueBMtag]//*:div[@class = "csl-entry"]
+	let $cached := zc:bib("citations.xml", $ZoteroUniqueBMtag)
 	let $entry := if (exists($cached)) then
 		$cached[1]
 	else

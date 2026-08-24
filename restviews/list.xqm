@@ -26,6 +26,7 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare variable $list:instit := doc("/db/apps/lists/institutions.xml");
 
@@ -1744,9 +1745,13 @@ declare function list:getcatalogues($request as map(*)) {
 										else
 											<span n="new">
 												{
-													let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-													let $response := http:send-request($request)[2]
-													return $response//div[@class eq "csl-bib-body"]/div/node()
+													let $cached := zc:bib("citations.xml", $catalogue)
+													return if (exists($cached)) then
+														$cached[1]/node()
+													else
+														let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+														let $response := http:send-request($request)[2]
+														return $response//div[@class eq "csl-bib-body"]/div/node()
 												}
 											</span>
 										let $sorting := $data//text()[1]
@@ -1887,8 +1892,12 @@ declare function list:getcataloguelist($request as map(*)) {
 								else
 									<span n="new">
 										{
-											let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-											return http:send-request($request)[2]
+											let $cached := zc:bib("citations.xml", $prefixedcatID)
+											return if (exists($cached)) then
+												$cached[1]
+											else
+												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+												return http:send-request($request)[2]
 										}
 									</span>
 								return $data
@@ -2062,8 +2071,12 @@ declare function list:getcataloguelistChart($request as map(*)) {
 								else
 									<span n="new">
 										{
-											let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-											return http:send-request($request)[2]
+											let $cached := zc:bib("citations.xml", $prefixedcatID)
+											return if (exists($cached)) then
+												$cached[1]
+											else
+												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+												return http:send-request($request)[2]
 										}
 									</span>
 								return $data

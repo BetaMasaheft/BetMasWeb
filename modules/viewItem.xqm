@@ -18,6 +18,7 @@ import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 import module namespace iiifut = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/iiif-util" at "xmldb:exist:///db/apps/BetMasWeb/modules/iiif-util.xqm";
 import module namespace http = "http://expath.org/ns/http-client";
 import module namespace functx = "http://www.functx.com";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare option output:method "html5";
 declare option output:indent "yes";
@@ -958,17 +959,20 @@ declare %private function viewItem:bibliographyHeader($listBibl) {
 };
 
 declare %private function viewItem:zot($c) {
-	let $xml-url-formattedBiblio := concat(
-		"https://api.zotero.org/groups/358366/items?tag=",
-		$c,
-		"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies-with-url-doi&amp;linkwrap=1"
-	)
-	let $data := try {
-		let $request := <http:request href="{ xs:anyURI($xml-url-formattedBiblio) }" method="GET" />
-		return http:send-request($request)[2]
-	} catch * { $err:description }
-	let $datawithlink := $data//*:div[@class = "csl-entry"]
-	return $datawithlink
+	let $cached := zc:bib("citations-url-doi.xml", $c)
+	return if (exists($cached)) then
+		$cached[1]
+	else
+		let $xml-url-formattedBiblio := concat(
+			"https://api.zotero.org/groups/358366/items?tag=",
+			$c,
+			"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies-with-url-doi&amp;linkwrap=1"
+		)
+		let $data := try {
+			let $request := <http:request href="{ xs:anyURI($xml-url-formattedBiblio) }" method="GET" />
+			return http:send-request($request)[2]
+		} catch * { $err:description }
+		return $data//*:div[@class = "csl-entry"]
 };
 
 declare %private function viewItem:bibl($node, $t) {

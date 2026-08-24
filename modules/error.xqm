@@ -14,6 +14,7 @@ import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:/
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare function error:error($name as map(*)) {
 	switch ($name("type"))
@@ -74,13 +75,17 @@ declare function error:error($name as map(*)) {
 													config:distinct-values(
 														collection($config:data-rootMS)//t:listBibl[@type eq "catalogue"]//t:ptr/@target
 													)
-												let $xml-url := concat(
-													"https://api.zotero.org/groups/358366/items?&amp;tag=",
-													$catalogue,
-													"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-												)
-												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-												let $data := http:send-request($request)[2]
+												let $cached := zc:bib("citations.xml", $catalogue)
+												let $data := if (exists($cached)) then
+													$cached[1]
+												else
+													let $xml-url := concat(
+														"https://api.zotero.org/groups/358366/items?&amp;tag=",
+														$catalogue,
+														"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
+													)
+													let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
+													return http:send-request($request)[2]
 												order by $data
 												return <li class="w3-large"><a href="/catalogues/{ $catalogue }/list">{ $data }</a></li>
 											}
