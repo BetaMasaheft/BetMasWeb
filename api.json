@@ -150,7 +150,7 @@
 			"get": {
 				"tags": ["geo"],
 				"summary": "GeoJSON for a place resource",
-				"description": "Forwards to /api/geoJson/places/{id}",
+				"description": "Backed by BetMasApi's places:json, resolved dynamically at request time since BetMasApi is an optional add-on package - see modules/crossapp.xqm.",
 				"parameters": [
 					{
 						"name": "id",
@@ -167,8 +167,15 @@
 						"content": {
 							"application/json": {}
 						}
+					},
+					"501": {
+						"description": "BetMasApi is not installed on this deployment",
+						"content": {
+							"application/json": {}
+						}
 					}
-				}
+				},
+				"x-implementation": "db/apps/BetMasApi/local/places.xqm"
 			}
 		},
 		"/CAe{suffix}": {

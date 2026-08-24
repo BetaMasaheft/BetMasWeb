@@ -257,7 +257,8 @@ else if (
 		starts-with($exist:path, "/listIds") or
 		starts-with($exist:path, "/workmap") or
 		starts-with($exist:path, "/litcomp") or
-		starts-with($exist:path, "/gender")
+		starts-with($exist:path, "/gender") or
+		ends-with($exist:path, ".json")
 ) then
 	if (ends-with($exist:path, "/")) then
 		<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $config:appUrl }/apidoc.html" /></dispatch>
@@ -268,27 +269,6 @@ else if (
 				<set-header name="Cache-Control" value="no-cache" />
 			</forward>
 		</dispatch>
-
-(: redirects to api for geoJson - this route is owned by BetMasApi (local/places.xqm),
-an optional add-on package, not always installed alongside BetMasWeb (e.g. BetMasWeb's own
-standalone/test image). Guard so a missing BetMasApi produces a clear response instead of
-an opaque 405 from a forward into a route that doesn't exist. See BetMasWeb#36.
-
-<forward> is an in-process eXist dispatch, resolved directly against this server's own
-mount table - it never goes through nginx, so it must use eXist's real internal path
-(/apps/BetMasApi/...), not the external, nginx-rewritten one (/api/...) that public
-clients use. BetMasApi has no %rest:-annotated functions, so /restxq/... (the previous
-target here) doesn't resolve to anything either: confirmed both directly and via this
-forward that it 405s unconditionally from eXist's classic RestXqServlet, regardless of
-whether BetMasApi is installed. :)
-else if (ends-with($exist:path, ".json")) then
-	if (xmldb:collection-available("/db/apps/BetMasApi")) then
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward absolute="yes" url="/apps/BetMasApi/api/geoJson/places/{ substring-before($exist:resource, ".json") }" />
-		</dispatch>
-	else
-		let $Imap := map {"type": "geoJson", "name": substring-before($exist:resource, ".json")}
-		return error:error($Imap)
 
 (: tei tranformed :)
 else if (starts-with($exist:path, "/tei/") and ends-with($exist:path, ".xml")) then

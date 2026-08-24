@@ -47,13 +47,6 @@ declare function error:error($name as map(*)) {
 					<div xmlns="http://www.w3.org/1999/xhtml" class="w3-container w3-card-4 w3-red w3-margin w3-padding-64">
 						{
 							switch ($name("type"))
-								case "geoJson" return
-									(
-										<h1>GeoJSON export for { $name("name") } is not available on this deployment.</h1>,
-										<p
-											class="lead"
-										>This route is served by the optional BetMasApi package, which is not installed here.</p>
-									)
 								case "collection" return
 									(
 										<h1>{ $name("name") } is not a collection name.</h1>,
