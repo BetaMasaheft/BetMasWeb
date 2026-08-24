@@ -406,7 +406,7 @@ See also <a
 						<div class="w3-col w3-rest" />
 					</div>
 				</div>
-				<div class="w3-dropdown-hover w3-hide-small">
+				<div class="w3-dropdown-hover w3-hide-small" id="art">
 					<button
 						class=" w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#taxonomy'"

@@ -458,27 +458,31 @@ declare function q:linkeddata($q) {
 
 declare function q:otherclavis($q) {
 	let $clavisType := request:get-parameter("clavistype", ())
+	(: BetMasWeb#3: was util:eval on unvalidated $clavisType/$q, injectable via ?clavistype=/?query= :)
+	let $allTEI := if (($q = "") and (matches($clavisType, "\w+"))) then
+		$q:col//t:TEI[@type = "work"][descendant::t:bibl[@type eq $clavisType]]
+	else
+		$q:col//t:TEI[@type = "work"][descendant::t:bibl[@type eq $clavisType][t:citedRange eq $q]]
 	let $selector := if (($q = "") and (matches($clavisType, "\w+"))) then
 		"[descendant::t:bibl[@type eq '" || $clavisType || "']]"
 	else
 		"[descendant::t:bibl[@type eq '" || $clavisType || "'][t:citedRange eq '" || $q || "']]"
-	let $path := '$q:col//t:TEI[@type="work"]' || $selector
-	let $allTEI := util:eval($path)
 	return map {"tei": $allTEI, "qs": $selector}
 };
 
 declare function q:clavis($q) {
 	let $q := format-number($q, "0000")
-	let $clavisNsearch := if ($q = "") then (
-	) else
-		"[contains(@xml:id, '" || string(format-number($q, "0000")) || "') and not(ends-with(@xml:id, 'IHA'))]"
+	(: not eval-injectable (format-number rejects non-numeric $q) - converted for consistency, see BetMasWeb#3 :)
 	let $deletedClavis :=
 		for $d in doc("/db/apps/lists/deleted.xml")//t:item[contains(., $q)]
 		return map {"hit": $d, "type": "deleted"}
-	let $path := '$q:col//t:TEI[@type="work"]' || $clavisNsearch
+	let $candidates := if ($q = "") then
+		$q:col//t:TEI[@type = "work"]
+	else
+		$q:col//t:TEI[@type = "work"][contains(@xml:id, $q)][not(ends-with(@xml:id, "IHA"))]
 	(: the following needs to group due to the two indexes :)
 	let $matches :=
-		for $m in util:eval($path)
+		for $m in $candidates
 		group by $TEI := $m
 		return map {"hit": $TEI, "type": "match"}
 	return map {"tei": ($deletedClavis, $matches), "qs": $q}
@@ -978,6 +982,13 @@ names are those of the indexes where the filter is built directly from there, ot
 	return string-join($args)
 };
 
+(: dedupe by node identity, preserving order of first occurrence :)
+declare %private function q:dedupPreserveOrder($seq as node()*) as node()* {
+	for $r in $seq
+	group by $TEI := $r
+	return $TEI
+};
+
 declare function q:text($q, $params) {
 	(: let $test := util:log('info', $q:allopts) :)
 	let $phrase := starts-with($q, '"') and ends-with($q, '"')
@@ -1002,36 +1013,59 @@ declare function q:text($q, $params) {
 	let $parmstoquery := q:parameters2arguments($params)
 	let $querytext := concat($querycontext, $parmstoquery, $ftquery)
 	let $test2 := util:log("info", ("query:", $q || " mode:", $mode))
+	(: not rewritten to native predicates - measured eval cost here is ~50-150ms regardless of
+	result size, not the BetMasWeb#3 bottleneck; q:parameters2arguments is 200+ lines, too risky
+	to touch for no measured gain :)
 	let $query := util:eval($querytext)
 	(: let $query :=
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
-          return $r ~~ excluding bibl suppressed not to slow down :)
-	let $allTEI := if (count($query) gt 300) then
-		for $r in $query
-		(:~
-		 : TODO: This is likely the cause of the search endpoint taking about 27 seconds to complete
-		 : when there are 20k results. Refactor this? ~ MM
-		 :)
-		let $matchcount := ft:score($r)
-		order by $matchcount descending
-		group by $TEI := $r
-		return $TEI
+          return $r ~~ excluding bibl suppressed not to slow down :)(: group-by only dedupes ft:query() hits landing on the same doc - check the constructed query
+	text directly rather than $qs, since some filter params (q:parameters2arguments' "search" mode:
+	origPlace/bmaterial/placetype/authors/occtype/faithtype/period) add their own ft:query() too,
+	independent of the free-text box. See BetMasWeb#3 :)
+	let $needsDedup := contains($querytext, "ft:query(")
+	let $sizeClass := if (count($query) gt 300) then
+		"large"
 	else if ($q:sort = "") then
-		for $r in $query
-		let $matchcount := ft:score($r)
-		let $title := q:sortingkey($r//t:title[@type = "full"])
-		order by $matchcount descending
-		group by $TEI := $r
-		order by $title[1]
-		return $TEI
+		"unsorted"
 	else
-		for $r in $query
-		group by $TEI := $r
-		let $title := q:sortingkey($TEI//t:title[@type = "full"])
-		let $sort := q:enrichScore($TEI)
-		order by $sort descending
-		return $TEI
+		"sorted"
+	let $allTEI := switch ($sizeClass)
+		case "large" return
+			let $ordered :=
+				for $r in $query
+				let $matchcount := ft:score($r)
+				order by $matchcount descending
+				return $r
+			return if ($needsDedup) then
+				q:dedupPreserveOrder($ordered)
+			else
+				$ordered
+		case "unsorted" return
+			let $ordered :=
+				for $r in $query
+				let $matchcount := ft:score($r)
+				order by $matchcount descending
+				return $r
+			let $deduped := if ($needsDedup) then
+				q:dedupPreserveOrder($ordered)
+			else
+				$ordered
+			for $TEI in $deduped
+			let $title := q:sortingkey($TEI//t:title[@type = "full"])
+			order by $title[1]
+			return $TEI
+		default return
+			let $deduped := if ($needsDedup) then
+				q:dedupPreserveOrder($query)
+			else
+				$query
+			for $TEI in $deduped
+			let $title := q:sortingkey($TEI//t:title[@type = "full"])
+			let $sort := q:enrichScore($TEI)
+			order by $sort descending
+			return $TEI
 	return map {"tei": $allTEI, "qs": $qs}
 };
 
@@ -1493,6 +1527,11 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
 			>{ $facetTitle }</button>
 			<div class="w3-padding w3-hide" id="{ string($f) }-facet-list">
 				{
+					(: BetMasWeb#3: batching this via $exptit:col/id($bareIds) measured ~20x
+					slower than per-value exptit:printTitle() calls when the batch result was
+					captured by an inline function closure and invoked once per facet value -
+					root cause appears to be non-memoized closure capture (each call
+					re-evaluates the whole batch), not id() itself. Reverted - see issue. :)
 					let $inputs := map:for-each(
 						$facets,
 						function ($label, $count) {
@@ -1545,8 +1584,8 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
 							>{ $taxonomy }</button>
 							<div class="w3-padding w3-hide" id="{ string($f) }-{ replace($taxonomy, " ", "") }-facet-sublist">
 								{
+									(: dropped unused $name := exptit:printTitle(...), see BetMasWeb#3 :)
 									for $i in $input
-									let $name := exptit:printTitle($i//*:input/@value)
 									let $sortkey := q:sortingkey($i)
 									order by $sortkey
 									return $i/node()

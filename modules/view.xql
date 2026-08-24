@@ -10,7 +10,6 @@ import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/q
 import module namespace apidoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apidoc" at "xmldb:exist:///db/apps/BetMasWeb/modules/apidocumentation.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace new = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/new" at "xmldb:exist:///db/apps/BetMasWeb/modules/newEntry.xqm";
-import module namespace rels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/rels" at "xmldb:exist:///db/apps/BetMasWeb/modules/relations.xqm";
 import module namespace lists = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/lists" at "xmldb:exist:///db/apps/BetMasWeb/modules/resources.xqm";
 import module namespace indexesNE = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/indexesNE" at "xmldb:exist:///db/apps/BetMasWeb/modules/indexesNE.xqm";
 import module namespace tl = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/timeline" at "xmldb:exist:///db/apps/BetMasWeb/modules/timeline.xqm";
