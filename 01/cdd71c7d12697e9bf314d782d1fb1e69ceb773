@@ -1,0 +1,38 @@
+modules/viewItem.xqm
+  s_1544e160683453::t_c80118b373db98 962-975
+  s_1544e160683453::t_65533f5db2a147 21
+modules/zoteroCache.xqm
+  s_1544e160683453::t_0b66ed26637f31 1-18
+restviews/list.xqm
+  s_1544e160683453::t_9e9e9e8c94d6d1 1895-1900,2074-2079
+  s_1544e160683453::t_269022e372b075 29
+  s_1544e160683453::t_c3d4db2aba2a7d 1748-1754
+modules/tei2string.xqm
+  s_1544e160683453::t_3c4c9281d82051 16
+  s_1544e160683453::t_1b5c79f6f962cb 177
+modules/generateFormattedBibliography.xqm
+  s_1544e160683453::t_f9914f28ae2ee3 9
+  s_1544e160683453::t_5b18f3aa025a3d 31-46,50-65
+modules/tei2fo.xql
+  s_1544e160683453::t_f7d79cc7ed0386 122-135,139-151
+  s_1544e160683453::t_2f92a5073f1b9f 23
+modules/error.xqm
+  s_1544e160683453::t_517959f1cd1ffd 17
+  s_1544e160683453::t_a6c9df44b7ba0a 78-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "01cdd71c7d12697e9bf314d782d1fb1e69ceb773",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
