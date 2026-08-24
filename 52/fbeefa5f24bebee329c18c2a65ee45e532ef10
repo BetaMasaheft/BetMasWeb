@@ -1,0 +1,19 @@
+modules/tei2fo.xql
+  s_7e9aa3cb908ca2::t_5b2e82b80c574b 124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "52fbeefa5f24bebee329c18c2a65ee45e532ef10",
+  "prompts": {},
+  "sessions": {
+    "s_7e9aa3cb908ca2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "s_7e9aa3cb908ca2",
+        "model": "unknown"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
