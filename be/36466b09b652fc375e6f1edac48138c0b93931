@@ -1,0 +1,25 @@
+test/cypress/e2e/controller.cy.js
+  s_bb26d03d17ba5a::t_a562c1ee5cac2a 26-31,35-37
+controller.xql
+  s_bb26d03d17ba5a::t_157d5eb68ee5c2 275-276
+  s_bb26d03d17ba5a::t_00fbffa77eeb8a 277-283,289
+  s_bb26d03d17ba5a::t_b3dfd7ca0c9a05 272-274,285-288,290-291
+modules/error.xqm
+  s_bb26d03d17ba5a::t_4301788c252d0a 50-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "be36466b09b652fc375e6f1edac48138c0b93931",
+  "prompts": {},
+  "sessions": {
+    "s_bb26d03d17ba5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64773ba2-9cdd-4c86-9562-e18db4f2140c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": null
+    }
+  }
+}
