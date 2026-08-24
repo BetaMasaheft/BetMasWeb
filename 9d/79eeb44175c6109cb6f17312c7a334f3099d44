@@ -1,0 +1,22 @@
+modules/api.xql
+  s_bb26d03d17ba5a::t_8e66a835cec4f1 33-35
+modules/crossapp.xqm
+  s_bb26d03d17ba5a::t_f9ef38756581b4 60-61,67
+  s_bb26d03d17ba5a::t_dab76b15e6c34a 26,35-56,59,74-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "9d79eeb44175c6109cb6f17312c7a334f3099d44",
+  "prompts": {},
+  "sessions": {
+    "s_bb26d03d17ba5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64773ba2-9cdd-4c86-9562-e18db4f2140c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
