@@ -77,7 +77,7 @@ declare function error:error($name as map(*)) {
 													)
 												let $cached := zc:bib("citations.xml", $catalogue)
 												let $data := if (exists($cached)) then
-													$cached[1]
+													$cached
 												else
 													let $xml-url := concat(
 														"https://api.zotero.org/groups/358366/items?&amp;tag=",

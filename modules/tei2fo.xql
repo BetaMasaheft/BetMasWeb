@@ -138,7 +138,7 @@ declare function fo:zoteroCit($ZoteroUniqueBMtag as xs:string) {
 declare function fo:Zotero($ZoteroUniqueBMtag as xs:string) {
 	let $cached := zc:bib("citations.xml", $ZoteroUniqueBMtag)
 	let $entry := if (exists($cached)) then
-		$cached[1]
+		$cached
 	else
 		let $xml-url := concat(
 			"https://api.zotero.org/groups/358366/items?tag=",

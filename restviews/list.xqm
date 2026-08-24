@@ -1747,7 +1747,7 @@ declare function list:getcatalogues($request as map(*)) {
 												{
 													let $cached := zc:bib("citations.xml", $catalogue)
 													return if (exists($cached)) then
-														$cached[1]/node()
+														$cached/node()
 													else
 														let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
 														let $response := http:send-request($request)[2]
@@ -1894,7 +1894,7 @@ declare function list:getcataloguelist($request as map(*)) {
 										{
 											let $cached := zc:bib("citations.xml", $prefixedcatID)
 											return if (exists($cached)) then
-												$cached[1]
+												$cached
 											else
 												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
 												return http:send-request($request)[2]
@@ -2073,7 +2073,7 @@ declare function list:getcataloguelistChart($request as map(*)) {
 										{
 											let $cached := zc:bib("citations.xml", $prefixedcatID)
 											return if (exists($cached)) then
-												$cached[1]
+												$cached
 											else
 												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
 												return http:send-request($request)[2]

@@ -30,7 +30,7 @@ declare function gfb:unescape($cit as xs:string) as xs:string {
 declare function gfb:zot($c) {
 	let $cached := zc:bib("citations-url-doi.xml", $c)
 	return if (exists($cached)) then
-		$cached[1]
+		$cached
 	else
 		let $xml-url-formattedBiblio := concat(
 			$gfb:ethiostudies,
