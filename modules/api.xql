@@ -30,8 +30,9 @@ import module namespace user = "https://www.betamasaheft.uni-hamburg.de/BetMasWe
 import module namespace workmap = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/workmap" at "../restviews/workmap.xqm";
 
 declare function local:lookup($name as xs:string) {
-	if (crossapp:known($name)) then
-		crossapp:resolve($name)
+	let $cross := crossapp:resolve($name)
+	return if (exists($cross)) then
+		$cross
 	else
 		function-lookup(xs:QName($name), 1)
 };
