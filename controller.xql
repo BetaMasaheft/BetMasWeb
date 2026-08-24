@@ -257,7 +257,8 @@ else if (
 		starts-with($exist:path, "/listIds") or
 		starts-with($exist:path, "/workmap") or
 		starts-with($exist:path, "/litcomp") or
-		starts-with($exist:path, "/gender")
+		starts-with($exist:path, "/gender") or
+		ends-with($exist:path, ".json")
 ) then
 	if (ends-with($exist:path, "/")) then
 		<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $config:appUrl }/apidoc.html" /></dispatch>
@@ -268,14 +269,6 @@ else if (
 				<set-header name="Cache-Control" value="no-cache" />
 			</forward>
 		</dispatch>
-
-(: redirects to api for geoJson :)
-else if (ends-with($exist:path, ".json")) then
-	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-		<forward
-			absolute="yes"
-			url="{ $config:appUrl }/restxq/api/geoJson/places/{ substring-before($exist:resource, ".json") }" />
-	</dispatch>
 
 (: tei tranformed :)
 else if (starts-with($exist:path, "/tei/") and ends-with($exist:path, ".xml")) then

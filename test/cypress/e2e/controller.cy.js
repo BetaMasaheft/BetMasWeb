@@ -23,15 +23,6 @@ it("GET /{id}.rdf (as /BAVet1.rdf)", () => {
 	});
 });
 
-// Skipped: forwards to a BetMasApi-owned route this standalone container
-// doesn't have installed at all - no test value fixes this. #36
-it.skip("GET /{id}.json (as /BAVet1.json)", () => {
-	cy.request({ url: "/BAVet1.json", method: "GET", failOnStatusCode: false }).then((res) => {
-		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(500);
-		expect(res.status, `GET /BAVet1.json responded with ${res.status}`).to.not.equal(405);
-	});
-});
-
 it("GET /CAe{suffix} (as /CAe0001)", () => {
 	cy.request({ url: "/CAe0001", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /CAe0001 responded with ${res.status}`).to.not.equal(500);

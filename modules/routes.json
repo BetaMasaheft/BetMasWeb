@@ -5187,6 +5187,37 @@
 					}
 				}
 			}
+		},
+		"/{id}.json": {
+			"get": {
+				"operationId": "places:json",
+				"summary": "GeoJSON for a place resource",
+				"description": "Implemented by BetMasApi's places:json, resolved dynamically via modules/crossapp.xqm - see that module for why (BetMasApi is an optional add-on package, not installed in BetMasWeb's own standalone/test image).",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "GeoJSON feature",
+						"content": {
+							"application/json": {}
+						}
+					},
+					"501": {
+						"description": "BetMasApi is not installed on this deployment",
+						"content": {
+							"application/json": {}
+						}
+					}
+				}
+			}
 		}
 	}
 }
