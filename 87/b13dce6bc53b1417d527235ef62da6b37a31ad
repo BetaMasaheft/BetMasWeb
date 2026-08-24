@@ -1,0 +1,22 @@
+modules/config.xqm
+  s_bb26d03d17ba5a::t_8b467b87d27b06 172,180
+  s_bb26d03d17ba5a::t_d60ad053192ecb 78-85,87-92
+modules/scriptlinks.xqm
+  s_bb26d03d17ba5a::t_d260fe0372d5bf 106,137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "87b13dce6bc53b1417d527235ef62da6b37a31ad",
+  "prompts": {},
+  "sessions": {
+    "s_bb26d03d17ba5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64773ba2-9cdd-4c86-9562-e18db4f2140c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
