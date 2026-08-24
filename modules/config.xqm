@@ -75,11 +75,21 @@ declare variable $config:BMurl := "https://betamasaheft.eu/";
  : path away before the request reaches eXist, so requests already arrive
  : root-absolute there and no prefix is needed - detected via the same
  : "nginx-request-uri" header controller.xql itself checks for routing.
+ :
+ : A function, not a module-level variable (BetMasWeb#73): a `declare
+ : variable` initializer that reads request state isn't reliably
+ : re-evaluated per HTTP request in eXist - if this module's binding is
+ : first resolved for a request that arrived without the nginx header
+ : (direct eXist access, init, REST on an internal port), it can stick at
+ : the mount-path value for later, differently-fronted requests too. Same
+ : pattern as controller.xql's own local:get-uri().
  :)
-declare variable $config:appBase := if (request:get-header("nginx-request-uri")) then
-	""
-else
-	request:get-context-path() || "/apps/BetMasWeb";
+declare function config:appBase() as xs:string {
+	if (request:get-header("nginx-request-uri")) then
+		""
+	else
+		request:get-context-path() || "/apps/BetMasWeb"
+};
 
 (:~
  : Resolve an external service endpoint. A deployment relocates a service
@@ -159,7 +169,7 @@ declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.
 declare variable $config:expath-descriptor := doc(concat($config:app-root, "/expath-pkg.xml"))/expath:package;
 
 (:~
- : Injects the $config:appBase value as a client-side global, for the
+ : Injects the config:appBase() value as a client-side global, for the
  : standalone page-wrapper templates (newpage.html, newindex2.html,
  : newsearch.html, sparql.html) that build their own <head> rather than
  : going through modules/scriptlinks.xqm's scriptStyle()/listScriptStyle()
@@ -167,7 +177,7 @@ declare variable $config:expath-descriptor := doc(concat($config:app-root, "/exp
  : <script data-template="config:appBaseScript" />.
  :)
 declare function config:appBaseScript($node as node(), $model as map(*)) as element(script) {
-	<script type="text/javascript">{ 'var appBase = "' || $config:appBase || '";' }</script>
+	<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>
 };
 
 (:~
