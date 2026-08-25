@@ -2486,8 +2486,11 @@ declare function item2:seeAlsoOptionsDefault($file) {
 	)
 };
 
+(:~
+ : Decides on the basis of the collection what is relevant to match
+ : related records.
+ :)
 declare function item2:seeAlsoOptions($file, $collection) {
-	(: decides on the basis of the collection what is relevant to match related records :)
 	switch ($collection)
 		case "manuscripts" return
 			item2:seeAlsoOptionsManuscripts($file)

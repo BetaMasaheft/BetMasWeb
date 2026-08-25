@@ -228,7 +228,7 @@ declare function viewer:mirador($request as map(*)) {
 								 : templates:apply instead of called directly - see
 								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
 								 :)
-								let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+								let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 									config:template-lookup-resolve(
 										"viewer.xqm",
 										$functionName,
@@ -368,7 +368,7 @@ var canvasid = "' ||
 								 : templates:apply instead of called directly - see
 								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
 								 :)
-								let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+								let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 									config:template-lookup-resolve(
 										"viewer.xqm",
 										$functionName,

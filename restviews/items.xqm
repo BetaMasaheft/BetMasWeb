@@ -240,7 +240,7 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 							 : passed as a sibling sequence, not a shared wrapper, so no
 							 : extra element ends up in the output.
 							 :)
-							let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+							let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 								config:template-lookup-resolve(
 									"items.xqm",
 									$functionName,

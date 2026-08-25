@@ -4377,7 +4377,7 @@ declare function viewItem:workResp($node as node(), $model as map(*)) {
 declare function viewItem:work($item) {
 	templates:apply(
 		config:resolve("templates/itemWork.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,
@@ -4766,7 +4766,7 @@ declare function viewItem:personResp($node as node(), $model as map(*)) {
 declare function viewItem:person($item) {
 	templates:apply(
 		config:resolve("templates/itemPerson.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,
@@ -4901,13 +4901,13 @@ declare function viewItem:placeAttestationsButton($node as node(), $model as map
 	>Show attestations</button>
 };
 
+(:~
+ : Faithfully preserves the original's call shape - relsinfoblock's
+ : second argument is $item here, not $id like every other collection
+ : type's equivalent call (narrative, auth all pass $id). Left as-is,
+ : not "fixed", since this is a mechanical conversion, not a bugfix.
+ :)
 declare function viewItem:placeRelsInfo($node as node(), $model as map(*)) {
-	(:
-	 : faithfully preserves the original's call shape - relsinfoblock's
-	 : second argument is $item here, not $id like every other collection
-	 : type's equivalent call (narrative, auth all pass $id). Left as-is,
-	 : not "fixed", since this is a mechanical conversion, not a bugfix.
-	 :)
 	viewItem:relsinfoblock($model("rels"), $model("item"))
 };
 
@@ -4922,7 +4922,7 @@ declare function viewItem:placeResp($node as node(), $model as map(*)) {
 declare function viewItem:place($item) {
 	templates:apply(
 		config:resolve("templates/itemPlace.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,
@@ -5000,7 +5000,7 @@ declare function viewItem:authStandards($node as node(), $model as map(*)) {
 declare function viewItem:auth($item) {
 	templates:apply(
 		config:resolve("templates/itemAuth.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,
@@ -5108,7 +5108,7 @@ declare function viewItem:manuscriptCalendarTables($node as node(), $model as ma
 declare function viewItem:manuscript($item) {
 	templates:apply(
 		config:resolve("templates/itemManuscript.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,
@@ -5315,7 +5315,7 @@ declare function viewItem:main($item) {
 		case "nar" return
 			templates:apply(
 				config:resolve("templates/itemNarrative.html"),
-				function ($functionName as xs:string, $arity as xs:int) {
+				function ($functionName as xs:string, $arity as xs:integer) {
 					config:template-lookup-resolve(
 						"viewItem.xqm",
 						$functionName,
@@ -5345,12 +5345,12 @@ declare function viewItem:relations($rels) {
 	viewItem:TEI2HTML($rels)
 };
 
+(:~
+ : Same eXist whitespace-filtering quirk documented on viewItem:placeRoot
+ : - `. instance of text() and normalize-space(.) = ""` is the working
+ : shape, not a nested self::-based predicate.
+ :)
 declare function viewItem:documentsRoot($node as node(), $model as map(*)) {
-	(:
-	 : Same eXist whitespace-filtering quirk documented on viewItem:placeRoot
-	 : - `. instance of text() and normalize-space(.) = ""` is the working
-	 : shape, not a nested self::-based predicate.
-	 :)
 	templates:process($node/node()[not(. instance of text() and normalize-space(.) = "")], $model)
 };
 
@@ -5386,7 +5386,7 @@ declare function viewItem:documents($doc) {
 	(: replaces documents.xsl :)
 	templates:apply(
 		config:resolve("templates/itemDocuments.html"),
-		function ($functionName as xs:string, $arity as xs:int) {
+		function ($functionName as xs:string, $arity as xs:integer) {
 			config:template-lookup-resolve(
 				"viewItem.xqm",
 				$functionName,

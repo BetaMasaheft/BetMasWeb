@@ -259,7 +259,7 @@ declare function config:template-apply-config() as map(*) {
 declare function config:template-lookup-resolve(
 	$moduleLabel as xs:string,
 	$functionName as xs:string,
-	$arity as xs:int,
+	$arity as xs:integer,
 	$fn as function(*)?
 ) as function(*)? {
 	if (empty($fn) and $arity = $templates:MAX_ARITY) then (

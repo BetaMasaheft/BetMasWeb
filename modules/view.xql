@@ -52,7 +52,7 @@ let $config := map:merge((config:template-apply-config(), map {$templates:CONFIG
  : than living in config.xqm too - only the warn-vs-pass-through decision
  : is shared.
  :)
-let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 	config:template-lookup-resolve(
 		"view.xql",
 		$functionName,

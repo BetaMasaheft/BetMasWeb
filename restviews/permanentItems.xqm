@@ -221,7 +221,7 @@ declare function PermRestItem:ITEM(
 						 : RestViewOptions routed through templates:apply instead of
 						 : called directly - see item2:RestViewOptionsTemplate.
 						 :)
-						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+						let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 							config:template-lookup-resolve(
 								"permanentItems.xqm",
 								$functionName,
@@ -252,7 +252,7 @@ declare function PermRestItem:ITEM(
 						 : RestItemHeader routed through templates:apply instead of
 						 : called directly - see item2:RestItemHeaderTemplate.
 						 :)
-						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+						let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
 							config:template-lookup-resolve(
 								"permanentItems.xqm",
 								$functionName,
