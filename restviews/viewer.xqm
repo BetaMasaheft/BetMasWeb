@@ -6,6 +6,7 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace marc = "http://www.loc.gov/MARC21/slim";
 
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -221,8 +222,30 @@ declare function viewer:mirador($request as map(*)) {
 						{ nav:barNew() }
 						{ nav:modalsNew() }
 						<div class="w3-container w3-padding-48" id="content">
-							{ item2:RestViewOptions($this, $collection) }
-							{ item2:RestItemHeader($this, $collection) }
+							{
+								(:
+								 : RestViewOptions/RestItemHeader routed through
+								 : templates:apply instead of called directly - see
+								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+								 :)
+								let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+									try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+								}
+								let $tmpl-config := map {
+									$templates:CONFIG_STOP_ON_ERROR: true(),
+									$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+									$templates:CONFIG_FILTER_ATTRIBUTES: true()
+								}
+								return templates:apply(
+									(
+										<div data-template="item2:RestViewOptionsTemplate" />,
+										<div data-template="item2:RestItemHeaderTemplate" />
+									),
+									$lookup,
+									map {"this": $this, "collection": $collection},
+									$tmpl-config
+								)
+							}
 							<div class="w3-container">
 								<div allowfullscreen="allowfullscreen" class="w3-margin-top" id="viewer" />
 								<script type="text/javascript">
@@ -338,8 +361,30 @@ var canvasid = "' ||
 						{ nav:barNew() }
 						{ nav:modalsNew() }
 						<div class="w3-container w3-padding-48" id="content">
-							{ item2:RestViewOptions($this, $collection) }
-							{ item2:RestItemHeader($this, $collection) }
+							{
+								(:
+								 : RestViewOptions/RestItemHeader routed through
+								 : templates:apply instead of called directly - see
+								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+								 :)
+								let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+									try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+								}
+								let $tmpl-config := map {
+									$templates:CONFIG_STOP_ON_ERROR: true(),
+									$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+									$templates:CONFIG_FILTER_ATTRIBUTES: true()
+								}
+								return templates:apply(
+									(
+										<div data-template="item2:RestViewOptionsTemplate" />,
+										<div data-template="item2:RestItemHeaderTemplate" />
+									),
+									$lookup,
+									map {"this": $this, "collection": $collection},
+									$tmpl-config
+								)
+							}
 							<div class="w3-container">
 								<div allowfullscreen="allowfullscreen" class="w3-margin-top" id="viewer" />
 								<script type="text/javascript">

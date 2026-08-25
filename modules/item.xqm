@@ -154,6 +154,23 @@ declare function item2:witnesses($id) {
 };
 
 (:~
+ : Templating entry points for item2:RestViewOptions/RestItemHeader, so
+ : they can be invoked via data-template/templates:apply instead of a
+ : plain function call. Additive, not a replacement - the originals are
+ : unchanged and still callable directly. ($node, $model) is the fixed
+ : signature html-templating dispatches by; $this/$collection are pulled
+ : out of $model rather than taken as separate parameters, same pattern as
+ : e.g. view.xql's local:include-page.
+ :)
+declare function item2:RestViewOptionsTemplate($node as node(), $model as map(*)) {
+	item2:RestViewOptions($model("this"), $model("collection"))
+};
+
+declare function item2:RestItemHeaderTemplate($node as node(), $model as map(*)) {
+	item2:RestItemHeader($model("this"), $model("collection"))
+};
+
+(:~
  : under the main navigation bar there are the view options, this function returns the available values deciding on the type of input
  :)
 declare function item2:RestViewOptions($this, $collection) {

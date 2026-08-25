@@ -12,6 +12,7 @@ module namespace PermRestItem = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -215,7 +216,26 @@ declare function PermRestItem:ITEM(
 				{ nav:barNew() }
 				{ nav:modalsNew() }
 				<div class="w3-container w3-padding-48" id="content">
-					{ item2:RestViewOptions($this, $collection) }
+					{
+						(:
+						 : RestViewOptions routed through templates:apply instead of
+						 : called directly - see item2:RestViewOptionsTemplate.
+						 :)
+						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+							try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+						}
+						let $tmpl-config := map {
+							$templates:CONFIG_STOP_ON_ERROR: true(),
+							$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+							$templates:CONFIG_FILTER_ATTRIBUTES: true()
+						}
+						return templates:apply(
+							<div data-template="item2:RestViewOptionsTemplate" />,
+							$lookup,
+							map {"this": $this, "collection": $collection},
+							$tmpl-config
+						)
+					}
 					{
 						if ($PermRestItem:deleted//t:item[. eq $id]) then
 							<div class='w3-red w3-container'>
@@ -226,7 +246,26 @@ declare function PermRestItem:ITEM(
 						else (
 						)
 					}
-					{ item2:RestItemHeader($this, $collection) }
+					{
+						(:
+						 : RestItemHeader routed through templates:apply instead of
+						 : called directly - see item2:RestItemHeaderTemplate.
+						 :)
+						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
+							try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+						}
+						let $tmpl-config := map {
+							$templates:CONFIG_STOP_ON_ERROR: true(),
+							$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+							$templates:CONFIG_FILTER_ATTRIBUTES: true()
+						}
+						return templates:apply(
+							<div data-template="item2:RestItemHeaderTemplate" />,
+							$lookup,
+							map {"this": $this, "collection": $collection},
+							$tmpl-config
+						)
+					}
 					{
 						if ($type = "corpus") then (
 						) else
