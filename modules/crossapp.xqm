@@ -28,6 +28,15 @@ declare variable $crossapp:registry := map {
 			"prefix": "places",
 			"location": "xmldb:exist:///db/apps/BetMasApi/local/places.xqm",
 			"arity": 1
+		},
+	"apisparql:sparqlQueryVersions":
+		map {
+			"package": "BetMasApi",
+			"collection": "/db/apps/BetMasApi",
+			"namespace-uri": "https://www.betamasaheft.uni-hamburg.de/BetMasApi/apisparql",
+			"prefix": "apisparql",
+			"location": "xmldb:exist:///db/apps/BetMasApi/local/sparqlRest.xqm",
+			"arity": 1
 		}
 };
 

@@ -5,12 +5,9 @@ module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb";
 declare namespace b = "betmas.biblio";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
-import module namespace http = "http://expath.org/ns/http-client";
 import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare option exist:serialize "method=xml media-type=text/xml indent=yes";
-
-declare variable $gfb:ethiostudies := "https://api.zotero.org/groups/358366/items";
 
 (: NEEDS POSTPROCESSING: THE ZOTERO OUTPUT as ESCAPED HTML
 
@@ -28,41 +25,11 @@ declare function gfb:unescape($cit as xs:string) as xs:string {
 };
 
 declare function gfb:zot($c) {
-	let $cached := zc:bib("citations-url-doi.xml", $c)
-	return if (exists($cached)) then
-		$cached
-	else
-		let $xml-url-formattedBiblio := concat(
-			$gfb:ethiostudies,
-			"?tag=",
-			$c,
-			"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies-with-url-doi&amp;linkwrap=1"
-		)
-		let $data := try {
-			let $request := <http:request href="{ xs:anyURI($xml-url-formattedBiblio) }" method="GET" />
-			return http:send-request($request)[2]
-		} catch * { $err:description }
-		let $log2 := util:log("INFO", $data)
-		return $data//*:div[@class = "csl-entry"]
+	zc:full-url-doi($c)
 };
 
 declare function gfb:shortCit($c) {
-	let $cached := zc:cit("citations-short.xml", $c)
-	return if (exists($cached)) then
-		$cached
-	else
-		let $xml-url := concat(
-			$gfb:ethiostudies,
-			"?tag=",
-			$c,
-			"&amp;include=citation&amp;style=hiob-ludolf-centre-for-ethiopian-studies-with-url-doi&amp;locale=en-GB"
-		)
-		let $log := util:log("INFO", $xml-url)
-		let $req := <http:request href="{ xs:anyURI($xml-url) }" http-version="1.1" method="GET" />
-		let $zoteroApiResponse := http:send-request($req)[2]
-		let $decodedzoteroApiResponse := util:base64-decode($zoteroApiResponse)
-		let $parseedZoteroApiResponse := parse-json($decodedzoteroApiResponse)
-		return replace($parseedZoteroApiResponse?*?citation, "&lt;", "<") => replace("&gt;", ">")
+	(zc:short-url-doi($c), "")[1]
 };
 
 declare function gfb:updateentry($ref) {

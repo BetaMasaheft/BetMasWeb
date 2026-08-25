@@ -838,7 +838,6 @@ then in apprest:listrest() all these need to be taken into account for the query
 					<script src="resources/js/titles.js" type="text/javascript" />
 					<script src="resources/js/clavisid.js" type="text/javascript" />
 					<script src="resources/js/lookup.js" type="text/javascript" />
-					<script src="resources/js/NewBiblio.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1215,7 +1214,6 @@ declare function list:getrepolist($request as map(*)) {
 					<script src="resources/js/titles.js" type="text/javascript" />
 					<script src="resources/js/clavisid.js" type="text/javascript" />
 					<script src="resources/js/lookup.js" type="text/javascript" />
-					<script src="resources/js/NewBiblio.js" type="text/javascript" />
 					<script src="resources/js/allattestations.js" type="text/javascript" />
 				</body>
 			</html>
@@ -1597,7 +1595,6 @@ declare function list:getplacelist($request as map(*)) {
 					<script src="resources/js/titles.js" type="text/javascript" />
 					<script src="resources/js/clavisid.js" type="text/javascript" />
 					<script src="resources/js/lookup.js" type="text/javascript" />
-					<script src="resources/js/NewBiblio.js" type="text/javascript" />
 					<script src="resources/js/allattestations.js" type="text/javascript" />
 				</body>
 			</html>
@@ -1731,11 +1728,6 @@ declare function list:getcatalogues($request as map(*)) {
 										let $itemID := replace($catalogue, ":", "_")
 										let $zoTag := substring-after($catalogue, "bm:")
 										let $count := count($cats//t:ptr[@target eq $catalogue])
-										let $xml-url := concat(
-											"https://api.zotero.org/groups/358366/items?&amp;tag=",
-											$catalogue,
-											"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-										)
 										let $val := string($catalogue)
 										let $entry := $list:bibliography//b:entry[@id = $val]
 
@@ -1743,17 +1735,7 @@ declare function list:getcatalogues($request as map(*)) {
 											let $c := $entry
 											return <span n="{ count($c/preceding-sibling::t:item) + 1 }">{ $c/*:reference/node() }</span>
 										else
-											<span n="new">
-												{
-													let $cached := zc:bib("citations.xml", $catalogue)
-													return if (exists($cached)) then
-														$cached/node()
-													else
-														let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-														let $response := http:send-request($request)[2]
-														return $response//div[@class eq "csl-bib-body"]/div/node()
-												}
-											</span>
+											<span n="new">{ zc:full($catalogue)/node() }</span>
 										let $sorting := $data//text()[1]
 										order by $catalogue
 										return <tr>
@@ -1880,26 +1862,12 @@ declare function list:getcataloguelist($request as map(*)) {
 						<h1>
 							{
 								let $itemID := replace($prefixedcatID, ":", "_")
-								let $xml-url := concat(
-									"https://api.zotero.org/groups/358366/items?&amp;tag=",
-									$prefixedcatID,
-									"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-								)
 								let $data := if ($list:catalogues//t:item[@xml:id = $itemID]) then
 									<span n="{ count($list:catalogues//t:item[@xml:id = $itemID]/preceding-sibling::t:item) + 1 }">
 										{ $list:catalogues//t:item[@xml:id = $itemID]/node() }
 									</span>
 								else
-									<span n="new">
-										{
-											let $cached := zc:bib("citations.xml", $prefixedcatID)
-											return if (exists($cached)) then
-												$cached
-											else
-												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-												return http:send-request($request)[2]
-										}
-									</span>
+									<span n="new">{ zc:full($prefixedcatID) }</span>
 								return $data
 							}
 						</h1>
@@ -2059,26 +2027,12 @@ declare function list:getcataloguelistChart($request as map(*)) {
 						<h1>
 							{
 								let $itemID := replace($prefixedcatID, ":", "_")
-								let $xml-url := concat(
-									"https://api.zotero.org/groups/358366/items?&amp;tag=",
-									$prefixedcatID,
-									"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-								)
 								let $data := if ($list:catalogues//t:item[@xml:id = $itemID]) then
 									<span n="{ count($list:catalogues//t:item[@xml:id = $itemID]/preceding-sibling::t:item) + 1 }">
 										{ $list:catalogues//t:item[@xml:id = $itemID]/node() }
 									</span>
 								else
-									<span n="new">
-										{
-											let $cached := zc:bib("citations.xml", $prefixedcatID)
-											return if (exists($cached)) then
-												$cached
-											else
-												let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-												return http:send-request($request)[2]
-										}
-									</span>
+									<span n="new">{ zc:full($prefixedcatID) }</span>
 								return $data
 							}
 						</h1>

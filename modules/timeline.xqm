@@ -7,6 +7,7 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare option exist:serialize "method=text mediatype=text/javascript";
 
@@ -211,8 +212,8 @@ declare function tl:link($date as node(), $mode as xs:string, $context as xs:str
 
 (: checks the name of resps and return a string join of them if more then one :)
 declare function tl:resp($node) {
-	let $resps := if (starts-with($node, "bm_")) then (
-		<span class="Zotero Zotero-citation">{ $node }</span>
+	let $resps := if (starts-with($node, "bm_") or starts-with($node, "bm:")) then (
+		<span class="edition-citation" data-value="{ zc:normalize-tag(string($node)) }">{ zc:short(string($node)) }</span>
 	) else if ($node) then (
 		for $r in $node
 		return <r>{ normalize-space(exptit:printTitle(collection($config:data-rootPr)/id($r))) }</r>
@@ -220,7 +221,7 @@ declare function tl:resp($node) {
 	)
 	return <resps>
 		{
-			if (starts-with($node, "bm_")) then
+			if (starts-with($node, "bm_") or starts-with($node, "bm:")) then
 				$resps
 			else
 				string-join($resps, " and ")

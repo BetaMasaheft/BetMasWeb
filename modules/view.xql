@@ -14,6 +14,7 @@ import module namespace lists = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 import module namespace indexesNE = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/indexesNE" at "xmldb:exist:///db/apps/BetMasWeb/modules/indexesNE.xqm";
 import module namespace tl = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/timeline" at "xmldb:exist:///db/apps/BetMasWeb/modules/timeline.xqm";
 import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "xmldb:exist:///db/apps/BetMasWeb/modules/app.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
 declare option output:method "xhtml";
 declare option output:omit-xml-declaration "no";

@@ -243,7 +243,7 @@
     </xsl:template>
     
     <xsl:template mode="intextbibl" match="t:bibl">
-        <span class="Zotero Zotero-citation" data-value="{t:ptr/@target}">
+        <span class="edition-citation" data-value="{t:ptr/@target}">
             <xsl:if test="t:citedRange">
                 <xsl:attribute name="data-unit">
                     <xsl:value-of select="t:citedRange/@unit"/>
@@ -263,7 +263,7 @@
         <xsl:variable name="t" select="t:ptr/@target"/>
         <div class="w3-row">
             <div class="w3-col"  style="width:85%">
-                <span class="Zotero Zotero-full" data-value="{$t}" data-type="{t:seg/@type}">
+                <span class="edition-full" data-value="{$t}" data-type="{t:seg/@type}">
             <xsl:if test="t:citedRange">
                 <xsl:attribute name="data-unit">
                     <xsl:value-of select="t:citedRange/@unit"/>

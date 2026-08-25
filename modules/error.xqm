@@ -75,17 +75,11 @@ declare function error:error($name as map(*)) {
 													config:distinct-values(
 														collection($config:data-rootMS)//t:listBibl[@type eq "catalogue"]//t:ptr/@target
 													)
-												let $cached := zc:bib("citations.xml", $catalogue)
+												let $cached := zc:full($catalogue)
 												let $data := if (exists($cached)) then
 													$cached
-												else
-													let $xml-url := concat(
-														"https://api.zotero.org/groups/358366/items?&amp;tag=",
-														$catalogue,
-														"&amp;format=bib&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-													)
-													let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-													return http:send-request($request)[2]
+												else (
+												)
 												order by $data
 												return <li class="w3-large"><a href="/catalogues/{ $catalogue }/list">{ $data }</a></li>
 											}

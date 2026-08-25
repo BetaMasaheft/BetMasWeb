@@ -119,36 +119,11 @@ return <fop version="1.0">
 </fop>;
 
 declare function fo:zoteroCit($ZoteroUniqueBMtag as xs:string) {
-	let $cached := zc:cit("citations-short-main.xml", $ZoteroUniqueBMtag)
-	return if (exists($cached)) then
-		string-join($cached!string(.), "")
-	else
-		let $xml-url := concat(
-			"https://api.zotero.org/groups/358366/items?&amp;tag=",
-			$ZoteroUniqueBMtag,
-			"&amp;include=citation&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies"
-		)
-		let $req := <http:request href="{ xs:anyURI($xml-url) }" http-version="1.1" method="GET" />
-		let $zoteroApiResponse := http:send-request($req)[2]
-		let $decodedzoteroApiResponse := util:base64-decode($zoteroApiResponse)
-		let $parseedZoteroApiResponse := parse-json($decodedzoteroApiResponse)
-		return replace($parseedZoteroApiResponse?1?citation, "&lt;span&gt;", "") => replace("&lt;/span&gt;", "")
+	(zc:short($ZoteroUniqueBMtag), "")[1]
 };
 
 declare function fo:Zotero($ZoteroUniqueBMtag as xs:string) {
-	let $cached := zc:bib("citations.xml", $ZoteroUniqueBMtag)
-	let $entry := if (exists($cached)) then
-		$cached
-	else
-		let $xml-url := concat(
-			"https://api.zotero.org/groups/358366/items?tag=",
-			$ZoteroUniqueBMtag,
-			"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies&amp;linkwrap=1"
-		)
-		let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-		let $data := http:send-request($request)[2]
-		return $data//div[@class eq "csl-entry"]
-	return fo:tei2fo($entry)
+	fo:tei2fo(zc:full($ZoteroUniqueBMtag))
 };
 
 declare function fo:lang($lang as xs:string) {

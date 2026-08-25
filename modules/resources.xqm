@@ -13,6 +13,7 @@ declare namespace templates = "http://exist-db.org/xquery/templates";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
+import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $lists:collection-rootMS := collection($config:data-rootMS);
@@ -1717,9 +1718,7 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 	let $count := count($ptrs)
 	return <div class="w3-container w3-padding w3-border-bottom">
 		<div class="w3-half w3-padding">
-			<div class="w3-col" id="{ $target }" style="width:90%">
-				{ doc("/db/apps/lists/bibliography.xml")//*:entry[@xml:id = $target]/*:reference }
-			</div>
+			<div class="w3-col" id="{ $target }" style="width:90%">{ zc:bibl-page-entry($target) }</div>
 			<div class="w3-col w3-center" style="width:10%">
 				<a href="https://www.zotero.org/groups/358366/ethiostudies/items/tag/{ $target }" target="_blank">
 					<img src="/resources/images/zotero_16x16x32.png" style="display:inline;" />
