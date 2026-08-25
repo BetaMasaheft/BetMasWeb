@@ -5218,6 +5218,45 @@
 					}
 				}
 			}
+		},
+		"/api/versions/{id}/{chapterID}": {
+			"get": {
+				"operationId": "versions:parallel",
+				"summary": "Parallel text versions with EthioStudies edition HTML",
+				"description": "BetMasWeb-only proxy: calls BetMasApi apisparql:sparqlQueryVersions in-process and adds editionHtml for bm-tagged editions (cache-first). Distinct from Api's /api/SPARQL/versions path so the browser always gets enrichment.",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "chapterID",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Versions JSON with enrichedBy=BetMasWeb and optional editionHtml on bm sources",
+						"content": {
+							"application/json": {}
+						}
+					},
+					"501": {
+						"description": "BetMasApi is not installed on this deployment",
+						"content": {
+							"application/json": {}
+						}
+					}
+				}
+			}
 		}
 	}
 }

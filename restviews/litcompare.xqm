@@ -299,7 +299,6 @@ declare function litcomp:litcomp($request as map(*)) {
 				<script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
 				<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.js" type="text/javascript" />
 				<script src="resources/js/introText.js" type="application/javascript" />
-				<script src="resources/js/NewBiblio.js" type="text/javascript" />
 				<script src="resources/js/titles.js" type="text/javascript" />
 				<script src="resources/js/slickoptions.js" type="text/javascript" />
 				<script src="resources/js/coloronhover.js" type="application/javascript" />

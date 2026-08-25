@@ -977,26 +977,13 @@ declare %private function viewItem:bibliographyHeader($listBibl) {
 };
 
 declare %private function viewItem:zot($c) {
-	let $cached := zc:bib("citations-url-doi.xml", $c)
-	return if (exists($cached)) then
-		$cached
-	else
-		let $xml-url-formattedBiblio := concat(
-			"https://api.zotero.org/groups/358366/items?tag=",
-			$c,
-			"&amp;format=bib&amp;locale=en-GB&amp;style=hiob-ludolf-centre-for-ethiopian-studies-with-url-doi&amp;linkwrap=1"
-		)
-		let $data := try {
-			let $request := <http:request href="{ xs:anyURI($xml-url-formattedBiblio) }" method="GET" />
-			return http:send-request($request)[2]
-		} catch * { $err:description }
-		return $data//*:div[@class = "csl-entry"]
+	zc:full-url-doi($c)
 };
 
 declare %private function viewItem:bibl($node, $t) {
 	<div class="w3-row">
 		<div class="w3-col" style="width:85%">
-			<span class="Zotero Zotero-full" data-type="{ $node/t:seg/@type }" data-value="{ $t }">
+			<span data-type="{ $node/t:seg/@type }" data-value="{ $t }">
 				{
 					let $bib := $viewItem:bibliography//b:entry[@id = $t]/b:reference/*:div/node()
 					return if (count($bib) ge 1) then

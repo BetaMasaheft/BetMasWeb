@@ -28,6 +28,7 @@ import module namespace lookID = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace listIds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/listIds" at "../restviews/ids.xqm";
 import module namespace user = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/user" at "../restviews/user.xqm";
 import module namespace workmap = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/workmap" at "../restviews/workmap.xqm";
+import module namespace versions = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/versions" at "../restviews/versions.xqm";
 
 declare function local:lookup($name as xs:string) {
 	let $cross := crossapp:resolve($name)
