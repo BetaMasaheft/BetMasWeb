@@ -4688,85 +4688,158 @@ declare %private function viewItem:person($item) {
 	</div>
 };
 
-declare %private function viewItem:place($item) {
-	(: replaces placesInstit.xsl :)
+(:~
+ : Templated replacement for the old inline viewItem:place body - real
+ : html-templating conversion, not a thin adapter, matching the shape
+ : used for viewItem:narrative. viewItem:place itself becomes a thin
+ : templates:apply trigger (below); templates/itemPlace.html declares the
+ : structure and these functions back its data-template slots.
+ : viewItem:placeSetup computes the relations scan once and merges it
+ : into $model, same model-sharing shape as narrative's setup function.
+ :
+ : The template's own root wrapper (viewItem:placeRoot) is deliberately
+ : NOT %templates:wrap - viewItem:place's original return value is a raw
+ : sequence (an optional <script>, the MainData div, then whatever
+ : viewItem:resp returns), not one wrapped element, so the root just
+ : dispatches to its children and vanishes at runtime.
+ :)
+declare function viewItem:placeRoot($node as node(), $model as map(*)) {
+	(:
+	 : Filters out whitespace-only text nodes between the template file's
+	 : own top-level siblings (script/MainData div/resp div) before
+	 : processing - the original code built this as a flat XQuery
+	 : sequence with no such nodes; a stored, human-readably-indented
+	 : template file introduces them as literal children that
+	 : templates:process would otherwise pass through unchanged.
+	 :
+	 : NOTE: `[not(self::text()[normalize-space(.) = ""])]` (a nested
+	 : self::-based predicate) silently mis-filters on this node sequence
+	 : in this eXist version - drops elements it shouldn't, keeps only one
+	 : of several. Confirmed via isolated testing, not assumed. `. instance
+	 : of text() and normalize-space(.) = ""` is the working equivalent -
+	 : use that shape here, not the self::-predicate one, if this needs
+	 : touching again.
+	 :)
+	templates:process($node/node()[not(. instance of text() and normalize-space(.) = "")], $model)
+};
+
+declare function viewItem:placeFigureScript($node as node(), $model as map(*)) {
+	if ($model("item")//t:figure) then
+		<script src="resources/openseadragon/openseadragon.min.js" type="text/javascript" />
+	else (
+	)
+};
+
+declare %templates:wrap function viewItem:placeSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
+	return map {"id": $id, "rels": ($relsA | $relsP)}
+};
+
+declare %templates:wrap function viewItem:placeNamesHeading($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $id := $model("id")
 	return (
-		if ($item//t:figure) then
-			<script src="resources/openseadragon/openseadragon.min.js" type="text/javascript" />
+		"Names",
+		if ($item//t:place/@sameAs) then
+			for $sa in viewItem:makeSequence($item//t:place/@sameAs)
+			let $url := viewItem:reflink($sa)
+			return <a href="{ $url }"><span class="icon-large icon-globe" /></a>
 		else (
 		),
-		<div class="w3-twothird" id="MainData">
-			<div id="description">
-				<h2>Names
-                {
-						if ($item//t:place/@sameAs) then
-							for $sa in viewItem:makeSequence($item//t:place/@sameAs)
-							let $url := viewItem:reflink($sa)
-							return <a href="{ $url }"><span class="icon-large icon-globe" /></a>
-						else (
-						)
-					}
-					{
-						if ($id = "INS0880WHU") then
-							<a href="{ $config:appUrl }/tweed.html"><span class="w3-tag w3-red">Tweed Collection</span></a>
-						else (
-						)
-					}
-				</h2>
-				{
-					<ul>
-						{
-							for $t in $item//t:place/t:placeName[@xml:id]
-							order by $t/@xml:id , string-join($t/text())
-							return viewItem:placename($t)
-						}
-						{
-							for $t in $item//t:place/t:placeName[not(@xml:id or @corresp)]
-							order by string-join($t/text())
-							return viewItem:namedEntity($t)
-						}
-					</ul>
-				}
-				{ viewItem:osm($item) }
-				{
-					if ($item//t:place//t:desc/@facs) then
-						try { viewItem:gallery($item) } catch * { util:log("info", $err:description) }
-					else (
-					)
-				}
-				{ viewItem:divofplacepath($item, "//t:ab[@type = 'description']", "General information", 3) }
-				{ viewItem:divofplacepath($item, "//t:location[@type='relative']", "Location", 3) }
-				{ viewItem:divofplacepath($item, "//t:ab[@type = 'appellations'][child::*]", "Appellations", 3) }
-				{ viewItem:divofplacepath($item, "//t:date[@type = 'foundation']", "Foundation date", 3) }
-				{ viewItem:divofplacepath($item, "//t:desc[@type = 'foundation']", "Foundation story", 3) }
-				{ viewItem:divofplacepath($item, "//t:ab[@type = 'history']", "History", 3) }
-				{ viewItem:divofplacepath($item, "//t:ab[@type = 'tabot']", "Tābots", 3) }
-				{ viewItem:TEI2HTML($item//t:listBibl) }
-				{
-					viewItem:divofplacepath(
-						$item,
-						"//t:note[not(descendant::t:ab)][not(descendant::t:listBibl)][not(parent::t:placeName)][not(@source)][not(starts-with(@type,'tag'))][not(starts-with(@type,'url'))]",
-						"Other",
-						3
-					)
-				}
-				<button
-					class="w3-button w3-red w3-large"
-					data-id="{ string($item/@xml:id) }"
-					data-value="place"
-					id="showattestations"
-				>Show attestations</button>
-				<div class="w3-container" id="allattestations" />
-			</div>
-			{ viewItem:relsinfoblock($rels, $item) }
-			{ viewItem:standards($item) }
-		</div>,
-		viewItem:resp($item)
+		if ($id = "INS0880WHU") then
+			<a href="{ $config:appUrl }/tweed.html"><span class="w3-tag w3-red">Tweed Collection</span></a>
+		else (
+		)
+	)
+};
+
+declare %templates:wrap function viewItem:placeNamesList($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return (
+		for $t in $item//t:place/t:placeName[@xml:id]
+		order by $t/@xml:id , string-join($t/text())
+		return viewItem:placename($t),
+		for $t in $item//t:place/t:placeName[not(@xml:id or @corresp)]
+		order by string-join($t/text())
+		return viewItem:namedEntity($t)
+	)
+};
+
+declare function viewItem:placeOsm($node as node(), $model as map(*)) {
+	viewItem:osm($model("item"))
+};
+
+declare function viewItem:placeGallery($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:place//t:desc/@facs) then
+		try { viewItem:gallery($item) } catch * { util:log("info", $err:description) }
+	else (
+	)
+};
+
+declare function viewItem:placeSections($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return (
+		viewItem:divofplacepath($item, "//t:ab[@type = 'description']", "General information", 3),
+		viewItem:divofplacepath($item, "//t:location[@type='relative']", "Location", 3),
+		viewItem:divofplacepath($item, "//t:ab[@type = 'appellations'][child::*]", "Appellations", 3),
+		viewItem:divofplacepath($item, "//t:date[@type = 'foundation']", "Foundation date", 3),
+		viewItem:divofplacepath($item, "//t:desc[@type = 'foundation']", "Foundation story", 3),
+		viewItem:divofplacepath($item, "//t:ab[@type = 'history']", "History", 3),
+		viewItem:divofplacepath($item, "//t:ab[@type = 'tabot']", "Tābots", 3),
+		viewItem:TEI2HTML($item//t:listBibl),
+		viewItem:divofplacepath(
+			$item,
+			"//t:note[not(descendant::t:ab)][not(descendant::t:listBibl)][not(parent::t:placeName)][not(@source)][not(starts-with(@type,'tag'))][not(starts-with(@type,'url'))]",
+			"Other",
+			3
+		)
+	)
+};
+
+declare function viewItem:placeAttestationsButton($node as node(), $model as map(*)) {
+	<button
+		class="w3-button w3-red w3-large"
+		data-id="{ string($model("item")/@xml:id) }"
+		data-value="place"
+		id="showattestations"
+	>Show attestations</button>
+};
+
+declare function viewItem:placeRelsInfo($node as node(), $model as map(*)) {
+	(:
+	 : faithfully preserves the original's call shape - relsinfoblock's
+	 : second argument is $item here, not $id like every other collection
+	 : type's equivalent call (narrative, auth all pass $id). Left as-is,
+	 : not "fixed", since this is a mechanical conversion, not a bugfix.
+	 :)
+	viewItem:relsinfoblock($model("rels"), $model("item"))
+};
+
+declare function viewItem:placeStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
+};
+
+declare function viewItem:placeResp($node as node(), $model as map(*)) {
+	viewItem:resp($model("item"))
+};
+
+declare function viewItem:place($item) {
+	templates:apply(
+		config:resolve("templates/itemPlace.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"item": $item},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
 	)
 };
 

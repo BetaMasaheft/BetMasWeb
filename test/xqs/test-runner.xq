@@ -17,6 +17,7 @@ import module namespace tsrutil = "https://www.betamasaheft.uni-hamburg.de/BetMa
 import module namespace tsdtsdoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-document" at "ts-dtslib-document.xqm";
 import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-mainrels" at "ts-item-mainrels.xqm";
 import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
+import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-place" at "ts-viewitem-place.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -26,6 +27,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-roaster-util.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtslib-document.xqm")),
 		inspect:module-functions(xs:anyURI("ts-item-mainrels.xqm")),
-		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm"))
+		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm"))
 	)
 )
