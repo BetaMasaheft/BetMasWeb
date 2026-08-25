@@ -22,6 +22,8 @@ import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tl = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/timeline" at "xmldb:exist:///db/apps/BetMasWeb/modules/timeline.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
+import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
+import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
 
 declare function item2:authorsSHA($id, $this, $collection, $sha) {
 	apprest:authorsSHA($id, $this, $collection, $sha)
@@ -2668,4 +2670,170 @@ declare function item2:title($id) {
 
 declare function item2:textBibl($this, $id) {
 	viewItem:textfragmentbibl($this, $id)
+};
+
+(:~
+ : Shared by restItem:mainContent* (items.xqm) and PermRestItem:mainContent*
+ : (permanentItems.xqm) - these seven were byte-identical, or only
+ : accidentally drifted (a `=` vs `eq`, some whitespace), across both
+ : files' otherwise-diverged switch($type) splits. The rest stays split
+ : per file: analytic/corpus/text/default/extras genuinely differ between
+ : the live and permanent-link views.
+ :
+ : @param $id the item's xml:id
+ : @return the "geobrowser" main-content view
+ :)
+declare function item2:mainContentGeobrowser($id as xs:string*) {
+	<div class="w3-container">
+		<div class="w3-container alert alert-info">You can download the <a
+				href="https://betamasaheft.eu/api/KML/places/{ $id }"
+			>KML</a> file visualized below in the <a href="https://geobrowser.de.dariah.eu">Dariah-DE Geobrowser</a>.</div>
+		<h3>Map and timeline of places attestations marked up in the text.</h3>
+		<iframe
+			id="geobrowserMap"
+			src="https://geobrowser.de.dariah.eu/embed/index.html?kml1=https://betamasaheft.eu/api/KML/places/{ $id }"
+			style="width: 100%; height: 800px;" />
+	</div>
+};
+
+(:~
+ : @param $this the manuscript's t:TEI element
+ : @param $id   the manuscript's xml:id
+ : @return the "graph" main-content view for a manuscript
+ :)
+declare function item2:mainContentGraphManuscripts($this as element(), $id as xs:string*) {
+	let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(@type eq "blank")]/text()
+	return <div class="w3-container">
+		<button class="w3-button w3-red" disabled="disabled" id="enrichTable">Enrich Table</button>
+		<div class="alert alert-info" id="graphloadingstatus">Loading graph and synoptique table...</div>
+		<div class="w3-container">
+			<div class="w3-responsive">
+				<table
+					class="w3-table w3-bordered w3-hoverable w3-condensed"
+					data-extent="{ $ex }"
+					data-id="{ $id }"
+					id="SdCTable"
+				>
+					{
+						if ($this//t:msDesc/t:msIdentifier/t:idno[@facs]) then (
+							attribute data-images { string($this//t:msDesc/t:msIdentifier/t:idno/@facs) },
+							attribute data-imagesSource { $this//t:msDesc/t:msIdentifier/t:collection/text() }
+						) else (
+						)
+					}
+					<thead>
+						<tr>
+							<th>Quires</th>
+							<th>folios</th>
+							<th>UniMat</th>
+							<th>UniMarq</th>
+							<th>UniCah</th>
+							<th>UniCont</th>
+							<th>addition</th>
+							<th>UniMain</th>
+							<th>UniEcri</th>
+							<th>UniRegl</th>
+							<th>UniMep</th>
+							<th>decoration</th>
+							<th>UniProd</th>
+						</tr>
+					</thead>
+					<tbody />
+				</table>
+				<script src="resources/js/SdCtable.js" type="text/javascript" />
+			</div>
+		</div>
+		<div data-id="{ $id }" id="graph" />
+		<div class="w3-container">
+			<div class="w3-container">
+				<div class="w3-panel w3-red">
+					<p
+						class="w3-panel w3-red"
+					>
+    Sankey diagram of the manuscript. Showing UniProd
+    and UniCirc explicitly related. Transformations are given weight 1.
+    UniProd and UniCirc declarations are given weight 2. Exact matches are given weight 3.
+  There is no chronological implication.</p>
+				</div>
+				{ charts:mssSankey($id) }
+			</div>
+			<div class="w3-container">
+				<div class="w3-panel w3-red">
+					<p>
+    Graph of the manuscript transformations using the Syntaxe du Codex ontology.</p>
+				</div>
+				<div class="w3-container" id="SdCGraph" />
+			</div>
+		</div>
+		<!--  <div class="w3-container">
+   <div id="GraphResult"/>
+ </div> -->
+		<script src="resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
+	</div>
+};
+
+(:~
+ : @param $id the place's xml:id
+ : @return the "graph" main-content view for a place
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphPlaces($id as xs:string*) {
+	<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
+};
+
+(:~
+ : @param $id the person's xml:id
+ : @return the "graph" main-content view for a person
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphPersons($id as xs:string*) {
+	<div class="w3-container">
+		<div data-id="{ $id }" id="graph" />
+		<div class="w3-container" id="SNAPGraph" />
+		<p>Graph view of the SNAP relations between persons.</p>
+		<div class="w3-container" id="AttestationsInWorks" />
+		<p>Annotated attestations in texts (works and manuscripts).</p>
+		<script src="resources/js/SNAPGraph.js" type="text/javascript" />
+		<div class="w3-container">{ charts:pieAttestations($id, "persName") }</div>
+	</div>
+};
+
+(:~
+ : @param $id the authority-file entry's xml:id
+ : @return Sankey diagrams if $id names a Subjects taxonomy category, else empty
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
+	let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc eq
+		"Subjects"]//t:category/t:catDesc/text()
+	return if ($id = $Subjects) then (
+		try { LitFlow:Sankey($id, "works") } catch * { $err:description },
+		try { LitFlow:Sankey($id, "mss") } catch * { $err:description }
+	) else (
+	)
+};
+
+(:~
+ : @param $id         the item's xml:id
+ : @param $collection its collection name
+ : @return the fallback "graph" main-content view for any other collection
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphDefault($id as xs:string*, $collection as xs:string*) {
+	<div class="w3-container">
+		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
+		<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
+		<div class="w3-container" id="GraphResultNotMS" />
+		<script src="resources/js/colorbrewer.js" />
+		<script src="resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
+	</div>
+};
+
+(:~
+ : @param $id the work's xml:id
+ : @return the post-content "extras" for a work (miniatures)
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentExtrasWorks($id as xs:string*) {
+	(item2:RestMiniatures($id))
 };
