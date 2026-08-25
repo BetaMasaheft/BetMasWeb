@@ -4378,14 +4378,15 @@ declare function viewItem:work($item) {
 	templates:apply(
 		config:resolve("templates/itemWork.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"item": $item},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 
@@ -4766,14 +4767,15 @@ declare function viewItem:person($item) {
 	templates:apply(
 		config:resolve("templates/itemPerson.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"item": $item},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 
@@ -4921,14 +4923,15 @@ declare function viewItem:place($item) {
 	templates:apply(
 		config:resolve("templates/itemPlace.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"item": $item},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 
@@ -4998,14 +5001,15 @@ declare function viewItem:auth($item) {
 	templates:apply(
 		config:resolve("templates/itemAuth.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"item": $item},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 
@@ -5105,14 +5109,15 @@ declare function viewItem:manuscript($item) {
 	templates:apply(
 		config:resolve("templates/itemManuscript.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"item": $item},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 
@@ -5311,14 +5316,15 @@ declare function viewItem:main($item) {
 			templates:apply(
 				config:resolve("templates/itemNarrative.html"),
 				function ($functionName as xs:string, $arity as xs:int) {
-					try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+					config:template-lookup-resolve(
+						"viewItem.xqm",
+						$functionName,
+						$arity,
+						try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+					)
 				},
 				map {"item": $item},
-				map {
-					$templates:CONFIG_STOP_ON_ERROR: true(),
-					$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-					$templates:CONFIG_FILTER_ATTRIBUTES: true()
-				}
+				config:template-apply-config()
 			)
 		case "pers" return
 			viewItem:person($item)
@@ -5381,14 +5387,15 @@ declare function viewItem:documents($doc) {
 	templates:apply(
 		config:resolve("templates/itemDocuments.html"),
 		function ($functionName as xs:string, $arity as xs:int) {
-			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			config:template-lookup-resolve(
+				"viewItem.xqm",
+				$functionName,
+				$arity,
+				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+			)
 		},
 		map {"doc": $doc},
-		map {
-			$templates:CONFIG_STOP_ON_ERROR: true(),
-			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-			$templates:CONFIG_FILTER_ATTRIBUTES: true()
-		}
+		config:template-apply-config()
 	)
 };
 

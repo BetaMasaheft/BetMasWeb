@@ -215,6 +215,71 @@ declare function config:resolve($relPath as xs:string) {
 		doc(concat("file://", $config:app-root, "/", $relPath))
 };
 
+(:~
+ : Shared templates:apply config map. CONFIG_FILTER_ATTRIBUTES applies
+ : app-wide, to every %templates:wrap function, not just one caller -
+ : %templates:wrap always keeps its calling element's own data-template
+ : attribute in the output by default, so there's no narrower scope to
+ : give this flag. Confirmed safe app-wide, including fixing a
+ : pre-existing data-template leak in lists:titlesRes (see "invert
+ : templates:surround to a top-down render").
+ :
+ : @return the config map for templates:apply's 4th argument
+ :)
+declare function config:template-apply-config() as map(*) {
+	map {
+		$templates:CONFIG_STOP_ON_ERROR: true(),
+		$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+		$templates:CONFIG_FILTER_ATTRIBUTES: true()
+	}
+};
+
+(:~
+ : Shared warn-vs-pass-through decision for the lookup function every
+ : templates:apply call site passes in. templates:resolve() probes arity
+ : 2..$templates:MAX_ARITY; only the last arity coming up empty means
+ : "genuinely no such function" rather than "wrong arity, keep trying",
+ : so that's the one point to log. Without this, a typo'd/removed
+ : data-template target fails silently with no trace.
+ :
+ : Takes the already-probed $fn rather than calling function-lookup()
+ : itself: function-lookup() resolves against the STATIC context of the
+ : module it's written in, so a shared probe here could only ever see
+ : functions imported into config.xqm, not e.g. item2:* or viewItem:*
+ : targets. Each call site still runs its own
+ : `try { function-lookup(...) } catch * { () }` and hands the result
+ : here.
+ :
+ : @param $moduleLabel  calling module's name, for the log message
+ : @param $functionName the data-template target name being resolved
+ : @param $arity        the arity just probed
+ : @param $fn           result of that probe - the resolved function, or ()
+ : @return $fn unchanged, or () after logging on the terminal probe
+ :)
+declare function config:template-lookup-resolve(
+	$moduleLabel as xs:string,
+	$functionName as xs:string,
+	$arity as xs:int,
+	$fn as function(*)?
+) as function(*)? {
+	if (empty($fn) and $arity = $templates:MAX_ARITY) then (
+		(: logging itself must never take the template pipeline down :)
+		try {
+			util:log(
+				"warn",
+				$moduleLabel ||
+					': no function found for data-template="' ||
+					$functionName ||
+					'" (probed arity 2..' ||
+					$templates:MAX_ARITY ||
+					")"
+			)
+		} catch * { () },
+		()
+	) else
+		$fn
+};
+
 declare function config:get-configuration() as element(configuration) {
 	doc(concat($config:app-root, "/configuration.xml"))/configuration
 };

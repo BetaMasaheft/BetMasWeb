@@ -73,12 +73,12 @@ declare %test:assertTrue function tsvidocs:renders-date() {
 
 declare %test:assertTrue function tsvidocs:renders-other-language-q() {
 	let $doc := tsvidocs:fragment("MNC019", "a1")
-	return exists($doc/t:q[not(@xml:lang = "gez")]) and contains(tsvidocs:render($doc), "w3-half w3-padding")
+	return exists($doc/t:q[not(@xml:lang = "gez")]) and contains(tsvidocs:render($doc), "ጊዮርጊስ")
 };
 
 declare %test:assertTrue function tsvidocs:renders-bibliography() {
 	let $doc := tsvidocs:fragment("RNBdorn612", "a1")
-	return exists($doc/t:listBibl) and contains(tsvidocs:render($doc), "w3-gray")
+	return exists($doc/t:listBibl) and contains(tsvidocs:render($doc), "Turaev")
 };
 
 declare %test:assertTrue function tsvidocs:renders-trailing-hr() {

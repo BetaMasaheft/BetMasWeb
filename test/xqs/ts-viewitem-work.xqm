@@ -90,7 +90,7 @@ declare %test:assertTrue function tsviwork:renders-creation-date() {
 
 declare %test:assertTrue function tsviwork:renders-extent-paragraph() {
 	let $item := tsviwork:doc("LIT4275ChronAmdS")
-	return exists($item//t:extent) and contains(tsviwork:render($item), "<p>")
+	return exists($item//t:extent) and contains(tsviwork:render($item), "10170 words")
 };
 
 declare %test:assertTrue function tsviwork:renders-authorship-for-studies-type-item() {

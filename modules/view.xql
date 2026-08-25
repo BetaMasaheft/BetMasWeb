@@ -41,48 +41,24 @@ declare %templates:wrap function local:include-page($node as node(), $model as m
  : is the only syntax in use) - disabling class-syntax lookup skips a
  : tokenize+regex check on @class for every element that isn't templated.
  :)
-let $config := map {
-	$templates:CONFIG_APP_ROOT: $config:app-root,
-	$templates:CONFIG_STOP_ON_ERROR: true(),
-	$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-	(:
-	 : %templates:wrap (used by local:include-page below, and pre-existing
-	 : on e.g. lists:titlesRes) reconstructs the calling element and, by
-	 : default, keeps its own data-template attribute on the output - not
-	 : just harmless dead markup, but a mismatch against the old
-	 : templates:surround-produced output. Strip it.
-	 :)
-	$templates:CONFIG_FILTER_ATTRIBUTES: true()
-}
+let $config := map:merge((config:template-apply-config(), map {$templates:CONFIG_APP_ROOT: $config:app-root}))
 
 (:
  : We have to provide a lookup function to templates:apply to help it
  : find functions in the imported application modules. The templates
  : module cannot see the application modules, but the inline function
- : below does see them.
- :
- : templates:resolve() probes arity 2..$templates:MAX_ARITY, calling this
- : function once per arity until one succeeds - most of those calls are
- : expected misses, not errors. Only log when the *last* arity in that
- : range still comes up empty, since that's the one call that means
- : "genuinely no such function", not "wrong arity, keep trying". Without
- : this, a typo'd/removed data-template target fails completely silently -
- : the element just gets copied through unprocessed with no trace anywhere.
+ : below does see them. See config:template-lookup-resolve for why the
+ : function-lookup() call itself has to stay written locally here rather
+ : than living in config.xqm too - only the warn-vs-pass-through decision
+ : is shared.
  :)
 let $lookup := function ($functionName as xs:string, $arity as xs:int) {
-	let $fn := try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-	return if (empty($fn) and $arity = $templates:MAX_ARITY) then (
-		util:log(
-			"warn",
-			'view.xql: no function found for data-template="' ||
-				$functionName ||
-				'" (probed arity 2..' ||
-				$templates:MAX_ARITY ||
-				")"
-		),
-		()
-	) else
-		$fn
+	config:template-lookup-resolve(
+		"view.xql",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
 }
 (:
  : A full page declares which wrapper it mounts into via @data-wrapper on

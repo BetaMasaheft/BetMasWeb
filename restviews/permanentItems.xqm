@@ -222,13 +222,14 @@ declare function PermRestItem:ITEM(
 						 : called directly - see item2:RestViewOptionsTemplate.
 						 :)
 						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
-							try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+							config:template-lookup-resolve(
+								"permanentItems.xqm",
+								$functionName,
+								$arity,
+								try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+							)
 						}
-						let $tmpl-config := map {
-							$templates:CONFIG_STOP_ON_ERROR: true(),
-							$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-							$templates:CONFIG_FILTER_ATTRIBUTES: true()
-						}
+						let $tmpl-config := config:template-apply-config()
 						return templates:apply(
 							<div data-template="item2:RestViewOptionsTemplate" />,
 							$lookup,
@@ -252,13 +253,14 @@ declare function PermRestItem:ITEM(
 						 : called directly - see item2:RestItemHeaderTemplate.
 						 :)
 						let $lookup := function ($functionName as xs:string, $arity as xs:int) {
-							try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+							config:template-lookup-resolve(
+								"permanentItems.xqm",
+								$functionName,
+								$arity,
+								try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+							)
 						}
-						let $tmpl-config := map {
-							$templates:CONFIG_STOP_ON_ERROR: true(),
-							$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-							$templates:CONFIG_FILTER_ATTRIBUTES: true()
-						}
+						let $tmpl-config := config:template-apply-config()
 						return templates:apply(
 							<div data-template="item2:RestItemHeaderTemplate" />,
 							$lookup,
