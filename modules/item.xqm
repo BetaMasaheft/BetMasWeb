@@ -2180,304 +2180,340 @@ Scrolling in this box will also show you a summary of all the occurences.  <a
 (:~
  : returns a selector with values which can be searched. a javascript will pick the selected one and send it to the restxq to get related items
  :)
+declare function item2:seeAlsoOptionsManuscripts($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:supportDesc/t:material/@key) then
+			<optgroup label="material">
+				{
+					for $x in ($file//t:supportDesc/t:material/@key)
+					return <option value="{ $x }">{ $x }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:handNote[@script]/@script) then
+			<optgroup label="script">
+				{
+					for $x in config:distinct-values($file//t:handNote[@script]/@script)
+					return <option value="{ $x }">{ string($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:objectDesc/@form) then
+			<optgroup label="form">
+				{
+					for $x in config:distinct-values($file//t:objectDesc/@form)
+					return <option value="{ $x }">{ string($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsWorks($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="relation">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsStudies($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="relation">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsNarratives($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="attributed author">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@active)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsPlaces($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:settlement) then
+			<optgroup label="settlement">
+				{
+					for $x in $file//t:settlement/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:region) then
+			<optgroup label="region">
+				{
+					for $x in $file//t:region/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:country) then
+			<optgroup label="country">
+				{
+					for $x in $file//t:country/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:place[@type]) then
+			<optgroup label="type">
+				{
+					if (contains($file//t:place/@type, " ")) then
+						for $x in tokenize($file//t:place/@type, " ")
+						return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+					else
+						let $type := $file//t:place/@type
+						return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsInstitutions($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:settlement) then
+			<optgroup label="settlement">
+				{
+					for $x in $file//t:settlement/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:region) then
+			<optgroup label="region">
+				{
+					for $x in $file//t:region/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:country) then
+			<optgroup label="country">
+				{
+					for $x in $file//t:country/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:place[@type]) then
+			<optgroup label="type">
+				{
+					if (contains($file//t:place/@type, " ")) then
+						for $x in ($file//t:place/@type)
+						return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+					else
+						let $type := $file//t:place/@type
+						return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsPersons($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:roleName) then
+			<optgroup label="role">
+				{
+					for $x in ($file//t:roleName/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:faith) then
+			<optgroup label="faith">
+				{
+					for $x in ($file//t:faith/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:occupation) then
+			<optgroup label="occupation">
+				{
+					for $x in ($file//t:occupation/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsDefault($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptions($file, $collection) {
+	(: decides on the basis of the collection what is relevant to match related records :)
+	switch ($collection)
+		case "manuscripts" return
+			item2:seeAlsoOptionsManuscripts($file)
+		case "works" return
+			item2:seeAlsoOptionsWorks($file)
+		case "studies" return
+			item2:seeAlsoOptionsStudies($file)
+		case "narratives" return
+			item2:seeAlsoOptionsNarratives($file)
+		case "places" return
+			item2:seeAlsoOptionsPlaces($file)
+		case "institutions" return
+			item2:seeAlsoOptionsInstitutions($file)
+		case "persons" return
+			item2:seeAlsoOptionsPersons($file)
+		default return
+			item2:seeAlsoOptionsDefault($file)
+};
+
 declare function item2:RestSeeAlso($this, $collection) {
 	let $file := $this
 	let $id := string($this/@xml:id)
 	let $classes :=
 		for $class in $this//t:term/@key
 		return "http://betamasaheft.eu/" || $class
-	let $options := switch ($collection)
-		(: decides on the basis of the collection what is relevant to match related records :)
-		case "manuscripts" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:supportDesc/t:material/@key) then
-					<optgroup label="material">
-						{
-							for $x in ($file//t:supportDesc/t:material/@key)
-							return <option value="{ $x }">{ $x }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:handNote[@script]/@script) then
-					<optgroup label="script">
-						{
-							for $x in config:distinct-values($file//t:handNote[@script]/@script)
-							return <option value="{ $x }">{ string($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:objectDesc/@form) then
-					<optgroup label="form">
-						{
-							for $x in config:distinct-values($file//t:objectDesc/@form)
-							return <option value="{ $x }">{ string($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "works" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="relation">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "studies" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="relation">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "narratives" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="attributed author">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@active)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "places" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:settlement) then
-					<optgroup label="settlement">
-						{
-							for $x in $file//t:settlement/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:region) then
-					<optgroup label="region">
-						{
-							for $x in $file//t:region/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:country) then
-					<optgroup label="country">
-						{
-							for $x in $file//t:country/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:place[@type]) then
-					<optgroup label="type">
-						{
-							if (contains($file//t:place/@type, " ")) then
-								for $x in tokenize($file//t:place/@type, " ")
-								return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-							else
-								let $type := $file//t:place/@type
-								return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "institutions" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:settlement) then
-					<optgroup label="settlement">
-						{
-							for $x in $file//t:settlement/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:region) then
-					<optgroup label="region">
-						{
-							for $x in $file//t:region/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:country) then
-					<optgroup label="country">
-						{
-							for $x in $file//t:country/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:place[@type]) then
-					<optgroup label="type">
-						{
-							if (contains($file//t:place/@type, " ")) then
-								for $x in ($file//t:place/@type)
-								return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-							else
-								let $type := $file//t:place/@type
-								return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "persons" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:roleName) then
-					<optgroup label="role">
-						{
-							for $x in ($file//t:roleName/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:faith) then
-					<optgroup label="faith">
-						{
-							for $x in ($file//t:faith/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:occupation) then
-					<optgroup label="occupation">
-						{
-							for $x in ($file//t:occupation/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		default return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
+	let $options := item2:seeAlsoOptions($file, $collection)
 	return <div class="w3-third w3-padding" id="seeAlsoForm">
 		{
 			if (count($options) ge 1) then (
