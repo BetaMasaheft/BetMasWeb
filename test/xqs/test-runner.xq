@@ -21,6 +21,7 @@ import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/Bet
 import module namespace tsviauth = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-auth" at "ts-viewitem-auth.xqm";
 import module namespace tsvimss = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-manuscript" at "ts-viewitem-manuscript.xqm";
 import module namespace tsviwork = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-work" at "ts-viewitem-work.xqm";
+import module namespace tsviperson = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-person" at "ts-viewitem-person.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -34,6 +35,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-auth.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-manuscript.xqm")),
-		inspect:module-functions(xs:anyURI("ts-viewitem-work.xqm"))
+		inspect:module-functions(xs:anyURI("ts-viewitem-work.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-person.xqm"))
 	)
 )

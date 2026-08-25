@@ -4467,271 +4467,314 @@ declare function viewItem:narrativeStandards($node as node(), $model as map(*)) 
 	viewItem:standards($model("item"))
 };
 
-declare %private function viewItem:person($item) {
-	(: replaces Person.xsl :)
+declare %templates:wrap function viewItem:personSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
-	let $mainidno := $item//t:msIdentifier/t:idno
+	return map {"id": $id, "relsA": $relsA, "relsP": $relsP, "rels": ($relsA | $relsP)}
+};
+
+declare function viewItem:personNames($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $prs := $item//(t:personGrp | t:person)/t:persName
-	return <div class="w3-twothird" id="MainData">
-		<div class="w3-container" id="desc">
+	return if (count($prs) ge 1) then (
+		<h2>Names</h2>,
+		<ul>
 			{
-				if (count($prs) ge 1) then (
-					<h2>Names</h2>,
-					<ul>
-						{
-							for $t in $prs[@xml:id]
-							order by $t/@xml:id , string-join($t/text())
-							return viewItem:persname($t)
-						}
-						{
-							for $t in $prs[not(@xml:id or @corresp)]
-							order by string-join($t/text())
-							return viewItem:namedEntity($t)
-						}
-					</ul>
+				for $t in $prs[@xml:id]
+				order by $t/@xml:id , string-join($t/text())
+				return viewItem:persname($t)
+			}
+			{
+				for $t in $prs[not(@xml:id or @corresp)]
+				order by string-join($t/text())
+				return viewItem:namedEntity($t)
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personHistorySections($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return (
+		viewItem:divofperson($item, "birth"),
+		viewItem:divofperson($item, "education"),
+		viewItem:divofperson($item, "floruit"),
+		viewItem:divofperson($item, "death")
+	)
+};
+
+declare function viewItem:personGroupOf($node as node(), $model as map(*)) {
+	let $membera := $model("relsA")[@name = "snap:Group"]
+	return if (count($membera) ge 1) then (
+		<h4>Group of</h4>,
+		<ul class="w3-small">
+			{
+				for $m in ($membera)
+				return viewItem:workAuthLi($m, "p")
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personMemberOf($node as node(), $model as map(*)) {
+	let $memberp := $model("relsP")[@name = "snap:Group"]
+	return if (count($memberp) ge 1) then (
+		<h4>Member of</h4>,
+		<ul class="w3-small">
+			{
+				for $m in ($memberp)
+				return viewItem:workAuthLi($m, "a")
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personAuthorOf($node as node(), $model as map(*)) {
+	let $relsA := $model("relsA")
+	let $relsP := $model("relsP")
+	let $attributed := $relsP[@name = "saws:isAttributedToAuthor"]
+	let $attributedp := $relsA[@name = "saws:isAttributedAuthorOf"]
+	let $creator := $relsP[@name = "dcterms:creator"]
+	return if (count($attributed | $attributedp | $creator) ge 1) then (
+		<h4>Author of</h4>,
+		<ul class="w3-small">
+			{
+				for $aut in ($attributed | $creator)
+				return viewItem:workAuthLi($aut, "a")
+			}
+			{
+				for $aut in ($attributedp)
+				return viewItem:workAuthLi($aut, "p")
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personTranslatorOf($node as node(), $model as map(*)) {
+	let $relsA := $model("relsA")
+	let $relsP := $model("relsP")
+	let $translator := $relsA[@name = "betmas:isAuthorOfEthiopicTranslation"]
+	let $translatora := $relsP[@name = "betmas:isAuthorOfEthiopicTranslation"]
+	return if (count($translator | $translatora) ge 1) then (
+		<h4>Translator of</h4>,
+		<ul class="w3-small">
+			{
+				for $a in ($translator)
+				return viewItem:workAuthLi($a, "p")
+			}
+			{
+				for $a in ($translatora)
+				return viewItem:workAuthLi($a, "a")
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personNotes($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:person/t:note) then
+		for $n in $item//t:person/t:note
+		return <div class="w3-container">
+			<h4>
+				{
+					if ($n/@type) then
+						viewItem:capitalize-first($n/@type)
+					else
+						"Notes"
+				}
+			</h4>
+			{ viewItem:TEI2HTML($n) }
+		</div>
+	else (
+	)
+};
+
+declare function viewItem:personRelsInfo($node as node(), $model as map(*)) {
+	viewItem:relsinfoblock($model("rels"), $model("id"))
+};
+
+declare function viewItem:personAttestationsButton($node as node(), $model as map(*)) {
+	<button
+		class="w3-button w3-red w3-large"
+		data-id="{ $model("id") }"
+		data-value="person"
+		id="showattestations"
+	>Show attestations</button>
+};
+
+declare %templates:wrap function viewItem:personSidebarHeading($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return (
+		"Names ",
+		switch ($item//t:person/@sex)
+			case "1" return
+				<i class="fa fa-mars" />
+			case "2" return
+				<i class="fa fa-venus" />
+			default return
+				(),
+		if ($item//t:person/@sameAs) then
+			<a href="{ viewItem:reflink($item//t:person/@sameAs) }"><span class="icon-large icon-vcard" /></a>
+		else (
+		)
+	)
+};
+
+declare %templates:wrap function viewItem:personSidebarNamesList($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return for $name in $item//(t:personGrp | t:person)/t:persName[not(@corresp)]
+		let $nameid := $name/@xml:id
+		return <li>
+			{
+				if ($nameid) then
+					attribute id { $nameid }
+				else (
+				)
+			}
+			{
+				if ($name/@type) then
+					string($name/@type) || ": "
+				else (
+				)
+			}
+			{ viewItem:TEI2HTML($name/t:roleName) }
+			{
+				if ($name/@ref) then
+					<a href="{ @ref }" target="_blank">{ viewItem:TEI2HTML($name/node()[not(self::t:roleName)]) }</a>
+				else (
+					viewItem:TEI2HTML($name/node()[not(self::t:roleName)]), " "
+				)
+			}
+			{ viewItem:sup($name) }
+			{
+				if ((count($nameid) gt 1) and $item//t:persName[matches(@corresp, $nameid)]) then (
+					"(",
+					let $corrnames :=
+						for $corrname in $item//t:persName[matches(@corresp, $nameid)]
+						order by string-join($corrname/text())
+						return ($corrname/text(), viewItem:sup($corrname))
+					return viewItem:joinmixed($corrnames),
+					")"
 				) else (
 				)
 			}
-			<div class="w3-threequarter w3-padding" id="history">
-				{ viewItem:divofperson($item, "birth") }
-				{ viewItem:divofperson($item, "education") }
-				{ viewItem:divofperson($item, "floruit") }
-				{ viewItem:divofperson($item, "death") }
-				{
-					let $membera := $relsA[@name = "snap:Group"]
-					return if (count($membera) ge 1) then (
-						<h4>Group of</h4>,
-						<ul class="w3-small">
-							{
-								for $m in ($membera)
-								return viewItem:workAuthLi($m, "p")
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					let $memberp := $relsP[@name = "snap:Group"]
-					return if (count($memberp) ge 1) then (
-						<h4>Member of</h4>,
-						<ul class="w3-small">
-							{
-								for $m in ($memberp)
-								return viewItem:workAuthLi($m, "a")
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					let $attributed := $relsP[@name = "saws:isAttributedToAuthor"]
-					let $attributedp := $relsA[@name = "saws:isAttributedAuthorOf"]
-					let $creator := $relsP[@name = "dcterms:creator"]
-					return if (count($attributed | $attributedp | $creator) ge 1) then (
-						<h4>Author of</h4>,
-						<ul class="w3-small">
-							{
-								for $aut in ($attributed | $creator)
-								return viewItem:workAuthLi($aut, "a")
-							}
-							{
-								for $aut in ($attributedp)
-								return viewItem:workAuthLi($aut, "p")
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					let $translator := $relsA[@name = "betmas:isAuthorOfEthiopicTranslation"]
-					let $translatora := $relsP[@name = "betmas:isAuthorOfEthiopicTranslation"]
+		</li>
+};
 
-					return if (count($translator | $translatora) ge 1) then (
-						<h4>Translator of</h4>,
-						<ul class="w3-small">
-							{
-								for $a in ($translator)
-								return viewItem:workAuthLi($a, "p")
-							}
-							{
-								for $a in ($translatora)
-								return viewItem:workAuthLi($a, "a")
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					if ($item//t:person/t:note) then
-						for $n in $item//t:person/t:note
-						return <div class="w3-container">
-							<h4>
-								{
-									if ($n/@type) then
-										viewItem:capitalize-first($n/@type)
-									else
-										"Notes"
-								}
-							</h4>
-							{ viewItem:TEI2HTML($n) }
-						</div>
-					else (
-					)
-				}
-				{ viewItem:relsinfoblock($rels, $id) }
-				<button
-					class="w3-button w3-red w3-large"
-					data-id="{ $id }"
-					data-value="person"
-					id="showattestations"
-				>Show attestations</button>
-				<div class="w3-container" id="allattestations" />
-			</div>
-			<div
-				class="w3-quarter w3-panel w3-red w3-card-4 w3-padding "
-				id="description"
-				rel="http://xmlns.com/foaf/0.1/name"
-			>
-				<h3>Names {
-						switch ($item//t:person/@sex)
-							case "1" return
-								<i class="fa fa-mars" />
-							case "2" return
-								<i class="fa fa-venus" />
-							default return
-								()
-					}
-					{
-						if ($item//t:person/@sameAs) then
-							<a href="{ viewItem:reflink($item//t:person/@sameAs) }"><span class="icon-large icon-vcard" /></a>
-						else (
-						)
-					}
-				</h3>
-				<ul class="nodot">
-					{
-						for $name in $item//(t:personGrp | t:person)/t:persName[not(@corresp)]
-						let $nameid := $name/@xml:id
-						return <li>
-							{
-								if ($nameid) then
-									attribute id { $nameid }
-								else (
-								)
-							}
-							{
-								if ($name/@type) then
-									string($name/@type) || ": "
-								else (
-								)
-							}
-							{ viewItem:TEI2HTML($name/t:roleName) }
-							{
-								if ($name/@ref) then
-									<a href="{ @ref }" target="_blank">{ viewItem:TEI2HTML($name/node()[not(self::t:roleName)]) }</a>
-								else (
-									viewItem:TEI2HTML($name/node()[not(self::t:roleName)]), " "
-								)
-							}
-							{ viewItem:sup($name) }
-							{
-								if ((count($nameid) gt 1) and $item//t:persName[matches(@corresp, $nameid)]) then (
-									"(",
-									let $corrnames :=
-										for $corrname in $item//t:persName[matches(@corresp, $nameid)]
-										order by string-join($corrname/text())
-										return ($corrname/text(), viewItem:sup($corrname))
-									return viewItem:joinmixed($corrnames),
-									")"
-								) else (
-								)
-							}
-						</li>
-					}
-				</ul>
-				{
-					if ($item//(t:floruit | t:birth | t:death)/@*) then (
-						<h3>Dates </h3>,
-						for $b in $item//t:birth[@when or @notBefore or @notAfter]
-						return <p>Birth: { viewItem:datepicker($b) }</p>,
-						for $b in $item//t:floruit[@when or @notBefore or @notAfter]
-						return <p>Period of activity: { viewItem:datepicker($b) }</p>,
-						for $b in $item//t:death[@when or @notBefore or @notAfter]
-						return <p>Death: { viewItem:datepicker($b) }</p>
-					) else (
-					)
-				}
-				{
-					if ($item//t:occupation) then (
-						<h3>Occupation</h3>,
-						for $o in $item//t:occupation
-						return <p class="lead" property="http://data.snapdrgn.net/ontology/snap#occupation">
-							{ viewItem:date-like($o) }
-						</p>
-					) else (
-					)
-				}
-				{
-					for $othernodes in ("residence", "faith", "nationality")
-					return viewItem:divofperson($item, $othernodes)
-				}
-				{
-					let $successor := $relsA[@name = "betmas:isSuccessorOf"]
-					return if (count($successor) ge 1) then (
-						<h6 />,
-						<ul class="w3-small nodot">
-							{
-								for $aut in ($successor)
-								return <li>Predecessor: { viewItem:personAuthLi($aut, "p") }</li>
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					let $predecessor := $relsA[@name = "betmas:isPredecessorOf"]
-					return if (count($predecessor) ge 1) then (
-						<h6 />,
-						<ul class="w3-small nodot">
-							{
-								for $aut in ($predecessor)
-								return <li>Successor: { viewItem:personAuthLi($aut, "p") }</li>
-							}
-						</ul>
-					) else (
-					)
-				}
-				{
-					let $about := $relsP[@name = "ecrm:P129_is_about"]
-					let $subject := $relsA[@name = "ecrm:P129i_is_subject_of"]
-					return if (count($about | $subject) ge 1) then (
-						<h6>Subject of</h6>,
-						<ul class="w3-small">
-							{
-								for $aut in ($about)
-								return viewItem:workAuthLi($aut, "a")
-							}
-							{
-								for $aut in ($subject)
-								return viewItem:workAuthLi($aut, "p")
-							}
-						</ul>
-					) else (
-					)
-				}
-			</div>
-			<div class="w3-container" id="bibliography">
-				<h3>{ viewItem:bibliographyHeader($item//t:listBibl) }</h3>
-				{ viewItem:TEI2HTML($item//t:listBibl) }
-			</div>
-			{ viewItem:standards($item) }
-		</div>
-		{ viewItem:resp($item) }
-	</div>
+declare function viewItem:personSidebarDates($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//(t:floruit | t:birth | t:death)/@*) then (
+		<h3>Dates </h3>,
+		for $b in $item//t:birth[@when or @notBefore or @notAfter]
+		return <p>Birth: { viewItem:datepicker($b) }</p>,
+		for $b in $item//t:floruit[@when or @notBefore or @notAfter]
+		return <p>Period of activity: { viewItem:datepicker($b) }</p>,
+		for $b in $item//t:death[@when or @notBefore or @notAfter]
+		return <p>Death: { viewItem:datepicker($b) }</p>
+	) else (
+	)
+};
+
+declare function viewItem:personSidebarOccupation($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:occupation) then (
+		<h3>Occupation</h3>,
+		for $o in $item//t:occupation
+		return <p class="lead" property="http://data.snapdrgn.net/ontology/snap#occupation">{ viewItem:date-like($o) }</p>
+	) else (
+	)
+};
+
+declare function viewItem:personSidebarOther($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return for $othernodes in ("residence", "faith", "nationality")
+		return viewItem:divofperson($item, $othernodes)
+};
+
+declare function viewItem:personSidebarSuccessor($node as node(), $model as map(*)) {
+	let $successor := $model("relsA")[@name = "betmas:isSuccessorOf"]
+	return if (count($successor) ge 1) then (
+		<h6 />,
+		<ul class="w3-small nodot">
+			{
+				for $aut in ($successor)
+				return <li>Predecessor: { viewItem:personAuthLi($aut, "p") }</li>
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personSidebarPredecessor($node as node(), $model as map(*)) {
+	let $predecessor := $model("relsA")[@name = "betmas:isPredecessorOf"]
+	return if (count($predecessor) ge 1) then (
+		<h6 />,
+		<ul class="w3-small nodot">
+			{
+				for $aut in ($predecessor)
+				return <li>Successor: { viewItem:personAuthLi($aut, "p") }</li>
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:personSidebarSubjectOf($node as node(), $model as map(*)) {
+	let $about := $model("relsP")[@name = "ecrm:P129_is_about"]
+	let $subject := $model("relsA")[@name = "ecrm:P129i_is_subject_of"]
+	return if (count($about | $subject) ge 1) then (
+		<h6>Subject of</h6>,
+		<ul class="w3-small">
+			{
+				for $aut in ($about)
+				return viewItem:workAuthLi($aut, "a")
+			}
+			{
+				for $aut in ($subject)
+				return viewItem:workAuthLi($aut, "p")
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare %templates:wrap function viewItem:personBibliographyHeader($node as node(), $model as map(*)) {
+	viewItem:bibliographyHeader($model("item")//t:listBibl)
+};
+
+declare function viewItem:personBibliographyList($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("item")//t:listBibl)
+};
+
+declare function viewItem:personStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
+};
+
+declare function viewItem:personResp($node as node(), $model as map(*)) {
+	viewItem:resp($model("item"))
+};
+
+declare function viewItem:person($item) {
+	templates:apply(
+		config:resolve("templates/itemPerson.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"item": $item},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
+	)
 };
 
 (:~
