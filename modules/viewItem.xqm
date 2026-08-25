@@ -4924,92 +4924,107 @@ declare %private function viewItem:corpus($item) {
 	viewItem:documents($item)
 };
 
-declare %private function viewItem:manuscript($item) {
-	(: replaces mss.xsl :)
+declare %templates:wrap function viewItem:manuscriptSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
-	let $mainidno := $item//t:msIdentifier/t:idno
+	return map {"id": $id, "rels": ($relsA | $relsP)}
+};
 
-	return <div id="MainData">
-		<span content="{ $id }" property="http://www.cidoc-crm.org/cidoc-crm/P48_has_preferred_identifier" />
-		<div class="w3-container" id="description" typeof="http://lawd.info/ontology/AssembledWork { $config:appUrl }/mss">
-			{
-				if ($item//t:date[@evidence = "internal-date"] or $item//t:origDate[@evidence = "internal-date"]) then
-					<h1><span class="label label-primary">Dated</span></h1>
-				else (
-				)
-			}
-			<div class="btn-group" id="maintoogles">
-				<div class="w3-bar">
-					{
-						if ($item//t:collection[. = "Tweed Collection"]) then
-							<a
-								class="w3-bar-item  w3-hide-medium w3-hide-small w3-button w3-red"
-								href="{ $config:appUrl }/tweed.html"
-							>Tweed Collection</a>
-						else (
-						)
-					}
-					<button
-						class="w3-bar-item w3-button w3-red"
-						data-id="{ $id }"
-						data-value="mss"
-						id="showattestations"
-					>Show attestations</button>
-					<a class="w3-bar-item  w3-hide-medium w3-hide-small w3-button w3-gray" id="togglecodicologicalInformation">
-						<span class="showHideText">Hide</span> codicological information</a>
-					<a class="w3-bar-item w3-hide-medium w3-hide-small w3-button w3-gray" id="toggletextualcontents">
-						<span class="showHideText">Hide</span> contents</a>
-				</div>
+declare function viewItem:manuscriptIdentifierSpan($node as node(), $model as map(*)) {
+	<span content="{ $model("id") }" property="http://www.cidoc-crm.org/cidoc-crm/P48_has_preferred_identifier" />
+};
+
+declare function viewItem:manuscriptDescription($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $id := $model("id")
+	let $rels := $model("rels")
+	return <div
+		class="w3-container"
+		id="description"
+		typeof="http://lawd.info/ontology/AssembledWork { $config:appUrl }/mss"
+	>
+		{
+			if ($item//t:date[@evidence = "internal-date"] or $item//t:origDate[@evidence = "internal-date"]) then
+				<h1><span class="label label-primary">Dated</span></h1>
+			else (
+			)
+		}
+		<div class="btn-group" id="maintoogles">
+			<div class="w3-bar">
+				{
+					if ($item//t:collection[. = "Tweed Collection"]) then
+						<a
+							class="w3-bar-item  w3-hide-medium w3-hide-small w3-button w3-red"
+							href="{ $config:appUrl }/tweed.html"
+						>Tweed Collection</a>
+					else (
+					)
+				}
+				<button
+					class="w3-bar-item w3-button w3-red"
+					data-id="{ $id }"
+					data-value="mss"
+					id="showattestations"
+				>Show attestations</button>
+				<a class="w3-bar-item  w3-hide-medium w3-hide-small w3-button w3-gray" id="togglecodicologicalInformation">
+					<span class="showHideText">Hide</span> codicological information</a>
+				<a class="w3-bar-item w3-hide-medium w3-hide-small w3-button w3-gray" id="toggletextualcontents">
+					<span class="showHideText">Hide</span> contents</a>
 			</div>
-			<div class="w3-third"><h2>General description</h2></div>
-			<div class="w3-third" />
-			<!--       <div
-                    class="w3-third">
-                    {
-                        if ($item//t:listPerson/t:person/t:persName[@ref]) then
-                            (<h3>People</h3>,
-                            for $person in $item//t:listPerson/t:person
-                            return
-                                <p>
-                                    {viewItem:TEI2HTML($person/node())}
-                                </p>
-                            )
-                        else
-                            ()
-                    }
-                </div>-->
-			<div class="w3-container" id="allattestations" />
-			<div class="w3-third  w3-padding">
-				<h4 class="toptitle" property="http://purl.org/dc/elements/1.1/title">
-					{ $item//t:titleStmt/t:title[not(@type = "full")]/text() }
-				</h4>
-			</div>
-			<span
-				content="{ count($item//t:msContents/t:msItem) }"
-				property="http://www.cidoc-crm.org/cidoc-crm/P57_has_number_of_parts" />
-			<div class="w3-third  w3-padding">
-				<h4>Number of Codicological units: <span class="label label-default">
-						{
-							if (count($item//(t:msPart | t:msFrag)) ge 1) then
-								count($item//(t:msPart | t:msFrag))
-							else
-								1
-						}
-					</span>
-				</h4>
-			</div>
-			{ viewItem:relsinfoblock($rels, $id) }
-			<div class="w3-container" id="generalphysical">{ viewItem:TEI2HTML($item//t:msDesc) }</div>
-			<img id="loadingRole" src="resources/Loading.gif" style="display: none;" />
-			<div id="roleAttestations" />
 		</div>
-		{ viewItem:standards($item) }
-		{ viewItem:calendartables($item) }
+		<div class="w3-third"><h2>General description</h2></div>
+		<div class="w3-third" />
+		<div class="w3-container" id="allattestations" />
+		<div class="w3-third  w3-padding">
+			<h4 class="toptitle" property="http://purl.org/dc/elements/1.1/title">
+				{ $item//t:titleStmt/t:title[not(@type = "full")]/text() }
+			</h4>
+		</div>
+		<span
+			content="{ count($item//t:msContents/t:msItem) }"
+			property="http://www.cidoc-crm.org/cidoc-crm/P57_has_number_of_parts" />
+		<div class="w3-third  w3-padding">
+			<h4>Number of Codicological units: <span class="label label-default">
+					{
+						if (count($item//(t:msPart | t:msFrag)) ge 1) then
+							count($item//(t:msPart | t:msFrag))
+						else
+							1
+					}
+				</span>
+			</h4>
+		</div>
+		{ viewItem:relsinfoblock($rels, $id) }
+		<div class="w3-container" id="generalphysical">{ viewItem:TEI2HTML($item//t:msDesc) }</div>
+		<img id="loadingRole" src="resources/Loading.gif" style="display: none;" />
+		<div id="roleAttestations" />
 	</div>
+};
+
+declare function viewItem:manuscriptStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
+};
+
+declare function viewItem:manuscriptCalendarTables($node as node(), $model as map(*)) {
+	viewItem:calendartables($model("item"))
+};
+
+declare function viewItem:manuscript($item) {
+	templates:apply(
+		config:resolve("templates/itemManuscript.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"item": $item},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
+	)
 };
 
 declare %private function viewItem:divofperson($item, $element) {
