@@ -1,0 +1,211 @@
+test/xqs/test-runner.xq
+  s_842d303292814c::t_45b28d1563a3c1 44
+  s_842d303292814c::t_54d9ae06826a4d 41-43
+  s_842d303292814c::t_2fee2e60bfde36 18-26,36-40
+DSintro.html
+  s_842d303292814c::t_64d3b206c423b4 2
+Fricke.html
+  s_842d303292814c::t_9fc96e85282785 1
+JuelJensen.html
+  s_842d303292814c::t_ee4c61a6a0f0d2 1
+Sinai.html
+  s_842d303292814c::t_92cb560f8b30ae 2
+about.html
+  s_842d303292814c::t_4e04c720e2ff9b 1
+additions.html
+  s_842d303292814c::t_28532630097b9f 2
+apidoc.html
+  s_842d303292814c::t_16bdba6d169b99 2
+appInfo.html
+  s_842d303292814c::t_5b505815bae377 2
+as.html
+  s_842d303292814c::t_c8eefab472317f 1-58,60-86,88-94,96-254,256-261,263-271,273-279,281-301
+availableImages.html
+  s_842d303292814c::t_272ae23576500b 1
+bibl.html
+  s_842d303292814c::t_1e17eb541137d2 2
+bindings.html
+  s_842d303292814c::t_50b6c622df96c5 1
+calendar.html
+  s_842d303292814c::t_e494b087ae838e 1
+chojnacki.html
+  s_842d303292814c::t_389f1558f756d8 1
+clavis-list.html
+  s_842d303292814c::t_a90c4241fb0f4f 4
+clavismatching.html
+  s_842d303292814c::t_263f8836113841 1
+combos.html
+  s_842d303292814c::t_4642a04c31fec4 2
+contacts.html
+  s_842d303292814c::t_9bada1797ccd2d 2
+controller.xql
+  s_842d303292814c::t_9acdbed5d376dc 50-66,573,580,587,594,602,610,618,624,630,636,642
+decorations.html
+  s_842d303292814c::t_a0ab050497208a 2
+deleted.html
+  s_842d303292814c::t_f8cfbd48b4eb88 2
+diplomatique.html
+  s_842d303292814c::t_09b25a2a9ad6ce 2
+docs.html
+  s_842d303292814c::t_87a3286637e563 1
+documentcorpora.html
+  s_842d303292814c::t_c0fb90742c384c 2
+edit/save-new-entity.xql
+  s_842d303292814c::t_eebc83e1c1a53a 5,45,47,49,51,53,55,57,59,61,65-72,74-78,97,110-145
+emip.html
+  s_842d303292814c::t_cc794e33a8e171 1
+error.html
+  s_842d303292814c::t_565594b2128f16 1
+error/error-page.html
+  s_842d303292814c::t_5fd71b88ffb43e 1,4
+expath-pkg.xml
+  s_842d303292814c::t_276d2c43294043 4
+facet.html
+  s_842d303292814c::t_551aef0ab5b3ea 2
+forms/formgender.html
+  s_842d303292814c::t_14ad36a2ce663a 2-8
+forms/forminstitutions.html
+  s_842d303292814c::t_a217375c8a73a5 11
+forms/formtargetmss.html
+  s_842d303292814c::t_5a850b911290da 11
+forms/formworks.html
+  s_842d303292814c::t_379b8cf7438289 11
+help.html
+  s_842d303292814c::t_6055f7039674d1 2
+highlights.html
+  s_842d303292814c::t_e2c6556b9701c1 1
+impressum.html
+  s_842d303292814c::t_b666d89d64331c 2
+index.html
+  s_842d303292814c::t_12ffbddd471d7a 1
+indexeslist.html
+  s_842d303292814c::t_bc032d01e3ecc8 2
+lectures.html
+  s_842d303292814c::t_0008cc6a79fdf1 1
+lod.html
+  s_842d303292814c::t_7b151ad3e3949f 2
+modules/app.xqm
+  s_842d303292814c::t_aef2b626a9a09d 23
+modules/apprest.xqm
+  s_842d303292814c::t_e05c967da2b365 24
+modules/config.xqm
+  s_842d303292814c::t_a706e6cb1e64b5 15,119-131,231-295
+modules/idmanager-seed.xqm
+  s_842d303292814c::t_5fd1e957f75d45 1-122
+modules/idmanager.xqm
+  s_842d303292814c::t_15497a38566e4b 1-112
+modules/indexesNE.xqm
+  s_842d303292814c::t_84c43a18449de5 12,141,187
+modules/item.xqm
+  s_842d303292814c::t_d119d25548154c 156-172,869,876-878,880-886,888-904,906-911,913-924,926-931,933-942,944-956,958-1060,1062-1063,1066-1067,1069-1080,1082-1087,1089-1099,1101-1103,1105-1111,1114,1117-1610,2183-2494,2496,2498,2500,2502,2504,2506,2508,2510-2519
+modules/newEntry.xqm
+  s_842d303292814c::t_aa74dd20d4efdd 11
+modules/queries.xqm
+  s_842d303292814c::t_768d4ba6e33dd1 10
+modules/resources.xqm
+  s_842d303292814c::t_fd72415deafa63 12
+modules/view.xql
+  s_842d303292814c::t_2bee5a2e9420f7 6,23-54,57-59,61-62,64-77,79-85
+modules/viewItem.xqm
+  s_842d303292814c::t_6133ad0ce1c315 22,41-57,4169-4170,4175-4176,4178-4182,4184-4186,4189-4191,4193-4207,4209-4210,4213-4214,4217-4218,4220-4233,4235-4236,4239-4240,4243-4244,4246-4295,4297-4298,4302-4347,4351-4389,4422-4433,4438,4441-4469,4474-4478,4480-4482,4484-4486,4488-4495,4498-4499,4501-4584,4586-4589,4591-4917,4932-4933,4938-4957,4961-4992,4996-4997,5002-5003,5005-5059,5061-5064,5066-5067,5069-5072,5076-5092,5285-5290,5310-5346,5349-5353
+newSearch.html
+  s_842d303292814c::t_e046dd1b944e3e 2
+newentry.html
+  s_842d303292814c::t_c5a6dcf1e710e7 2
+paratexts.html
+  s_842d303292814c::t_405e2deab70940 2
+partners.html
+  s_842d303292814c::t_66369ab9d24e01 2
+persons.html
+  s_842d303292814c::t_fb030d1258aabe 1
+pid.html
+  s_842d303292814c::t_8a93651d69ec08 2-152
+placeoforigin.html
+  s_842d303292814c::t_07cf2b34b7146c 2
+places.html
+  s_842d303292814c::t_d81b1a4c722bed 1
+privateCollections.html
+  s_842d303292814c::t_b0832213aed7b9 1
+projects.html
+  s_842d303292814c::t_4d12c0a9f36bb9 2
+restviews/items.xqm
+  s_842d303292814c::t_2bf5e202c37959 14,30-45,249-268
+restviews/permanentItems.xqm
+  s_842d303292814c::t_31639e0d81064c 15,31-46,235-246,257-268
+restviews/viewer.xqm
+  s_842d303292814c::t_9a54a86341849d 9,19-35,242-257,373-388
+simpleSearch.html
+  s_842d303292814c::t_58eee3cdf743cb 2
+sparql.html
+  s_842d303292814c::t_60fe7d8b69683d 1
+team.html
+  s_842d303292814c::t_030c1b957337f1 1
+templates/itemAuth.html
+  s_842d303292814c::t_7173282c10d48c 1-13
+templates/itemDocuments.html
+  s_842d303292814c::t_53fd26f36d174e 1-20
+templates/itemManuscript.html
+  s_842d303292814c::t_762f06a999c9da 1-6
+templates/itemNarrative.html
+  s_842d303292814c::t_9a90d310781e8e 1-10
+templates/itemPerson.html
+  s_842d303292814c::t_52d0027a3d9297 1-32
+templates/itemPlace.html
+  s_842d303292814c::t_46184176c1364a 1-17
+templates/itemWork.html
+  s_842d303292814c::t_36738e5a1a20d5 1-20
+templates/newindex2.html
+  s_842d303292814c::t_3c0495ade7e6c5 94
+templates/newpage.html
+  s_842d303292814c::t_9be8a35e919000 61
+templates/newsearch.html
+  s_842d303292814c::t_fd56b5d92c37a5 51
+templates/sparql.html
+  s_842d303292814c::t_b743943b3fb134 52
+test/xqs/ts-item-mainrels.xqm
+  s_842d303292814c::t_3f19fccca08581 1-77
+test/xqs/ts-item-seealso-options.xqm
+  s_842d303292814c::t_11fef34675cade 1-87
+test/xqs/ts-viewitem-auth.xqm
+  s_842d303292814c::t_e7d7553fea9849 1-61
+test/xqs/ts-viewitem-documents.xqm
+  s_842d303292814c::t_a5d89fa734ef21 1-95
+test/xqs/ts-viewitem-manuscript.xqm
+  s_842d303292814c::t_b0f2932030e577 1-79
+test/xqs/ts-viewitem-narrative.xqm
+  s_842d303292814c::t_734b159b135151 1-48
+test/xqs/ts-viewitem-person.xqm
+  s_842d303292814c::t_eab456bfc4479a 1-100
+test/xqs/ts-viewitem-place.xqm
+  s_842d303292814c::t_c57cb9fd85e55e 1-95
+test/xqs/ts-viewitem-work.xqm
+  s_842d303292814c::t_ab4b8f4bf641d8 1-107
+titles.html
+  s_842d303292814c::t_82c1fecb427864 1
+tweed.html
+  s_842d303292814c::t_9ba0b04409b4af 1
+visualizations.html
+  s_842d303292814c::t_ccc977185aff3b 2
+vocabularies/material.html
+  s_842d303292814c::t_f1dd170247cdb8 1
+xpath.html
+  s_842d303292814c::t_b896809c83ad6b 2
+xslt/Sinai.html
+  s_842d303292814c::t_a412edef86f3f4 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "caf60f6a0c8b714fb849d9ed624c40edcdc1a4f1",
+  "prompts": {},
+  "sessions": {
+    "s_842d303292814c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "334f15ee-227e-4a8b-b878-fc03b3631a08",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
