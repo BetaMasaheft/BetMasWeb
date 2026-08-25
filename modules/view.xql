@@ -19,7 +19,16 @@ declare option output:omit-xml-declaration "no";
 declare option saxon:output "omit-xml-declaration=no";
 declare option output:media-type "text/html";
 
-let $config := map {$templates:CONFIG_APP_ROOT: $config:app-root, $templates:CONFIG_STOP_ON_ERROR: true()}
+(:
+ : No template in this app uses class="ns:function" dispatch (data-template
+ : is the only syntax in use) - disabling class-syntax lookup skips a
+ : tokenize+regex check on @class for every element that isn't templated.
+ :)
+let $config := map {
+	$templates:CONFIG_APP_ROOT: $config:app-root,
+	$templates:CONFIG_STOP_ON_ERROR: true(),
+	$templates:CONFIG_USE_CLASS_SYNTAX: false()
+}
 
 (:
  : We have to provide a lookup function to templates:apply to help it
