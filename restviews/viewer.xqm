@@ -16,6 +16,23 @@ import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (viewer:lookup#2) at each of this module's templates:apply call sites
+ : instead of each writing its own copy - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :)
+declare function viewer:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"viewer.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
+
 declare function viewer:allmirador($request as map(*)) {
 	(
 		log:add-log-message("/manuscripts/viewer", sm:id()//sm:real/sm:username/string(), "viewer"),
@@ -228,23 +245,14 @@ declare function viewer:mirador($request as map(*)) {
 								 : templates:apply instead of called directly - see
 								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
 								 :)
-								let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
-									config:template-lookup-resolve(
-										"viewer.xqm",
-										$functionName,
-										$arity,
-										try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-									)
-								}
-								let $tmpl-config := config:template-apply-config()
-								return templates:apply(
+								templates:apply(
 									(
 										<div data-template="item2:RestViewOptionsTemplate" />,
 										<div data-template="item2:RestItemHeaderTemplate" />
 									),
-									$lookup,
+									viewer:lookup#2,
 									map {"this": $this, "collection": $collection},
-									$tmpl-config
+									config:template-apply-config()
 								)
 							}
 							<div class="w3-container">
@@ -368,23 +376,14 @@ var canvasid = "' ||
 								 : templates:apply instead of called directly - see
 								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
 								 :)
-								let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
-									config:template-lookup-resolve(
-										"viewer.xqm",
-										$functionName,
-										$arity,
-										try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-									)
-								}
-								let $tmpl-config := config:template-apply-config()
-								return templates:apply(
+								templates:apply(
 									(
 										<div data-template="item2:RestViewOptionsTemplate" />,
 										<div data-template="item2:RestItemHeaderTemplate" />
 									),
-									$lookup,
+									viewer:lookup#2,
 									map {"this": $this, "collection": $collection},
-									$tmpl-config
+									config:template-apply-config()
 								)
 							}
 							<div class="w3-container">

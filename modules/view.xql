@@ -36,6 +36,22 @@ declare %templates:wrap function local:include-page($node as node(), $model as m
 	templates:process($model("page-content")/node(), $model)
 };
 
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (local:lookup#2) below instead of an inline closure - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :)
+declare function local:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"view.xql",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
+
 (:
  : No template in this app uses class="ns:function" dispatch (data-template
  : is the only syntax in use) - disabling class-syntax lookup skips a
@@ -43,23 +59,6 @@ declare %templates:wrap function local:include-page($node as node(), $model as m
  :)
 let $config := map:merge((config:template-apply-config(), map {$templates:CONFIG_APP_ROOT: $config:app-root}))
 
-(:
- : We have to provide a lookup function to templates:apply to help it
- : find functions in the imported application modules. The templates
- : module cannot see the application modules, but the inline function
- : below does see them. See config:template-lookup-resolve for why the
- : function-lookup() call itself has to stay written locally here rather
- : than living in config.xqm too - only the warn-vs-pass-through decision
- : is shared.
- :)
-let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
-	config:template-lookup-resolve(
-		"view.xql",
-		$functionName,
-		$arity,
-		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-	)
-}
 (:
  : A full page declares which wrapper it mounts into via @data-wrapper on
  : its own root element - plain data read directly here, not a templating
@@ -80,6 +79,6 @@ let $page := request:get-data()
 let $root := ($page/self::element(), $page/*)[1]
 let $wrapperPath := $root/@data-wrapper/string()
 return if ($wrapperPath) then
-	templates:apply(config:resolve($wrapperPath), $lookup, map {"page-content": $root}, $config)
+	templates:apply(config:resolve($wrapperPath), local:lookup#2, map {"page-content": $root}, $config)
 else
-	templates:apply($page, $lookup, (), $config)
+	templates:apply($page, local:lookup#2, (), $config)

@@ -38,6 +38,23 @@ declare variable $viewItem:editors := doc("/db/apps/lists/editors.xml")//t:list;
 
 declare variable $viewItem:lang := doc("/db/apps/lists/languages.xml")//t:list;
 
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (viewItem:lookup#2) at each of this module's templates:apply call
+ : sites instead of each writing its own copy - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :)
+declare function viewItem:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"viewItem.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
+
 declare %private function viewItem:imagesID($locus, $callorid, $att, $ancID) {
 	let $id := concat("images", replace(normalize-space(string-join($att)), " ", "_"), $ancID)
 	return if ($callorid = "call") then
@@ -4377,14 +4394,7 @@ declare function viewItem:workResp($node as node(), $model as map(*)) {
 declare function viewItem:work($item) {
 	templates:apply(
 		config:resolve("templates/itemWork.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"item": $item},
 		config:template-apply-config()
 	)
@@ -4766,14 +4776,7 @@ declare function viewItem:personResp($node as node(), $model as map(*)) {
 declare function viewItem:person($item) {
 	templates:apply(
 		config:resolve("templates/itemPerson.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"item": $item},
 		config:template-apply-config()
 	)
@@ -4922,14 +4925,7 @@ declare function viewItem:placeResp($node as node(), $model as map(*)) {
 declare function viewItem:place($item) {
 	templates:apply(
 		config:resolve("templates/itemPlace.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"item": $item},
 		config:template-apply-config()
 	)
@@ -5000,14 +4996,7 @@ declare function viewItem:authStandards($node as node(), $model as map(*)) {
 declare function viewItem:auth($item) {
 	templates:apply(
 		config:resolve("templates/itemAuth.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"item": $item},
 		config:template-apply-config()
 	)
@@ -5108,14 +5097,7 @@ declare function viewItem:manuscriptCalendarTables($node as node(), $model as ma
 declare function viewItem:manuscript($item) {
 	templates:apply(
 		config:resolve("templates/itemManuscript.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"item": $item},
 		config:template-apply-config()
 	)
@@ -5315,14 +5297,7 @@ declare function viewItem:main($item) {
 		case "nar" return
 			templates:apply(
 				config:resolve("templates/itemNarrative.html"),
-				function ($functionName as xs:string, $arity as xs:integer) {
-					config:template-lookup-resolve(
-						"viewItem.xqm",
-						$functionName,
-						$arity,
-						try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-					)
-				},
+				viewItem:lookup#2,
 				map {"item": $item},
 				config:template-apply-config()
 			)
@@ -5386,14 +5361,7 @@ declare function viewItem:documents($doc) {
 	(: replaces documents.xsl :)
 	templates:apply(
 		config:resolve("templates/itemDocuments.html"),
-		function ($functionName as xs:string, $arity as xs:integer) {
-			config:template-lookup-resolve(
-				"viewItem.xqm",
-				$functionName,
-				$arity,
-				try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-			)
-		},
+		viewItem:lookup#2,
 		map {"doc": $doc},
 		config:template-apply-config()
 	)

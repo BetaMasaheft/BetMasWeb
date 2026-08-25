@@ -27,6 +27,22 @@ import module namespace dtsc = "https://www.betamasaheft.uni-hamburg.de/BetMasWe
 
 declare variable $restItem:deleted := doc("/db/apps/lists/deleted.xml");
 
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (restItem:lookup#2) at each templates:apply call site here instead of
+ : each writing its own copy - see config:template-lookup-resolve for why
+ : the function-lookup() probe still has to be written locally per
+ : module rather than shared in config.xqm too.
+ :)
+declare function restItem:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"items.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
+
 (: parameter hi is used to highlight searched word when coming query from Dillmann
 parameters start and perpage are for the text visualization with pagination as per standard usage :)
 declare function restItem:getItem($request as map(*)) {
@@ -240,23 +256,14 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 							 : passed as a sibling sequence, not a shared wrapper, so no
 							 : extra element ends up in the output.
 							 :)
-							let $lookup := function ($functionName as xs:string, $arity as xs:integer) {
-								config:template-lookup-resolve(
-									"items.xqm",
-									$functionName,
-									$arity,
-									try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-								)
-							}
-							let $tmpl-config := config:template-apply-config()
-							return templates:apply(
+							templates:apply(
 								(
 									<div data-template="item2:RestViewOptionsTemplate" />,
 									<div data-template="item2:RestItemHeaderTemplate" />
 								),
-								$lookup,
+								restItem:lookup#2,
 								map {"this": $this, "collection": $collection},
-								$tmpl-config
+								config:template-apply-config()
 							)
 						}
 						{
