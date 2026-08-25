@@ -277,289 +277,7 @@ declare function PermRestItem:ITEM(
 							) else
 								attribute style { "margin-left:10%" }
 						}
-						{
-							switch ($type)
-								case "corpus" return
-									(
-										<div class="w3-container">
-											<label class="switch diplomaticHighlight">
-												<input class="w3-check" type="checkbox" />
-												<div
-													class="slider round"
-													data-toggle="tooltip"
-													title="Highlight diplomatic disourse interpretation" />
-											</label>
-											{
-												for $document in item2:rels($id)
-												let $rootid := string($document/@active)
-												let $itemid := substring-after($rootid, "#")
-												let $msid := substring-before($rootid, "#")
-												return <div class="w3-row documentcorpus w3-panel w3-leftbar">
-													{
-														let $doc := doc(base-uri($document))//id($itemid)
-														return (
-															<div class="w3-col" style="width:15%">
-																<a href="{ $msid }">{ exptit:printTitle($msid) }</a>
-																<br />
-																<a href="/{ $rootid }">
-																	{
-																		if ($doc/t:title) then
-																			string:additionstitles($doc/t:title/node())
-																		else if ($doc/t:desc/@type) then
-																			string($doc/t:desc/@type)
-																		else
-																			$itemid
-																	}
-																</a>
-    ({ string:additionstitles($doc/t:locus) })
-     
-     </div>,
-															<div class="w3-rest">{ viewItem:documents($doc) }</div>
-														)
-													}
-												</div>
-											}
-										</div>
-									)
-								case "geobrowser" return
-									(
-										<div class="w3-container">
-											<div class="w3-container alert alert-info">You can download the <a
-													href="https://betamasaheft.eu/api/KML/places/{ $id }"
-												>KML</a> file visualized below in the <a
-													href="https://geobrowser.de.dariah.eu"
-												>Dariah-DE Geobrowser</a>.</div>
-											<h3>Map and timeline of places attestations marked up in the text.</h3>
-											<iframe
-												id="geobrowserMap"
-												src="https://geobrowser.de.dariah.eu/embed/index.html?kml1=https://betamasaheft.eu/api/KML/places/{
-													$id
-												}"
-												style="width: 100%; height: 800px;" />
-										</div>
-									)
-								case "analytic" return
-									(
-										<div class="w3-container">
-											<img id="loading" src="resources/Loading.gif" style="display: none;" />
-											<div class="w3-container">
-												<div class="w3-half w3-padding" id="BetMasRel" style="display: none;">
-													<div class="input-group container">
-														<button class="w3-button w3-gray" id="clusterOutliers">Cluster outliers</button>
-														<button class="w3-button w3-gray" id="clusterByHubsize">Cluster by hubsize</button>
-													</div>
-													<div class="w3-container" data-value="{ $id }" id="BetMasRelView" />
-													<script src="resources/js/visgraphspec.js" type="text/javascript" />
-												</div>
-												<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
-											</div>
-											<div class="w3-container">
-												<div class="w3-half w3-padding">
-													<div class="w3-container" id="timeLine" />
-													<script type="text/javascript">{ item2:timeline($this, $collection) }</script>
-												</div>
-												<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
-											</div>
-										</div>
-									)
-								case "text" return
-									(
-										<div class="w3-container">
-											<div class="w3-twothird" id="dtstext">
-												{
-													if ($this//t:div[@type eq "edition"]) then
-														dtsc:text($id, $this//t:div[@type eq "edition"], "", "", "", $collection)
-													else
-														<p>No text available here.</p>
-												}
-											</div>
-											<!--<div class="w3-third w3-gray w3-padding">{item2:textBibl($this, $id)}</div>-->
-										</div>,
-										for $contains in $this//t:relation[@name eq "saws:contains"]/@passive
-										let $ids := if (contains($contains, " ")) then
-											for $x in tokenize($contains, " ")
-											return $x
-										else
-											string($contains)
-										for $contained in $ids
-										let $cfile := item2:getTEIbyID($contained)
-										return <div class="w3-container">
-											{
-												<div class="w3-twothird" id="dtstext">Contains  { item2:title($contained) }
-													{
-														if ($cfile//t:div[@type eq "edition"]) then
-															dtsc:text($contained, "", "", "", "", "works")
-														else (
-														)
-													}
-												</div>,
-												<!--<div class="w3-third w3-gray w3-padding">{item2:textBibl($this, $id)}</div>-->
-											}
-										</div>
-									)
-								case "graph" return
-									(
-										switch ($collection)
-											case "manuscripts" return
-												let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(
-													@type eq "blank"
-												)]/text()
-												return <div class="w3-container">
-													<button class="w3-button w3-red" disabled="disabled" id="enrichTable">Enrich Table</button>
-													<div
-														class="alert alert-info"
-														id="graphloadingstatus"
-													>Loading graph and synoptique table...</div>
-													<div class="w3-container">
-														<div class="w3-responsive">
-															<table
-																class="w3-table w3-bordered w3-hoverable w3-condensed"
-																data-extent="{ $ex }"
-																data-id="{ $id }"
-																id="SdCTable"
-															>
-																{
-																	if ($this//t:msDesc/t:msIdentifier/t:idno[@facs]) then (
-																		attribute data-images { string($this//t:msDesc/t:msIdentifier/t:idno/@facs) },
-																		attribute data-imagesSource { $this//t:msDesc/t:msIdentifier/t:collection/text() }
-																	) else (
-																	)
-																}
-																<thead>
-																	<tr>
-																		<th>Quires</th>
-																		<th>folios</th>
-																		<th>UniMat</th>
-																		<th>UniMarq</th>
-																		<th>UniCah</th>
-																		<th>UniCont</th>
-																		<th>addition</th>
-																		<th>UniMain</th>
-																		<th>UniEcri</th>
-																		<th>UniRegl</th>
-																		<th>UniMep</th>
-																		<th>decoration</th>
-																		<th>UniProd</th>
-																	</tr>
-																</thead>
-																<tbody />
-															</table>
-															<script src="resources/js/SdCtable.js" type="text/javascript" />
-														</div>
-													</div>
-													<div data-id="{ $id }" id="graph" />
-													<div class="w3-container">
-														<div class="w3-container">
-															<div class="w3-panel w3-red">
-																<p
-																	class="w3-panel w3-red"
-																>
-      Sankey diagram of the manuscript. Showing UniProd
-      and UniCirc explicitly related. Transformations are given weight 1.
-      UniProd and UniCirc declarations are given weight 2. Exact matches are given weight 3.
-    There is no chronological implication.</p>
-															</div>
-															{ charts:mssSankey($id) }
-														</div>
-														<div class="w3-container">
-															<div class="w3-panel w3-red">
-																<p
-																>
-      Graph of the manuscript transformations using the Syntaxe du Codex ontology.</p>
-															</div>
-															<div class="w3-container" id="SdCGraph" />
-														</div>
-													</div>
-													<!--  <div class="w3-container">
-     <div id="GraphResult"/>
- </div> -->
-													<script src="resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
-												</div>
-											case "places" return
-												<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
-											case "persons" return
-												<div class="w3-container">
-													<div data-id="{ $id }" id="graph" />
-													<div class="w3-container" id="SNAPGraph" />
-													<p>Graph view of the SNAP relations between persons.</p>
-													<div class="w3-container" id="AttestationsInWorks" />
-													<p>Annotated attestations in texts (works and manuscripts).</p>
-													<script src="resources/js/SNAPGraph.js" type="text/javascript" />
-													<div class="w3-container">{ charts:pieAttestations($id, "persName") }</div>
-												</div>
-											case "authority-files" return
-												let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc eq
-													"Subjects"]//t:category/t:catDesc/text()
-												return if ($id = $Subjects) then (
-													try { LitFlow:Sankey($id, "works") } catch * { $err:description },
-													try { LitFlow:Sankey($id, "mss") } catch * { $err:description }
-												) else (
-												)
-											default return
-												<div class="w3-container">
-													<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
-													<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
-													<div class="w3-container" id="GraphResultNotMS" />
-													<script src="resources/js/colorbrewer.js" />
-													<script src="resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
-												</div>
-									)
-								default return
-									(: THE MAIN VIEW :)
-									(
-										if ($collection = "places") then (
-											<div class="w3-container">
-												<div class="w3-half w3-padding"><div id="entitymap" style="height: 400px" /></div>
-												<div class="w3-half w3-padding">
-													<iframe
-														allowfullscreen="true"
-														height="400"
-														src="https://peripleo.pelagios.org/embed/{
-															encode-for-uri(concat("http://betamasaheft.eu/places/", $id))
-														}"
-														style="border:none;"
-														width="100%" />
-												</div>
-											</div>,
-											<script>{ 'var placeid = "' || $id || '"' }</script>,
-											<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
-										) else (
-										),
-										<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,
-										(: item2:namedentitiescorresps($this, $collection), :)
-										(: the form with a list of potental relation keywords to find related items. value is used by Jquery to query rest again on api:SharedKeyword($keyword) :)
-										switch ($collection)
-											case "works" return
-												(item2:RestMiniatures($id))
-											case "persons" return
-												(item2:RestTabot($id), item2:RestAdditions($id), item2:RestMiniatures($id))
-											case "authority-files" return
-												<div class="w3-container">
-													<h4
-													>Art Objects associated with this Art Theme in miniatures and other manuscript decorations</h4>
-													<div class="w3-panel w3-red">{ item2:RestMiniaturesKeys($id) }</div>
-													<div class="w3-panel w3-red">{ item2:RestMiniatures($id) }</div>
-												</div>
-											case "institutions" return
-												(
-													<div class="w3-container">
-														<iframe
-															allowfullscreen="true"
-															height="400"
-															src="https://peripleo.pelagios.org/embed/{
-																encode-for-uri(concat("http://betamasaheft.eu/places/", $id))
-															}"
-															style="border:none;"
-															width="100%" />
-													</div>,
-													<div id="entitymap" style="width: 100%; height: 400px" />,
-													<script>{ 'var placeid = "' || $id || '"' }</script>,
-													<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
-												)
-											default return
-												()
-									)
-						}
+						{ PermRestItem:mainContent($type, $this, $id, $collection) }
 						<div class="w3-container w3-margin-bottom">
 							<div class="w3-container w3-padding w3-black w3-card-4 ">This page contains RDFa. 
    <a
@@ -590,4 +308,220 @@ declare function PermRestItem:ITEM(
 			</body>
 		</html>
 	)
+};
+
+(:~
+ : Split out of PermRestItem:ITEM's inline switch($type) - same shape and
+ : motivation as restItem:mainContent's split of the sibling switch in
+ : restviews/items.xqm: maintainability and testability for a large
+ : inline switch, not an html-templating conversion.
+ :
+ : This is a genuinely separate, already-diverged copy of that switch
+ : (different corpus-doc lookup, an uncommented BetMasRel block in
+ : "analytic", inlined contained-works logic in "text", an
+ : "institutions" case in the extras switch that restItem:mainContent's
+ : version doesn't have) - each function below preserves its own file's
+ : exact original content, not restItem:mainContent's.
+ :)
+declare function PermRestItem:mainContentCorpus($id as xs:string*) {
+	<div class="w3-container">
+		<label class="switch diplomaticHighlight">
+			<input class="w3-check" type="checkbox" />
+			<div class="slider round" data-toggle="tooltip" title="Highlight diplomatic disourse interpretation" />
+		</label>
+		{
+			for $document in item2:rels($id)
+			let $rootid := string($document/@active)
+			let $itemid := substring-after($rootid, "#")
+			let $msid := substring-before($rootid, "#")
+			return <div class="w3-row documentcorpus w3-panel w3-leftbar">
+				{
+					let $doc := doc(base-uri($document))//id($itemid)
+					return (
+						<div class="w3-col" style="width:15%">
+							<a href="{ $msid }">{ exptit:printTitle($msid) }</a>
+							<br />
+							<a href="/{ $rootid }">
+								{
+									if ($doc/t:title) then
+										string:additionstitles($doc/t:title/node())
+									else if ($doc/t:desc/@type) then
+										string($doc/t:desc/@type)
+									else
+										$itemid
+								}
+							</a>
+    ({ string:additionstitles($doc/t:locus) })
+
+     </div>,
+						<div class="w3-rest">{ viewItem:documents($doc) }</div>
+					)
+				}
+			</div>
+		}
+	</div>
+};
+
+declare function PermRestItem:mainContentAnalytic($this as element(), $id as xs:string*, $collection as xs:string*) {
+	<div class="w3-container">
+		<img id="loading" src="resources/Loading.gif" style="display: none;" />
+		<div class="w3-container">
+			<div class="w3-half w3-padding" id="BetMasRel" style="display: none;">
+				<div class="input-group container">
+					<button class="w3-button w3-gray" id="clusterOutliers">Cluster outliers</button>
+					<button class="w3-button w3-gray" id="clusterByHubsize">Cluster by hubsize</button>
+				</div>
+				<div class="w3-container" data-value="{ $id }" id="BetMasRelView" />
+				<script src="resources/js/visgraphspec.js" type="text/javascript" />
+			</div>
+			<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
+		</div>
+		<div class="w3-container">
+			<div class="w3-half w3-padding">
+				<div class="w3-container" id="timeLine" />
+				<script type="text/javascript">{ item2:timeline($this, $collection) }</script>
+			</div>
+			<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
+		</div>
+	</div>
+};
+
+declare function PermRestItem:mainContentText($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(
+		<div class="w3-container">
+			<div class="w3-twothird" id="dtstext">
+				{
+					if ($this//t:div[@type eq "edition"]) then
+						dtsc:text($id, $this//t:div[@type eq "edition"], "", "", "", $collection)
+					else
+						<p>No text available here.</p>
+				}
+			</div>
+			<!--<div class="w3-third w3-gray w3-padding">{item2:textBibl($this, $id)}</div>-->
+		</div>,
+		for $contains in $this//t:relation[@name eq "saws:contains"]/@passive
+		let $ids := if (contains($contains, " ")) then
+			for $x in tokenize($contains, " ")
+			return $x
+		else
+			string($contains)
+		for $contained in $ids
+		let $cfile := item2:getTEIbyID($contained)
+		return <div class="w3-container">
+			{
+				<div class="w3-twothird" id="dtstext">Contains  { item2:title($contained) }
+					{
+						if ($cfile//t:div[@type eq "edition"]) then
+							dtsc:text($contained, "", "", "", "", "works")
+						else (
+						)
+					}
+				</div>,
+				<!--<div class="w3-third w3-gray w3-padding">{item2:textBibl($this, $id)}</div>-->
+			}
+		</div>
+	)
+};
+
+declare function PermRestItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
+	switch ($collection)
+		case "manuscripts" return
+			item2:mainContentGraphManuscripts($this, $id)
+		case "places" return
+			item2:mainContentGraphPlaces($id)
+		case "persons" return
+			item2:mainContentGraphPersons($id)
+		case "authority-files" return
+			item2:mainContentGraphAuthorityFiles($id)
+		default return
+			item2:mainContentGraphDefault($id, $collection)
+};
+
+declare function PermRestItem:mainContentExtrasPersons($id as xs:string*) {
+	(item2:RestTabot($id), item2:RestAdditions($id), item2:RestMiniatures($id))
+};
+
+declare function PermRestItem:mainContentExtrasAuthorityFiles($id as xs:string*) {
+	<div class="w3-container">
+		<h4>Art Objects associated with this Art Theme in miniatures and other manuscript decorations</h4>
+		<div class="w3-panel w3-red">{ item2:RestMiniaturesKeys($id) }</div>
+		<div class="w3-panel w3-red">{ item2:RestMiniatures($id) }</div>
+	</div>
+};
+
+declare function PermRestItem:mainContentExtrasInstitutions($id as xs:string*) {
+	(
+		<div class="w3-container">
+			<iframe
+				allowfullscreen="true"
+				height="400"
+				src="https://peripleo.pelagios.org/embed/{ encode-for-uri(concat("http://betamasaheft.eu/places/", $id)) }"
+				style="border:none;"
+				width="100%" />
+		</div>,
+		<div id="entitymap" style="width: 100%; height: 400px" />,
+		<script>{ 'var placeid = "' || $id || '"' }</script>,
+		<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
+	)
+};
+
+declare function PermRestItem:mainContentExtras($id as xs:string*, $collection as xs:string*) {
+	switch ($collection)
+		case "works" return
+			item2:mainContentExtrasWorks($id)
+		case "persons" return
+			PermRestItem:mainContentExtrasPersons($id)
+		case "authority-files" return
+			PermRestItem:mainContentExtrasAuthorityFiles($id)
+		case "institutions" return
+			PermRestItem:mainContentExtrasInstitutions($id)
+		default return
+			()
+};
+
+declare function PermRestItem:mainContentDefault($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(
+		if ($collection = "places") then (
+			<div class="w3-container">
+				<div class="w3-half w3-padding"><div id="entitymap" style="height: 400px" /></div>
+				<div class="w3-half w3-padding">
+					<iframe
+						allowfullscreen="true"
+						height="400"
+						src="https://peripleo.pelagios.org/embed/{ encode-for-uri(concat("http://betamasaheft.eu/places/", $id)) }"
+						style="border:none;"
+						width="100%" />
+				</div>
+			</div>,
+			<script>{ 'var placeid = "' || $id || '"' }</script>,
+			<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
+		) else (
+		),
+		<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,
+		(: item2:namedentitiescorresps($this, $collection), :)
+		(: the form with a list of potental relation keywords to find related items. value is used by Jquery to query rest again on api:SharedKeyword($keyword) :)
+		PermRestItem:mainContentExtras($id, $collection)
+	)
+};
+
+declare function PermRestItem:mainContent(
+	$type as xs:string*,
+	$this as element(),
+	$id as xs:string*,
+	$collection as xs:string*
+) {
+	switch ($type)
+		case "corpus" return
+			PermRestItem:mainContentCorpus($id)
+		case "geobrowser" return
+			item2:mainContentGeobrowser($id)
+		case "analytic" return
+			PermRestItem:mainContentAnalytic($this, $id, $collection)
+		case "text" return
+			PermRestItem:mainContentText($this, $id, $collection)
+		case "graph" return
+			PermRestItem:mainContentGraph($this, $id, $collection)
+		default return
+			(: THE MAIN VIEW :)
+			PermRestItem:mainContentDefault($this, $id, $collection)
 };
