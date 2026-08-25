@@ -62,12 +62,12 @@ let $type := switch ($collection)
 
 let $data-collection := $config:data-root || "/" || $collection || "/new"
 
-(: betmas-id-manager owns id generation/uniqueness now - prefix, sequence
-   and the atomic counter that used to race with the old scan-and-increment
-   here. $collection is passed straight through as the service's type
-   parameter, the two were deliberately named identically. Manual types
-   (manuscripts/authority-files) register $suffix verbatim as the id, same
-   as before; auto types get a freshly reserved id back. :)
+(:~
+ : betmas-id-manager owns id generation/uniqueness - prefix, sequence
+ : and the atomic counter. $collection is passed straight through as the service's type
+ : parameter, the two were deliberately named identically. Manual types
+ : (manuscripts/authority-files) register $suffix verbatim as the id. auto types get a freshly reserved id back.
+ :)
 let $idResult := if ($collection = "manuscripts" or $collection = "authority-files") then
 	idmanager:register-manual($collection, $suffix)
 else
