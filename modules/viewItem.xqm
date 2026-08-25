@@ -4162,185 +4162,231 @@ declare %private function viewItem:standards($item) {
 	<ul class="w3-bar-item w3-hide" id="enc">{ viewItem:TEI2HTML($item//t:encodingDesc/node()) }</ul>
 };
 
-declare %private function viewItem:work($item) {
+declare %templates:wrap function viewItem:workSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
-	return <div class="w3-twothird" id="MainData">
-		<div id="description">
-			{
-				if (count($item//t:titleStmt/t:title) ge 1) then (
-					<h2>Titles</h2>,
-					<ul>
-						{
-							for $t in $item//t:titleStmt/t:title[not(@type = "full")][@xml:id]
-							order by $t/@xml:id , string-join($t/text())
-							return viewItem:worktitle($t)
-						}
-						{
-							for $t in $item//t:titleStmt/t:title[not(@type = "full")][not(@xml:id or @corresp)]
-							order by string-join($t/text())
-							return viewItem:worktitle($t)
-						}
-					</ul>
-				) else (
-				)
-			}
-			{
-				let $attributed := $relsA[@name = "saws:isAttributedToAuthor"]
-				let $attributedp := $relsP[@name = "saws:isAttributedAuthorOf"]
-				let $creator := $relsA[@name = "dcterms:creator"]
-				return if (count($item//t:author[not(parent::t:bibl)] | $attributed | $attributedp | $creator) ge 1) then (
-					<h2>Authorship</h2>,
-					<ul>
-						{
-							for $aut in ($attributed | $creator)
-							return viewItem:workAuthLi($aut, "p")
-						}
-						{
-							for $aut in ($attributedp)
-							return viewItem:workAuthLi($aut, "a")
-						}
-						{
-							for $aut in $item//t:author[not(parent::t:bibl)]
-							return <li>{ $aut }</li>
-						}
-					</ul>
-				) else (
-				)
-			}
-			{
-				let $translator := $relsP[@name = "betmas:isAuthorOfEthiopicTranslation"]
-				let $translatora := $relsA[@name = "betmas:isAuthorOfEthiopicTranslation"]
+	return map {"id": $id, "relsA": $relsA, "relsP": $relsP, "rels": ($relsA | $relsP)}
+};
 
-				return if (count($translator | $translatora) ge 1) then (
-					<h2>Translator</h2>,
-					<ul>
-						{
-							for $a in ($translator)
-							return viewItem:workAuthLi($a, "a")
-						}
-						{
-							for $a in ($translatora)
-							return viewItem:workAuthLi($a, "p")
-						}
-						{
-							for $a in $item//t:author[not(parent::t:bibl)]
-							return <li>{ $a }</li>
-						}
-					</ul>
-				) else (
-				)
+declare function viewItem:workTitles($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if (count($item//t:titleStmt/t:title) ge 1) then (
+		<h2>Titles</h2>,
+		<ul>
+			{
+				for $t in $item//t:titleStmt/t:title[not(@type = "full")][@xml:id]
+				order by $t/@xml:id , string-join($t/text())
+				return viewItem:worktitle($t)
 			}
 			{
-				if ((count($rels) ge 1) or $item//t:abstract) then (
-					<h2>General description</h2>, viewItem:TEI2HTML($item//t:abstract), viewItem:relsinfoblock($rels, $id)
-				) else (
-				)
+				for $t in $item//t:titleStmt/t:title[not(@type = "full")][not(@xml:id or @corresp)]
+				order by string-join($t/text())
+				return viewItem:worktitle($t)
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:workAuthorship($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $relsA := $model("relsA")
+	let $relsP := $model("relsP")
+	let $attributed := $relsA[@name = "saws:isAttributedToAuthor"]
+	let $attributedp := $relsP[@name = "saws:isAttributedAuthorOf"]
+	let $creator := $relsA[@name = "dcterms:creator"]
+	return if (count($item//t:author[not(parent::t:bibl)] | $attributed | $attributedp | $creator) ge 1) then (
+		<h2>Authorship</h2>,
+		<ul>
+			{
+				for $aut in ($attributed | $creator)
+				return viewItem:workAuthLi($aut, "p")
 			}
 			{
-				if ($item//t:extent) then
-					<p>{ viewItem:TEI2HTML($item//t:extent) }</p>
+				for $aut in ($attributedp)
+				return viewItem:workAuthLi($aut, "a")
+			}
+			{
+				for $aut in $item//t:author[not(parent::t:bibl)]
+				return <li>{ $aut }</li>
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:workTranslator($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $relsA := $model("relsA")
+	let $relsP := $model("relsP")
+	let $translator := $relsP[@name = "betmas:isAuthorOfEthiopicTranslation"]
+	let $translatora := $relsA[@name = "betmas:isAuthorOfEthiopicTranslation"]
+	return if (count($translator | $translatora) ge 1) then (
+		<h2>Translator</h2>,
+		<ul>
+			{
+				for $a in ($translator)
+				return viewItem:workAuthLi($a, "a")
+			}
+			{
+				for $a in ($translatora)
+				return viewItem:workAuthLi($a, "p")
+			}
+			{
+				for $a in $item//t:author[not(parent::t:bibl)]
+				return <li>{ $a }</li>
+			}
+		</ul>
+	) else (
+	)
+};
+
+declare function viewItem:workGeneralDescription($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $rels := $model("rels")
+	let $id := $model("id")
+	return if ((count($rels) ge 1) or $item//t:abstract) then (
+		<h2>General description</h2>, viewItem:TEI2HTML($item//t:abstract), viewItem:relsinfoblock($rels, $id)
+	) else (
+	)
+};
+
+declare function viewItem:workExtent($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:extent) then
+		<p>{ viewItem:TEI2HTML($item//t:extent) }</p>
+	else (
+	)
+};
+
+declare function viewItem:workSnippet($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $edition := ($item//t:div[@type = "edition"][1])
+	let $incipit := ($edition//t:div[@subtype = "incipit"][1])
+	let $text := if (normalize-space(string-join($edition/*//text()))) then
+		normalize-space(string-join($edition/*//text()[not(ancestor::t:label) and not(ancestor::t:note)]))
+	else (
+	)
+	return if ($incipit) then
+		<p class="w3-small">
+			<b>Incipit: </b>
+			{ normalize-space(string-join($incipit[1]/*//text()[not(ancestor::t:label) and not(ancestor::t:note)])) }
+		</p>
+	else if ($text and contains($text, "፡")) then
+		<p class="w3-small"><b>Snippet: </b>{ string-join(subsequence(tokenize($text, "፡"), 1, 8), "፡") } ...
+        </p>
+	else (
+	)
+};
+
+declare function viewItem:workCreationDate($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:creation) then (
+		for $b in $item//t:creation[@when or @notBefore or @notAfter]
+		return <p>Creation date: { viewItem:datepicker($b) }</p>,
+		<p>
+			{ viewItem:TEI2HTML($item//t:creation) }
+			{
+				if ($item//t:creation/@evidence) then
+					"(" || string($item//t:creation/@evidence) || ")"
 				else (
 				)
 			}
-			{
-				let $edition := ($item//t:div[@type = "edition"][1])
-				let $incipit := ($edition//t:div[@subtype = "incipit"][1])
-				let $text := if (normalize-space(string-join($edition/*//text()))) then
-					normalize-space(string-join($edition/*//text()[not(ancestor::t:label) and not(ancestor::t:note)]))
-				else (
-				)
-				return if ($incipit) then
-					<p class="w3-small">
-						<b>Incipit: </b>
-						{ normalize-space(string-join($incipit[1]/*//text()[not(ancestor::t:label) and not(ancestor::t:note)])) }
-					</p>
-				else if ($text and contains($text, "፡")) then
-					<p class="w3-small">
-						<b>Snippet: </b>
-						{ string-join(subsequence(tokenize($text, "፡"), 1, 8), "፡") } ...
-                        </p>
-				else (
-				)
-			}
-			{
-				if ($item//t:creation) then (
-					for $b in $item//t:creation[@when or @notBefore or @notAfter]
-					return <p>Creation date: { viewItem:datepicker($b) }</p>,
-					<p>
-						{ viewItem:TEI2HTML($item//t:creation) }
-						{
-							if ($item//t:creation/@evidence) then
-								"(" || string($item//t:creation/@evidence) || ")"
-							else (
-							)
-						}
-					</p>
-				) else (
-				)
-			}
-			{
-				if ($item//t:listWit) then (
-					<h2>Witnesses</h2>,
-					<p
-						class="alert alert-info"
-					>The following manuscripts are reported in this record as witnesses of the source of the information or the edition here encoded.
+		</p>
+	) else (
+	)
+};
+
+declare function viewItem:workWitnesses($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:listWit) then (
+		<h2>Witnesses</h2>,
+		<p
+			class="alert alert-info"
+		>The following manuscripts are reported in this record as witnesses of the source of the information or the edition here encoded.
                             Please check the <a
-							href="#computedWitnesses"
-						>box on the right</a> for a live updated list of manuscripts pointing to this record.</p>,
-					if ($item//t:listWit/@rend = "edition") then
-						<b>Manuscripts used in the edition</b>
-					else if ($item//t:listWit) then (
-					) else (
-					),
-					<ul>{ viewItem:TEI2HTML($item//t:listWit[not(parent::t:listWit)]) }</ul>
-				) else (
-				)
-			}
-			{
-				if ($item//t:sourceDesc/t:p) then
-					viewItem:TEI2HTML($item//t:sourceDesc/t:p)
-				else (
-				)
-			}
-			{
-				for $b in $item//t:listBibl[@type = "clavis"]
-				return <div id="clavisbibliography">
-					{ viewItem:bibliographyHeader($b) }
-					<ul class="bibliographyList">{ viewItem:TEI2HTML($b) }</ul>
-				</div>
-			}
-			{
-				for $b in $item//t:listBibl[not(@type = "clavis")]
-				return <div id="bibliography">
-					{ viewItem:bibliographyHeader($b) }
-					<ul class="bibliographyList">{ viewItem:TEI2HTML($b) }</ul>
-				</div>
-			}
-			{ viewItem:standards($item) }
-			{
-				if ($item//t:div[@type = "edition"]//t:ab//text()) then
-					<a
-						class="w3-button w3-gray"
-						href="http://voyant-tools.org/?input={ $config:appUrl }/works/{ $id }.xml"
-						target="_blank"
-					>Voyant</a>
-				else (
-				)
-			}
-			<button
-				class="w3-button w3-red"
-				data-id="{ $id }"
-				data-value="work"
-				id="showattestations"
-			>Show attestations</button>
-			<div class="w3-container" id="allattestations" />
-		</div>
-		{ viewItem:resp($item) }
+				href="#computedWitnesses"
+			>box on the right</a> for a live updated list of manuscripts pointing to this record.</p>,
+		if ($item//t:listWit/@rend = "edition") then
+			<b>Manuscripts used in the edition</b>
+		else if ($item//t:listWit) then (
+		) else (
+		),
+		<ul>{ viewItem:TEI2HTML($item//t:listWit[not(parent::t:listWit)]) }</ul>
+	) else (
+	)
+};
+
+declare function viewItem:workSourceDescP($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:sourceDesc/t:p) then
+		viewItem:TEI2HTML($item//t:sourceDesc/t:p)
+	else (
+	)
+};
+
+declare function viewItem:workClavisBibliography($node as node(), $model as map(*)) {
+	for $b in $model("item")//t:listBibl[@type = "clavis"]
+	return <div id="clavisbibliography">
+		{ viewItem:bibliographyHeader($b) }
+		<ul class="bibliographyList">{ viewItem:TEI2HTML($b) }</ul>
 	</div>
+};
+
+declare function viewItem:workBibliography($node as node(), $model as map(*)) {
+	for $b in $model("item")//t:listBibl[not(@type = "clavis")]
+	return <div id="bibliography">
+		{ viewItem:bibliographyHeader($b) }
+		<ul class="bibliographyList">{ viewItem:TEI2HTML($b) }</ul>
+	</div>
+};
+
+declare function viewItem:workStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
+};
+
+declare function viewItem:workVoyantLink($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	let $id := $model("id")
+	return if ($item//t:div[@type = "edition"]//t:ab//text()) then
+		<a
+			class="w3-button w3-gray"
+			href="http://voyant-tools.org/?input={ $config:appUrl }/works/{ $id }.xml"
+			target="_blank"
+		>Voyant</a>
+	else (
+	)
+};
+
+declare function viewItem:workAttestationsButton($node as node(), $model as map(*)) {
+	<button
+		class="w3-button w3-red"
+		data-id="{ $model("id") }"
+		data-value="work"
+		id="showattestations"
+	>Show attestations</button>
+};
+
+declare function viewItem:workResp($node as node(), $model as map(*)) {
+	viewItem:resp($model("item"))
+};
+
+declare function viewItem:work($item) {
+	templates:apply(
+		config:resolve("templates/itemWork.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"item": $item},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
+	)
 };
 
 declare %private function viewItem:resp($item) {
