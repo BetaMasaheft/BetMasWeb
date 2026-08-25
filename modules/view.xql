@@ -85,14 +85,25 @@ let $lookup := function ($functionName as xs:string, $arity as xs:int) {
 		$fn
 }
 (:
- : The page forwarded by the controller declares which wrapper it mounts
- : into via @data-wrapper on its own root element - plain data read
- : directly here, not a templating instruction (the page itself is never
- : passed to templates:apply). $model is pre-populated with the page's own
- : content before rendering starts, then templates:apply runs against the
- : WRAPPER as the root document - see local:include-page above.
+ : A full page declares which wrapper it mounts into via @data-wrapper on
+ : its own root element - plain data read directly here, not a templating
+ : instruction (the page itself is never passed to templates:apply in that
+ : case). $model is pre-populated with the page's own content before
+ : rendering starts, then templates:apply runs against the WRAPPER as the
+ : root document - see local:include-page above.
+ :
+ : Every .html resource in this app is forwarded through this view
+ : (controller.xql's generic catch-all matches by extension, not by
+ : content), including the standalone forms/*.html fragments fetched
+ : client-side via AJAX and injected into an already-rendered page - those
+ : have no @data-wrapper and were never meant to be wrapped at all, so they
+ : fall through to plain templates:apply on the fragment itself, same as
+ : before this file had any wrapper concept.
  :)
 let $page := request:get-data()
 let $root := ($page/self::element(), $page/*)[1]
 let $wrapperPath := $root/@data-wrapper/string()
-return templates:apply(config:resolve($wrapperPath), $lookup, map {"page-content": $root}, $config)
+return if ($wrapperPath) then
+	templates:apply(config:resolve($wrapperPath), $lookup, map {"page-content": $root}, $config)
+else
+	templates:apply($page, $lookup, (), $config)
