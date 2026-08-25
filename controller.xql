@@ -47,6 +47,23 @@ declare function local:switchCol($type) {
 			"manuscripts"
 };
 
+(:~
+ : Shared <view>/<error-handler> pair for the plain-HTML-page dispatch
+ : branches below whose only per-branch content is the forward target
+ : (optionally with its own add-parameter). NOT used by the generic .html
+ : catch-all, root "/", or .pdf branches - those carry real per-branch
+ : variation (extra headers, a different add-parameter shape, or a
+ : different error-handler target) that folding into this function would
+ : silently lose.
+ :)
+declare function local:view() {
+	<view><forward url="{ $exist:controller }/modules/view.xql" /></view>,
+	<error-handler>
+		<forward method="get" url="{ $exist:controller }/error/error-page.html" />
+		<forward url="{ $exist:controller }/modules/view.xql" />
+	</error-handler>
+};
+
 declare function local:switchPrefix($prefix) {
 	switch ($prefix)
 		case "IN" return
@@ -553,44 +570,28 @@ https://betamasaheft.eu/authority-files/angel/main
 				<forward method="get" url="{ $exist:controller }/decorations.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/decorations.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 		else if (starts-with($exist:path, "/titles")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/titles.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/titles.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 		else if (starts-with($exist:path, "/paratexts")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/paratexts.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/paratexts.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 		else if (starts-with($exist:path, "/calendar")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/calendar.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/calendar.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/bindings")) then
@@ -598,11 +599,7 @@ https://betamasaheft.eu/authority-files/angel/main
 				<forward method="get" url="{ $exist:controller }/bindings.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/bindings.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/xpath")) then
@@ -610,11 +607,7 @@ https://betamasaheft.eu/authority-files/angel/main
 				<forward method="get" url="{ $exist:controller }/xpath.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/xpath.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/sparql")) then
@@ -622,51 +615,31 @@ https://betamasaheft.eu/authority-files/angel/main
 				<forward method="get" url="{ $exist:controller }/sparql.html">
 					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/sparql.html") }" />
 				</forward>
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/bibliography")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/bibl.html" />
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/additions")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/additions.html" />
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/IndexPlaces")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/places.html" />
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (starts-with($exist:path, "/IndexPersons")) then
 			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 				<forward method="get" url="{ $exist:controller }/persons.html" />
-				<view><forward url="{ $exist:controller }/modules/view.xql" /></view>
-				<error-handler>
-					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-					<forward url="{ $exist:controller }/modules/view.xql" />
-				</error-handler>
+				{ local:view() }
 			</dispatch>
 
 		else if (
