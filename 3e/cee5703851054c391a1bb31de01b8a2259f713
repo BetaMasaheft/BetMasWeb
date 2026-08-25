@@ -1,0 +1,21 @@
+modules/expand.xqm
+  s_1544e160683453::t_dcb9d92c752503 191-193
+  s_1544e160683453::t_759c8d2225fb46 623
+  s_1544e160683453::t_8ebdbc561460ef 665,669,674
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3ecee5703851054c391a1bb31de01b8a2259f713",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
