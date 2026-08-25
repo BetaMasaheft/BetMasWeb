@@ -5009,7 +5009,7 @@ declare function viewItem:auth($item) {
 	)
 };
 
-declare %private function viewItem:corpus($item) {
+declare function viewItem:corpus($item) {
 	viewItem:documents($item)
 };
 
@@ -5339,27 +5339,56 @@ declare function viewItem:relations($rels) {
 	viewItem:TEI2HTML($rels)
 };
 
+declare function viewItem:documentsRoot($node as node(), $model as map(*)) {
+	(:
+	 : Same eXist whitespace-filtering quirk documented on viewItem:placeRoot
+	 : - `. instance of text() and normalize-space(.) = ""` is the working
+	 : shape, not a nested self::-based predicate.
+	 :)
+	templates:process($node/node()[not(. instance of text() and normalize-space(.) = "")], $model)
+};
+
+declare function viewItem:documentsResume($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:note[@type = "résumé"])
+};
+
+declare %templates:wrap function viewItem:documentsDate($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:date)
+};
+
+declare %templates:wrap function viewItem:documentsGezQ($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:q[@xml:lang = "gez"])
+};
+
+declare %templates:wrap function viewItem:documentsOtherQ($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:q[not(@xml:lang = "gez")])
+};
+
+declare %templates:wrap function viewItem:documentsFootnotes($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:note[@n][@xml:id])
+};
+
+declare function viewItem:documentsOtherNotes($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:note[not(@n)][not(@xml:id)][not(@type = "résumé")])
+};
+
+declare function viewItem:documentsBibliography($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("doc")//t:listBibl)
+};
+
 declare function viewItem:documents($doc) {
 	(: replaces documents.xsl :)
-	(
-		<div class="w3-container">
-			<div class="w3-twothird w3-padding w3-card-4">
-				<div class="w3-row w3-padding w3-margin-bottom w3-red">
-					{ viewItem:TEI2HTML($doc//t:note[@type = "résumé"]) }
-					<span class="w3-tag w3-gray">{ viewItem:TEI2HTML($doc//t:date) }</span>
-				</div>
-				<div class="w3-row w3-margin-bottom">
-					<div class="w3-half w3-padding" lang="gez">{ viewItem:TEI2HTML($doc//t:q[@xml:lang = "gez"]) }</div>
-					<div class="w3-half w3-padding">{ viewItem:TEI2HTML($doc//t:q[not(@xml:lang = "gez")]) }</div>
-					<div class="footnotes">{ viewItem:TEI2HTML($doc//t:note[@n][@xml:id]) }</div>
-				</div>
-			</div>
-			<div class="w3-third w3-padding w3-card-4 w3-gray">
-				{ viewItem:TEI2HTML($doc//t:note[not(@n)][not(@xml:id)][not(@type = "résumé")]) }
-				{ viewItem:TEI2HTML($doc//t:listBibl) }
-			</div>
-		</div>,
-		<hr />
+	templates:apply(
+		config:resolve("templates/itemDocuments.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"doc": $doc},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
 	)
 };
 
