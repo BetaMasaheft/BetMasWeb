@@ -17,7 +17,6 @@ xquery version "3.1" encoding "UTF-8";
 module namespace seed = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/idmanager-seed";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
 
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace idmanager = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/idmanager" at "xmldb:exist:///db/apps/BetMasWeb/modules/idmanager.xqm";
@@ -39,7 +38,7 @@ declare %private function local:max-sequence($type as xs:string) as xs:integer {
 		for $id in $ids
 		return analyze-string($id, "([A-Z]+)(\d+)(\w+)")
 	let $numericValues :=
-		for $g in $parsed//s:group[@nr = "2"]
+		for $g in $parsed//*:group[@nr = "2"]
 		return xs:integer($g)
 	return (max($numericValues), 0)[1]
 };
