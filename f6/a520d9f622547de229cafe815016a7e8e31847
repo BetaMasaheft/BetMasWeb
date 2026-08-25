@@ -1,0 +1,19 @@
+docs/superpowers/specs/2026-08-25-js-free-ethiostudies-citations-design.md
+  s_1544e160683453::t_28ce1a3ae93aef 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "f6a520d9f622547de229cafe815016a7e8e31847",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
