@@ -35,9 +35,29 @@ let $config := map {
  : find functions in the imported application modules. The templates
  : module cannot see the application modules, but the inline function
  : below does see them.
+ :
+ : templates:resolve() probes arity 2..$templates:MAX_ARITY, calling this
+ : function once per arity until one succeeds - most of those calls are
+ : expected misses, not errors. Only log when the *last* arity in that
+ : range still comes up empty, since that's the one call that means
+ : "genuinely no such function", not "wrong arity, keep trying". Without
+ : this, a typo'd/removed data-template target fails completely silently -
+ : the element just gets copied through unprocessed with no trace anywhere.
  :)
 let $lookup := function ($functionName as xs:string, $arity as xs:int) {
-	try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	let $fn := try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	return if (empty($fn) and $arity = $templates:MAX_ARITY) then (
+		util:log(
+			"warn",
+			'view.xql: no function found for data-template="' ||
+				$functionName ||
+				'" (probed arity 2..' ||
+				$templates:MAX_ARITY ||
+				")"
+		),
+		()
+	) else
+		$fn
 }
 (:
  : The HTML is passed in the request from the controller.
