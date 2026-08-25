@@ -1,0 +1,43 @@
+resources/js/versions.js
+  s_1544e160683453::t_4c891821a10449 4-5,11,13,16-17,19,22-23,31-69,90
+restviews/versions.xqm
+  s_1544e160683453::t_d7a7fe96fc3d73 6-7,16-19,21-23,25
+  s_1544e160683453::t_59166e7f15a7fb 26
+modules/error.xqm
+  s_1544e160683453::t_f30cc9959eabb3 78-79
+modules/routes.json
+  s_1544e160683453::t_786b448f905a51 5222,5226,5247
+test/cypress/e2e/bibliography.cy.js
+  s_1544e160683453::t_dfc3f85e7dd763 7-13,24-45
+  s_5790d61a112fab::t_408fdcb29d535d 46
+test/xqs/ts-zotero-cache.xqm
+  s_1544e160683453::t_daec7247d849b5 54-64
+modules/zoteroCache.xqm
+  s_1544e160683453::t_ab0a9cd6cd9edf 59,61,72-78
+modules/timeline.xqm
+  s_1544e160683453::t_99160c7fea42a3 216-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "7fb73f79f0fe42d80b407d95e67ae3c0354583dd",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
