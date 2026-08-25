@@ -11,7 +11,6 @@ module namespace idmanager = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/
 declare namespace http = "http://expath.org/ns/http-client";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace console = "http://exist-db.org/xquery/console";
 
 (:~
  : POSTs/GETs against the id-manager and normalizes its response into
@@ -49,7 +48,7 @@ declare %private function local:send($method as xs:string, $path as xs:string, $
 		)
 		return map {"status": $status, "body": $json}
 	} catch * {
-		let $_ := console:log("idmanager:send - " || $method || " " || $href || " failed: " || $err:description)
+		let $_ := util:log("error", "idmanager:send - " || $method || " " || $href || " failed: " || $err:description)
 		return map {"status": 503, "body": map {"error": $err:description}}
 	}
 };
