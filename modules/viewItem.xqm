@@ -19,6 +19,7 @@ import module namespace iiifut = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace http = "http://expath.org/ns/http-client";
 import module namespace functx = "http://www.functx.com";
 import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 
 declare option output:method "html5";
 declare option output:indent "yes";
@@ -4374,34 +4375,50 @@ declare %private function viewItem:relsinfoblock($rels, $id) {
     </p>
 };
 
-declare %private function viewItem:narrative($item) {
-	(: replaces nar.xsl :)
+(:~
+ : Templated replacement for viewItem:narrative - a real html-templating
+ : conversion, not a thin adapter: templates/itemNarrative.html declares
+ : the page structure declaratively, and these functions back its
+ : data-template slots. viewItem:narrativeSetup computes $id/$uri/$rels
+ : once from $model("item") and merges them back into $model (the
+ : documented "return a map, framework recurses into your own children
+ : with it merged in" idiom) so the sibling sections below don't each
+ : recompute the same corpus-wide relation scan independently.
+ :)
+declare %templates:wrap function viewItem:narrativeSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
-	let $mainidno := $item//t:msIdentifier/t:idno
-	return <div class="w3-twothird" id="MainData">
-		<div id="description">
-			<h2>General description</h2>
-			<p>{ viewItem:TEI2HTML($item//t:body) }</p>
-			{
-				if ($item//t:witness) then (
-					<h2>Witnesses</h2>,
-					<p>(check also the dynamic list in the box)</p>,
-					<ul>{ viewItem:TEI2HTML($item//t:listWit) }</ul>
-				) else (
-				)
-			}
-			{
-				for $b in $item//t:listBibl
-				return <div id="bibliography"><h3>{ viewItem:bibliographyHeader($b) }</h3>{ viewItem:TEI2HTML($b) }</div>
-			}
-			{ viewItem:relsinfoblock($rels, $id) }
-		</div>
-		{ viewItem:standards($item) }
-	</div>
+	return map {"id": $id, "rels": ($relsA | $relsP)}
+};
+
+declare %templates:wrap function viewItem:narrativeBody($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("item")//t:body)
+};
+
+declare function viewItem:narrativeWitnesses($node as node(), $model as map(*)) {
+	let $item := $model("item")
+	return if ($item//t:witness) then (
+		<h2>Witnesses</h2>,
+		<p>(check also the dynamic list in the box)</p>,
+		<ul>{ viewItem:TEI2HTML($item//t:listWit) }</ul>
+	) else (
+	)
+};
+
+declare function viewItem:narrativeBibliography($node as node(), $model as map(*)) {
+	for $b in $model("item")//t:listBibl
+	return <div id="bibliography"><h3>{ viewItem:bibliographyHeader($b) }</h3>{ viewItem:TEI2HTML($b) }</div>
+};
+
+declare function viewItem:narrativeRelsInfo($node as node(), $model as map(*)) {
+	viewItem:relsinfoblock($model("rels"), $model("id"))
+};
+
+declare function viewItem:narrativeStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
 };
 
 declare %private function viewItem:person($item) {
@@ -5084,7 +5101,18 @@ declare function viewItem:main($item) {
 		case "studies" return
 			viewItem:work($item)
 		case "nar" return
-			viewItem:narrative($item)
+			templates:apply(
+				config:resolve("templates/itemNarrative.html"),
+				function ($functionName as xs:string, $arity as xs:int) {
+					try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+				},
+				map {"item": $item},
+				map {
+					$templates:CONFIG_STOP_ON_ERROR: true(),
+					$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+					$templates:CONFIG_FILTER_ATTRIBUTES: true()
+				}
+			)
 		case "pers" return
 			viewItem:person($item)
 		case "place" return
