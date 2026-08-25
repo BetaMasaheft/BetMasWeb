@@ -7,7 +7,7 @@ declare namespace xconf = "http://exist-db.org/collection-config/1.0";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 
 import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
-import module namespace templates = "http://exist-db.org/xquery/templates";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";

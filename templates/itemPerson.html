@@ -1,0 +1,32 @@
+<div xmlns="http://www.w3.org/1999/xhtml" class="w3-twothird" id="MainData" data-template="viewItem:personSetup">
+	<div class="w3-container" id="desc">
+		<div data-template="viewItem:personNames" />
+		<div class="w3-threequarter w3-padding" id="history">
+			<div data-template="viewItem:personHistorySections" />
+			<div data-template="viewItem:personGroupOf" />
+			<div data-template="viewItem:personMemberOf" />
+			<div data-template="viewItem:personAuthorOf" />
+			<div data-template="viewItem:personTranslatorOf" />
+			<div data-template="viewItem:personNotes" />
+			<div data-template="viewItem:personRelsInfo" />
+			<button data-template="viewItem:personAttestationsButton" />
+			<div class="w3-container" id="allattestations" />
+		</div>
+		<div class="w3-quarter w3-panel w3-red w3-card-4 w3-padding" id="description" rel="http://xmlns.com/foaf/0.1/name">
+			<h3 data-template="viewItem:personSidebarHeading">Names</h3>
+			<ul class="nodot" data-template="viewItem:personSidebarNamesList" />
+			<div data-template="viewItem:personSidebarDates" />
+			<div data-template="viewItem:personSidebarOccupation" />
+			<div data-template="viewItem:personSidebarOther" />
+			<div data-template="viewItem:personSidebarSuccessor" />
+			<div data-template="viewItem:personSidebarPredecessor" />
+			<div data-template="viewItem:personSidebarSubjectOf" />
+		</div>
+		<div class="w3-container" id="bibliography">
+			<h3 data-template="viewItem:personBibliographyHeader" />
+			<div data-template="viewItem:personBibliographyList" />
+		</div>
+		<div data-template="viewItem:personStandards" />
+	</div>
+	<div data-template="viewItem:personResp" />
+</div>

@@ -6,6 +6,7 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace marc = "http://www.loc.gov/MARC21/slim";
 
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -14,6 +15,23 @@ import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (viewer:lookup#2) at each of this module's templates:apply call sites
+ : instead of each writing its own copy - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :)
+declare function viewer:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"viewer.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 declare function viewer:allmirador($request as map(*)) {
 	(
@@ -221,8 +239,22 @@ declare function viewer:mirador($request as map(*)) {
 						{ nav:barNew() }
 						{ nav:modalsNew() }
 						<div class="w3-container w3-padding-48" id="content">
-							{ item2:RestViewOptions($this, $collection) }
-							{ item2:RestItemHeader($this, $collection) }
+							{
+								(:
+								 : RestViewOptions/RestItemHeader routed through
+								 : templates:apply instead of called directly - see
+								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+								 :)
+								templates:apply(
+									(
+										<div data-template="item2:RestViewOptionsTemplate" />,
+										<div data-template="item2:RestItemHeaderTemplate" />
+									),
+									viewer:lookup#2,
+									map {"this": $this, "collection": $collection},
+									config:template-apply-config()
+								)
+							}
 							<div class="w3-container">
 								<div allowfullscreen="allowfullscreen" class="w3-margin-top" id="viewer" />
 								<script type="text/javascript">
@@ -338,8 +370,22 @@ var canvasid = "' ||
 						{ nav:barNew() }
 						{ nav:modalsNew() }
 						<div class="w3-container w3-padding-48" id="content">
-							{ item2:RestViewOptions($this, $collection) }
-							{ item2:RestItemHeader($this, $collection) }
+							{
+								(:
+								 : RestViewOptions/RestItemHeader routed through
+								 : templates:apply instead of called directly - see
+								 : item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+								 :)
+								templates:apply(
+									(
+										<div data-template="item2:RestViewOptionsTemplate" />,
+										<div data-template="item2:RestItemHeaderTemplate" />
+									),
+									viewer:lookup#2,
+									map {"this": $this, "collection": $collection},
+									config:template-apply-config()
+								)
+							}
 							<div class="w3-container">
 								<div allowfullscreen="allowfullscreen" class="w3-margin-top" id="viewer" />
 								<script type="text/javascript">

@@ -12,6 +12,7 @@ module namespace PermRestItem = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -26,6 +27,22 @@ import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 
 declare variable $PermRestItem:deleted := doc("/db/apps/lists/deleted.xml");
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (PermRestItem:lookup#2) at each templates:apply call site here instead
+ : of each writing its own copy - see config:template-lookup-resolve for
+ : why the function-lookup() probe still has to be written locally per
+ : module rather than shared in config.xqm too.
+ :)
+declare function PermRestItem:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"permanentItems.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 declare function PermRestItem:capitalize-first($arg as xs:string?) as xs:string? {
 	concat(upper-case(substring($arg, 1, 1)), substring($arg, 2))
@@ -215,7 +232,18 @@ declare function PermRestItem:ITEM(
 				{ nav:barNew() }
 				{ nav:modalsNew() }
 				<div class="w3-container w3-padding-48" id="content">
-					{ item2:RestViewOptions($this, $collection) }
+					{
+						(:
+						 : RestViewOptions routed through templates:apply instead of
+						 : called directly - see item2:RestViewOptionsTemplate.
+						 :)
+						templates:apply(
+							<div data-template="item2:RestViewOptionsTemplate" />,
+							PermRestItem:lookup#2,
+							map {"this": $this, "collection": $collection},
+							config:template-apply-config()
+						)
+					}
 					{
 						if ($PermRestItem:deleted//t:item[. eq $id]) then
 							<div class='w3-red w3-container'>
@@ -226,7 +254,18 @@ declare function PermRestItem:ITEM(
 						else (
 						)
 					}
-					{ item2:RestItemHeader($this, $collection) }
+					{
+						(:
+						 : RestItemHeader routed through templates:apply instead of
+						 : called directly - see item2:RestItemHeaderTemplate.
+						 :)
+						templates:apply(
+							<div data-template="item2:RestItemHeaderTemplate" />,
+							PermRestItem:lookup#2,
+							map {"this": $this, "collection": $collection},
+							config:template-apply-config()
+						)
+					}
 					{
 						if ($type = "corpus") then (
 						) else

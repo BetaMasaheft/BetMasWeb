@@ -11,6 +11,7 @@ module namespace restItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/r
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace roaster = "http://e-editiones.org/roaster";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
@@ -25,6 +26,22 @@ import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace dtsc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtsc" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtsclient.xqm";
 
 declare variable $restItem:deleted := doc("/db/apps/lists/deleted.xml");
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (restItem:lookup#2) at each templates:apply call site here instead of
+ : each writing its own copy - see config:template-lookup-resolve for why
+ : the function-lookup() probe still has to be written locally per
+ : module rather than shared in config.xqm too.
+ :)
+declare function restItem:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"items.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 (: parameter hi is used to highlight searched word when coming query from Dillmann
 parameters start and perpage are for the text visualization with pagination as per standard usage :)
@@ -229,8 +246,26 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 					{ nav:barNew() }
 					{ nav:modalsNew() }
 					<div class="w3-container w3-padding-48" id="content">
-						{ item2:RestViewOptions($this, $collection) }
-						{ item2:RestItemHeader($this, $collection) }
+						{
+							(:
+							 : RestViewOptions/RestItemHeader routed through
+							 : templates:apply instead of called directly. The two marker
+							 : divs get entirely replaced by each function's own return
+							 : value (no %templates:wrap), so this produces the exact
+							 : same output shape as the two plain calls it replaces -
+							 : passed as a sibling sequence, not a shared wrapper, so no
+							 : extra element ends up in the output.
+							 :)
+							templates:apply(
+								(
+									<div data-template="item2:RestViewOptionsTemplate" />,
+									<div data-template="item2:RestItemHeaderTemplate" />
+								),
+								restItem:lookup#2,
+								map {"this": $this, "collection": $collection},
+								config:template-apply-config()
+							)
+						}
 						{
 							if ($type = "corpus") then (
 							) else
