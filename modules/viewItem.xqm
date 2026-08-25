@@ -4854,40 +4854,70 @@ declare %private function viewItem:joinmixed($sequence) {
 	)
 };
 
-declare %private function viewItem:auth($item) {
-	(: replaces auth.xsl :)
+declare %templates:wrap function viewItem:authSetup($node as node(), $model as map(*)) {
+	let $item := $model("item")
 	let $id := string($item/@xml:id)
 	let $uri := viewItem:ID2URI($id)
 	let $relsP := $viewItem:coll//t:relation[contains(@passive, $uri)]
 	let $relsA := $viewItem:coll//t:relation[contains(@active, $uri)]
-	let $rels := ($relsA | $relsP)
-	let $mainidno := $item//t:msIdentifier/t:idno
-	return <div class="w3-twothird" id="MainData">
-		<div id="description">
-			<h2>General description</h2>
-			<div>{ viewItem:TEI2HTML($item//t:sourceDesc) }</div>
-			<div>{ viewItem:TEI2HTML($item//t:abstract) }</div>
-			{ viewItem:relsinfoblock($rels, $id) }
-			<div id="bibliography">
-				<h3>{ viewItem:bibliographyHeader($item//t:listBibl) }</h3>
-				{ viewItem:TEI2HTML($item//t:listBibl) }
-			</div>
-			<button class="w3-button w3-red">
-				<a
-					href="{ $config:appUrl }/authority-files/list?keyword={ $id }"
-					target="_blank"
-				>List of entities using the keyword</a>
-			</button>
-			<button
-				class="w3-button w3-red"
-				data-id="{ $id }"
-				data-value="term"
-				id="showattestations"
-			>Show attestations</button>
-			<div class="w3-container" id="allattestations" />
-		</div>
-		{ viewItem:standards($item) }
+	return map {"id": $id, "rels": ($relsA | $relsP)}
+};
+
+declare %templates:wrap function viewItem:authSourceDesc($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("item")//t:sourceDesc)
+};
+
+declare %templates:wrap function viewItem:authAbstract($node as node(), $model as map(*)) {
+	viewItem:TEI2HTML($model("item")//t:abstract)
+};
+
+declare function viewItem:authRelsInfo($node as node(), $model as map(*)) {
+	viewItem:relsinfoblock($model("rels"), $model("id"))
+};
+
+declare function viewItem:authBibliography($node as node(), $model as map(*)) {
+	let $listBibl := $model("item")//t:listBibl
+	return <div id="bibliography">
+		<h3>{ viewItem:bibliographyHeader($listBibl) }</h3>
+		{ viewItem:TEI2HTML($listBibl) }
 	</div>
+};
+
+declare function viewItem:authKeywordButton($node as node(), $model as map(*)) {
+	<button class="w3-button w3-red">
+		<a
+			href="{ $config:appUrl }/authority-files/list?keyword={ $model("id") }"
+			target="_blank"
+		>List of entities using the keyword</a>
+	</button>
+};
+
+declare function viewItem:authAttestationsButton($node as node(), $model as map(*)) {
+	<button
+		class="w3-button w3-red"
+		data-id="{ $model("id") }"
+		data-value="term"
+		id="showattestations"
+	>Show attestations</button>
+};
+
+declare function viewItem:authStandards($node as node(), $model as map(*)) {
+	viewItem:standards($model("item"))
+};
+
+declare function viewItem:auth($item) {
+	templates:apply(
+		config:resolve("templates/itemAuth.html"),
+		function ($functionName as xs:string, $arity as xs:int) {
+			try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+		},
+		map {"item": $item},
+		map {
+			$templates:CONFIG_STOP_ON_ERROR: true(),
+			$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+			$templates:CONFIG_FILTER_ATTRIBUTES: true()
+		}
+	)
 };
 
 declare %private function viewItem:corpus($item) {
