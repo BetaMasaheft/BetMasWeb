@@ -6,12 +6,6 @@ build/
 *~
 *.html.txt
 
-# pre-existing syntax errors prettier can't parse - not ours to silently
-# rewrite here; see PR description / follow-up issue
-as.html
-forms/formgender.html
-pid.html
-
 # vendored third-party libraries - not ours to reformat
 resources/mirador/
 resources/openseadragon/
