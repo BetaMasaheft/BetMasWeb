@@ -1,0 +1,65 @@
+restviews/list.xqm
+  s_1544e160683453::t_1f8cc952d0fd4a 1738
+  s_1544e160683453::t_4bcbe224fc6e23 1870,2035
+restviews/versions.xqm
+  s_1544e160683453::t_2728e5ee9006ca 1-29
+  s_1544e160683453::t_f05825ca849739 30
+modules/routes.json
+  s_1544e160683453::t_45bae29b432c42 5221-5259
+modules/error.xqm
+  s_1544e160683453::t_3e071cf5928a00 78,81-82
+modules/view.xql
+  s_1544e160683453::t_f3fc600a960e95 17
+modules/api.xql
+  s_1544e160683453::t_4a0901cb52bd92 31
+modules/tei2fo.xql
+  s_1544e160683453::t_8a9f797d03ace7 122,126
+test/cypress/e2e/bibliography.cy.js
+  s_1544e160683453::t_f7dc33128e15d1 1-3,5-6,8-18
+  s_1544e160683453::t_4531ded1355c78 4,7
+modules/generateFormattedBibliography.xqm
+  s_1544e160683453::t_9788f048d8848b 28,32
+test/xqs/ts-zotero-cache.xqm
+  s_1544e160683453::t_b9e333215a8f12 35,52-56
+  s_1544e160683453::t_7e9293ac4a5557 1-34,36-51
+xslt/bibl.xsl
+  s_1544e160683453::t_3f89bbc8c26799 246,266
+resources/js/versions.js
+  s_1544e160683453::t_492bd9fb4199de 4,30,32-36
+  s_1544e160683453::t_cb11cea58043d7 38
+test/xqs/test-runner.xq
+  s_1544e160683453::t_104bfc2582a45b 18,26-27
+modules/resources.xqm
+  s_1544e160683453::t_fbd1defb30b613 16
+  s_1544e160683453::t_244b8c3fea2ed0 1721
+modules/viewItem.xqm
+  s_1544e160683453::t_ed6c4e3637fc22 962,968
+modules/crossapp.xqm
+  s_1544e160683453::t_1e279753288274 31-39
+modules/zoteroCache.xqm
+  s_1544e160683453::t_70d7368ae13940 165,169-172,175-176,202,209,212-213,217
+  s_1544e160683453::t_0b665dcd9af99b 4,7-9,13-16,19-24,39-164,166-168,173-174,177-201,203-208,210-211,214-216,218-220
+modules/timeline.xqm
+  s_1544e160683453::t_c9c29770256fc0 10
+  s_1544e160683453::t_c9f87d3c132faf 215-216,224
+modules/tei2string.xqm
+  s_1544e160683453::t_0341536afc9fff 177
+help.html
+  s_1544e160683453::t_fb7e245ed624ae 944,947,950,953,956,959,962,965,968,971,974
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "93abb0ffce1ecb35cb6a00b66c37bb4d9d38ac60",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
