@@ -1,0 +1,135 @@
+templates/sparql.html
+  s_5790d61a112fab::t_680e1c8319dfdc 52
+modules/view.xql
+  s_5790d61a112fab::t_8e1200f55db147 22,32-35,37-38,47-53
+  s_5790d61a112fab::t_63141df95a4bd9 23-31,36
+  s_5790d61a112fab::t_4496c723cbd4a8 54-55,88-93,95-98
+templates/newpage.html
+  s_5790d61a112fab::t_3a356211f1ddae 61
+titles.html
+  s_5790d61a112fab::t_b64d7ade6da552 1
+docs.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+clavismatching.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+clavis-list.html
+  s_5790d61a112fab::t_88d3d16147faa2 4
+paratexts.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+about.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+error/error-page.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+places.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+as.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+error.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+index.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+projects.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+xpath.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+newentry.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+partners.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+team.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+templates/newsearch.html
+  s_5790d61a112fab::t_68fa1a63446b32 51
+help.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+DSintro.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+combos.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+appInfo.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+facet.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+Fricke.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+sparql.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+impressum.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+vocabularies/material.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+Sinai.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+calendar.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+documentcorpora.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+newSearch.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+bindings.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+emip.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+pid.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+placeoforigin.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+apidoc.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+persons.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+lectures.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+xslt/Sinai.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+lod.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+decorations.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+highlights.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+deleted.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+visualizations.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+diplomatique.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+bibl.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+additions.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+availableImages.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+chojnacki.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+JuelJensen.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+simpleSearch.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+tweed.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+privateCollections.html
+  s_5790d61a112fab::t_d649c85f24f522 1
+contacts.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+indexeslist.html
+  s_5790d61a112fab::t_d649c85f24f522 2
+templates/newindex2.html
+  s_5790d61a112fab::t_10dadb37d17c2a 94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "68915aec6151af000980b4c891731a559c5454b7",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
