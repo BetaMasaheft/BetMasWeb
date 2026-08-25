@@ -1,12 +1,8 @@
 xquery version "3.0" encoding "UTF-8";
 
-declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace s = "http://www.w3.org/2005/xpath-functions";
-
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
-import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace idmanager = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/idmanager" at "xmldb:exist:///db/apps/BetMasWeb/modules/idmanager.xqm";
 
 declare option exist:serialize "method=xhtml media-type=text/html indent=yes";
 
@@ -46,44 +42,40 @@ declare variable $group := request:get-parameter("group", ());
 
 declare variable $wikidata := request:get-parameter("WD", ());
 
-let $prefix := switch ($collection)
+let $type := switch ($collection)
 	case "works" return
-		<ref><pre>LIT</pre><type>work</type></ref>
+		"work"
 	case "studies" return
-		<ref><pre>STU</pre><type>studies</type></ref>
+		"studies"
 	case "narratives" return
-		<ref><pre>NAR</pre><type>nar</type></ref>
+		"nar"
 	case "persons" return
-		<ref><pre>PRS</pre><type>pers</type></ref>
+		"pers"
 	case "places" return
-		<ref><pre>LOC</pre><type>place</type></ref>
+		"place"
 	case "institutions" return
-		<ref><pre>INS</pre><type>ins</type></ref>
+		"ins"
 	case "authority-files" return
-		<ref><pre>AUT</pre><type>auth</type></ref>
+		"auth"
 	default return
-		<ref><pre /><type>mss</type></ref>
+		"mss"
 
 let $data-collection := $config:data-root || "/" || $collection || "/new"
 
-let $type := $prefix//type/text()
-
-let $Newid := if ($collection = "manuscripts" or $collection = "authority-files") then
-	$suffix
+(: betmas-id-manager owns id generation/uniqueness now - prefix, sequence
+   and the atomic counter that used to race with the old scan-and-increment
+   here. $collection is passed straight through as the service's type
+   parameter, the two were deliberately named identically. Manual types
+   (manuscripts/authority-files) register $suffix verbatim as the id, same
+   as before; auto types get a freshly reserved id back. :)
+let $idResult := if ($collection = "manuscripts" or $collection = "authority-files") then
+	idmanager:register-manual($collection, $suffix)
 else
-	let $ids :=
-		for $x in switch2:collectionVar($collection)//t:TEI/@xml:id
-		return analyze-string($x, "([A-Z]+)(\d+)(\w+)")
-	let $numericvalue :=
-		for $id in $ids//s:group[@nr = "2"]
-		return $id
-	let $maxid := max($numericvalue) + 1
-	let $formattedID := if ($maxid > 999) then (
-		$maxid
-	) else
-		format-number($maxid, "0000")
-	return ($prefix//pre/text() || $formattedID || replace($suffix, " ", "_"))
-return if (collection(concat($config:data-root, "/", $collection))//id($Newid)) then (
+	idmanager:reserve-auto($collection, $suffix)
+
+let $Newid := $idResult?body?id
+
+return if ($idResult?status = 409) then (
 	<html>
 		<head>
 			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
@@ -102,7 +94,7 @@ return if (collection(concat($config:data-root, "/", $collection))//id($Newid)) 
 		<body>
 			<div id="confirmation">
 				<p>Dear { sm:id()//sm:real/sm:username/string() }, unfortunately <span class="lead">
-						{ $Newid }
+						{ $suffix }
 					</span> already exists!
                         Please, hit the button below and try a different id.</p>
 				<div class="btn-group">
@@ -111,6 +103,42 @@ return if (collection(concat($config:data-root, "/", $collection))//id($Newid)) 
 						href="{ $config:appUrl }/newentry.html?collection={ $collection }"
 					>Back to create item</a>
 					<a class="btn btn-info" href="{ $config:appUrl }/{ $collection }/list">or back to list</a>
+				</div>
+			</div>
+		</body>
+	</html>
+) else if ($idResult?status != 201) then (
+	<html>
+		<head>
+			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
+			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
+			<link href="resources/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
+			<script xmlns="" src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" />
+			<script xmlns="" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js" type="text/javascript" />
+			<script xmlns="" src="http://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
+			<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
+			<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
+			<title>Save Confirmation</title>
+		</head>
+		<body>
+			<div class="container" id="confirmation">
+				<div class="jumbotron">
+					<p class="lead">Thank you very much <span class="red">
+							{ sm:id()//sm:real/sm:username/string() }
+						</span> for trying to store a new file!</p>
+					<p> Unfortunately
+                        <span class="red">"{ $suffix }"</span> could not be saved</p>
+					<p>Error: the id-management service returned status { $idResult?status }.</p>
+					<p>If this keeps happening, please  <a
+							href="mailto:eugenia.sokolinski@uni-hamburg.de"
+							target="_blank"
+						>
+            send it to us;
+    </a>.</p>
+					<a href="{ $config:appUrl }/newentry.html?collection={ $collection }">create another entry</a>
 				</div>
 			</div>
 		</body>
