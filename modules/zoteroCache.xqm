@@ -56,9 +56,9 @@ declare %private function zc:live-bib($tag as xs:string, $style as xs:string) as
 		let $url := concat(
 			$zc:zotero,
 			"?tag=",
-			$tag,
+			encode-for-uri($tag),
 			"&amp;format=bib&amp;locale=en-GB&amp;style=",
-			$style,
+			encode-for-uri($style),
 			"&amp;linkwrap=1"
 		)
 		let $request := <http:request href="{ xs:anyURI($url) }" method="GET" />
@@ -69,7 +69,13 @@ declare %private function zc:live-bib($tag as xs:string, $style as xs:string) as
 
 declare %private function zc:live-cit($tag as xs:string, $style as xs:string) as xs:string? {
 	try {
-		let $url := concat($zc:zotero, "?tag=", $tag, "&amp;include=citation&amp;locale=en-GB&amp;style=", $style)
+		let $url := concat(
+			$zc:zotero,
+			"?tag=",
+			encode-for-uri($tag),
+			"&amp;include=citation&amp;locale=en-GB&amp;style=",
+			encode-for-uri($style)
+		)
 		let $req := <http:request href="{ xs:anyURI($url) }" http-version="1.1" method="GET" />
 		let $raw := http:send-request($req)[2]
 		let $decoded := util:base64-decode($raw)

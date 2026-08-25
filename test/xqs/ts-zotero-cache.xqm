@@ -51,6 +51,17 @@ declare %test:assertTrue function tszc:enrich-bm-adds-edition-html() {
 	return map:contains($out?versions?1?version?source, "editionHtml")
 };
 
+declare %test:assertEquals("bm:Foo") function tszc:enrich-normalizes-underscore-ed() {
+	let $out := zc:enrich-versions(
+		map {
+			"total": 1,
+			"versions": map {"version": map {"source": map {"id": "LIT1", "title": "t", "ed": "bm_Foo"}, "text": "abc"}}
+		}
+	)
+	(: editionHtml is present; ed itself stays as Api sent it - normalize is for lookup :)
+	return zc:normalize-tag($out?versions?1?version?source?ed)
+};
+
 declare %test:assertTrue function tszc:serialize-html-keeps-markup() {
 	contains(zc:html-string(<div class="csl-entry"><i>Title</i></div>), "Title")
 };

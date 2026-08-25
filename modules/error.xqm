@@ -75,11 +75,8 @@ declare function error:error($name as map(*)) {
 													config:distinct-values(
 														collection($config:data-rootMS)//t:listBibl[@type eq "catalogue"]//t:ptr/@target
 													)
-												let $cached := zc:full($catalogue)
-												let $data := if (exists($cached)) then
-													$cached
-												else (
-												)
+												(: cache-only: avoid N live Zotero calls on the catalogue error page :)
+												let $data := zc:bib("citations.xml", zc:normalize-tag(string($catalogue)))
 												order by $data
 												return <li class="w3-large"><a href="/catalogues/{ $catalogue }/list">{ $data }</a></li>
 											}

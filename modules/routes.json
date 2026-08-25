@@ -5219,11 +5219,11 @@
 				}
 			}
 		},
-		"/api/SPARQL/versions/{id}/{chapterID}": {
+		"/api/versions/{id}/{chapterID}": {
 			"get": {
 				"operationId": "versions:parallel",
 				"summary": "Parallel text versions with EthioStudies edition HTML",
-				"description": "Proxies BetMasApi apisparql:sparqlQueryVersions and enriches bm: edition tags with cache-first citation HTML (BetMasWeb#82).",
+				"description": "BetMasWeb-only proxy: calls BetMasApi apisparql:sparqlQueryVersions in-process and adds editionHtml for bm-tagged editions (cache-first). Distinct from Api's /api/SPARQL/versions path so the browser always gets enrichment.",
 				"parameters": [
 					{
 						"name": "id",
@@ -5244,7 +5244,7 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Versions JSON with optional editionHtml on bm: sources",
+						"description": "Versions JSON with enrichedBy=BetMasWeb and optional editionHtml on bm sources",
 						"content": {
 							"application/json": {}
 						}
