@@ -19,6 +19,23 @@ declare option output:omit-xml-declaration "no";
 declare option saxon:output "omit-xml-declaration=no";
 declare option output:media-type "text/html";
 
+(:~
+ : Top-down replacement for the now-unused templates:surround (deprecated
+ : upstream - github.com/eXist-db/templating#37 - not for removal, but its
+ : inner-evaluated-first/outer-evaluated-after order made the model hard
+ : to reason about at any given point). Called from the wrapper's own
+ : content slot (see e.g. templates/newpage.html's id="content" div) - the
+ : wrapper, not the page, is templates:apply's root document (see below),
+ : so this renders $model("page-content")'s own children into that slot:
+ : the same "insert the page's content into the wrapper's content slot"
+ : shape templates:surround always produced, just reached top-down - the
+ : wrapper is the entry point and pulls the page in, instead of the page
+ : pulling the wrapper in around itself.
+ :)
+declare %templates:wrap function local:include-page($node as node(), $model as map(*)) {
+	templates:process($model("page-content")/node(), $model)
+};
+
 (:
  : No template in this app uses class="ns:function" dispatch (data-template
  : is the only syntax in use) - disabling class-syntax lookup skips a
@@ -27,7 +44,15 @@ declare option output:media-type "text/html";
 let $config := map {
 	$templates:CONFIG_APP_ROOT: $config:app-root,
 	$templates:CONFIG_STOP_ON_ERROR: true(),
-	$templates:CONFIG_USE_CLASS_SYNTAX: false()
+	$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+	(:
+	 : %templates:wrap (used by local:include-page below, and pre-existing
+	 : on e.g. lists:titlesRes) reconstructs the calling element and, by
+	 : default, keeps its own data-template attribute on the output - not
+	 : just harmless dead markup, but a mismatch against the old
+	 : templates:surround-produced output. Strip it.
+	 :)
+	$templates:CONFIG_FILTER_ATTRIBUTES: true()
 }
 
 (:
@@ -60,8 +85,14 @@ let $lookup := function ($functionName as xs:string, $arity as xs:int) {
 		$fn
 }
 (:
- : The HTML is passed in the request from the controller.
- : Run it through the templating system and return the result.
+ : The page forwarded by the controller declares which wrapper it mounts
+ : into via @data-wrapper on its own root element - plain data read
+ : directly here, not a templating instruction (the page itself is never
+ : passed to templates:apply). $model is pre-populated with the page's own
+ : content before rendering starts, then templates:apply runs against the
+ : WRAPPER as the root document - see local:include-page above.
  :)
-let $content := request:get-data()
-return templates:apply($content, $lookup, (), $config)
+let $page := request:get-data()
+let $root := ($page/self::element(), $page/*)[1]
+let $wrapperPath := $root/@data-wrapper/string()
+return templates:apply(config:resolve($wrapperPath), $lookup, map {"page-content": $root}, $config)
