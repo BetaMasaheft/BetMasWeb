@@ -1,0 +1,20 @@
+modules/view.xql
+  s_5790d61a112fab::t_6f67efd93cdf4d 22-29
+  s_5790d61a112fab::t_940cc0d9536fe0 30-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "094827bf7dd560ded74108c06a800cd8faf3dd0c",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
