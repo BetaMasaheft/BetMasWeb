@@ -15,6 +15,15 @@ import module namespace inspect = "http://exist-db.org/xquery/inspection";
 (: Relative imports resolve when this runner lives under /db/apps/BetMasWeb/test/xqs/. :)
 import module namespace tsrutil = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-roaster-util" at "ts-roaster-util.xqm";
 import module namespace tsdtsdoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-document" at "ts-dtslib-document.xqm";
+import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-mainrels" at "ts-item-mainrels.xqm";
+import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
+import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-place" at "ts-viewitem-place.xqm";
+import module namespace tsviauth = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-auth" at "ts-viewitem-auth.xqm";
+import module namespace tsvimss = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-manuscript" at "ts-viewitem-manuscript.xqm";
+import module namespace tsviwork = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-work" at "ts-viewitem-work.xqm";
+import module namespace tsviperson = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-person" at "ts-viewitem-person.xqm";
+import module namespace tsvidocs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-documents" at "ts-viewitem-documents.xqm";
+import module namespace tsseealso = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-seealso-options" at "ts-item-seealso-options.xqm";
 import module namespace tszc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-zotero-cache" at "ts-zotero-cache.xqm";
 
 declare option output:method "json";
@@ -24,6 +33,15 @@ test:suite(
 	(
 		inspect:module-functions(xs:anyURI("ts-roaster-util.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtslib-document.xqm")),
+		inspect:module-functions(xs:anyURI("ts-item-mainrels.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-auth.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-manuscript.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-work.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-person.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-documents.xqm")),
+		inspect:module-functions(xs:anyURI("ts-item-seealso-options.xqm")),
 		inspect:module-functions(xs:anyURI("ts-zotero-cache.xqm"))
 	)
 )

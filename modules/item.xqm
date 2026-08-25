@@ -154,6 +154,23 @@ declare function item2:witnesses($id) {
 };
 
 (:~
+ : Templating entry points for item2:RestViewOptions/RestItemHeader, so
+ : they can be invoked via data-template/templates:apply instead of a
+ : plain function call. Additive, not a replacement - the originals are
+ : unchanged and still callable directly. ($node, $model) is the fixed
+ : signature html-templating dispatches by; $this/$collection are pulled
+ : out of $model rather than taken as separate parameters, same pattern as
+ : e.g. view.xql's local:include-page.
+ :)
+declare function item2:RestViewOptionsTemplate($node as node(), $model as map(*)) {
+	item2:RestViewOptions($model("this"), $model("collection"))
+};
+
+declare function item2:RestItemHeaderTemplate($node as node(), $model as map(*)) {
+	item2:RestItemHeader($model("this"), $model("collection"))
+};
+
+(:~
  : under the main navigation bar there are the view options, this function returns the available values deciding on the type of input
  :)
 declare function item2:RestViewOptions($this, $collection) {
@@ -849,685 +866,735 @@ declare function item2:AdminLocTable($adminLoc as element()*) {
 (:~
  : called by item2:restNav, makes the boxes where the main relations are dispalied
  :)
-declare function item2:mainRels($this, $collection) {
+declare function item2:mainRelsPersons($this, $collection) {
 	let $document := $this
 	let $id := string($this/@xml:id)
 	let $w := $apprest:collection-rootW
 	let $n := collection($config:data-rootN)
 	let $ms := $apprest:collection-rootMS
 	let $plin := $apprest:collection-rootPlIn
-	return <div class="allMainRel">
+	return (
+		let $isSubjectof :=
+			for $corr in $w//t:relation[contains(@passive, $id)][@name eq "ecrm:P129_is_about"]
+
+			return $corr
+		let $isAuthorof :=
+			for $corr in
+				(
+					$w//t:relation[contains(@passive, $id)][@name eq "saws:isAttributedToAuthor"],
+					$w//t:relation[contains(@passive, $id)][@name eq "dcterms:creator"]
+				)
+
+			return $corr
+		let $predecessorSuccessor :=
+			for $corr in
+				(
+					$this//t:relation[contains(@active, $id)][@name eq "betmas:isSuccessorOf"],
+					$this//t:relation[contains(@active, $id)][@name eq "betmas:isPredecessorOf"]
+				)
+
+			return $corr
+		return <div class="mainrelations w3-container">
+			{
+				if ($isSubjectof) then
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">This person is subject of the following <span class="w3-tag">
+								{ count($isSubjectof) }
+							</span> textual units</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $isSubjectof
+								return if (contains($p/@active, " ")) then
+									for $value in tokenize($p/@active, " ")
+									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+								else
+									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+							}
+						</ul>
+					</div>
+				else (
+				)
+			}
+			{
+				if ($isAuthorof) then
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">This person is author or attributed author of the following <span class="w3-tag">
+								{ count($isAuthorof) }
+							</span> textual units</b>
+						<ul class="w3-ul w3-hoverable ">
+							{
+								for $p in $isAuthorof
+								return if (contains($p/@active, " ")) then
+									for $value in tokenize($p/@active, " ")
+									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+								else
+									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+							}
+						</ul>
+					</div>
+				else (
+				)
+			}
+			{
+				if ($predecessorSuccessor) then
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">Successors and predecessors</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $predecessorSuccessor
+								let $rel := if ($p/@name eq "bm:isSuccessorOf") then
+									"Predecessor: "
+								else
+									"Successor: "
+								return if (contains($p/@passive, " ")) then
+									for $value in tokenize($p/@passive, " ")
+									return <li class="nodot">{ $rel }<a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+								else
+									<li class="nodot">
+										{ $rel }
+										<a href="{ $p/@passive }">{ exptit:printTitle(string($p/@passive)) }</a>
+									</li>
+							}
+						</ul>
+					</div>
+				else (
+				)
+			}
+		</div>
+	)
+};
+
+declare function item2:mainRelsPlaces($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $isSubjectof :=
+			for $corr in $w//t:relation[contains(@passive, $id)][@name eq "ecrm:P129_is_about"]
+			return $corr
+		let $churchesAndMonasteries :=
+			for $corr in $plin//t:place[contains(@type, "church") or contains(@type, "monastery")][t:*[contains(@ref, $id)]]
+			return $corr
+		let $formerly :=
+			for $corr in $this//t:relation[@name eq "betmas:formerlyAlsoListedAs"][contains(@active, $id)]
+			return $corr
+		let $same :=
+			for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@active, $id)]
+			return $corr
+		let $samep :=
+			for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@passive, $id)]
+			return $corr
+		return <div class="mainrelations w3-display-container">
+			{
+				if ($this//t:settlement or $this//t:region or $this//t:country) then
+					<div class="relBox w3-panel w3-card-4 w3-gray">
+						{
+							<b class="openInDialog">Administrative position</b>,
+							<table class="w3-table w3-hoverable adminpos">
+								<tbody>
+									{
+										item2:AdminLocTable($this//t:country),
+										item2:AdminLocTable($this//t:region),
+										item2:AdminLocTable($this//t:settlement),
+										if ($this//t:location/t:geo) then
+											<tr><td>Coordinates</td><td>{ $this//t:location/t:geo/text() }</td></tr>
+										else (
+										),
+										if ($this//t:location/t:height) then
+											<tr>
+												<td>Altitude</td>
+												<td>{ concat($this//t:location/t:height/text(), $this//t:location/t:height/@unit) }</td>
+											</tr>
+										else (
+										),
+										if ($this//t:location[@type eq "relative"]) then
+											<tr><td>Relative location</td><td>{ $this//t:location[@type eq "relative"]/text() }</td></tr>
+										else (
+										)
+									}
+								</tbody>
+							</table>
+						}
+					</div>
+				else (
+				)
+			}
+			{
+				if ($this//t:state) then
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							<b class="openInDialog">Place attested in the following periods</b>,
+							<ul class="w3-ul w3-hoverable">
+								{
+									for $s in $this//t:state[@type eq "existence"]/@ref
+									let $file := collection($config:data-rootA)/id($s)
+									let $name := $file//t:title[1]/text()
+									let $link := $file//t:sourceDesc//t:ref/@target
+									return <li class="nodot">
+										<a href="{ $link }">{ $name }</a> (<a
+											href='/authority-files/list?keyword={ $s }'
+										>See all items for this period</a>)</li>
+								}
+							</ul>
+						}
+					</div>
+				else (
+				)
+			}
+			{
+				if ($formerly) then (
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">Formerly listed as:</b>
+						<ul class="w3-ul w3-hoverable">{ string-join($formerly/@passive, ", ") }</ul>
+					</div>
+				) else (
+				)
+			}
+			{
+				if ($same or $samep) then (
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">Same as:</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $same
+								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
+							}
+							{
+								for $p in $samep
+								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
+							}
+						</ul>
+					</div>
+				) else (
+				)
+			}
+			{
+				if ($isSubjectof) then
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">This place is subject of the following <span class="w3-tag">
+								{ count($isSubjectof) }
+							</span> textual units</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $isSubjectof
+								return if (contains($p/@active, " ")) then
+									for $value in tokenize($p/@active, " ")
+									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+								else
+									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+							}
+						</ul>
+					</div>
+				else (
+				)
+			}
+			{
+				if ($churchesAndMonasteries) then (
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">
+							{ count($churchesAndMonasteries) } churches and monasteries can be found in this place</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $churchesAndMonasteries
+								let $root := string(root($p)/t:TEI/@xml:id)
+								return <li class="nodot"><a href="{ $root }">{ exptit:printTitle($root) }</a></li>
+							}
+						</ul>
+					</div>
+				) else (
+				)
+			}
+		</div>
+	)
+};
+
+declare function item2:mainRelsWorks($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $relations := ($w//t:relation[contains(@active, $id)], $w//t:relation[contains(@passive, $id)])
+		let $relatedWorks :=
+			for $corr in $relations[@name != "saws:isAttributedToAuthor"][@name != "dcterms:creator"]
+
+			return if ($corr[ancestor::t:TEI[@xml:id[. = $id]]]) then (
+			) else
+				$corr
+		let $relations := $document//t:relation[@name[. != "saws:isAttributedToAuthor"][. != "dcterms:creator"]]
+		return if (empty($relatedWorks) and not($document//t:relation)) then (
+		) else
+			<div class="mainrelations w3-container">
+				{
+					for $par in $relations
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "saws:contains" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> parts of this textual unit are also independent textual units ({ $rn })</b>
+									case "ecrm:P129_is_about" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> subjects are treated in this textual unit  ({ $rn })</b>
+									case "saws:isVersionInAnotherLanguageOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions in other languages of this ({ $rn })</b>
+									case "saws:formsPartOf" return
+										<b class="openInDialog">This textual unit is included in the following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units ({ $rn })</b>
+									case "saws:isDifferentTo" return
+										<b class="openInDialog">This textual unit is marked as different from the following <span
+												class="w3-tag"
+											>{ count($par) }</span> ({ $rn })</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this textual unit</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par/@passive
+										let $normp := normalize-space($p)
+										return if (contains($normp, " ")) then
+											for $value in tokenize($normp, " ")
+											return <li class="nodot">
+												<a href="{ $value }">
+													{
+														if (contains($p, "betamasaheft")) then
+															exptit:printTitle($p)
+														else
+															string($p)
+													}
+												</a>
+											</li>
+										else
+											<li class="nodot">
+												{
+													if (contains($p, "betmas:")) then
+														<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
+															{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
+															{ () }
+														</a>
+													else
+														<a href="{ $p }">
+															{
+																if (contains($p, "betamasaheft")) then
+																	exptit:printTitle($p)
+																else
+																	string($p)
+															}
+														</a>
+												}
+											</li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+				{
+					for $par in $relatedWorks
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "saws:isVersionOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions of this ({ $rn })</b>
+									case "saws:isVersionInAnotherLanguageOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions in other languages of this ({ $rn })</b>
+									case "saws:isDifferentTo" return
+										<b class="openInDialog">This textual unit is marked as different from the following <span
+												class="w3-tag"
+											>{ count($par) }</span> ({ $rn })</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this work</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par
+										return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+			</div>
+	)
+};
+
+declare function item2:mainRelsStudies($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $relations := ($w//t:relation[contains(@active, $id)], $w//t:relation[contains(@passive, $id)])
+		let $relatedWorks :=
+			for $corr in $relations[@name != "saws:isAttributedToAuthor"][@name != "dcterms:creator"]
+
+			return if ($corr[ancestor::t:TEI[@xml:id[. = $id]]]) then (
+			) else
+				$corr
+		let $relations := $document//t:relation[@name[. != "saws:isAttributedToAuthor"][. != "dcterms:creator"]]
+		return if (empty($relatedWorks) and not($document//t:relation)) then (
+		) else
+			<div class="mainrelations w3-container">
+				{
+					for $par in $relations
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "saws:contains" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> parts of this textual unit are also independent textual units ({ $rn })</b>
+									case "ecrm:P129_is_about" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> subjects are treated in this textual unit  ({ $rn })</b>
+									case "saws:isVersionInAnotherLanguageOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions in other languages of this ({ $rn })</b>
+									case "saws:formsPartOf" return
+										<b class="openInDialog">This textual unit is included in the following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units ({ $rn })</b>
+									case "saws:isDifferentTo" return
+										<b class="openInDialog">This textual unit is marked as different from the following <span
+												class="w3-tag"
+											>{ count($par) }</span> ({ $rn })</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this textual unit</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par/@passive
+										let $normp := normalize-space($p)
+										return if (contains($normp, " ")) then
+											for $value in tokenize($normp, " ")
+											return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
+										else
+											<li class="nodot">
+												{
+													if (contains($p, "betmas:")) then
+														<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
+															{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
+															{ () }
+														</a>
+													else
+														<a href="{ $p }">
+															{
+																if (contains($p, "betamasaheft")) then
+																	exptit:printTitle($p)
+																else
+																	string($p)
+															}
+														</a>
+												}
+											</li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+				{
+					for $par in $relatedWorks
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "saws:isVersionOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions of this ({ $rn })</b>
+									case "saws:isVersionInAnotherLanguageOf" return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units are versions in other languages of this ({ $rn })</b>
+									case "saws:isDifferentTo" return
+										<b class="openInDialog">This textual unit is marked as different from the following <span
+												class="w3-tag"
+											>{ count($par) }</span> ({ $rn })</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this work</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par
+										return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+			</div>
+	)
+};
+
+declare function item2:mainRelsNarratives($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $relations := $document//t:relation[@name eq "skos:broadMatch"]
+		return if (not($document//t:relation)) then (
+		) else
+			<div class="mainrelations w3-container">
+				{
+					for $par in $relations
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "skos:broadMatch" return
+										<b class="openInDialog">Broadly matching entities</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this textual unit</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par/@passive
+										let $normp := normalize-space($p)
+										return if (contains($normp, " ")) then
+											for $value in tokenize($normp, " ")
+											return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
+										else if (starts-with($p, "http")) then
+											<li class="nodot">
+												<a href="{ $p }">
+													{
+														if (contains($p, "betamasaheft")) then
+															exptit:printTitle($p)
+														else
+															string($p)
+													}
+												</a>
+											</li>
+										else
+											<li class="nodot">
+												<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
+													{ exptit:printTitle(substring-after($p, "betmas:")) } ({ substring-after($p, "betmas:") })</a>
+											</li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+			</div>
+	)
+};
+
+declare function item2:mainRelsAuthorityFiles($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $pass := concat("betmas:", $id)
+		let $relations := collection($config:data-rootN)//t:relation[@name eq "skos:broadMatch"][contains(@passive, $pass)]
+		return if (count($relations) eq 0) then (
+		) else
+			<div class="mainrelations w3-container">
+				{
+					for $par in $relations
+					let $relname := string(($par/@name)[1])
+					group by $rn := $relname
+					return <div class="relBox  w3-panel w3-card-4 w3-gray">
+						{
+							(
+								switch ($rn)
+									case "skos:broadMatch" return
+										<b class="openInDialog">Broadly matching entities</b>
+									default return
+										<b class="openInDialog">The following <span class="w3-tag">
+												{ count($par) }
+											</span> textual units have a relation { $rn } with this textual unit</b>,
+								<ul class="w3-ul w3-hoverable">
+									{
+										for $p in $par/@active
+										let $normp := normalize-space($p)
+										return if (contains($normp, " ")) then
+											for $value in tokenize($normp, " ")
+											return <li class="nodot">
+												{
+													if (starts-with($value, "betmas:")) then
+														<a
+															class="MainTitle"
+															data-value="{ substring-after($value, "betmas:") }"
+															href="{ $config:appUrl }/{ substring-after($value, "betmas:") }"
+														>{ exptit:printTitle(substring-after($value, "betmas:")) }</a>
+													else
+														<a href="{ $value }">{ exptit:printTitle($value) }</a>
+												}
+											</li>
+										else
+											<li class="nodot">
+												{
+													if (contains($p, "betmas:")) then
+														<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
+															{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
+															{ () }
+														</a>
+													else
+														<a href="{ $p }">
+															{
+																if (contains($p, "betamasaheft")) then
+																	exptit:printTitle($p)
+																else
+																	string($p)
+															}
+														</a>
+												}
+											</li>
+									}
+								</ul>
+							)
+						}
+					</div>
+				}
+			</div>
+	)
+};
+
+declare function item2:mainRelsInstitutions($this, $collection) {
+	let $document := $this
+	let $id := string($this/@xml:id)
+	let $w := $apprest:collection-rootW
+	let $n := collection($config:data-rootN)
+	let $ms := $apprest:collection-rootMS
+	let $plin := $apprest:collection-rootPlIn
+	return (
+		let $mssSameRepo :=
+			for $corr in $ms//t:repository[ft:query(@ref, $id)]
+			order by ft:score($corr) descending
+			return $corr
+		let $formerly :=
+			for $corr in $this//t:relation[@name eq "betmas:formerlyAlsoListedAs"][contains(@active, $id)]
+			return $corr
+		let $same :=
+			for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@active, $id)]
+			return $corr
+		let $samep :=
+			for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@passive, $id)]
+			return $corr
+		return <div class="mainrelations w3-container">
+			<div class="relBox w3-panel w3-card-4 w3-gray">
+				{
+					<b>Administrative position</b>,
+					<table class="w3-table w3-hoverable adminpos">
+						<tbody>
+							{
+								item2:AdminLocTable($this//t:country),
+								item2:AdminLocTable($this//t:region),
+								item2:AdminLocTable($this//t:settlement),
+								if ($this//t:location/t:geo) then
+									<tr><td>Coordinates</td><td>{ $this//t:location/t:geo/text() }</td></tr>
+								else (
+								),
+								if ($this//t:location/t:height) then
+									<tr>
+										<td>Altitude</td>
+										<td>{ concat($this//t:location/t:height/text(), $this//t:location/t:height/@unit) }</td>
+									</tr>
+								else (
+								),
+								if ($this//t:location[@type eq "relative"]) then
+									<tr><td>Relative location</td><td>{ $this//t:location[@type eq "relative"]/text() }</td></tr>
+								else (
+								)
+							}
+						</tbody>
+					</table>
+				}
+			</div>
+			{
+				if ($formerly) then (
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">Formerly listed as:</b>
+						<ul class="w3-ul w3-hoverable">{ string-join($formerly/@passive, ", ") }</ul>
+					</div>
+				) else (
+				)
+			}
+			{
+				if ($same or $samep) then (
+					<div class="relBox  w3-panel w3-card-4 w3-gray">
+						<b class="openInDialog">Same as:</b>
+						<ul class="w3-ul w3-hoverable">
+							{
+								for $p in $same
+								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
+							}
+							{
+								for $p in $samep
+								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
+							}
+						</ul>
+					</div>
+				) else (
+				)
+			}
+		</div>
+	)
+};
+
+declare function item2:mainRels($this, $collection) {
+	<div class="allMainRel">
 		{
 			switch ($collection)
 				case "persons" return
-					(
-						let $isSubjectof :=
-							for $corr in $w//t:relation[contains(@passive, $id)][@name eq "ecrm:P129_is_about"]
-
-							return $corr
-						let $isAuthorof :=
-							for $corr in
-								(
-									$w//t:relation[contains(@passive, $id)][@name eq "saws:isAttributedToAuthor"],
-									$w//t:relation[contains(@passive, $id)][@name eq "dcterms:creator"]
-								)
-
-							return $corr
-						let $predecessorSuccessor :=
-							for $corr in
-								(
-									$this//t:relation[contains(@active, $id)][@name eq "betmas:isSuccessorOf"],
-									$this//t:relation[contains(@active, $id)][@name eq "betmas:isPredecessorOf"]
-								)
-
-							return $corr
-						return <div class="mainrelations w3-container">
-							{
-								if ($isSubjectof) then
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">This person is subject of the following <span class="w3-tag">
-												{ count($isSubjectof) }
-											</span> textual units</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $isSubjectof
-												return if (contains($p/@active, " ")) then
-													for $value in tokenize($p/@active, " ")
-													return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
-												else
-													<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
-											}
-										</ul>
-									</div>
-								else (
-								)
-							}
-							{
-								if ($isAuthorof) then
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">This person is author or attributed author of the following <span
-												class="w3-tag"
-											>{ count($isAuthorof) }</span> textual units</b>
-										<ul class="w3-ul w3-hoverable ">
-											{
-												for $p in $isAuthorof
-												return if (contains($p/@active, " ")) then
-													for $value in tokenize($p/@active, " ")
-													return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
-												else
-													<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
-											}
-										</ul>
-									</div>
-								else (
-								)
-							}
-							{
-								if ($predecessorSuccessor) then
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">Successors and predecessors</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $predecessorSuccessor
-												let $rel := if ($p/@name eq "bm:isSuccessorOf") then
-													"Predecessor: "
-												else
-													"Successor: "
-												return if (contains($p/@passive, " ")) then
-													for $value in tokenize($p/@passive, " ")
-													return <li class="nodot">
-														{ $rel }
-														<a href="{ $value }">{ exptit:printTitle(string($value)) }</a>
-													</li>
-												else
-													<li class="nodot">
-														{ $rel }
-														<a href="{ $p/@passive }">{ exptit:printTitle(string($p/@passive)) }</a>
-													</li>
-											}
-										</ul>
-									</div>
-								else (
-								)
-							}
-						</div>
-					)
+					item2:mainRelsPersons($this, $collection)
 				case "places" return
-					(
-						let $isSubjectof :=
-							for $corr in $w//t:relation[contains(@passive, $id)][@name eq "ecrm:P129_is_about"]
-							return $corr
-						let $churchesAndMonasteries :=
-							for $corr in
-								$plin//t:place[contains(@type, "church") or contains(@type, "monastery")][t:*[contains(@ref, $id)]]
-							return $corr
-						let $formerly :=
-							for $corr in $this//t:relation[@name eq "betmas:formerlyAlsoListedAs"][contains(@active, $id)]
-							return $corr
-						let $same :=
-							for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@active, $id)]
-							return $corr
-						let $samep :=
-							for $corr in
-								collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@passive, $id)]
-							return $corr
-						return <div class="mainrelations w3-display-container">
-							{
-								if ($this//t:settlement or $this//t:region or $this//t:country) then
-									<div class="relBox w3-panel w3-card-4 w3-gray">
-										{
-											<b class="openInDialog">Administrative position</b>,
-											<table class="w3-table w3-hoverable adminpos">
-												<tbody>
-													{
-														item2:AdminLocTable($this//t:country),
-														item2:AdminLocTable($this//t:region),
-														item2:AdminLocTable($this//t:settlement),
-														if ($this//t:location/t:geo) then
-															<tr><td>Coordinates</td><td>{ $this//t:location/t:geo/text() }</td></tr>
-														else (
-														),
-														if ($this//t:location/t:height) then
-															<tr>
-																<td>Altitude</td>
-																<td>{ concat($this//t:location/t:height/text(), $this//t:location/t:height/@unit) }</td>
-															</tr>
-														else (
-														),
-														if ($this//t:location[@type eq "relative"]) then
-															<tr>
-																<td>Relative location</td>
-																<td>{ $this//t:location[@type eq "relative"]/text() }</td>
-															</tr>
-														else (
-														)
-													}
-												</tbody>
-											</table>
-										}
-									</div>
-								else (
-								)
-							}
-							{
-								if ($this//t:state) then
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											<b class="openInDialog">Place attested in the following periods</b>,
-											<ul class="w3-ul w3-hoverable">
-												{
-													for $s in $this//t:state[@type eq "existence"]/@ref
-													let $file := collection($config:data-rootA)/id($s)
-													let $name := $file//t:title[1]/text()
-													let $link := $file//t:sourceDesc//t:ref/@target
-													return <li class="nodot">
-														<a href="{ $link }">{ $name }</a> (<a
-															href='/authority-files/list?keyword={ $s }'
-														>See all items for this period</a>)</li>
-												}
-											</ul>
-										}
-									</div>
-								else (
-								)
-							}
-							{
-								if ($formerly) then (
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">Formerly listed as:</b>
-										<ul class="w3-ul w3-hoverable">{ string-join($formerly/@passive, ", ") }</ul>
-									</div>
-								) else (
-								)
-							}
-							{
-								if ($same or $samep) then (
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">Same as:</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $same
-												return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
-											}
-											{
-												for $p in $samep
-												return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
-											}
-										</ul>
-									</div>
-								) else (
-								)
-							}
-							{
-								if ($isSubjectof) then
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">This place is subject of the following <span class="w3-tag">
-												{ count($isSubjectof) }
-											</span> textual units</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $isSubjectof
-												return if (contains($p/@active, " ")) then
-													for $value in tokenize($p/@active, " ")
-													return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
-												else
-													<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
-											}
-										</ul>
-									</div>
-								else (
-								)
-							}
-							{
-								if ($churchesAndMonasteries) then (
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">
-											{ count($churchesAndMonasteries) } churches and monasteries can be found in this place</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $churchesAndMonasteries
-												let $root := string(root($p)/t:TEI/@xml:id)
-												return <li class="nodot"><a href="{ $root }">{ exptit:printTitle($root) }</a></li>
-											}
-										</ul>
-									</div>
-								) else (
-								)
-							}
-						</div>
-					)
+					item2:mainRelsPlaces($this, $collection)
 				case "works" return
-					(
-						let $relations := ($w//t:relation[contains(@active, $id)], $w//t:relation[contains(@passive, $id)])
-						let $relatedWorks :=
-							for $corr in $relations[@name != "saws:isAttributedToAuthor"][@name != "dcterms:creator"]
-
-							return if ($corr[ancestor::t:TEI[@xml:id[. = $id]]]) then (
-							) else
-								$corr
-						let $relations := $document//t:relation[@name[. != "saws:isAttributedToAuthor"][. != "dcterms:creator"]]
-						return if (empty($relatedWorks) and not($document//t:relation)) then (
-						) else
-							<div class="mainrelations w3-container">
-								{
-									for $par in $relations
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "saws:contains" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> parts of this textual unit are also independent textual units ({ $rn })</b>
-													case "ecrm:P129_is_about" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> subjects are treated in this textual unit  ({ $rn })</b>
-													case "saws:isVersionInAnotherLanguageOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions in other languages of this ({ $rn })</b>
-													case "saws:formsPartOf" return
-														<b class="openInDialog">This textual unit is included in the following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units ({ $rn })</b>
-													case "saws:isDifferentTo" return
-														<b class="openInDialog">This textual unit is marked as different from the following <span
-																class="w3-tag"
-															>{ count($par) }</span> ({ $rn })</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this textual unit</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par/@passive
-														let $normp := normalize-space($p)
-														return if (contains($normp, " ")) then
-															for $value in tokenize($normp, " ")
-															return <li class="nodot">
-																<a href="{ $value }">
-																	{
-																		if (contains($p, "betamasaheft")) then
-																			exptit:printTitle($p)
-																		else
-																			string($p)
-																	}
-																</a>
-															</li>
-														else
-															<li class="nodot">
-																{
-																	if (contains($p, "betmas:")) then
-																		<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
-																			{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
-																			{ () }
-																		</a>
-																	else
-																		<a href="{ $p }">
-																			{
-																				if (contains($p, "betamasaheft")) then
-																					exptit:printTitle($p)
-																				else
-																					string($p)
-																			}
-																		</a>
-																}
-															</li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-								{
-									for $par in $relatedWorks
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "saws:isVersionOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions of this ({ $rn })</b>
-													case "saws:isVersionInAnotherLanguageOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions in other languages of this ({ $rn })</b>
-													case "saws:isDifferentTo" return
-														<b class="openInDialog">This textual unit is marked as different from the following <span
-																class="w3-tag"
-															>{ count($par) }</span> ({ $rn })</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this work</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par
-														return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-							</div>
-					)
+					item2:mainRelsWorks($this, $collection)
 				case "studies" return
-					(
-						let $relations := ($w//t:relation[contains(@active, $id)], $w//t:relation[contains(@passive, $id)])
-						let $relatedWorks :=
-							for $corr in $relations[@name != "saws:isAttributedToAuthor"][@name != "dcterms:creator"]
-
-							return if ($corr[ancestor::t:TEI[@xml:id[. = $id]]]) then (
-							) else
-								$corr
-						let $relations := $document//t:relation[@name[. != "saws:isAttributedToAuthor"][. != "dcterms:creator"]]
-						return if (empty($relatedWorks) and not($document//t:relation)) then (
-						) else
-							<div class="mainrelations w3-container">
-								{
-									for $par in $relations
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "saws:contains" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> parts of this textual unit are also independent textual units ({ $rn })</b>
-													case "ecrm:P129_is_about" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> subjects are treated in this textual unit  ({ $rn })</b>
-													case "saws:isVersionInAnotherLanguageOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions in other languages of this ({ $rn })</b>
-													case "saws:formsPartOf" return
-														<b class="openInDialog">This textual unit is included in the following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units ({ $rn })</b>
-													case "saws:isDifferentTo" return
-														<b class="openInDialog">This textual unit is marked as different from the following <span
-																class="w3-tag"
-															>{ count($par) }</span> ({ $rn })</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this textual unit</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par/@passive
-														let $normp := normalize-space($p)
-														return if (contains($normp, " ")) then
-															for $value in tokenize($normp, " ")
-															return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
-														else
-															<li class="nodot">
-																{
-																	if (contains($p, "betmas:")) then
-																		<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
-																			{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
-																			{ () }
-																		</a>
-																	else
-																		<a href="{ $p }">
-																			{
-																				if (contains($p, "betamasaheft")) then
-																					exptit:printTitle($p)
-																				else
-																					string($p)
-																			}
-																		</a>
-																}
-															</li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-								{
-									for $par in $relatedWorks
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "saws:isVersionOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions of this ({ $rn })</b>
-													case "saws:isVersionInAnotherLanguageOf" return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units are versions in other languages of this ({ $rn })</b>
-													case "saws:isDifferentTo" return
-														<b class="openInDialog">This textual unit is marked as different from the following <span
-																class="w3-tag"
-															>{ count($par) }</span> ({ $rn })</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this work</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par
-														return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-							</div>
-					)
+					item2:mainRelsStudies($this, $collection)
 				case "narratives" return
-					(
-						let $relations := $document//t:relation[@name eq "skos:broadMatch"]
-						return if (not($document//t:relation)) then (
-						) else
-							<div class="mainrelations w3-container">
-								{
-									for $par in $relations
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "skos:broadMatch" return
-														<b class="openInDialog">Broadly matching entities</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this textual unit</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par/@passive
-														let $normp := normalize-space($p)
-														return if (contains($normp, " ")) then
-															for $value in tokenize($normp, " ")
-															return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
-														else if (starts-with($p, "http")) then
-															<li class="nodot">
-																<a href="{ $p }">
-																	{
-																		if (contains($p, "betamasaheft")) then
-																			exptit:printTitle($p)
-																		else
-																			string($p)
-																	}
-																</a>
-															</li>
-														else
-															<li class="nodot">
-																<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
-																	{ exptit:printTitle(substring-after($p, "betmas:")) } ({
-																		substring-after($p, "betmas:")
-																	})</a>
-															</li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-							</div>
-					)
+					item2:mainRelsNarratives($this, $collection)
 				case "authority-files" return
-					(
-						let $pass := concat("betmas:", $id)
-						let $relations := collection($config:data-rootN)//t:relation[@name eq "skos:broadMatch"][contains(
-							@passive,
-							$pass
-						)]
-						return if (count($relations) eq 0) then (
-						) else
-							<div class="mainrelations w3-container">
-								{
-									for $par in $relations
-									let $relname := string(($par/@name)[1])
-									group by $rn := $relname
-									return <div class="relBox  w3-panel w3-card-4 w3-gray">
-										{
-											(
-												switch ($rn)
-													case "skos:broadMatch" return
-														<b class="openInDialog">Broadly matching entities</b>
-													default return
-														<b class="openInDialog">The following <span class="w3-tag">
-																{ count($par) }
-															</span> textual units have a relation { $rn } with this textual unit</b>,
-												<ul class="w3-ul w3-hoverable">
-													{
-														for $p in $par/@active
-														let $normp := normalize-space($p)
-														return if (contains($normp, " ")) then
-															for $value in tokenize($normp, " ")
-															return <li class="nodot">
-																{
-																	if (starts-with($value, "betmas:")) then
-																		<a
-																			class="MainTitle"
-																			data-value="{ substring-after($value, "betmas:") }"
-																			href="{ $config:appUrl }/{ substring-after($value, "betmas:") }"
-																		>{ exptit:printTitle(substring-after($value, "betmas:")) }</a>
-																	else
-																		<a href="{ $value }">{ exptit:printTitle($value) }</a>
-																}
-															</li>
-														else
-															<li class="nodot">
-																{
-																	if (contains($p, "betmas:")) then
-																		<a href="{ $config:appUrl }/{ substring-after($p, "betmas:") }">
-																			{ exptit:printTitle(substring-before(substring-after($p, "betmas:"), ".")) }
-																			{ () }
-																		</a>
-																	else
-																		<a href="{ $p }">
-																			{
-																				if (contains($p, "betamasaheft")) then
-																					exptit:printTitle($p)
-																				else
-																					string($p)
-																			}
-																		</a>
-																}
-															</li>
-													}
-												</ul>
-											)
-										}
-									</div>
-								}
-							</div>
-					)
+					item2:mainRelsAuthorityFiles($this, $collection)
 				case "institutions" return
-					(
-						let $mssSameRepo :=
-							for $corr in $ms//t:repository[ft:query(@ref, $id)]
-							order by ft:score($corr) descending
-							return $corr
-						let $formerly :=
-							for $corr in $this//t:relation[@name eq "betmas:formerlyAlsoListedAs"][contains(@active, $id)]
-							return $corr
-						let $same :=
-							for $corr in collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@active, $id)]
-							return $corr
-						let $samep :=
-							for $corr in
-								collection($config:data-root)//t:relation[@name eq "skos:exactMatch"][contains(@passive, $id)]
-							return $corr
-						return <div class="mainrelations w3-container">
-							<div class="relBox w3-panel w3-card-4 w3-gray">
-								{
-									<b>Administrative position</b>,
-									<table class="w3-table w3-hoverable adminpos">
-										<tbody>
-											{
-												item2:AdminLocTable($this//t:country),
-												item2:AdminLocTable($this//t:region),
-												item2:AdminLocTable($this//t:settlement),
-												if ($this//t:location/t:geo) then
-													<tr><td>Coordinates</td><td>{ $this//t:location/t:geo/text() }</td></tr>
-												else (
-												),
-												if ($this//t:location/t:height) then
-													<tr>
-														<td>Altitude</td>
-														<td>{ concat($this//t:location/t:height/text(), $this//t:location/t:height/@unit) }</td>
-													</tr>
-												else (
-												),
-												if ($this//t:location[@type eq "relative"]) then
-													<tr><td>Relative location</td><td>{ $this//t:location[@type eq "relative"]/text() }</td></tr>
-												else (
-												)
-											}
-										</tbody>
-									</table>
-								}
-							</div>
-							{
-								if ($formerly) then (
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">Formerly listed as:</b>
-										<ul class="w3-ul w3-hoverable">{ string-join($formerly/@passive, ", ") }</ul>
-									</div>
-								) else (
-								)
-							}
-							{
-								if ($same or $samep) then (
-									<div class="relBox  w3-panel w3-card-4 w3-gray">
-										<b class="openInDialog">Same as:</b>
-										<ul class="w3-ul w3-hoverable">
-											{
-												for $p in $same
-												return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
-											}
-											{
-												for $p in $samep
-												return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
-											}
-										</ul>
-									</div>
-								) else (
-								)
-							}
-						</div>
-					)
+					item2:mainRelsInstitutions($this, $collection)
 				default return
 					()
 		}
@@ -2113,304 +2180,343 @@ Scrolling in this box will also show you a summary of all the occurences.  <a
 (:~
  : returns a selector with values which can be searched. a javascript will pick the selected one and send it to the restxq to get related items
  :)
+declare function item2:seeAlsoOptionsManuscripts($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:supportDesc/t:material/@key) then
+			<optgroup label="material">
+				{
+					for $x in ($file//t:supportDesc/t:material/@key)
+					return <option value="{ $x }">{ $x }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:handNote[@script]/@script) then
+			<optgroup label="script">
+				{
+					for $x in config:distinct-values($file//t:handNote[@script]/@script)
+					return <option value="{ $x }">{ string($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:objectDesc/@form) then
+			<optgroup label="form">
+				{
+					for $x in config:distinct-values($file//t:objectDesc/@form)
+					return <option value="{ $x }">{ string($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsWorks($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="relation">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsStudies($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="relation">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsNarratives($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "dcterms:creator"]) then
+			<optgroup label="author">
+				{
+					for $x in ($file//t:relation[@name eq "dcterms:creator"])
+					let $auth := string($x/@passive)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
+			<optgroup label="attributed author">
+				{
+					for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
+					let $auth := string($x/@active)
+					return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsPlaces($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:settlement) then
+			<optgroup label="settlement">
+				{
+					for $x in $file//t:settlement/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:region) then
+			<optgroup label="region">
+				{
+					for $x in $file//t:region/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:country) then
+			<optgroup label="country">
+				{
+					for $x in $file//t:country/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:place[@type]) then
+			<optgroup label="type">
+				{
+					if (contains($file//t:place/@type, " ")) then
+						for $x in tokenize($file//t:place/@type, " ")
+						return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+					else
+						let $type := $file//t:place/@type
+						return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsInstitutions($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:settlement) then
+			<optgroup label="settlement">
+				{
+					for $x in $file//t:settlement/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:region) then
+			<optgroup label="region">
+				{
+					for $x in $file//t:region/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:country) then
+			<optgroup label="country">
+				{
+					for $x in $file//t:country/@ref
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:place[@type]) then
+			<optgroup label="type">
+				{
+					if (contains($file//t:place/@type, " ")) then
+						for $x in ($file//t:place/@type)
+						return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+					else
+						let $type := $file//t:place/@type
+						return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsPersons($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:roleName) then
+			<optgroup label="role">
+				{
+					for $x in ($file//t:roleName/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:faith) then
+			<optgroup label="faith">
+				{
+					for $x in ($file//t:faith/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		),
+		if ($file//t:occupation) then
+			<optgroup label="occupation">
+				{
+					for $x in ($file//t:occupation/@type)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+declare function item2:seeAlsoOptionsDefault($file) {
+	(
+		if ($file//t:term/@key) then
+			<optgroup label="keywords">
+				{
+					for $x in config:distinct-values($file//t:term/@key)
+					return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
+				}
+			</optgroup>
+		else (
+		)
+	)
+};
+
+(:~
+ : Decides on the basis of the collection what is relevant to match
+ : related records.
+ :)
+declare function item2:seeAlsoOptions($file, $collection) {
+	switch ($collection)
+		case "manuscripts" return
+			item2:seeAlsoOptionsManuscripts($file)
+		case "works" return
+			item2:seeAlsoOptionsWorks($file)
+		case "studies" return
+			item2:seeAlsoOptionsStudies($file)
+		case "narratives" return
+			item2:seeAlsoOptionsNarratives($file)
+		case "places" return
+			item2:seeAlsoOptionsPlaces($file)
+		case "institutions" return
+			item2:seeAlsoOptionsInstitutions($file)
+		case "persons" return
+			item2:seeAlsoOptionsPersons($file)
+		default return
+			item2:seeAlsoOptionsDefault($file)
+};
+
 declare function item2:RestSeeAlso($this, $collection) {
 	let $file := $this
 	let $id := string($this/@xml:id)
 	let $classes :=
 		for $class in $this//t:term/@key
 		return "http://betamasaheft.eu/" || $class
-	let $options := switch ($collection)
-		(: decides on the basis of the collection what is relevant to match related records :)
-		case "manuscripts" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:supportDesc/t:material/@key) then
-					<optgroup label="material">
-						{
-							for $x in ($file//t:supportDesc/t:material/@key)
-							return <option value="{ $x }">{ $x }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:handNote[@script]/@script) then
-					<optgroup label="script">
-						{
-							for $x in config:distinct-values($file//t:handNote[@script]/@script)
-							return <option value="{ $x }">{ string($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:objectDesc/@form) then
-					<optgroup label="form">
-						{
-							for $x in config:distinct-values($file//t:objectDesc/@form)
-							return <option value="{ $x }">{ string($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "works" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="relation">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "studies" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="relation">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "narratives" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "dcterms:creator"]) then
-					<optgroup label="author">
-						{
-							for $x in ($file//t:relation[@name eq "dcterms:creator"])
-							let $auth := string($x/@passive)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:relation[@name eq "saws:isAttributedToAuthor"]) then
-					<optgroup label="attributed author">
-						{
-							for $x in ($file//t:relation[@name eq "saws:isAttributedToAuthor"])
-							let $auth := string($x/@active)
-							return <option value="{ $auth }">{ exptit:printTitleID($auth) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "places" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:settlement) then
-					<optgroup label="settlement">
-						{
-							for $x in $file//t:settlement/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:region) then
-					<optgroup label="region">
-						{
-							for $x in $file//t:region/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:country) then
-					<optgroup label="country">
-						{
-							for $x in $file//t:country/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:place[@type]) then
-					<optgroup label="type">
-						{
-							if (contains($file//t:place/@type, " ")) then
-								for $x in tokenize($file//t:place/@type, " ")
-								return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-							else
-								let $type := $file//t:place/@type
-								return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "institutions" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:settlement) then
-					<optgroup label="settlement">
-						{
-							for $x in $file//t:settlement/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:region) then
-					<optgroup label="region">
-						{
-							for $x in $file//t:region/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:country) then
-					<optgroup label="country">
-						{
-							for $x in $file//t:country/@ref
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:place[@type]) then
-					<optgroup label="type">
-						{
-							if (contains($file//t:place/@type, " ")) then
-								for $x in ($file//t:place/@type)
-								return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-							else
-								let $type := $file//t:place/@type
-								return <option value="{ $type }">{ exptit:printTitleID($type) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		case "persons" return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:roleName) then
-					<optgroup label="role">
-						{
-							for $x in ($file//t:roleName/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:faith) then
-					<optgroup label="faith">
-						{
-							for $x in ($file//t:faith/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				),
-				if ($file//t:occupation) then
-					<optgroup label="occupation">
-						{
-							for $x in ($file//t:occupation/@type)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
-		default return
-			(
-				if ($file//t:term/@key) then
-					<optgroup label="keywords">
-						{
-							for $x in config:distinct-values($file//t:term/@key)
-							return <option value="{ $x }">{ exptit:printTitleID($x) }</option>
-						}
-					</optgroup>
-				else (
-				)
-			)
+	let $options := item2:seeAlsoOptions($file, $collection)
 	return <div class="w3-third w3-padding" id="seeAlsoForm">
 		{
 			if (count($options) ge 1) then (

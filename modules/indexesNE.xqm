@@ -8,8 +8,8 @@ xquery version "3.0" encoding "UTF-8";
 module namespace indexesNE = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/indexesNE";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace templates = "http://exist-db.org/xquery/templates";
 
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
@@ -138,7 +138,7 @@ function indexesNE:placeNamesRes($node as node(), $model as map(*), $start as xs
 	let $count := count($ptrs)
 	return <div class="w3-container w3-margin">
 		<div class="w3-col" id="{ $target }" style="width:15%">
-			<a href="{ $target }">{ exptit:printTitle($target) }</a> 
+			<a href="{ $target }">{ exptit:printTitle($target) }</a>
     has been marked up <span class="badge">
 				{ $count }
 			</span> times in the selected collections.
@@ -184,7 +184,7 @@ function indexesNE:persNamesRes($node as node(), $model as map(*), $start as xs:
 	let $count := count($ptrs)
 	return <div class="w3-margin">
 		<div class="w3-col" id="{ $target }" style="width:15%">
-			<a href="{ $target }">{ exptit:printTitle($target) }</a> 
+			<a href="{ $target }">{ exptit:printTitle($target) }</a>
     has been marked up <span class="badge">
 				{ $count }
 			</span> times in the selected collections.

@@ -3,8 +3,7 @@ xquery version "3.0" encoding "UTF-8";
 declare namespace saxon = "http://saxon.sf.net/";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace templates = "http://exist-db.org/xquery/templates";
-import module namespace site = "http://exist-db.org/apps/site-utils";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 import module namespace apidoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apidoc" at "xmldb:exist:///db/apps/BetMasWeb/modules/apidocumentation.xqm";
@@ -21,20 +20,66 @@ declare option output:omit-xml-declaration "no";
 declare option saxon:output "omit-xml-declaration=no";
 declare option output:media-type "text/html";
 
-let $config := map {$templates:CONFIG_APP_ROOT: $config:app-root, $templates:CONFIG_STOP_ON_ERROR: true()}
+(:~
+ : Top-down replacement for the now-unused templates:surround (deprecated
+ : upstream - github.com/eXist-db/templating#37 - not for removal, but its
+ : inner-evaluated-first/outer-evaluated-after order made the model hard
+ : to reason about at any given point). Called from the wrapper's own
+ : content slot (see e.g. templates/newpage.html's id="content" div) - the
+ : wrapper, not the page, is templates:apply's root document (see below),
+ : so this renders $model("page-content")'s own children into that slot:
+ : the same "insert the page's content into the wrapper's content slot"
+ : shape templates:surround always produced, just reached top-down - the
+ : wrapper is the entry point and pulls the page in, instead of the page
+ : pulling the wrapper in around itself.
+ :)
+declare %templates:wrap function local:include-page($node as node(), $model as map(*)) {
+	templates:process($model("page-content")/node(), $model)
+};
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (local:lookup#2) below instead of an inline closure - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :)
+declare function local:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"view.xql",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 (:
- : We have to provide a lookup function to templates:apply to help it
- : find functions in the imported application modules. The templates
- : module cannot see the application modules, but the inline function
- : below does see them.
+ : No template in this app uses class="ns:function" dispatch (data-template
+ : is the only syntax in use) - disabling class-syntax lookup skips a
+ : tokenize+regex check on @class for every element that isn't templated.
  :)
-let $lookup := function ($functionName as xs:string, $arity as xs:int) {
-	try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
-}
+let $config := map:merge((config:template-apply-config(), map {$templates:CONFIG_APP_ROOT: $config:app-root}))
+
 (:
- : The HTML is passed in the request from the controller.
- : Run it through the templating system and return the result.
+ : A full page declares which wrapper it mounts into via @data-wrapper on
+ : its own root element - plain data read directly here, not a templating
+ : instruction (the page itself is never passed to templates:apply in that
+ : case). $model is pre-populated with the page's own content before
+ : rendering starts, then templates:apply runs against the WRAPPER as the
+ : root document - see local:include-page above.
+ :
+ : Every .html resource in this app is forwarded through this view
+ : (controller.xql's generic catch-all matches by extension, not by
+ : content), including the standalone forms/*.html fragments fetched
+ : client-side via AJAX and injected into an already-rendered page - those
+ : have no @data-wrapper and were never meant to be wrapped at all, so they
+ : fall through to plain templates:apply on the fragment itself, same as
+ : before this file had any wrapper concept.
  :)
-let $content := request:get-data()
-return templates:apply($content, $lookup, (), $config)
+let $page := request:get-data()
+let $root := ($page/self::element(), $page/*)[1]
+let $wrapperPath := $root/@data-wrapper/string()
+return if ($wrapperPath) then
+	templates:apply(config:resolve($wrapperPath), local:lookup#2, map {"page-content": $root}, $config)
+else
+	templates:apply($page, local:lookup#2, (), $config)
