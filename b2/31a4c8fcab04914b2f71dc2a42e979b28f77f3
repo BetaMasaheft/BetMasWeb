@@ -1,0 +1,24 @@
+test/xqs/ts-item-seealso-options.xqm
+  s_5790d61a112fab::t_fa55cb1d31f258 1-87
+modules/item.xqm
+  s_5790d61a112fab::t_c9d8feb1f7f820 2183-2491,2493,2495,2497,2499,2501,2503,2505,2507-2516
+test/xqs/test-runner.xq
+  s_5790d61a112fab::t_3a89e29789411f 26
+  s_5790d61a112fab::t_85a54a73646b18 42-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b231a4c8fcab04914b2f71dc2a42e979b28f77f3",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
