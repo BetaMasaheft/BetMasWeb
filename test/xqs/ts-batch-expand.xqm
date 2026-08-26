@@ -82,10 +82,11 @@ declare %test:assertTrue function tsbatchexp:stores-under-expanded() {
 	let $summary := batchExpand:expandCollection($tsbatchexp:src-col)
 	let $stored-path := $tsbatchexp:out-col || "/" || $tsbatchexp:file
 	let $stored := doc($stored-path)
-	let $mode := sm:get-permissions(xs:anyURI($stored-path))/@mode/string()
+	let $mode := string((sm:get-permissions(xs:anyURI($stored-path))/@mode)[1])
+	(: other-write must be off (not rwxrwxrwx); accept rwxrwxr-x :)
 	let $ok := exists($stored/t:TEI[@xml:id = "LITTESTbatchExpand"]) and
 		matches($summary, "^expanded 1 file\(s\) in ") and
-		$mode = "rwxrwxr-x"
+		matches($mode, "^rwxrwxr-x$")
 	let $_clean2 := tsbatchexp:cleanup()
 	return $ok
 };
