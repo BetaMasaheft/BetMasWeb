@@ -7,6 +7,7 @@ declare namespace xconf = "http://exist-db.org/collection-config/1.0";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 
 import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
+import module namespace cache = "http://exist-db.org/xquery/cache";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
@@ -735,6 +736,24 @@ declare %private function q:par-date-range($element, $dateRange) {
 };
 
 (:~
+ : Cache for q:max-folia/q:max-written-lines - both rescan the corpus
+ : (see their own docs for why that's still worth ~200ms/~50ms rather
+ : than ~40s/~1.8s), and are each called several times per page (once
+ : for a slider's bounds, again for a filter's default-value check),
+ : so memoizing avoids paying that scan repeatedly within, and across,
+ : requests. TTL-bound rather than permanent since the corpus does
+ : change between deployments. Same idiom as iiifut:CANVAS-CACHE
+ : (modules/iiif-util.xqm) - html-templating itself has no caching
+ : primitive of its own (checked directly: none of its functions -
+ : apply/process/surround/each/if-model-key-equals/etc - memoize
+ : anything), so eXist's own cache: module is the right tool here, not
+ : something html-templating-native.
+ :)
+declare variable $q:CORPUS-STATS-CACHE := "corpus-stats";
+
+declare variable $q:CORPUS-STATS-CACHE-TTL := 3600;
+
+(:~
  : Highest real t:extent/t:measure[@unit='leaf'] value in the corpus,
  : excluding a recurring data-entry error: for at least 3 EMML
  : manuscripts (EMML1483, EMML2927, EMML5533, found 2026-08-26), the
@@ -743,11 +762,7 @@ declare %private function q:par-date-range($element, $dateRange) {
  : conversion bug, not one typo. Confirmed each of these 3 values is
  : otherwise unique corpus-wide (occurs exactly once), so excluding the
  : literal values here excludes exactly those 3 records, without needing
- : to re-derive "is this an EMML self-reference" per candidate. Backs
- : both forms/formfolia.html's slider bounds and q:par-folia's
- : default-value check below, so they can never drift apart from each
- : other the way the old hardcoded "1,1000" did from the slider's own
- : hardcoded max.
+ : to re-derive "is this an EMML self-reference" per candidate.
  :
  : Casts against distinct-values() rather than every matching element:
  : casting each of the ~14,000 raw elements (most of them repeat values)
@@ -756,24 +771,61 @@ declare %private function q:par-date-range($element, $dateRange) {
  : ~200ms for an identical result - the index handles distinctness
  : efficiently, the cast doesn't need to run once per document.
  :
- : @return the real max leaf count, as an integer
+ : @return the corpus's real leaf-count candidates, empty if none are castable
  : @see https://github.com/BetaMasaheft/Manuscripts/issues/3505 tracks fixing the source data; this exclusion can be dropped once resolved
  :)
-declare function q:max-folia() as xs:integer {
-	max(
-		for $v in distinct-values(collection($config:data-rootMS)//t:extent/t:measure[@unit = "leaf"][not(@type)])
-		where $v castable as xs:integer
-		let $n := xs:integer($v)
-		where not($n = (1483, 2927, 5533))
-		return $n
-	)
+declare %private function q:max-folia-candidates() as xs:integer* {
+	for $v in distinct-values(collection($config:data-rootMS)//t:extent/t:measure[@unit = "leaf"][not(@type)])
+	where $v castable as xs:integer
+	let $n := xs:integer($v)
+	where not($n = (1483, 2927, 5533))
+	return $n
 };
 
 (:~
- : Highest real t:layout/@writtenLines value in the corpus. Backs both
- : forms/formWL.html's slider bounds and q:par-wL's default-value check
- : below, so they can never drift apart from each other the way the
- : old hardcoded "1,100" did from the slider's own hardcoded max.
+ : Backs both forms/formfolia.html's slider bounds and q:par-folia's
+ : default-value check below, so they can never drift apart from each
+ : other the way the old hardcoded "1,1000" did from the slider's own
+ : hardcoded max. Falls back to that same old literal if the corpus
+ : ever yields zero candidates (e.g. a sparse test fixture) - a
+ : dynamic cardinality error out of a slider-bounds function would
+ : break every page that renders it, which is worse than a stale-but-
+ : safe default.
+ : @return the real max leaf count, as an integer
+ :)
+declare function q:max-folia() as xs:integer {
+	let $ensureCache := cache:create(
+		$q:CORPUS-STATS-CACHE,
+		map {"type": "lru", "size": 10, "ttl": $q:CORPUS-STATS-CACHE-TTL}
+	)
+	let $cached := cache:get($q:CORPUS-STATS-CACHE, "max-folia")
+	return if (exists($cached)) then
+		$cached
+	else
+		let $candidates := q:max-folia-candidates()
+		let $result := if (exists($candidates)) then
+			max($candidates)
+		else
+			1000
+		let $store := cache:put($q:CORPUS-STATS-CACHE, "max-folia", $result)
+		return $result
+};
+
+(:~
+ : @return the corpus's real written-lines candidates, empty if none are castable
+ :)
+declare %private function q:max-written-lines-candidates() as xs:integer* {
+	for $v in distinct-values(collection($config:data-rootMS)//t:layout/@writtenLines)
+	where $v castable as xs:integer
+	return xs:integer($v)
+};
+
+(:~
+ : Backs both forms/formWL.html's slider bounds and q:par-wL's
+ : default-value check below, so they can never drift apart from each
+ : other the way the old hardcoded "1,100" did from the slider's own
+ : hardcoded max. Falls back to that same old literal if the corpus
+ : ever yields zero candidates - see q:max-folia's own doc for why.
  :
  : Casts against distinct-values() rather than every matching attribute
  : - see q:max-folia's own doc for why that's meaningfully faster, same
@@ -785,11 +837,55 @@ declare function q:max-folia() as xs:integer {
  : @return the real max written-lines count, as an integer
  :)
 declare function q:max-written-lines() as xs:integer {
-	max(
-		for $v in distinct-values(collection($config:data-rootMS)//t:layout/@writtenLines)
-		where $v castable as xs:integer
-		return xs:integer($v)
+	let $ensureCache := cache:create(
+		$q:CORPUS-STATS-CACHE,
+		map {"type": "lru", "size": 10, "ttl": $q:CORPUS-STATS-CACHE-TTL}
 	)
+	let $cached := cache:get($q:CORPUS-STATS-CACHE, "max-written-lines")
+	return if (exists($cached)) then
+		$cached
+	else
+		let $candidates := q:max-written-lines-candidates()
+		let $result := if (exists($candidates)) then
+			max($candidates)
+		else
+			100
+		let $store := cache:put($q:CORPUS-STATS-CACHE, "max-written-lines", $result)
+		return $result
+};
+
+(:~
+ : Shared range-predicate builder for the folia/wL/qn filters below and
+ : their app:query/apprest:searchFilter-rest equivalents - was
+ : triplicated by hand, which is exactly how the wL/folia sentinel
+ : drift bug happened. No cast on $target: wrapping it defeats eXist's
+ : range-index optimizer (~200x slower). Correct within one digit
+ : width, silently wrong across a digit-length boundary (e.g. "9" vs
+ : "1024") - a known, tracked tradeoff, not something to fix here.
+ : @param $pathPrefix the path up to the range predicates, e.g. "descendant::t:extent/t:measure[@unit='leaf'][not(@type)]"
+ : @param $target the step being range-filtered, e.g. "." or "@writtenLines"
+ : @param $guards extra bracketed predicates to apply before the range check, e.g. ("[matches(.,'^\d+$')]")
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/95 tracks the lexicographic-comparison tradeoff
+ :)
+declare function q:range-predicate(
+	$pathPrefix as xs:string,
+	$target as xs:string,
+	$guards as xs:string*,
+	$min as xs:string,
+	$max as xs:string
+) as xs:string {
+	"[" ||
+		$pathPrefix ||
+		string-join($guards, "") ||
+		"[" ||
+		$target ||
+		" ge " ||
+		$min ||
+		"][" ||
+		$target ||
+		" le " ||
+		$max ||
+		"]]"
 };
 
 declare %private function q:par-folia($Pfolia) {
@@ -798,21 +894,7 @@ declare %private function q:par-folia($Pfolia) {
 	return if ($Pfolia = "1," || q:max-folia()) then (
 	) else if (empty($Pfolia)) then (
 	) else
-		(:
-		 : No xs:integer(.)/xs:decimal(.) cast on the indexed value here -
-		 : wrapping it in a cast function defeats eXist's range-index
-		 : optimizer entirely (measured: ~200x slower, multi-minute
-		 : production searches). Matches q:par-wL's existing shape below:
-		 : same tradeoff (string, not numeric, comparison against the
-		 : xs:string-typed index - correct for same-digit-width values,
-		 : silently wrong across digit-length boundaries, e.g. "9" vs
-		 : "1024"), same underlying cause (the index field is typed
-		 : xs:string, not numeric - a structural fix belongs in the index
-		 : config, not query-side). Prioritizes not being catastrophically
-		 : slow over a correctness edge case this filter already carries
-		 : in its sibling.
-		 :)
-		"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
+		q:range-predicate("descendant::t:extent/t:measure[@unit='leaf'][not(@type)]", ".", (), $min, $max)
 };
 
 declare %private function q:par-wL($PwL) {
@@ -821,24 +903,21 @@ declare %private function q:par-wL($PwL) {
 	return if ($PwL = "1," || q:max-written-lines()) then (
 	) else if (empty($PwL)) then (
 	) else
-		"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
+		q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
 };
 
-(:~
- : No xs:integer(.) cast on the indexed value - same fix as q:par-folia
- : above, same reasoning: casting the indexed value defeats eXist's
- : range-index optimizer.
- :)
 declare %private function q:par-qn($Pqn) {
 	if ($Pqn = "1,100") then (
 	) else
 		let $min := substring-before($Pqn, ",")
 		let $max := substring-after($Pqn, ",")
-		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][. ge " ||
-			$min ||
-			" ][ .  le " ||
-			$max ||
-			"]]"
+		return q:range-predicate(
+			"descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')]",
+			".",
+			(),
+			$min,
+			$max
+		)
 };
 
 declare %private function q:par-qcn($Pqcn) {

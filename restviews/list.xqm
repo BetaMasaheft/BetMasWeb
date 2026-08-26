@@ -21,7 +21,6 @@ import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace error = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/error" at "xmldb:exist:///db/apps/BetMasWeb/modules/error.xqm";
 import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
-import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
@@ -2096,13 +2095,24 @@ declare function list:paramsList($parameters as map(*)) {
 								}
 							</span>
 					) else if ($key = "wL") then (
-						if ($value = "1," || q:max-written-lines()) then (
+						(:
+						 : Sentinel is the literal "1,100", not
+						 : q:max-written-lines() - this page's filter is built
+						 : by apprest:searchFilter-rest (restviews/list.xqm's
+						 : only producer of these $parameters), whose own
+						 : widget/sentinel still submits the old hardcoded
+						 : default (it wasn't part of the forms/formWL.html
+						 : slider-bounds conversion). Matching that literal
+						 : here, not q:max-written-lines(), is what keeps this
+						 : chip and the filter it describes in agreement.
+						 :)
+						if ($value = "1,100") then (
 						) else
 							<span class="w3-tag w3-small w3-gray">
 								{ "between " || substring-before($value, ",") || " and " || substring-after($value, ",") }
 							</span>
 					) else if ($key = "folia") then (
-						if ($value = "1," || q:max-folia()) then (
+						if ($value = "1,1000") then (
 						) else
 							<span class="w3-tag w3-small w3-gray">
 								{ "between " || substring-before($value, ",") || " and " || substring-after($value, ",") || " leaves" }

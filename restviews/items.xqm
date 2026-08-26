@@ -488,48 +488,7 @@ declare function restItem:mainContentTextTemplate($node as node(), $model as map
 };
 
 declare function restItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
-	(:
-	 : Each branch routed through templates:apply instead of called
-	 : directly - see item2:mainContentGraphManuscriptsTemplate/
-	 : mainContentGraphPlacesTemplate/mainContentGraphPersonsTemplate/
-	 : mainContentGraphAuthorityFilesTemplate/mainContentGraphDefaultTemplate.
-	 :)
-	switch ($collection)
-		case "manuscripts" return
-			templates:apply(
-				<div data-template="item2:mainContentGraphManuscriptsTemplate" />,
-				restItem:lookup#2,
-				map {"this": $this, "id": $id},
-				config:template-apply-config()
-			)
-		case "places" return
-			templates:apply(
-				<div data-template="item2:mainContentGraphPlacesTemplate" />,
-				restItem:lookup#2,
-				map {"id": $id},
-				config:template-apply-config()
-			)
-		case "persons" return
-			templates:apply(
-				<div data-template="item2:mainContentGraphPersonsTemplate" />,
-				restItem:lookup#2,
-				map {"id": $id},
-				config:template-apply-config()
-			)
-		case "authority-files" return
-			templates:apply(
-				<div data-template="item2:mainContentGraphAuthorityFilesTemplate" />,
-				restItem:lookup#2,
-				map {"id": $id},
-				config:template-apply-config()
-			)
-		default return
-			templates:apply(
-				<div data-template="item2:mainContentGraphDefaultTemplate" />,
-				restItem:lookup#2,
-				map {"id": $id, "collection": $collection},
-				config:template-apply-config()
-			)
+	item2:mainContentGraph($this, $id, $collection, restItem:lookup#2)
 };
 
 (:~

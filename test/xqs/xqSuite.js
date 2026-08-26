@@ -39,6 +39,7 @@ function fetchReport(target) {
 			.get(target, { headers: authHeaders() }, (res) => {
 				const chunks = [];
 				res.on("data", (chunk) => chunks.push(chunk));
+				res.on("error", reject);
 				res.on("end", () => {
 					const body = Buffer.concat(chunks).toString("utf8");
 					try {

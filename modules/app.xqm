@@ -1517,12 +1517,14 @@ function app:query(
 		return if ($range = "1," || q:max-folia()) then (
 		) else if (empty($range)) then (
 		) else
-			(:
-			 : No xs:integer(.) cast (nor the regex guard that used to
-			 : protect it from non-digit values) - matches
-			 : q:par-folia/q:par-wL's shape, see the comment there for why.
-			 :)
-			"[descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
+			(: [matches(.,'^\d+$')] guards against non-integer-formatted values, same as before. :)
+			q:range-predicate(
+				"descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)]",
+				".",
+				"[matches(.,'^\d+$')]",
+				$min,
+				$max
+			)
 	) else (
 	)
 	let $wL := if (contains($app:params, "wL")) then (
@@ -1532,7 +1534,7 @@ function app:query(
 		return if ($range = "1," || q:max-written-lines()) then (
 		) else if (empty($range)) then (
 		) else
-			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
+			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
 	) else (
 	)
 	let $quires := if (contains($app:params, "qn")) then (

@@ -2772,17 +2772,6 @@ declare function item2:textBibl($this, $id) {
 };
 
 (:~
- : Shared by restItem:mainContent* (items.xqm) and PermRestItem:mainContent*
- : (permanentItems.xqm) - these seven were byte-identical, or only
- : accidentally drifted (a `=` vs `eq`, some whitespace), across both
- : files' otherwise-diverged switch($type) splits. The rest stays split
- : per file: analytic/corpus/text/default/extras genuinely differ between
- : the live and permanent-link views.
- :
- : @param $id the item's xml:id
- : @return the "geobrowser" main-content view
- :)
-(:~
  : templates:apply adapter for item2:mainContentGeobrowser - reads the
  : same $id restItem:mainContent/PermRestItem:mainContent used to pass
  : directly, out of $model. No %templates:wrap: mainContentGeobrowser
@@ -2802,24 +2791,30 @@ declare function item2:mainContentGeobrowserTemplate($node as node(), $model as 
 	item2:mainContentGeobrowser($model("id"))
 };
 
+(:~
+ : Shared by restItem:mainContent* (items.xqm) and PermRestItem:mainContent*
+ : (permanentItems.xqm) - these seven were byte-identical, or only
+ : accidentally drifted (a `=` vs `eq`, some whitespace), across both
+ : files' otherwise-diverged switch($type) splits. The rest stays split
+ : per file: analytic/corpus/text/default/extras genuinely differ between
+ : the live and permanent-link views.
+ :
+ : @param $id the item's xml:id
+ : @return the "geobrowser" main-content view
+ :)
 declare function item2:mainContentGeobrowser($id as xs:string*) {
 	<div class="w3-container">
 		<div class="w3-container alert alert-info">You can download the <a
-				href="https://betamasaheft.eu/api/KML/places/{ $id }"
+				href="{ $config:BMurl }api/KML/places/{ $id }"
 			>KML</a> file visualized below in the <a href="https://geobrowser.de.dariah.eu">Dariah-DE Geobrowser</a>.</div>
 		<h3>Map and timeline of places attestations marked up in the text.</h3>
 		<iframe
 			id="geobrowserMap"
-			src="https://geobrowser.de.dariah.eu/embed/index.html?kml1=https://betamasaheft.eu/api/KML/places/{ $id }"
+			src="https://geobrowser.de.dariah.eu/embed/index.html?kml1={ $config:BMurl }api/KML/places/{ $id }"
 			style="width: 100%; height: 800px;" />
 	</div>
 };
 
-(:~
- : @param $this the manuscript's t:TEI element
- : @param $id   the manuscript's xml:id
- : @return the "graph" main-content view for a manuscript
- :)
 (:~
  : templates:apply adapter for item2:mainContentGraphManuscripts - reads
  : the same $this/$id restItem:mainContentGraph/PermRestItem:mainContentGraph
@@ -2840,6 +2835,11 @@ declare function item2:mainContentGraphManuscriptsTemplate($node as node(), $mod
 	item2:mainContentGraphManuscripts($model("this"), $model("id"))
 };
 
+(:~
+ : @param $this the manuscript's t:TEI element
+ : @param $id   the manuscript's xml:id
+ : @return the "graph" main-content view for a manuscript
+ :)
 declare function item2:mainContentGraphManuscripts($this as element(), $id as xs:string*) {
 	let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(@type eq "blank")]/text()
 	return <div class="w3-container">
@@ -2912,11 +2912,6 @@ declare function item2:mainContentGraphManuscripts($this as element(), $id as xs
 };
 
 (:~
- : @param $id the place's xml:id
- : @return the "graph" main-content view for a place
- : @see item2:mainContentGeobrowser
- :)
-(:~
  : templates:apply adapter for item2:mainContentGraphPlaces - same
  : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
  :
@@ -2928,15 +2923,15 @@ declare function item2:mainContentGraphPlacesTemplate($node as node(), $model as
 	item2:mainContentGraphPlaces($model("id"))
 };
 
+(:~
+ : @param $id the place's xml:id
+ : @return the "graph" main-content view for a place
+ : @see item2:mainContentGeobrowser
+ :)
 declare function item2:mainContentGraphPlaces($id as xs:string*) {
 	<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
 };
 
-(:~
- : @param $id the person's xml:id
- : @return the "graph" main-content view for a person
- : @see item2:mainContentGeobrowser
- :)
 (:~
  : templates:apply adapter for item2:mainContentGraphPersons - same
  : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
@@ -2949,6 +2944,11 @@ declare function item2:mainContentGraphPersonsTemplate($node as node(), $model a
 	item2:mainContentGraphPersons($model("id"))
 };
 
+(:~
+ : @param $id the person's xml:id
+ : @return the "graph" main-content view for a person
+ : @see item2:mainContentGeobrowser
+ :)
 declare function item2:mainContentGraphPersons($id as xs:string*) {
 	<div class="w3-container">
 		<div data-id="{ $id }" id="graph" />
@@ -2962,11 +2962,6 @@ declare function item2:mainContentGraphPersons($id as xs:string*) {
 };
 
 (:~
- : @param $id the authority-file entry's xml:id
- : @return Sankey diagrams if $id names a Subjects taxonomy category, else empty
- : @see item2:mainContentGeobrowser
- :)
-(:~
  : templates:apply adapter for item2:mainContentGraphAuthorityFiles -
  : same shape/rationale as item2:mainContentGraphManuscriptsTemplate.
  :
@@ -2978,8 +2973,13 @@ declare function item2:mainContentGraphAuthorityFilesTemplate($node as node(), $
 	item2:mainContentGraphAuthorityFiles($model("id"))
 };
 
+(:~
+ : @param $id the authority-file entry's xml:id
+ : @return Sankey diagrams if $id names a Subjects taxonomy category, else empty
+ : @see item2:mainContentGeobrowser
+ :)
 declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
-	let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc eq
+	let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc =
 		"Subjects"]//t:category/t:catDesc/text()
 	return if ($id = $Subjects) then (
 		try { LitFlow:Sankey($id, "works") } catch * { $err:description },
@@ -2988,12 +2988,6 @@ declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
 	)
 };
 
-(:~
- : @param $id         the item's xml:id
- : @param $collection its collection name
- : @return the fallback "graph" main-content view for any other collection
- : @see item2:mainContentGeobrowser
- :)
 (:~
  : templates:apply adapter for item2:mainContentGraphDefault - same
  : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
@@ -3006,6 +3000,12 @@ declare function item2:mainContentGraphDefaultTemplate($node as node(), $model a
 	item2:mainContentGraphDefault($model("id"), $model("collection"))
 };
 
+(:~
+ : @param $id         the item's xml:id
+ : @param $collection its collection name
+ : @return the fallback "graph" main-content view for any other collection
+ : @see item2:mainContentGeobrowser
+ :)
 declare function item2:mainContentGraphDefault($id as xs:string*, $collection as xs:string*) {
 	<div class="w3-container">
 		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
@@ -3017,10 +3017,62 @@ declare function item2:mainContentGraphDefault($id as xs:string*, $collection as
 };
 
 (:~
- : @param $id the work's xml:id
- : @return the post-content "extras" for a work (miniatures)
- : @see item2:mainContentGeobrowser
+ : Shared by restItem:mainContentGraph (items.xqm) and
+ : PermRestItem:mainContentGraph (permanentItems.xqm) - these were
+ : byte-identical apart from which lookup they pass to templates:apply.
+ : $lookup is that difference, passed in by the caller (e.g.
+ : restItem:lookup#2) rather than hardcoded, since function-lookup()
+ : only resolves against the *writing* module's static context.
+ : @param $this the item's own TEI node
+ : @param $id the item's xml:id
+ : @param $collection the item's collection name
+ : @param $lookup the calling module's own templates:apply resolver
+ : @return the routed "graph" main-content view for $collection
  :)
+declare function item2:mainContentGraph(
+	$this as element(),
+	$id as xs:string*,
+	$collection as xs:string*,
+	$lookup as function (xs:string, xs:integer) as function(*)?
+) {
+	switch ($collection)
+		case "manuscripts" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphManuscriptsTemplate" />,
+				$lookup,
+				map {"this": $this, "id": $id},
+				config:template-apply-config()
+			)
+		case "places" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphPlacesTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "persons" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphPersonsTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "authority-files" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphAuthorityFilesTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		default return
+			templates:apply(
+				<div data-template="item2:mainContentGraphDefaultTemplate" />,
+				$lookup,
+				map {"id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
+};
+
 (:~
  : templates:apply adapter for item2:mainContentExtrasWorks - reads the
  : same $id restItem:mainContentExtras/PermRestItem:mainContentExtras
@@ -3040,6 +3092,11 @@ declare function item2:mainContentExtrasWorksTemplate($node as node(), $model as
 	item2:mainContentExtrasWorks($model("id"))
 };
 
+(:~
+ : @param $id the work's xml:id
+ : @return the post-content "extras" for a work (miniatures)
+ : @see item2:mainContentGeobrowser
+ :)
 declare function item2:mainContentExtrasWorks($id as xs:string*) {
 	(item2:RestMiniatures($id))
 };

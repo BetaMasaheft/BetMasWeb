@@ -21,6 +21,7 @@ import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
@@ -1105,20 +1106,8 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		return if ($Pfolia = "1,1000") then (
 		) else if (empty($Pfolia)) then (
 		) else
-			(:
-			 : No xs:integer(.) cast on the indexed value - defeats
-			 : eXist's range-index optimizer, measured ~200x slower.
-			 : Matches the $wL block below and
-			 : modules/queries.xqm's q:par-folia/q:par-wL. Sentinel value
-			 : ("1,1000") intentionally left as the literal here, not
-			 : q:max-folia() - this function's own caller/widget
-			 : (restviews/list.xqm, not forms/formfolia.html) doesn't use
-			 : the corpus-computed slider bounds, so its default is still
-			 : the old hardcoded value; deriving the sentinel from
-			 : q:max-folia() here would desync it from what its own
-			 : widget actually submits.
-			 :)
-			"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
+			(: Sentinel stays "1,1000" - this page's own widget (restviews/list.xqm) still submits that literal, not q:max-folia(). :)
+			q:range-predicate("descendant::t:extent/t:measure[@unit='leaf'][not(@type)]", ".", (), $min, $max)
 	)
 	let $wL := if (empty($PwL) or $PwL = "") then (
 	) else (
@@ -1127,21 +1116,19 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		return if ($PwL = "1,100") then (
 		) else if (empty($PwL)) then (
 		) else
-			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
+			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
 	)
-	(:
-	 : No xs:integer(.) cast on the indexed value in $quires below -
-	 : same fix as the $leaves block above.
-	 :)
 	let $quires := if (empty($Pqn) or $Pqn = "" or $Pqn = "1,100") then (
 	) else (
 		let $min := substring-before($Pqn, ",")
 		let $max := substring-after($Pqn, ",")
-		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][. ge " ||
-			$min ||
-			" ][ .  le " ||
-			$max ||
-			"]]"
+		return q:range-predicate(
+			"descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')]",
+			".",
+			(),
+			$min,
+			$max
+		)
 	)
 	let $quiresComp := if (empty($Pqcn) or $Pqcn = "" or $Pqcn = "1,40") then (
 	) else (
