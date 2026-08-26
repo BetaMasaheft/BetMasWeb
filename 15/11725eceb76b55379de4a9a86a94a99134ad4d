@@ -1,0 +1,25 @@
+test/xqs/ts-batch-expand.xqm
+  s_1544e160683453::t_ba5501997bee67 85
+  s_1544e160683453::t_56029f830980ab 55,59-74,77,83-84,86-88
+modules/batchExpand.xqm
+  s_1544e160683453::t_47f4a048277a8f 18-27,30,39-43,63-69,73-76,80,98-114,119
+  s_1544e160683453::t_e23bfa2362d5d4 17,118
+modules/makeExpand.xql
+  s_1544e160683453::t_9f69e3140e8e71 7,20-22,24-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "1511725eceb76b55379de4a9a86a94a99134ad4d",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
