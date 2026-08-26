@@ -2,6 +2,7 @@ test/xqs/ts-batch-expand.xqm
   s_1544e160683453::t_e46d56ad3ee92f 1-70
 test/xqs/test-runner.xq
   s_1544e160683453::t_e80cbbcd076652 31,50,53
+  s_1544e160683453::t_a6e0d6a0f56520 52
 modules/makeExpand.xql
   s_1544e160683453::t_92a7b8a80f5e5d 1-25
 modules/batchExpand.xqm
