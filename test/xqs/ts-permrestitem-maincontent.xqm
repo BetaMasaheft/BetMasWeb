@@ -19,6 +19,9 @@ xquery version "3.1" encoding "UTF-8";
  : @see https://github.com/eeditiones/tei-publisher-lib
  : @see item2:mainContentGeobrowser for the leaf functions shared with
  : ts-restitem-maincontent.xqm
+ : @see PermRestItem:mainContentTemplate for the templates:apply adapter
+ : PermRestItem:ITEM now calls instead of PermRestItem:mainContent
+ : directly
  :)
 module namespace tspermmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-permrestitem-maincontent";
 
@@ -147,4 +150,15 @@ declare %test:assertTrue function tspermmaincontent:extras-dispatch-matches-dire
 
 declare %test:assertTrue function tspermmaincontent:extras-dispatch-matches-direct-call-default() {
 	deep-equal(PermRestItem:mainContentExtras("MNC010", "manuscripts"), ())
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call() {
+	let $this := tspermmaincontent:doc("LOC3080Ferheb", "places")
+	return deep-equal(
+		PermRestItem:mainContentTemplate(
+			<div />,
+			map {"type": "graph", "this": $this, "id": "LOC3080Ferheb", "collection": "places"}
+		),
+		PermRestItem:mainContent("graph", $this, "LOC3080Ferheb", "places")
+	)
 };

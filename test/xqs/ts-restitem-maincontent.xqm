@@ -23,6 +23,8 @@ xquery version "3.1" encoding "UTF-8";
  : @see https://github.com/eeditiones/tei-publisher-lib
  : @see item2:mainContentGeobrowser for the leaf functions shared with
  : ts-permrestitem-maincontent.xqm
+ : @see restItem:mainContentTemplate for the templates:apply adapter
+ : restItem:ITEM now calls instead of restItem:mainContent directly
  :)
 module namespace tsmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-restitem-maincontent";
 
@@ -155,4 +157,24 @@ declare %test:assertTrue function tsmaincontent:extras-dispatch-matches-direct-c
 declare %test:assertTrue function tsmaincontent:extras-dispatch-matches-direct-call-default() {
 	let $this := tsmaincontent:doc("MNC010", "manuscripts")
 	return deep-equal(restItem:mainContentExtras($this, "MNC010", "manuscripts"), ())
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call() {
+	let $this := tsmaincontent:doc("LOC3080Ferheb", "places")
+	return deep-equal(
+		restItem:mainContentTemplate(
+			<div />,
+			map {
+				"type": "graph",
+				"this": $this,
+				"id": "LOC3080Ferheb",
+				"collection": "places",
+				"edition": (),
+				"ref": (),
+				"start": (),
+				"end": ()
+			}
+		),
+		restItem:mainContent("graph", $this, "LOC3080Ferheb", "places", (), (), (), ())
+	)
 };

@@ -277,7 +277,18 @@ declare function PermRestItem:ITEM(
 							) else
 								attribute style { "margin-left:10%" }
 						}
-						{ PermRestItem:mainContent($type, $this, $id, $collection) }
+						{
+							(:
+							 : mainContent routed through templates:apply instead of
+							 : called directly - see PermRestItem:mainContentTemplate.
+							 :)
+							templates:apply(
+								<div data-template="PermRestItem:mainContentTemplate" />,
+								PermRestItem:lookup#2,
+								map {"type": $type, "this": $this, "id": $id, "collection": $collection},
+								config:template-apply-config()
+							)
+						}
 						<div class="w3-container w3-margin-bottom">
 							<div class="w3-container w3-padding w3-black w3-card-4 ">This page contains RDFa. 
    <a
@@ -524,4 +535,19 @@ declare function PermRestItem:mainContent(
 		default return
 			(: THE MAIN VIEW :)
 			PermRestItem:mainContentDefault($this, $id, $collection)
+};
+
+(:~
+ : templates:apply adapter for PermRestItem:mainContent - reads the same
+ : parameters PermRestItem:ITEM used to pass directly, out of $model. No
+ : %templates:wrap: mainContent already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with type/this/id/collection
+ : @return PermRestItem:mainContent's own output for the given $model
+ :)
+declare function PermRestItem:mainContentTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContent($model("type"), $model("this"), $model("id"), $model("collection"))
 };

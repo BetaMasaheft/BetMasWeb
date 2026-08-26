@@ -277,7 +277,27 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 								) else
 									attribute style { "margin-left:10%" }
 							}
-							{ restItem:mainContent($type, $this, $id, $collection, $edition, $ref, $start, $end) }
+							{
+								(:
+								 : mainContent routed through templates:apply instead of
+								 : called directly - see restItem:mainContentTemplate.
+								 :)
+								templates:apply(
+									<div data-template="restItem:mainContentTemplate" />,
+									restItem:lookup#2,
+									map {
+										"type": $type,
+										"this": $this,
+										"id": $id,
+										"collection": $collection,
+										"edition": $edition,
+										"ref": $ref,
+										"start": $start,
+										"end": $end
+									},
+									config:template-apply-config()
+								)
+							}
 							<!-- <div class="w3-container w3-margin-bottom">
    <div class="w3-twothird">
    <div class="w3-container w3-margin w3-grey w3-small w3-card-4 ">This page contains RDFa. 
@@ -504,6 +524,31 @@ declare function restItem:mainContent(
 		default return
 			(: THE MAIN VIEW :)
 			restItem:mainContentDefault($this, $id, $collection)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContent - reads the same
+ : parameters restItem:ITEM used to pass directly, out of $model. No
+ : %templates:wrap: mainContent already returns complete, specific
+ : content (sometimes a sequence, e.g. mainContentText/mainContentDefault),
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with type/this/id/collection/edition/ref/start/end
+ : @return restItem:mainContent's own output for the given $model
+ :)
+declare function restItem:mainContentTemplate($node as node(), $model as map(*)) {
+	restItem:mainContent(
+		$model("type"),
+		$model("this"),
+		$model("id"),
+		$model("collection"),
+		$model("edition"),
+		$model("ref"),
+		$model("start"),
+		$model("end")
+	)
 };
 
 (: Helper function to process contained works with visited tracking to prevent infinite recursion :)
