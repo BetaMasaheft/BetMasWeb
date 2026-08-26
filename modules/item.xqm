@@ -2820,6 +2820,26 @@ declare function item2:mainContentGeobrowser($id as xs:string*) {
  : @param $id   the manuscript's xml:id
  : @return the "graph" main-content view for a manuscript
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGraphManuscripts - reads
+ : the same $this/$id restItem:mainContentGraph/PermRestItem:mainContentGraph
+ : used to pass directly, out of $model. No %templates:wrap:
+ : mainContentGraphManuscripts already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as
+ : item2:mainContentGeobrowserTemplate. Shared by both
+ : restviews/items.xqm and restviews/permanentItems.xqm's "graph"
+ : $collection branch - each resolves it through its own lookup, not
+ : item2:lookup, same reasoning as mainContentGeobrowserTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id
+ : @return item2:mainContentGraphManuscripts's own output for the given $model
+ :)
+declare function item2:mainContentGraphManuscriptsTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphManuscripts($model("this"), $model("id"))
+};
+
 declare function item2:mainContentGraphManuscripts($this as element(), $id as xs:string*) {
 	let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(@type eq "blank")]/text()
 	return <div class="w3-container">
@@ -2896,6 +2916,18 @@ declare function item2:mainContentGraphManuscripts($this as element(), $id as xs
  : @return the "graph" main-content view for a place
  : @see item2:mainContentGeobrowser
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGraphPlaces - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphPlaces's own output for the given $model
+ :)
+declare function item2:mainContentGraphPlacesTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphPlaces($model("id"))
+};
+
 declare function item2:mainContentGraphPlaces($id as xs:string*) {
 	<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
 };
@@ -2905,6 +2937,18 @@ declare function item2:mainContentGraphPlaces($id as xs:string*) {
  : @return the "graph" main-content view for a person
  : @see item2:mainContentGeobrowser
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGraphPersons - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphPersons's own output for the given $model
+ :)
+declare function item2:mainContentGraphPersonsTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphPersons($model("id"))
+};
+
 declare function item2:mainContentGraphPersons($id as xs:string*) {
 	<div class="w3-container">
 		<div data-id="{ $id }" id="graph" />
@@ -2922,6 +2966,18 @@ declare function item2:mainContentGraphPersons($id as xs:string*) {
  : @return Sankey diagrams if $id names a Subjects taxonomy category, else empty
  : @see item2:mainContentGeobrowser
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGraphAuthorityFiles -
+ : same shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphAuthorityFiles's own output for the given $model
+ :)
+declare function item2:mainContentGraphAuthorityFilesTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphAuthorityFiles($model("id"))
+};
+
 declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
 	let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc eq
 		"Subjects"]//t:category/t:catDesc/text()
@@ -2938,6 +2994,18 @@ declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
  : @return the fallback "graph" main-content view for any other collection
  : @see item2:mainContentGeobrowser
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGraphDefault - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id/collection
+ : @return item2:mainContentGraphDefault's own output for the given $model
+ :)
+declare function item2:mainContentGraphDefaultTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphDefault($model("id"), $model("collection"))
+};
+
 declare function item2:mainContentGraphDefault($id as xs:string*, $collection as xs:string*) {
 	<div class="w3-container">
 		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
@@ -2953,6 +3021,25 @@ declare function item2:mainContentGraphDefault($id as xs:string*, $collection as
  : @return the post-content "extras" for a work (miniatures)
  : @see item2:mainContentGeobrowser
  :)
+(:~
+ : templates:apply adapter for item2:mainContentExtrasWorks - reads the
+ : same $id restItem:mainContentExtras/PermRestItem:mainContentExtras
+ : used to pass directly, out of $model. No %templates:wrap:
+ : mainContentExtrasWorks already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:mainContentGeobrowserTemplate. Shared
+ : by both restviews/items.xqm and restviews/permanentItems.xqm's
+ : "works" $collection branch - each resolves it through its own
+ : lookup, same reasoning as mainContentGeobrowserTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentExtrasWorks's own output for the given $model
+ :)
+declare function item2:mainContentExtrasWorksTemplate($node as node(), $model as map(*)) {
+	item2:mainContentExtrasWorks($model("id"))
+};
+
 declare function item2:mainContentExtrasWorks($id as xs:string*) {
 	(item2:RestMiniatures($id))
 };

@@ -483,17 +483,48 @@ declare function PermRestItem:mainContentTextTemplate($node as node(), $model as
 };
 
 declare function PermRestItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(:
+	 : Each branch routed through templates:apply instead of called
+	 : directly - see item2:mainContentGraphManuscriptsTemplate/
+	 : mainContentGraphPlacesTemplate/mainContentGraphPersonsTemplate/
+	 : mainContentGraphAuthorityFilesTemplate/mainContentGraphDefaultTemplate.
+	 :)
 	switch ($collection)
 		case "manuscripts" return
-			item2:mainContentGraphManuscripts($this, $id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphManuscriptsTemplate" />,
+				PermRestItem:lookup#2,
+				map {"this": $this, "id": $id},
+				config:template-apply-config()
+			)
 		case "places" return
-			item2:mainContentGraphPlaces($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphPlacesTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "persons" return
-			item2:mainContentGraphPersons($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphPersonsTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "authority-files" return
-			item2:mainContentGraphAuthorityFiles($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphAuthorityFilesTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		default return
-			item2:mainContentGraphDefault($id, $collection)
+			templates:apply(
+				<div data-template="item2:mainContentGraphDefaultTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 };
 
 (:~
@@ -512,8 +543,36 @@ declare function PermRestItem:mainContentGraphTemplate($node as node(), $model a
 	PermRestItem:mainContentGraph($model("this"), $model("id"), $model("collection"))
 };
 
+(:~
+ : templates:apply adapter for PermRestItem:mainContentExtrasPersons -
+ : reads the same $id PermRestItem:mainContentExtras used to pass
+ : directly, out of $model. No %templates:wrap:
+ : mainContentExtrasPersons already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return PermRestItem:mainContentExtrasPersons's own output for the given $model
+ :)
+declare function PermRestItem:mainContentExtrasPersonsTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentExtrasPersons($model("id"))
+};
+
 declare function PermRestItem:mainContentExtrasPersons($id as xs:string*) {
 	(item2:RestTabot($id), item2:RestAdditions($id), item2:RestMiniatures($id))
+};
+
+(:~
+ : templates:apply adapter for PermRestItem:mainContentExtrasAuthorityFiles
+ : - same shape/rationale as PermRestItem:mainContentExtrasPersonsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return PermRestItem:mainContentExtrasAuthorityFiles's own output for the given $model
+ :)
+declare function PermRestItem:mainContentExtrasAuthorityFilesTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentExtrasAuthorityFiles($model("id"))
 };
 
 declare function PermRestItem:mainContentExtrasAuthorityFiles($id as xs:string*) {
@@ -522,6 +581,20 @@ declare function PermRestItem:mainContentExtrasAuthorityFiles($id as xs:string*)
 		<div class="w3-panel w3-red">{ item2:RestMiniaturesKeys($id) }</div>
 		<div class="w3-panel w3-red">{ item2:RestMiniatures($id) }</div>
 	</div>
+};
+
+(:~
+ : templates:apply adapter for PermRestItem:mainContentExtrasInstitutions
+ : - same shape/rationale as PermRestItem:mainContentExtrasPersonsTemplate.
+ : No restItem equivalent - the "institutions" $collection branch is
+ : PermRestItem-only, restItem:mainContentExtras has no matching case.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return PermRestItem:mainContentExtrasInstitutions's own output for the given $model
+ :)
+declare function PermRestItem:mainContentExtrasInstitutionsTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentExtrasInstitutions($model("id"))
 };
 
 declare function PermRestItem:mainContentExtrasInstitutions($id as xs:string*) {
@@ -541,15 +614,41 @@ declare function PermRestItem:mainContentExtrasInstitutions($id as xs:string*) {
 };
 
 declare function PermRestItem:mainContentExtras($id as xs:string*, $collection as xs:string*) {
+	(:
+	 : Each non-empty branch routed through templates:apply instead of
+	 : called directly - see item2:mainContentExtrasWorksTemplate/
+	 : PermRestItem:mainContentExtrasPersonsTemplate/
+	 : mainContentExtrasAuthorityFilesTemplate/mainContentExtrasInstitutionsTemplate.
+	 :)
 	switch ($collection)
 		case "works" return
-			item2:mainContentExtrasWorks($id)
+			templates:apply(
+				<div data-template="item2:mainContentExtrasWorksTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "persons" return
-			PermRestItem:mainContentExtrasPersons($id)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentExtrasPersonsTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "authority-files" return
-			PermRestItem:mainContentExtrasAuthorityFiles($id)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentExtrasAuthorityFilesTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "institutions" return
-			PermRestItem:mainContentExtrasInstitutions($id)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentExtrasInstitutionsTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		default return
 			()
 };

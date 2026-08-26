@@ -488,17 +488,48 @@ declare function restItem:mainContentTextTemplate($node as node(), $model as map
 };
 
 declare function restItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(:
+	 : Each branch routed through templates:apply instead of called
+	 : directly - see item2:mainContentGraphManuscriptsTemplate/
+	 : mainContentGraphPlacesTemplate/mainContentGraphPersonsTemplate/
+	 : mainContentGraphAuthorityFilesTemplate/mainContentGraphDefaultTemplate.
+	 :)
 	switch ($collection)
 		case "manuscripts" return
-			item2:mainContentGraphManuscripts($this, $id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphManuscriptsTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id},
+				config:template-apply-config()
+			)
 		case "places" return
-			item2:mainContentGraphPlaces($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphPlacesTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "persons" return
-			item2:mainContentGraphPersons($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphPersonsTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "authority-files" return
-			item2:mainContentGraphAuthorityFiles($id)
+			templates:apply(
+				<div data-template="item2:mainContentGraphAuthorityFilesTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		default return
-			item2:mainContentGraphDefault($id, $collection)
+			templates:apply(
+				<div data-template="item2:mainContentGraphDefaultTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 };
 
 (:~
@@ -517,8 +548,40 @@ declare function restItem:mainContentGraphTemplate($node as node(), $model as ma
 	restItem:mainContentGraph($model("this"), $model("id"), $model("collection"))
 };
 
+(:~
+ : templates:apply adapter for restItem:mainContentExtrasPersons - reads
+ : the same $this/$id/$collection restItem:mainContentExtras used to
+ : pass directly, out of $model. No %templates:wrap:
+ : mainContentExtrasPersons already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentExtrasPersons's own output for the given $model
+ :)
+declare function restItem:mainContentExtrasPersonsTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentExtrasPersons($model("this"), $model("id"), $model("collection"))
+};
+
 declare function restItem:mainContentExtrasPersons($this as element(), $id as xs:string*, $collection as xs:string*) {
 	(item2:RestPersRole($this, $collection), item2:RestTabot($id), item2:RestAdditions($id), item2:RestMiniatures($id))
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentExtrasAuthorityFiles
+ : - reads the same $id restItem:mainContentExtras used to pass
+ : directly, out of $model. No %templates:wrap:
+ : mainContentExtrasAuthorityFiles already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return restItem:mainContentExtrasAuthorityFiles's own output for the given $model
+ :)
+declare function restItem:mainContentExtrasAuthorityFilesTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentExtrasAuthorityFiles($model("id"))
 };
 
 declare function restItem:mainContentExtrasAuthorityFiles($id as xs:string*) {
@@ -533,13 +596,34 @@ declare function restItem:mainContentExtrasAuthorityFiles($id as xs:string*) {
 };
 
 declare function restItem:mainContentExtras($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(:
+	 : Each non-empty branch routed through templates:apply instead of
+	 : called directly - see item2:mainContentExtrasWorksTemplate/
+	 : restItem:mainContentExtrasPersonsTemplate/
+	 : mainContentExtrasAuthorityFilesTemplate.
+	 :)
 	switch ($collection)
 		case "works" return
-			item2:mainContentExtrasWorks($id)
+			templates:apply(
+				<div data-template="item2:mainContentExtrasWorksTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "persons" return
-			restItem:mainContentExtrasPersons($this, $id, $collection)
+			templates:apply(
+				<div data-template="restItem:mainContentExtrasPersonsTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 		case "authority-files" return
-			restItem:mainContentExtrasAuthorityFiles($id)
+			templates:apply(
+				<div data-template="restItem:mainContentExtrasAuthorityFilesTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		default return
 			()
 };

@@ -222,6 +222,84 @@ declare %test:assertTrue function tsmaincontent:extras-dispatch-matches-direct-c
 	return deep-equal(restItem:mainContentExtras($this, "MNC010", "manuscripts"), ())
 };
 
+(:
+ : restItem:mainContentGraph's own switch($collection) now routes each
+ : branch through templates:apply too (item2:mainContentGraphManuscriptsTemplate/
+ : PlacesTemplate/PersonsTemplate/AuthorityFilesTemplate/DefaultTemplate)
+ : instead of calling the leaf function directly - confirms each
+ : adapter produces the exact same output as the plain call it
+ : replaces.
+ :)
+declare %test:assertTrue function tsmaincontent:graph-template-adapter-matches-direct-call-manuscripts() {
+	let $this := tsmaincontent:doc("BAVet1", "manuscripts")
+	return deep-equal(
+		item2:mainContentGraphManuscriptsTemplate(<div />, map {"this": $this, "id": "BAVet1"}),
+		item2:mainContentGraphManuscripts($this, "BAVet1")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:graph-template-adapter-matches-direct-call-places() {
+	deep-equal(
+		item2:mainContentGraphPlacesTemplate(<div />, map {"id": "LOC3080Ferheb"}),
+		item2:mainContentGraphPlaces("LOC3080Ferheb")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:graph-template-adapter-matches-direct-call-persons() {
+	deep-equal(
+		item2:mainContentGraphPersonsTemplate(<div />, map {"id": "PRS8278SablaWa"}),
+		item2:mainContentGraphPersons("PRS8278SablaWa")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:graph-template-adapter-matches-direct-call-authority-files() {
+	deep-equal(
+		item2:mainContentGraphAuthorityFilesTemplate(<div />, map {"id": "AT1129MMFrank"}),
+		item2:mainContentGraphAuthorityFiles("AT1129MMFrank")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:graph-template-adapter-matches-direct-call-default() {
+	deep-equal(
+		item2:mainContentGraphDefaultTemplate(<div />, map {"id": "corpus2", "collection": "corpora"}),
+		item2:mainContentGraphDefault("corpus2", "corpora")
+	)
+};
+
+(:
+ : restItem:mainContentExtras's own switch($collection) now routes each
+ : non-empty branch through templates:apply too
+ : (item2:mainContentExtrasWorksTemplate/
+ : restItem:mainContentExtrasPersonsTemplate/mainContentExtrasAuthorityFilesTemplate)
+ : instead of calling the leaf function directly - confirms each
+ : adapter produces the exact same output as the plain call it
+ : replaces.
+ :)
+declare %test:assertTrue function tsmaincontent:extras-template-adapter-matches-direct-call-works() {
+	deep-equal(
+		item2:mainContentExtrasWorksTemplate(<div />, map {"id": "LIT3508Epistle"}),
+		item2:mainContentExtrasWorks("LIT3508Epistle")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:extras-template-adapter-matches-direct-call-persons() {
+	let $this := tsmaincontent:doc("PRS8278SablaWa", "persons")
+	return deep-equal(
+		restItem:mainContentExtrasPersonsTemplate(
+			<div />,
+			map {"this": $this, "id": "PRS8278SablaWa", "collection": "persons"}
+		),
+		restItem:mainContentExtrasPersons($this, "PRS8278SablaWa", "persons")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:extras-template-adapter-matches-direct-call-authority-files() {
+	deep-equal(
+		restItem:mainContentExtrasAuthorityFilesTemplate(<div />, map {"id": "AT1129MMFrank"}),
+		restItem:mainContentExtrasAuthorityFiles("AT1129MMFrank")
+	)
+};
+
 declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call() {
 	let $this := tsmaincontent:doc("LOC3080Ferheb", "places")
 	return deep-equal(

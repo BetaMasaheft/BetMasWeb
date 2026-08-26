@@ -210,6 +210,89 @@ declare %test:assertTrue function tspermmaincontent:extras-dispatch-matches-dire
 	deep-equal(PermRestItem:mainContentExtras("MNC010", "manuscripts"), ())
 };
 
+(:
+ : PermRestItem:mainContentGraph's own switch($collection) now routes
+ : each branch through templates:apply too (shares the same
+ : item2:mainContentGraphManuscriptsTemplate/PlacesTemplate/PersonsTemplate/
+ : AuthorityFilesTemplate/DefaultTemplate as restItem's sibling switch)
+ : instead of calling the leaf function directly - confirms each
+ : adapter produces the exact same output as the plain call it
+ : replaces.
+ :)
+declare %test:assertTrue function tspermmaincontent:graph-template-adapter-matches-direct-call-manuscripts() {
+	let $this := tspermmaincontent:doc("BAVet1", "manuscripts")
+	return deep-equal(
+		item2:mainContentGraphManuscriptsTemplate(<div />, map {"this": $this, "id": "BAVet1"}),
+		item2:mainContentGraphManuscripts($this, "BAVet1")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:graph-template-adapter-matches-direct-call-places() {
+	deep-equal(
+		item2:mainContentGraphPlacesTemplate(<div />, map {"id": "LOC3080Ferheb"}),
+		item2:mainContentGraphPlaces("LOC3080Ferheb")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:graph-template-adapter-matches-direct-call-persons() {
+	deep-equal(
+		item2:mainContentGraphPersonsTemplate(<div />, map {"id": "PRS8278SablaWa"}),
+		item2:mainContentGraphPersons("PRS8278SablaWa")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:graph-template-adapter-matches-direct-call-authority-files() {
+	deep-equal(
+		item2:mainContentGraphAuthorityFilesTemplate(<div />, map {"id": "AT1129MMFrank"}),
+		item2:mainContentGraphAuthorityFiles("AT1129MMFrank")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:graph-template-adapter-matches-direct-call-default() {
+	deep-equal(
+		item2:mainContentGraphDefaultTemplate(<div />, map {"id": "corpus2", "collection": "corpora"}),
+		item2:mainContentGraphDefault("corpus2", "corpora")
+	)
+};
+
+(:
+ : PermRestItem:mainContentExtras's own switch($collection) now routes
+ : each non-empty branch through templates:apply too
+ : (item2:mainContentExtrasWorksTemplate/
+ : PermRestItem:mainContentExtrasPersonsTemplate/
+ : mainContentExtrasAuthorityFilesTemplate/mainContentExtrasInstitutionsTemplate)
+ : instead of calling the leaf function directly - confirms each
+ : adapter produces the exact same output as the plain call it
+ : replaces.
+ :)
+declare %test:assertTrue function tspermmaincontent:extras-template-adapter-matches-direct-call-works() {
+	deep-equal(
+		item2:mainContentExtrasWorksTemplate(<div />, map {"id": "LIT3508Epistle"}),
+		item2:mainContentExtrasWorks("LIT3508Epistle")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:extras-template-adapter-matches-direct-call-persons() {
+	deep-equal(
+		PermRestItem:mainContentExtrasPersonsTemplate(<div />, map {"id": "PRS8278SablaWa"}),
+		PermRestItem:mainContentExtrasPersons("PRS8278SablaWa")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:extras-template-adapter-matches-direct-call-authority-files() {
+	deep-equal(
+		PermRestItem:mainContentExtrasAuthorityFilesTemplate(<div />, map {"id": "AT1129MMFrank"}),
+		PermRestItem:mainContentExtrasAuthorityFiles("AT1129MMFrank")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:extras-template-adapter-matches-direct-call-institutions() {
+	deep-equal(
+		PermRestItem:mainContentExtrasInstitutionsTemplate(<div />, map {"id": "INS0013IHA"}),
+		PermRestItem:mainContentExtrasInstitutions("INS0013IHA")
+	)
+};
+
 declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call() {
 	let $this := tspermmaincontent:doc("LOC3080Ferheb", "places")
 	return deep-equal(
