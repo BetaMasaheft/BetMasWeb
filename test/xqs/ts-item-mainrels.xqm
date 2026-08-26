@@ -40,8 +40,8 @@ declare %test:assertEquals("allMainRel") function tsmainrels:wrapper-class-place
  : A collection with no mainRels branch (e.g. manuscripts) must fall
  : through the dispatcher's default case to an empty result, not error.
  :)
-declare %test:assertTrue function tsmainrels:unhandled-collection-is-empty() {
-	empty(item2:mainRels(tsmainrels:doc("BNFet32", "manuscripts"), "manuscripts")/*)
+declare %test:assertEmpty function tsmainrels:unhandled-collection-is-empty() {
+	item2:mainRels(tsmainrels:doc("BNFet32", "manuscripts"), "manuscripts")/*
 };
 
 (:~

@@ -37,43 +37,66 @@ declare %private function tsvimss:render($item as element()) as xs:string {
 	)
 };
 
-declare %test:assertTrue function tsvimss:renders-maindata-wrapper() {
-	contains(tsvimss:render(tsvimss:doc("MNC010")), 'id="MainData"')
+declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsvimss:renders-maindata-wrapper() {
+	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertTrue function tsvimss:renders-attestations-button() {
-	contains(tsvimss:render(tsvimss:doc("MNC010")), 'data-value="mss"')
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;mss&quot;')")
+function tsvimss:renders-attestations-button() {
+	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertTrue function tsvimss:renders-relsinfo-block() {
-	contains(tsvimss:render(tsvimss:doc("MNC010")), "w3-tiny")
+declare %test:assertXPath("contains($result, 'w3-tiny')") function tsvimss:renders-relsinfo-block() {
+	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertTrue function tsvimss:renders-standards-section() {
-	contains(tsvimss:render(tsvimss:doc("MNC010")), "Publication Statement")
+declare %test:assertXPath("contains($result, 'Publication Statement')") function tsvimss:renders-standards-section() {
+	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertTrue function tsvimss:tweed-link-present-when-item-in-tweed-collection() {
-	let $tweed := tsvimss:doc("EMIP02001")
-	return exists($tweed//t:collection[. = "Tweed Collection"]) and contains(tsvimss:render($tweed), "tweed.html")
+declare %test:assertTrue function tsvimss:tweed-fixture-is-in-tweed-collection() {
+	exists(tsvimss:doc("EMIP02001")//t:collection[. = "Tweed Collection"])
 };
 
-declare %test:assertTrue function tsvimss:tweed-link-absent-when-item-not-in-tweed-collection() {
-	let $noTweed := tsvimss:doc("MNC010")
-	return empty($noTweed//t:collection[. = "Tweed Collection"]) and not(contains(tsvimss:render($noTweed), "tweed.html"))
+declare
+	%test:assertXPath("contains($result, 'tweed.html')")
+function tsvimss:tweed-link-present-when-item-in-tweed-collection() {
+	tsvimss:render(tsvimss:doc("EMIP02001"))
 };
 
-declare %test:assertTrue function tsvimss:dated-heading-present-when-item-has-internal-date() {
-	let $dated := tsvimss:doc("MNC014")
-	return contains(tsvimss:render($dated), "label-primary")
+declare %test:assertTrue function tsvimss:no-tweed-fixture-is-not-in-tweed-collection() {
+	empty(tsvimss:doc("MNC010")//t:collection[. = "Tweed Collection"])
 };
 
-declare %test:assertTrue function tsvimss:codicological-units-counted-for-multipart-manuscript() {
+declare
+	%test:assertXPath("not(contains($result, 'tweed.html'))")
+function tsvimss:tweed-link-absent-when-item-not-in-tweed-collection() {
+	tsvimss:render(tsvimss:doc("MNC010"))
+};
+
+declare
+	%test:assertXPath("contains($result, 'label-primary')")
+function tsvimss:dated-heading-present-when-item-has-internal-date() {
+	tsvimss:render(tsvimss:doc("MNC014"))
+};
+
+declare %test:assertTrue function tsvimss:codicological-units-fixture-has-multiple-parts() {
+	count(tsvimss:doc("AG00001")//(t:msPart | t:msFrag)) ge 2
+};
+
+declare
+	%test:assertXPath("contains($result, 'label-default')")
+function tsvimss:codicological-units-renders-badge-class() {
+	tsvimss:render(tsvimss:doc("AG00001"))
+};
+
+(:~
+ : The rendered count is computed at render time, so it can only be
+ : checked against another dynamically-computed value - no static
+ : literal to hand assertEquals/assertXPath, unlike the tests above.
+ :)
+declare %test:assertTrue function tsvimss:codicological-units-count-matches-in-rendered-output() {
 	let $multiPart := tsvimss:doc("AG00001")
-	let $expected := xs:string(count($multiPart//(t:msPart | t:msFrag)))
-	let $rendered := tsvimss:render($multiPart)
-	return $expected castable as xs:integer and
-		xs:integer($expected) ge 2 and
-		contains($rendered, "label-default") and
-		contains($rendered, $expected)
+	return contains(tsvimss:render($multiPart), xs:string(count($multiPart//(t:msPart | t:msFrag))))
 };

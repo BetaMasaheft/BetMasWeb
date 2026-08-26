@@ -45,13 +45,16 @@ declare %test:assertEquals("TEI") function tsdtsdoc:content-happy-path-is-tei() 
 	local-name(dtslib:document-content($tsdtsdoc:sample-id, "", "", ""))
 };
 
-declare %test:assertTrue function tsdtsdoc:content-happy-path-has-edition() {
-	exists(dtslib:document-content($tsdtsdoc:sample-id, "", "", "")//t:div[@type = "edition"])
+declare %test:assertXPath("exists($result)") function tsdtsdoc:content-happy-path-has-edition() {
+	dtslib:document-content($tsdtsdoc:sample-id, "", "", "")//t:div[@type = "edition"]
 };
 
-declare %test:assertTrue function tsdtsdoc:docs-happy-path-is-roaster-200() {
-	let $r := dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml")
-	return rutil:is-response($r) and $r($router:RESPONSE_CODE) eq 200
+declare %test:assertTrue function tsdtsdoc:docs-happy-path-response-is-roaster-map() {
+	rutil:is-response(dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml"))
+};
+
+declare %test:assertEquals(200) function tsdtsdoc:docs-happy-path-status-is-200() {
+	dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml")($router:RESPONSE_CODE)
 };
 
 declare %test:assertEquals("TEI") function tsdtsdoc:docs-happy-path-body-is-tei() {

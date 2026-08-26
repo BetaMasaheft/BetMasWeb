@@ -70,20 +70,28 @@ declare %test:assertTrue function tsseealso:dispatch-matches-direct-call-default
 	return deep-equal(item2:seeAlsoOptions($file, "authority-files"), item2:seeAlsoOptionsDefault($file))
 };
 
-declare %test:assertTrue function tsseealso:manuscripts-keywords-optgroup-present() {
-	let $file := tsseealso:doc("manuscripts", "AG00001")
-	return exists($file//t:term/@key) and exists(item2:seeAlsoOptionsManuscripts($file)[@label = "keywords"])
+declare %test:assertTrue function tsseealso:manuscripts-keywords-fixture-has-term-key() {
+	exists(tsseealso:doc("manuscripts", "AG00001")//t:term/@key)
 };
 
-declare %test:assertTrue function tsseealso:works-author-optgroup-present() {
-	let $file := tsseealso:doc("works", "LIT3309Qerellos")
-	return exists($file//t:relation[@name eq "dcterms:creator"]) and
-		exists(item2:seeAlsoOptionsWorks($file)[@label = "author"])
+declare %test:assertXPath("exists($result)") function tsseealso:manuscripts-keywords-optgroup-present() {
+	item2:seeAlsoOptionsManuscripts(tsseealso:doc("manuscripts", "AG00001"))[@label = "keywords"]
 };
 
-declare %test:assertTrue function tsseealso:persons-role-optgroup-present() {
-	let $file := tsseealso:doc("persons", "PRS8692segeDen")
-	return exists($file//t:roleName) and exists(item2:seeAlsoOptionsPersons($file)[@label = "role"])
+declare %test:assertTrue function tsseealso:works-author-fixture-has-creator-relation() {
+	exists(tsseealso:doc("works", "LIT3309Qerellos")//t:relation[@name eq "dcterms:creator"])
+};
+
+declare %test:assertXPath("exists($result)") function tsseealso:works-author-optgroup-present() {
+	item2:seeAlsoOptionsWorks(tsseealso:doc("works", "LIT3309Qerellos"))[@label = "author"]
+};
+
+declare %test:assertTrue function tsseealso:persons-role-fixture-has-rolename() {
+	exists(tsseealso:doc("persons", "PRS8692segeDen")//t:roleName)
+};
+
+declare %test:assertXPath("exists($result)") function tsseealso:persons-role-optgroup-present() {
+	item2:seeAlsoOptionsPersons(tsseealso:doc("persons", "PRS8692segeDen"))[@label = "role"]
 };
 
 (:

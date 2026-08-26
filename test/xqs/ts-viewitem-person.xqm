@@ -43,58 +43,84 @@ declare %private function tsviperson:render($item as element()) as xs:string {
 	)
 };
 
-declare %test:assertTrue function tsviperson:renders-maindata-wrapper() {
-	contains(tsviperson:render(tsviperson:doc("PRS8278SablaWa")), 'id="MainData"')
+declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviperson:renders-maindata-wrapper(
+
+) {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
-declare %test:assertTrue function tsviperson:renders-names-heading() {
-	let $item := tsviperson:doc("PRS8278SablaWa")
-	return exists($item//(t:personGrp | t:person)/t:persName) and contains(tsviperson:render($item), ">Names<")
+declare %test:assertTrue function tsviperson:names-heading-fixture-has-persname() {
+	exists(tsviperson:doc("PRS8278SablaWa")//(t:personGrp | t:person)/t:persName)
 };
 
-declare %test:assertTrue function tsviperson:renders-history-section() {
-	let $item := tsviperson:doc("PRS8278SablaWa")
-	return contains(tsviperson:render($item), 'id="history"')
+declare %test:assertXPath("contains($result, '>Names<')") function tsviperson:renders-names-heading() {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
-declare %test:assertTrue function tsviperson:renders-notes-section() {
-	let $item := tsviperson:doc("PRS8663Sebastia")
-	return exists($item//t:person/t:note) and contains(tsviperson:render($item), "w3-container")
+declare %test:assertXPath("contains($result, 'id=&quot;history&quot;')") function tsviperson:renders-history-section() {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
-declare %test:assertTrue function tsviperson:renders-sameas-link-in-sidebar-heading() {
-	let $item := tsviperson:doc("PRS8083Raphael")
-	return exists($item//t:person/@sameAs) and contains(tsviperson:render($item), "icon-vcard")
+declare %test:assertTrue function tsviperson:notes-section-fixture-has-note() {
+	exists(tsviperson:doc("PRS8663Sebastia")//t:person/t:note)
 };
 
-declare %test:assertTrue function tsviperson:renders-dates-section() {
-	let $item := tsviperson:doc("PRS8787Severian")
-	return exists($item//(t:birth | t:death)[@when or @notBefore or @notAfter]) and
-		contains(tsviperson:render($item), ">Dates")
+declare %test:assertXPath("contains($result, 'w3-container')") function tsviperson:renders-notes-section() {
+	tsviperson:render(tsviperson:doc("PRS8663Sebastia"))
 };
 
-declare %test:assertTrue function tsviperson:renders-residence-section() {
-	let $item := tsviperson:doc("PRS8692segeDen")
-	return exists($item//t:residence) and contains(tsviperson:render($item), 'id="residence"')
+declare %test:assertTrue function tsviperson:sameas-fixture-has-sameas-attribute() {
+	exists(tsviperson:doc("PRS8083Raphael")//t:person/@sameAs)
 };
 
-declare %test:assertTrue function tsviperson:renders-authorship-relation-section() {
-	let $item := tsviperson:doc("PRS6378Ludolf")
-	return contains(tsviperson:render($item), ">Author of<")
+declare %test:assertXPath("contains($result, 'icon-vcard')") function tsviperson:renders-sameas-link-in-sidebar-heading(
+
+) {
+	tsviperson:render(tsviperson:doc("PRS8083Raphael"))
 };
 
-declare %test:assertTrue function tsviperson:renders-bibliography-section() {
-	contains(tsviperson:render(tsviperson:doc("PRS8278SablaWa")), 'id="bibliography"')
+declare %test:assertTrue function tsviperson:dates-fixture-has-dated-birth-or-death() {
+	exists(tsviperson:doc("PRS8787Severian")//(t:birth | t:death)[@when or @notBefore or @notAfter])
 };
 
-declare %test:assertTrue function tsviperson:renders-standards-section() {
-	contains(tsviperson:render(tsviperson:doc("PRS8278SablaWa")), "Publication Statement")
+declare %test:assertXPath("contains($result, '>Dates')") function tsviperson:renders-dates-section() {
+	tsviperson:render(tsviperson:doc("PRS8787Severian"))
 };
 
-declare %test:assertTrue function tsviperson:renders-attestations-button() {
-	contains(tsviperson:render(tsviperson:doc("PRS8278SablaWa")), 'data-value="person"')
+declare %test:assertTrue function tsviperson:residence-fixture-has-residence() {
+	exists(tsviperson:doc("PRS8692segeDen")//t:residence)
 };
 
-declare %test:assertTrue function tsviperson:renders-resp-section() {
-	contains(tsviperson:render(tsviperson:doc("PRS8278SablaWa")), 'class="w3-hide"')
+declare
+	%test:assertXPath("contains($result, 'id=&quot;residence&quot;')")
+function tsviperson:renders-residence-section() {
+	tsviperson:render(tsviperson:doc("PRS8692segeDen"))
+};
+
+declare %test:assertXPath("contains($result, '>Author of<')") function tsviperson:renders-authorship-relation-section(
+
+) {
+	tsviperson:render(tsviperson:doc("PRS6378Ludolf"))
+};
+
+declare
+	%test:assertXPath("contains($result, 'id=&quot;bibliography&quot;')")
+function tsviperson:renders-bibliography-section() {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
+};
+
+declare %test:assertXPath("contains($result, 'Publication Statement')") function tsviperson:renders-standards-section(
+
+) {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
+};
+
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;person&quot;')")
+function tsviperson:renders-attestations-button() {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
+};
+
+declare %test:assertXPath("contains($result, 'class=&quot;w3-hide&quot;')") function tsviperson:renders-resp-section() {
+	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };

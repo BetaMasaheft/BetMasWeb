@@ -206,8 +206,8 @@ declare %test:assertTrue function tspermmaincontent:extras-dispatch-matches-dire
 	)
 };
 
-declare %test:assertTrue function tspermmaincontent:extras-dispatch-matches-direct-call-default() {
-	deep-equal(PermRestItem:mainContentExtras("MNC010", "manuscripts"), ())
+declare %test:assertEmpty function tspermmaincontent:extras-dispatch-matches-direct-call-default() {
+	PermRestItem:mainContentExtras("MNC010", "manuscripts")
 };
 
 (:

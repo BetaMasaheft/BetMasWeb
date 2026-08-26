@@ -46,16 +46,20 @@ declare %private function tsviplace:render($item as element()) as xs:string {
  : wrapper must vanish at runtime (no %templates:wrap on
  : viewItem:placeRoot), leaving MainData as a genuine top-level result.
  :)
-declare %test:assertTrue function tsviplace:place-renders-maindata-wrapper() {
-	contains(tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places")), 'id="MainData"')
+declare
+	%test:assertXPath("contains($result, 'id=&quot;MainData&quot;')")
+function tsviplace:place-renders-maindata-wrapper() {
+	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
 (:~
  : viewItem:main's "ins" case also delegates to viewItem:place - same
  : conversion has to serve institutions too, not just places.
  :)
-declare %test:assertTrue function tsviplace:institution-renders-maindata-wrapper() {
-	contains(tsviplace:render(tsviplace:doc("INS0013IHA", "institutions")), 'id="MainData"')
+declare
+	%test:assertXPath("contains($result, 'id=&quot;MainData&quot;')")
+function tsviplace:institution-renders-maindata-wrapper() {
+	tsviplace:render(tsviplace:doc("INS0013IHA", "institutions"))
 };
 
 (:~
@@ -64,8 +68,10 @@ declare %test:assertTrue function tsviplace:institution-renders-maindata-wrapper
  : shape as the narratives conversion) - assert the section has content
  : for a document with real relations data, not just "no error".
  :)
-declare %test:assertTrue function tsviplace:relsinfo-reads-model-shared-rels() {
-	contains(tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places")), 'id="description"')
+declare
+	%test:assertXPath("contains($result, 'id=&quot;description&quot;')")
+function tsviplace:relsinfo-reads-model-shared-rels() {
+	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
 (:~
@@ -73,23 +79,39 @@ declare %test:assertTrue function tsviplace:relsinfo-reads-model-shared-rels() {
  : exercised on a document confirmed to have one (INS0091AQM), and
  : confirmed absent on one that doesn't (LOC3080Ferheb), so the
  : conversion is tested on both sides of the conditional, not just the
- : happy path.
+ : happy path. Fixture-shape and rendered-output are asserted separately
+ : so a failure says which one broke.
  :)
-declare %test:assertTrue function tsviplace:figure-script-present-when-item-has-figure() {
-	let $withFigure := tsviplace:doc("INS0091AQM", "institutions")
-	return exists($withFigure//t:figure) and contains(tsviplace:render($withFigure), "openseadragon")
+declare %test:assertTrue function tsviplace:figure-fixture-has-figure-element() {
+	exists(tsviplace:doc("INS0091AQM", "institutions")//t:figure)
 };
 
-declare %test:assertTrue function tsviplace:figure-script-absent-when-item-has-no-figure() {
-	let $noFigure := tsviplace:doc("LOC3080Ferheb", "places")
-	return empty($noFigure//t:figure) and not(contains(tsviplace:render($noFigure), "openseadragon"))
+declare
+	%test:assertXPath("contains($result, 'openseadragon')")
+function tsviplace:figure-script-present-when-item-has-figure() {
+	tsviplace:render(tsviplace:doc("INS0091AQM", "institutions"))
+};
+
+declare %test:assertTrue function tsviplace:no-figure-fixture-has-no-figure-element() {
+	empty(tsviplace:doc("LOC3080Ferheb", "places")//t:figure)
+};
+
+declare
+	%test:assertXPath("not(contains($result, 'openseadragon'))")
+function tsviplace:figure-script-absent-when-item-has-no-figure() {
+	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
 (:~
  : The sameAs-driven globe icon link in the Names heading is another
  : conditional - exercised on a document known to have @sameAs.
  :)
-declare %test:assertTrue function tsviplace:sameas-link-present-when-item-has-sameas() {
-	let $withSameAs := tsviplace:doc("LOC3994Kampal", "places")
-	return exists($withSameAs//t:place/@sameAs) and contains(tsviplace:render($withSameAs), "icon-globe")
+declare %test:assertTrue function tsviplace:sameas-fixture-has-sameas-attribute() {
+	exists(tsviplace:doc("LOC3994Kampal", "places")//t:place/@sameAs)
+};
+
+declare
+	%test:assertXPath("contains($result, 'icon-globe')")
+function tsviplace:sameas-link-present-when-item-has-sameas() {
+	tsviplace:render(tsviplace:doc("LOC3994Kampal", "places"))
 };
