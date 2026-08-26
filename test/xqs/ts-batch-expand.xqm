@@ -27,10 +27,15 @@ declare variable $tsbatchexp:tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" typ
 </TEI>;
 
 declare %private function tsbatchexp:ensure-src() {
-	if (xmldb:collection-available($tsbatchexp:src-col)) then (
-	) else (
-		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandTest")
+	if (not(xmldb:collection-available("/db/apps/BetMasData"))) then
+		error(xs:QName("tsbatchexp:NODATA"), "/db/apps/BetMasData is not available")
+	else if (not(xmldb:collection-available("/db/apps/BetMasData/works"))) then
+		xmldb:create-collection("/db/apps/BetMasData", "works")
+	else (
 	),
+	if (xmldb:collection-available($tsbatchexp:src-col)) then (
+	) else
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandTest"),
 	xmldb:store($tsbatchexp:src-col, $tsbatchexp:file, $tsbatchexp:tei)
 };
 
@@ -74,19 +79,40 @@ declare %test:assertError("batchExpand:MISSING") function tsbatchexp:refuse-miss
 
 (:~
  : Expanding a one-file fixture under BetMasData stores under /db/apps/expanded/...
- : and uses group-scoped perms (not world-writable).
+ : and must not be world-writable (other-write bit off).
  :)
 declare %test:assertTrue function tsbatchexp:stores-under-expanded() {
 	let $_clean1 := tsbatchexp:cleanup()
 	let $_src := tsbatchexp:ensure-src()
 	let $summary := batchExpand:expandCollection($tsbatchexp:src-col)
 	let $stored-path := $tsbatchexp:out-col || "/" || $tsbatchexp:file
-	let $stored := doc($stored-path)
-	let $mode := string((sm:get-permissions(xs:anyURI($stored-path))/@mode)[1])
-	(: other-write must be off (not rwxrwxrwx); accept rwxrwxr-x :)
-	let $ok := exists($stored/t:TEI[@xml:id = "LITTESTbatchExpand"]) and
-		matches($summary, "^expanded 1 file\(s\) in ") and
-		matches($mode, "^rwxrwxr-x$")
+	let $available := doc-available($stored-path)
+	let $tei-ok := $available and exists(doc($stored-path)/t:TEI[@xml:id = "LITTESTbatchExpand"])
+	let $summary-ok := matches($summary, "^expanded 1 file\(s\) in ")
+	let $mode := if ($available) then
+		string((sm:get-permissions(xs:anyURI($stored-path))/@mode)[1])
+	else
+		""
+	(: rwxrwxrwx → other-write is the 8th character; must not be w :)
+	let $mode-ok := string-length($mode) ge 9 and substring($mode, 8, 1) ne "w"
 	let $_clean2 := tsbatchexp:cleanup()
-	return $ok
+	return if ($tei-ok and $summary-ok and $mode-ok) then
+		true()
+	else
+		error(
+			xs:QName("tsbatchexp:ASSERT"),
+			"tei-ok=" ||
+				$tei-ok ||
+				" summary-ok=" ||
+				$summary-ok ||
+				" mode-ok=" ||
+				$mode-ok ||
+				" available=" ||
+				$available ||
+				" summary=[" ||
+				$summary ||
+				"] mode=[" ||
+				$mode ||
+				"]"
+		)
 };

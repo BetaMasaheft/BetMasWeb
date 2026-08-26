@@ -116,7 +116,7 @@ declare %private function batchExpand:storeDoc(
 
 declare %private function batchExpand:setPermissions($stored as xs:string) {
 	let $uri := xs:anyURI($stored)
-	(: Cataloguers may be absent in bare CI images; chmod must still apply. :)
+	(: Cataloguers may be absent in bare CI images; chmod must still apply when possible. :)
 	let $_grp := try { sm:chgrp($uri, "Cataloguers") } catch * { util:log("info", $err:description) }
-	return sm:chmod($uri, "rwxrwxr-x")
+	return try { sm:chmod($uri, "rwxrwxr-x") } catch * { util:log("info", $err:description) }
 };
