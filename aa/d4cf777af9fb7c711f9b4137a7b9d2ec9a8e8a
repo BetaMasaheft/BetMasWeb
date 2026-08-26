@@ -1,0 +1,19 @@
+test/xqs/ts-batch-expand.xqm
+  s_5790d61a112fab::t_3189c375e9024b 53-61,90-116,118-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "aad4cf777af9fb7c711f9b4137a7b9d2ec9a8e8a",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
