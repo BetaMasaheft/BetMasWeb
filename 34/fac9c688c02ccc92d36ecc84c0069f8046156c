@@ -1,0 +1,45 @@
+test/xqs/ts-restitem-maincontent.xqm
+  s_5790d61a112fab::t_462a7d5bcd92a5 220,222
+test/xqs/ts-viewitem-place.xqm
+  s_5790d61a112fab::t_12841ae5beba48 49-50,57-58,67-68,76-77,79-80,83-92,99-104
+test/xqs/ts-viewitem-person.xqm
+  s_5790d61a112fab::t_e9f8a756ce51ed 46-47,50-51,54-55,58-59,62-63,66-67,70-71,74-75,78-79,82-83,86-87,90-111
+test/xqs/ts-zotero-cache.xqm
+  s_5790d61a112fab::t_d13d2a3ac22827 64-65
+  s_5790d61a112fab::t_b022254c36dc3d 43-44,50
+test/xqs/ts-viewitem-documents.xqm
+  s_5790d61a112fab::t_d39d4d024b700f 44-45,48-49,52-53,56-57,60-89,92-93,96-97,100-101,105
+  s_5790d61a112fab::t_8ed752be04786d 104
+test/xqs/ts-queries-formbounds.xqm
+  s_5790d61a112fab::t_d995c49d790d5c 24-25,28-32,42-43,46-47
+test/xqs/ts-viewitem-auth.xqm
+  s_5790d61a112fab::t_8b4204e4b7e9cf 39-40,43-44,47-48,51-52,55-56,59-60
+test/xqs/ts-item-mainrels.xqm
+  s_5790d61a112fab::t_406248f74625f8 43-44
+test/xqs/ts-item-seealso-options.xqm
+  s_5790d61a112fab::t_c895cbbd3d8199 73-74,77-78,81-94
+test/xqs/ts-viewitem-work.xqm
+  s_5790d61a112fab::t_6ded3ec19ae3a3 55-56,59-60,63-64,67-68,71-72,75-76,79-80,83-84,87-88,91-92,95-128
+test/xqs/ts-dtslib-document.xqm
+  s_5790d61a112fab::t_ef3070554b4cfb 48-49,52-57
+test/xqs/ts-permrestitem-maincontent.xqm
+  s_5790d61a112fab::t_4a96e4727e9d91 209-210
+test/xqs/ts-viewitem-manuscript.xqm
+  s_5790d61a112fab::t_4f7eddfb5fcd30 40-41,44-45,48-49,52-53,56-57,60-61,64-65,68-89,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "34fac9c688c02ccc92d36ecc84c0069f8046156c",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
