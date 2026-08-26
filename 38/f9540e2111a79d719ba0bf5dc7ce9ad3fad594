@@ -7,6 +7,7 @@ test/xqs/ts-batch-expand.xqm
 test/xqs/test-runner.xq
   s_1544e160683453::t_e80cbbcd076652 35,61
   s_1544e160683453::t_a6e0d6a0f56520 57
+  s_1544e160683453::t_8a0027ded686ec 60
 modules/makeExpand.xql
   s_1544e160683453::t_afa69add3c98a1 7-8,19
   s_1544e160683453::t_92a7b8a80f5e5d 1-6,9-18,20
