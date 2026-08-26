@@ -50,6 +50,15 @@ declare %private function tsbatchexp:cleanup() {
 	)
 };
 
+declare %test:setUp function tsbatchexp:setUp() {
+	tsbatchexp:cleanup(),
+	tsbatchexp:ensure-src()
+};
+
+declare %test:tearDown function tsbatchexp:tearDown() {
+	tsbatchexp:cleanup()
+};
+
 (:~
  : Empty / missing collection must refuse (no silent full-corpus).
  :)
@@ -78,41 +87,35 @@ declare %test:assertError("batchExpand:MISSING") function tsbatchexp:refuse-miss
 };
 
 (:~
- : Expanding a one-file fixture under BetMasData stores under /db/apps/expanded/...
- : and must not be world-writable (other-write bit off).
+ : Expanding a one-file fixture under BetMasData stores a TEI doc under
+ : /db/apps/expanded/... at the expected path.
  :)
-declare %test:assertTrue function tsbatchexp:stores-under-expanded() {
-	let $_clean1 := tsbatchexp:cleanup()
-	let $_src := tsbatchexp:ensure-src()
-	let $summary := batchExpand:expandCollection($tsbatchexp:src-col)
-	let $stored-path := $tsbatchexp:out-col || "/" || $tsbatchexp:file
-	let $available := doc-available($stored-path)
-	let $tei-ok := $available and exists(doc($stored-path)/t:TEI[@xml:id = "LITTESTbatchExpand"])
-	let $summary-ok := matches($summary, "^expanded 1 file\(s\) in ")
-	let $mode := if ($available) then
-		string((sm:get-permissions(xs:anyURI($stored-path))/@mode)[1])
-	else
-		""
-	(: rwxrwxrwx → other-write is the 8th character; must not be w :)
-	let $mode-ok := string-length($mode) ge 9 and substring($mode, 8, 1) ne "w"
-	let $_clean2 := tsbatchexp:cleanup()
-	return if ($tei-ok and $summary-ok and $mode-ok) then
-		true()
-	else
-		error(
-			xs:QName("tsbatchexp:ASSERT"),
-			"tei-ok=" ||
-				$tei-ok ||
-				" summary-ok=" ||
-				$summary-ok ||
-				" mode-ok=" ||
-				$mode-ok ||
-				" available=" ||
-				$available ||
-				" summary=[" ||
-				$summary ||
-				"] mode=[" ||
-				$mode ||
-				"]"
-		)
+declare %test:assertTrue function tsbatchexp:stores-tei-document-at-expected-path() {
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
+	return doc-available($tsbatchexp:out-col || "/" || $tsbatchexp:file)
+};
+
+(:~
+ : The stored document keeps the source TEI's xml:id.
+ :)
+declare %test:assertEquals("LITTESTbatchExpand") function tsbatchexp:stored-document-has-correct-tei-id() {
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
+	return string(doc($tsbatchexp:out-col || "/" || $tsbatchexp:file)/t:TEI/@xml:id)
+};
+
+(:~
+ : The summary reports exactly one file expanded.
+ :)
+declare %test:assertTrue function tsbatchexp:summary-reports-one-file-expanded() {
+	matches(batchExpand:expandCollection($tsbatchexp:src-col), "^expanded 1 file\(s\) in ")
+};
+
+(:~
+ : batchExpand:setPermissions chmods the stored file to rwxrwxr-x (not
+ : world-writable). sm:get-permissions returns a document-node wrapping
+ : sm:permission, so @mode must be read off the child element.
+ :)
+declare %test:assertEquals("rwxrwxr-x") function tsbatchexp:stored-file-has-expected-permissions() {
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
+	return string(sm:get-permissions(xs:anyURI($tsbatchexp:out-col || "/" || $tsbatchexp:file))/sm:permission/@mode)
 };
