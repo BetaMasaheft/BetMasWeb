@@ -11,6 +11,7 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
@@ -24,6 +25,26 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (item2:lookup#2) below instead of an inline closure - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :
+ : @param $functionName the data-template target name being resolved
+ : @param $arity the arity to probe
+ : @return the resolved function, or () if none matches at this arity
+ :)
+declare function item2:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"item.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 declare function item2:authorsSHA($id, $this, $collection, $sha) {
 	apprest:authorsSHA($id, $this, $collection, $sha)
@@ -2512,6 +2533,22 @@ declare function item2:seeAlsoOptions($file, $collection) {
 			item2:seeAlsoOptionsDefault($file)
 };
 
+(:~
+ : templates:apply adapter for item2:RestSeeAlso - reads the same
+ : $this/$collection item2:RestItem used to pass directly, out of $model.
+ : No %templates:wrap: RestSeeAlso already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as item2:RestViewOptionsTemplate/
+ : RestItemHeaderTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return item2:RestSeeAlso's own output for the given $model
+ :)
+declare function item2:RestSeeAlsoTemplate($node as node(), $model as map(*)) {
+	item2:RestSeeAlso($model("this"), $model("collection"))
+};
+
 declare function item2:RestSeeAlso($this, $collection) {
 	let $file := $this
 	let $id := string($this/@xml:id)
@@ -2646,7 +2683,18 @@ declare function item2:RestItem($this, $collection) {
 	(: because nav takes 2 colums :)
 	return <div class="w3-container " resource="http://betamasaheft.eu/{ $id }">
 		{ viewItem:main($document) }
-		{ item2:RestSeeAlso($this, $collection) }
+		{
+			(:
+			 : RestSeeAlso routed through templates:apply instead of
+			 : called directly - see item2:RestSeeAlsoTemplate.
+			 :)
+			templates:apply(
+				<div data-template="item2:RestSeeAlsoTemplate" />,
+				item2:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
+		}
 	</div>
 };
 
