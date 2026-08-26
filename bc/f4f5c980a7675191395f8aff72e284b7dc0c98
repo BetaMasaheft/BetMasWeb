@@ -1,0 +1,33 @@
+restviews/listsTaxonomy.xqm
+  s_1544e160683453::t_0b459991a254f7 1-40
+modules/api.xql
+  s_1544e160683453::t_7ac91a0d97d654 28
+modules/expand.xqm
+  s_1544e160683453::t_33cedf1af7c505 180-182,185-187
+api.json
+  s_1544e160683453::t_0d50c8c7d26b35 1808-1826
+test/xqs/test-runner.xq
+  s_1544e160683453::t_63330389bb2b64 28,46-47
+modules/routes.json
+  s_1544e160683453::t_832e2d2f5b8985 5041
+  s_1544e160683453::t_d4318f52e72298 5038-5040,5042-5059
+test/xqs/ts-expand-taxonomy.xqm
+  s_1544e160683453::t_113a6db7b66a14 14-16,55
+  s_1544e160683453::t_53279e3ddd922a 1-13,17-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "bcf4f5c980a7675191395f8aff72e284b7dc0c98",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
