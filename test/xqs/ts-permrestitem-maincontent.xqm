@@ -82,6 +82,64 @@ declare %test:assertTrue function tspermmaincontent:dispatch-matches-direct-call
 };
 
 (:
+ : PermRestItem:mainContent's own switch($type) now routes each branch
+ : through templates:apply too (PermRestItem:mainContentCorpusTemplate/
+ : item2:mainContentGeobrowserTemplate/mainContentAnalyticTemplate/
+ : mainContentTextTemplate/mainContentGraphTemplate/
+ : mainContentDefaultTemplate) instead of calling the branch function
+ : directly - confirms each adapter produces the exact same output as
+ : the plain call it replaces.
+ :)
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-corpus() {
+	deep-equal(
+		PermRestItem:mainContentCorpusTemplate(<div />, map {"id": "MNC010"}),
+		PermRestItem:mainContentCorpus("MNC010")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-geobrowser() {
+	deep-equal(
+		item2:mainContentGeobrowserTemplate(<div />, map {"id": "LOC3080Ferheb"}),
+		item2:mainContentGeobrowser("LOC3080Ferheb")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-analytic() {
+	let $this := tspermmaincontent:doc("PRS8278SablaWa", "persons")
+	return deep-equal(
+		PermRestItem:mainContentAnalyticTemplate(
+			<div />,
+			map {"this": $this, "id": "PRS8278SablaWa", "collection": "persons"}
+		),
+		PermRestItem:mainContentAnalytic($this, "PRS8278SablaWa", "persons")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-text() {
+	let $this := tspermmaincontent:doc("LIT3508Epistle", "works")
+	return deep-equal(
+		PermRestItem:mainContentTextTemplate(<div />, map {"this": $this, "id": "LIT3508Epistle", "collection": "works"}),
+		PermRestItem:mainContentText($this, "LIT3508Epistle", "works")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-graph() {
+	let $this := tspermmaincontent:doc("LOC3080Ferheb", "places")
+	return deep-equal(
+		PermRestItem:mainContentGraphTemplate(<div />, map {"this": $this, "id": "LOC3080Ferheb", "collection": "places"}),
+		PermRestItem:mainContentGraph($this, "LOC3080Ferheb", "places")
+	)
+};
+
+declare %test:assertTrue function tspermmaincontent:template-adapter-matches-direct-call-default() {
+	let $this := tspermmaincontent:doc("MNC010", "manuscripts")
+	return deep-equal(
+		PermRestItem:mainContentDefaultTemplate(<div />, map {"this": $this, "id": "MNC010", "collection": "manuscripts"}),
+		PermRestItem:mainContentDefault($this, "MNC010", "manuscripts")
+	)
+};
+
+(:
  : mainContentGraph requires $this as element() even though only the
  : "manuscripts" sub-case actually reads it - any real element works as
  : a stand-in for the other sub-cases.

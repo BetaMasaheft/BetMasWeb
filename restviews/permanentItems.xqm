@@ -373,6 +373,22 @@ declare function PermRestItem:mainContentCorpus($id as xs:string*) {
 	</div>
 };
 
+(:~
+ : templates:apply adapter for PermRestItem:mainContentCorpus - reads
+ : the same $id PermRestItem:mainContent used to pass directly, out of
+ : $model. No %templates:wrap: mainContentCorpus already returns
+ : complete, specific content, so the calling marker element is meant
+ : to be replaced outright, not wrapped - same shape as
+ : PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return PermRestItem:mainContentCorpus's own output for the given $model
+ :)
+declare function PermRestItem:mainContentCorpusTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentCorpus($model("id"))
+};
+
 declare function PermRestItem:mainContentAnalytic($this as element(), $id as xs:string*, $collection as xs:string*) {
 	<div class="w3-container">
 		<img id="loading" src="resources/Loading.gif" style="display: none;" />
@@ -395,6 +411,22 @@ declare function PermRestItem:mainContentAnalytic($this as element(), $id as xs:
 			<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
 		</div>
 	</div>
+};
+
+(:~
+ : templates:apply adapter for PermRestItem:mainContentAnalytic - reads
+ : the same $this/$id/$collection PermRestItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentAnalytic
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return PermRestItem:mainContentAnalytic's own output for the given $model
+ :)
+declare function PermRestItem:mainContentAnalyticTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentAnalytic($model("this"), $model("id"), $model("collection"))
 };
 
 declare function PermRestItem:mainContentText($this as element(), $id as xs:string*, $collection as xs:string*) {
@@ -434,6 +466,22 @@ declare function PermRestItem:mainContentText($this as element(), $id as xs:stri
 	)
 };
 
+(:~
+ : templates:apply adapter for PermRestItem:mainContentText - reads the
+ : same $this/$id/$collection PermRestItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentText already
+ : returns complete, specific content, so the calling marker element is
+ : meant to be replaced outright, not wrapped - same shape as
+ : PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return PermRestItem:mainContentText's own output for the given $model
+ :)
+declare function PermRestItem:mainContentTextTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentText($model("this"), $model("id"), $model("collection"))
+};
+
 declare function PermRestItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
 	switch ($collection)
 		case "manuscripts" return
@@ -446,6 +494,22 @@ declare function PermRestItem:mainContentGraph($this as element(), $id as xs:str
 			item2:mainContentGraphAuthorityFiles($id)
 		default return
 			item2:mainContentGraphDefault($id, $collection)
+};
+
+(:~
+ : templates:apply adapter for PermRestItem:mainContentGraph - reads
+ : the same $this/$id/$collection PermRestItem:mainContent used to
+ : pass directly, out of $model. No %templates:wrap: mainContentGraph
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return PermRestItem:mainContentGraph's own output for the given $model
+ :)
+declare function PermRestItem:mainContentGraphTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentGraph($model("this"), $model("id"), $model("collection"))
 };
 
 declare function PermRestItem:mainContentExtrasPersons($id as xs:string*) {
@@ -515,26 +579,79 @@ declare function PermRestItem:mainContentDefault($this as element(), $id as xs:s
 	)
 };
 
+(:~
+ : templates:apply adapter for PermRestItem:mainContentDefault - reads
+ : the same $this/$id/$collection PermRestItem:mainContent used to
+ : pass directly, out of $model. No %templates:wrap: mainContentDefault
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as PermRestItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return PermRestItem:mainContentDefault's own output for the given $model
+ :)
+declare function PermRestItem:mainContentDefaultTemplate($node as node(), $model as map(*)) {
+	PermRestItem:mainContentDefault($model("this"), $model("id"), $model("collection"))
+};
+
 declare function PermRestItem:mainContent(
 	$type as xs:string*,
 	$this as element(),
 	$id as xs:string*,
 	$collection as xs:string*
 ) {
+	(:
+	 : Each branch routed through templates:apply instead of called
+	 : directly - see PermRestItem:mainContentCorpusTemplate/
+	 : item2:mainContentGeobrowserTemplate/mainContentAnalyticTemplate/
+	 : mainContentTextTemplate/mainContentGraphTemplate/
+	 : mainContentDefaultTemplate.
+	 :)
 	switch ($type)
 		case "corpus" return
-			PermRestItem:mainContentCorpus($id)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentCorpusTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "geobrowser" return
-			item2:mainContentGeobrowser($id)
+			templates:apply(
+				<div data-template="item2:mainContentGeobrowserTemplate" />,
+				PermRestItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "analytic" return
-			PermRestItem:mainContentAnalytic($this, $id, $collection)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentAnalyticTemplate" />,
+				PermRestItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 		case "text" return
-			PermRestItem:mainContentText($this, $id, $collection)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentTextTemplate" />,
+				PermRestItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 		case "graph" return
-			PermRestItem:mainContentGraph($this, $id, $collection)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentGraphTemplate" />,
+				PermRestItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 		default return
 			(: THE MAIN VIEW :)
-			PermRestItem:mainContentDefault($this, $id, $collection)
+			templates:apply(
+				<div data-template="PermRestItem:mainContentDefaultTemplate" />,
+				PermRestItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 };
 
 (:~

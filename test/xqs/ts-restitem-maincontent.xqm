@@ -94,6 +94,69 @@ declare %test:assertTrue function tsmaincontent:dispatch-matches-direct-call-def
 };
 
 (:
+ : restItem:mainContent's own switch($type) now routes each branch
+ : through templates:apply too (restItem:mainContentCorpusTemplate/
+ : item2:mainContentGeobrowserTemplate/mainContentAnalyticTemplate/
+ : mainContentTextTemplate/mainContentGraphTemplate/
+ : mainContentDefaultTemplate) instead of calling the branch function
+ : directly - confirms each adapter produces the exact same output as
+ : the plain call it replaces.
+ :)
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-corpus() {
+	deep-equal(restItem:mainContentCorpusTemplate(<div />, map {"id": "MNC010"}), restItem:mainContentCorpus("MNC010"))
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-geobrowser() {
+	deep-equal(
+		item2:mainContentGeobrowserTemplate(<div />, map {"id": "LOC3080Ferheb"}),
+		item2:mainContentGeobrowser("LOC3080Ferheb")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-analytic() {
+	let $this := tsmaincontent:doc("PRS8278SablaWa", "persons")
+	return deep-equal(
+		restItem:mainContentAnalyticTemplate(<div />, map {"this": $this, "collection": "persons"}),
+		restItem:mainContentAnalytic($this, "persons")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-text() {
+	let $this := tsmaincontent:doc("LIT3508Epistle", "works")
+	return deep-equal(
+		restItem:mainContentTextTemplate(
+			<div />,
+			map {
+				"this": $this,
+				"id": "LIT3508Epistle",
+				"edition": "",
+				"ref": "",
+				"start": "",
+				"end": "",
+				"collection": "works"
+			}
+		),
+		restItem:mainContentText($this, "LIT3508Epistle", "", "", "", "", "works")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-graph() {
+	let $this := tsmaincontent:doc("LOC3080Ferheb", "places")
+	return deep-equal(
+		restItem:mainContentGraphTemplate(<div />, map {"this": $this, "id": "LOC3080Ferheb", "collection": "places"}),
+		restItem:mainContentGraph($this, "LOC3080Ferheb", "places")
+	)
+};
+
+declare %test:assertTrue function tsmaincontent:template-adapter-matches-direct-call-default() {
+	let $this := tsmaincontent:doc("MNC010", "manuscripts")
+	return deep-equal(
+		restItem:mainContentDefaultTemplate(<div />, map {"this": $this, "id": "MNC010", "collection": "manuscripts"}),
+		restItem:mainContentDefault($this, "MNC010", "manuscripts")
+	)
+};
+
+(:
  : mainContentGraph requires $this as element() even though only the
  : "manuscripts" sub-case actually reads it - any real element works as
  : a stand-in for the other sub-cases.

@@ -379,6 +379,22 @@ declare function restItem:mainContentCorpus($id as xs:string*) {
 	</div>
 };
 
+(:~
+ : templates:apply adapter for restItem:mainContentCorpus - reads the
+ : same $id restItem:mainContent used to pass directly, out of $model.
+ : No %templates:wrap: mainContentCorpus already returns complete,
+ : specific content, so the calling marker element is meant to be
+ : replaced outright, not wrapped - same shape as
+ : restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return restItem:mainContentCorpus's own output for the given $model
+ :)
+declare function restItem:mainContentCorpusTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentCorpus($model("id"))
+};
+
 declare function restItem:mainContentAnalytic($this as element(), $collection as xs:string*) {
 	<div class="w3-container">
 		<div class="w3-container">
@@ -403,6 +419,22 @@ declare function restItem:mainContentAnalytic($this as element(), $collection as
 			<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
 		</div>
 	</div>
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentAnalytic - reads the
+ : same $this/$collection restItem:mainContent used to pass directly,
+ : out of $model. No %templates:wrap: mainContentAnalytic already
+ : returns complete, specific content, so the calling marker element is
+ : meant to be replaced outright, not wrapped - same shape as
+ : restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return restItem:mainContentAnalytic's own output for the given $model
+ :)
+declare function restItem:mainContentAnalyticTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentAnalytic($model("this"), $model("collection"))
 };
 
 declare function restItem:mainContentText(
@@ -431,6 +463,30 @@ declare function restItem:mainContentText(
 	)
 };
 
+(:~
+ : templates:apply adapter for restItem:mainContentText - reads the
+ : same params restItem:mainContent used to pass directly, out of
+ : $model. No %templates:wrap: mainContentText already returns
+ : complete, specific content (a sequence), so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/edition/ref/start/end/collection
+ : @return restItem:mainContentText's own output for the given $model
+ :)
+declare function restItem:mainContentTextTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentText(
+		$model("this"),
+		$model("id"),
+		$model("edition"),
+		$model("ref"),
+		$model("start"),
+		$model("end"),
+		$model("collection")
+	)
+};
+
 declare function restItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
 	switch ($collection)
 		case "manuscripts" return
@@ -443,6 +499,22 @@ declare function restItem:mainContentGraph($this as element(), $id as xs:string*
 			item2:mainContentGraphAuthorityFiles($id)
 		default return
 			item2:mainContentGraphDefault($id, $collection)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentGraph - reads the
+ : same $this/$id/$collection restItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentGraph
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentGraph's own output for the given $model
+ :)
+declare function restItem:mainContentGraphTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentGraph($model("this"), $model("id"), $model("collection"))
 };
 
 declare function restItem:mainContentExtrasPersons($this as element(), $id as xs:string*, $collection as xs:string*) {
@@ -500,6 +572,22 @@ declare function restItem:mainContentDefault($this as element(), $id as xs:strin
 	)
 };
 
+(:~
+ : templates:apply adapter for restItem:mainContentDefault - reads the
+ : same $this/$id/$collection restItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentDefault
+ : already returns complete, specific content (a sequence), so the
+ : calling marker element is meant to be replaced outright, not wrapped
+ : - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentDefault's own output for the given $model
+ :)
+declare function restItem:mainContentDefaultTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentDefault($model("this"), $model("id"), $model("collection"))
+};
+
 declare function restItem:mainContent(
 	$type as xs:string*,
 	$this as element(),
@@ -510,20 +598,65 @@ declare function restItem:mainContent(
 	$start as xs:string*,
 	$end as xs:string*
 ) {
+	(:
+	 : Each branch routed through templates:apply instead of called
+	 : directly - see restItem:mainContentCorpusTemplate/
+	 : item2:mainContentGeobrowserTemplate/mainContentAnalyticTemplate/
+	 : mainContentTextTemplate/mainContentGraphTemplate/
+	 : mainContentDefaultTemplate.
+	 :)
 	switch ($type)
 		case "corpus" return
-			restItem:mainContentCorpus($id)
+			templates:apply(
+				<div data-template="restItem:mainContentCorpusTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "geobrowser" return
-			item2:mainContentGeobrowser($id)
+			templates:apply(
+				<div data-template="item2:mainContentGeobrowserTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
 		case "analytic" return
-			restItem:mainContentAnalytic($this, $collection)
+			templates:apply(
+				<div data-template="restItem:mainContentAnalyticTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
 		case "text" return
-			restItem:mainContentText($this, $id, $edition, $ref, $start, $end, $collection)
+			templates:apply(
+				<div data-template="restItem:mainContentTextTemplate" />,
+				restItem:lookup#2,
+				map {
+					"this": $this,
+					"id": $id,
+					"edition": $edition,
+					"ref": $ref,
+					"start": $start,
+					"end": $end,
+					"collection": $collection
+				},
+				config:template-apply-config()
+			)
 		case "graph" return
-			restItem:mainContentGraph($this, $id, $collection)
+			templates:apply(
+				<div data-template="restItem:mainContentGraphTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 		default return
 			(: THE MAIN VIEW :)
-			restItem:mainContentDefault($this, $id, $collection)
+			templates:apply(
+				<div data-template="restItem:mainContentDefaultTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
 };
 
 (:~

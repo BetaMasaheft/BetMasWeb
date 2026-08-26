@@ -2782,6 +2782,26 @@ declare function item2:textBibl($this, $id) {
  : @param $id the item's xml:id
  : @return the "geobrowser" main-content view
  :)
+(:~
+ : templates:apply adapter for item2:mainContentGeobrowser - reads the
+ : same $id restItem:mainContent/PermRestItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentGeobrowser
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as item2:RestSeeAlsoTemplate. Shared by both restviews/items.xqm and
+ : restviews/permanentItems.xqm's "geobrowser" $type branch - each
+ : resolves it through its own lookup (restItem:lookup/PermRestItem:lookup),
+ : not item2:lookup, since function-lookup() resolves against the
+ : *calling* module's static context, not this one.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGeobrowser's own output for the given $model
+ :)
+declare function item2:mainContentGeobrowserTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGeobrowser($model("id"))
+};
+
 declare function item2:mainContentGeobrowser($id as xs:string*) {
 	<div class="w3-container">
 		<div class="w3-container alert alert-info">You can download the <a
