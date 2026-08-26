@@ -9,6 +9,7 @@ test/xqs/ts-expand-titles.xqm
   s_1544e160683453::t_873ab147cd1ff9 1-64
 test/xqs/test-runner.xq
   s_1544e160683453::t_36ad0f1418187e 30,49,51
+  s_1544e160683453::t_85f97d4240dabb 50
 ---
 {
   "schema_version": "authorship/3.0.0",
