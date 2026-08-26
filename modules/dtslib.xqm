@@ -308,20 +308,25 @@ did not work, emailed exist db, Magdalena Turska very kindly provided this alter
 prev or next parameter, 5.3.1 or 5.3.3 or whatever is relevant for that document...
 which requires the document itself to be checked! :)
 declare function dtslib:PrevNextRef($text, $ref, $prevornext) {
-	let $l := if (contains($ref, ".")) then
-		count(tokenize($ref, "."))
-	else
-		1
-	let $parseRef := dtslib:parseRef($ref)
-	let $l := $parseRef//ref[1]/xs:integer(@l)
-	let $list := dtslib:listRefs($l, $text)
-	(: index-of may be multi-valued if listRefs ever repeats a label; take first only (#93) :)
-	let $pos := index-of($list, $ref)[1]
-	return if (empty($pos)) then (
+	(: Depth = dotted segments; navigate sibling labels at that depth, then
+	   re-prefix parent segments so "1.1" next → "1.2" (not bare "2"). :)
+	let $parts := tokenize($ref, "\.")[normalize-space(.) ne ""]
+	let $depth := count($parts)
+	let $leaf := $parts[last()]
+	let $raw := dtslib:listRefs($depth, $text)
+	(: stable unique — parallel citeStructure branches can repeat labels :)
+	let $list := distinct-values($raw)
+	let $pos := index-of($list, $leaf)[1]
+	let $sib := if (empty($pos)) then (
 	) else if ($prevornext = "next") then
 		$list[$pos + 1]
 	else
 		$list[$pos - 1]
+	return if (empty($sib)) then (
+	) else if ($depth le 1) then
+		$sib
+	else
+		string-join(($parts[position() lt last()], $sib), ".")
 };
 
 declare function dtslib:redirectToCollections() {
@@ -1018,7 +1023,8 @@ declare %private function dtslib:listRefs($level, $text) {
 		else
 			1
 		let $atLevel := dtslib:citeStructuresAtDepth($editionCS, $lev)
-		return $atLevel/t:desc//t:item/string()
+		let $raw := $atLevel/t:desc//t:item/string()
+		return distinct-values($raw)
 	else
 		let $levs := string-join(
 			(

@@ -68,3 +68,22 @@ declare %test:assertEquals("1") function tsdtsprev:prev-from-2-is-1() {
 declare %test:assertEmpty function tsdtsprev:next-from-last-is-empty() {
 	dtslib:PrevNextRef($tsdtsprev:edition, "2", "next")
 };
+
+(:~
+ : Dotted verse refs keep the parent prefix (#90 review).
+ :)
+declare %test:assertEquals("1.2") function tsdtsprev:next-from-1-1-is-1-2() {
+	dtslib:PrevNextRef($tsdtsprev:edition, "1.1", "next")
+};
+
+declare %test:assertEquals("1.1") function tsdtsprev:prev-from-1-2-is-1-1() {
+	dtslib:PrevNextRef($tsdtsprev:edition, "1.2", "prev")
+};
+
+declare %test:assertEquals("2.2") function tsdtsprev:next-from-2-1-is-2-2() {
+	dtslib:PrevNextRef($tsdtsprev:edition, "2.1", "next")
+};
+
+declare %test:assertEmpty function tsdtsprev:next-from-1-2-is-empty() {
+	dtslib:PrevNextRef($tsdtsprev:edition, "1.2", "next")
+};

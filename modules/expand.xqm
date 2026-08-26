@@ -177,9 +177,11 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				let $mainid := $node/ancestor::t:TEI/@xml:id
 				let $taxid := $expand:canontax//t:category[@xml:id]
 				return if (not($mainid = $taxid/@xml:id)) then
-					(: Public URI so XInclude works outside eXist; served by
-					   GET /api/lists/canonicaltaxonomy.xml (BetMasWeb Roaster for now —
-					   should move to BetMasApi one day). :)
+					(: Public HTTPS URI so XInclude works outside eXist. Always
+					   uses prod $expand:BMurl (not the local app host) so expanded
+					   TEI artefacts stay portable; xi:fallback covers offline.
+					   Served by GET /api/lists/canonicaltaxonomy.xml (BetMasWeb
+					   Roaster for now — should move to BetMasApi one day). :)
 					<xi:include
 						xmlns:xi="http://www.w3.org/2001/XInclude"
 						href="{ $expand:BMurl }api/lists/canonicaltaxonomy.xml"
@@ -329,14 +331,14 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					if ($node[not(text())] and $node/@corresp and $node/@type[not(. = "authFile")]) then
 						let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
 						return if ($corrnode) then
-							let $buildID := expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) ||
+							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
 								" element " ||
 								$corrnode/name() ||
 								" with id " ||
 								string($node/@corresp)
 							return $buildID
 						else if (starts-with($node/@corresp, "#")) then
-							let $buildID := expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) ||
+							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
 								" id " ||
 								string($node/@corresp)
 							return $buildID
@@ -671,9 +673,9 @@ declare function expand:groupCS($cS) {
 	group by $Unit := $c/@unit
 	return <citeStructure
 		xmlns="http://www.tei-c.org/ns/1.0"
-		match="{ distinct-values($c/@match) }"
+		match="{ string((distinct-values($c/@match))[1]) }"
 		unit="{ $Unit }"
-		use="{ distinct-values($c/@use) }"
+		use="{ string((distinct-values($c/@use))[1]) }"
 	>
 		{ expand:groupCS($c/t:citeStructure) }
 		<desc>
@@ -726,7 +728,7 @@ declare function expand:datelike($node, $bibliography) {
 								case "cert" return
 									"certainty:"
 								case "resp" return
-									expand:printTitleMainID(string($att))
+									string(expand:printTitleMainID(string($att)))
 								default return
 									$att/name()
 						) ||
@@ -1018,18 +1020,26 @@ declare function expand:biblCorresp($corresp, $node) {
 };
 
 (:~
- : Convert HTML title fallbacks (or plain "No item:" strings) into TEI seg
+ : Convert HTML title fallbacks (or plain unresolved markers) into TEI seg
  : with @corresp for expanded TEI. Website titles:printTitleID stays HTML.
+ : Non-TEI elements (empty-NS span / w3-tag) always convert; atomic strings
+ : convert when they match titlesData / titles unresolved markers (not TEI
+ : element titles that merely contain those words).
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/88
  :)
 declare function expand:asTeiTitle($value, $corresp as xs:string) {
 	let $text := normalize-space(string-join($value!string(.), ""))
 	let $isHtmlFallback := $value instance of element() and
+		namespace-uri($value) ne "http://www.tei-c.org/ns/1.0" and
 		(local-name($value) = "span" or contains(string(($value/@class)[1]), "w3-tag"))
-	let $isPlainFallback := starts-with($text, "No item:") or
-		starts-with($text, "no item yet") or
-		$text = "no id" or
-		starts-with($text, "More than 1 ")
+	let $isPlainFallback := not($value instance of element()) and
+		(
+			starts-with($text, "No item:") or
+				starts-with($text, "no item yet") or
+				$text = "no id" or
+				$text = "?" or
+				starts-with($text, "More than 1 ")
+		)
 	return if ($isHtmlFallback or $isPlainFallback) then
 		<seg xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $corresp }">{ $text }</seg>
 	else
