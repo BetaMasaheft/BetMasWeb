@@ -319,29 +319,29 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					else (
 					),
 					if ($node/@ref and not($node/text())) then
-						expand:printTitleMainID($node/@ref)
+						expand:printTitleMainID(string($node/@ref))
 					else (
 					),
 					if ($node/@type = "authFile" and (string-length($node/text()) = 0)) then
-						expand:printTitleMainID($node/@corresp)
+						expand:printTitleMainID(string($node/@corresp))
 					else (
 					),
 					if ($node[not(text())] and $node/@corresp and $node/@type[not(. = "authFile")]) then
 						let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
 						return if ($corrnode) then
-							let $buildID := expand:printTitleMainID($node/ancestor-or-self::t:TEI/@xml:id) ||
+							let $buildID := expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) ||
 								" element " ||
 								$corrnode/name() ||
 								" with id " ||
 								string($node/@corresp)
 							return $buildID
 						else if (starts-with($node/@corresp, "#")) then
-							let $buildID := expand:printTitleMainID($node/ancestor-or-self::t:TEI/@xml:id) ||
+							let $buildID := expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) ||
 								" id " ||
 								string($node/@corresp)
 							return $buildID
 						else
-							titles:printTitleID($node/@corresp)
+							expand:teiTitle(string($node/@corresp))
 					else (
 					),
 					expand:tei2fulltei($node/node(), $bibliography)
@@ -726,7 +726,7 @@ declare function expand:datelike($node, $bibliography) {
 								case "cert" return
 									"certainty:"
 								case "resp" return
-									expand:printTitleMainID($att)
+									expand:printTitleMainID(string($att))
 								default return
 									$att/name()
 						) ||
@@ -752,7 +752,7 @@ declare function expand:refel($node, $bibliography) {
 			else (
 			),
 			if ($node/@ref and not($node/text())) then
-				titles:printTitleID($node/@ref)
+				expand:teiTitle(string($node/@ref))
 			else (
 			),
 			(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
@@ -961,7 +961,7 @@ declare function expand:biblCorrTok($corresp, $node) {
 	let $anchornode := $node/id($anchor)
 	let $listWit := if ($anchornode/name() = "listWit") then
 		for $witness in $anchornode
-		return titles:printTitleID($witness/@corresp)
+		return expand:teiTitle(string($witness/@corresp))
 	else (
 	)
 	let $prefix := if ($listWit ge 1) then
@@ -1017,15 +1017,29 @@ declare function expand:biblCorresp($corresp, $node) {
 	</note>
 };
 
+(:~
+ : Convert HTML title fallbacks (or plain "No item:" strings) into TEI seg
+ : with @corresp for expanded TEI. Website titles:printTitleID stays HTML.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/88
+ :)
+declare function expand:asTeiTitle($value, $corresp as xs:string) {
+	let $text := normalize-space(string-join($value!string(.), ""))
+	let $isHtmlFallback := $value instance of element() and
+		(local-name($value) = "span" or contains(string(($value/@class)[1]), "w3-tag"))
+	let $isPlainFallback := starts-with($text, "No item:") or
+		starts-with($text, "no item yet") or
+		$text = "no id" or
+		starts-with($text, "More than 1 ")
+	return if ($isHtmlFallback or $isPlainFallback) then
+		<seg xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $corresp }">{ $text }</seg>
+	else
+		$value
+};
+
+declare function expand:teiTitle($id as xs:string) {
+	expand:asTeiTitle(titles:printTitleID($id), $id)
+};
+
 declare function expand:printTitleMainID($id) {
-	if (matches($id, "wd:Q\d+") or starts-with($id, "gn:") or starts-with($id, "pleiades:")) then (
-		titles:decidePlaceNameSource($id)
-	) (: because wikidata identifiers are not speaking, the result of this operation is that the
-eventually added result is added to the place list names :) else (: always look at the root of the given node parameter of the function and then switch :)
-		let $mainID := if (contains($id, "#")) then
-			substring-before($id, "#")
-		else
-			$id
-		let $resource := collection("/db/apps/BetMasData")//t:TEI[@xml:id = $mainID]
-		return titles:switcher($resource/@type, $resource)
+	expand:asTeiTitle(titles:printTitleMainID(string($id)), string($id))
 };

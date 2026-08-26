@@ -27,6 +27,7 @@ import module namespace tsvidocs = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tsseealso = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-seealso-options" at "ts-item-seealso-options.xqm";
 import module namespace tszc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-zotero-cache" at "ts-zotero-cache.xqm";
 import module namespace tsexpandtax = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-taxonomy" at "ts-expand-taxonomy.xqm";
+import module namespace tsexpandtit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-titles" at "ts-expand-titles.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -46,6 +47,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-viewitem-documents.xqm")),
 		inspect:module-functions(xs:anyURI("ts-item-seealso-options.xqm")),
 		inspect:module-functions(xs:anyURI("ts-zotero-cache.xqm")),
-		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm"))
+		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm"))
 	)
 )
