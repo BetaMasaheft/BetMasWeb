@@ -1,11 +1,24 @@
 restviews/items.xqm
   s_5790d61a112fab::t_21fe447e9b29ba 280-300,529-553
+  s_5790d61a112fab::t_cc0f36d86a0614 529-553
+  s_5790d61a112fab::t_9ed06e324491bb 280-300
 restviews/permanentItems.xqm
   s_5790d61a112fab::t_ccd377ce245cc0 280-291,539-553
+  s_5790d61a112fab::t_8abcd1d13ed6e7 280-291
+  s_5790d61a112fab::t_a59a50b8a51c3e 539-553
 test/xqs/ts-permrestitem-maincontent.xqm
   s_5790d61a112fab::t_e7bf3ee49e1b62 22-24,154-164
+  s_5790d61a112fab::t_b2d4d39a6c70ca 23-24
+  s_5790d61a112fab::t_d40835ee80a657 159
+  s_5790d61a112fab::t_289fdabe5cb1f3 162
+  s_5790d61a112fab::t_dc2c6da01f50d8 22
+  s_5790d61a112fab::t_3eee8057e7a369 154-158,160-161,163-164
 test/xqs/ts-restitem-maincontent.xqm
   s_5790d61a112fab::t_214da6645076b9 26-27,161-180
+  s_5790d61a112fab::t_b2d4d39a6c70ca 27
+  s_5790d61a112fab::t_16fceba1a25d4a 166
+  s_5790d61a112fab::t_f68af1ef5042e5 26
+  s_5790d61a112fab::t_21a139981ac677 161-165,167-180
 ---
 {
   "schema_version": "authorship/3.0.0",
