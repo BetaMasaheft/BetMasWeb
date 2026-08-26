@@ -1,0 +1,21 @@
+controller.xql
+  s_5790d61a112fab::t_699650c45c0fbc 60-61
+test/cypress/e2e/controller.cy.js
+  s_5790d61a112fab::t_ab422eb20be49a 159-166,171,179,221,229,237,245,253,261,269,277,285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3790190d3033a0f7063e77c9cc06f230f91af2ec",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
