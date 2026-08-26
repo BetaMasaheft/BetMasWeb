@@ -11,6 +11,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
+const http = require("node:http");
 
 const defaultUrl = "http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq";
 const url = process.env.XQS_URL || defaultUrl;
@@ -24,15 +25,39 @@ function authHeaders() {
 	};
 }
 
-async function fetchReport(target) {
-	const res = await fetch(target, { headers: authHeaders() });
-	const body = await res.text();
-	assert.ok(res.ok, `XQSuite runner HTTP ${res.status}: ${body.slice(0, 500)}`);
-	try {
-		return JSON.parse(body);
-	} catch {
-		assert.fail(`XQSuite runner returned non-JSON: ${body.slice(0, 500)}`);
-	}
+// Plain node:http instead of fetch(): fetch's underlying undici dispatcher
+// has a fixed 300s default headersTimeout with no per-call override exposed
+// on fetch() itself (undici isn't a project dependency, so importing Agent/
+// setGlobalDispatcher to raise it isn't available either). test-runner.xq
+// runs the full suite as one XQSuite request - a naturally growing runtime
+// as tests get added, not a hang - so a fixed 5-minute ceiling is a test-
+// harness limitation, not a real timeout worth enforcing. node:http has no
+// such default.
+function fetchReport(target) {
+	return new Promise((resolve, reject) => {
+		http
+			.get(target, { headers: authHeaders() }, (res) => {
+				const chunks = [];
+				res.on("data", (chunk) => chunks.push(chunk));
+				res.on("end", () => {
+					const body = Buffer.concat(chunks).toString("utf8");
+					try {
+						assert.ok(
+							res.statusCode >= 200 && res.statusCode < 300,
+							`XQSuite runner HTTP ${res.statusCode}: ${body.slice(0, 500)}`,
+						);
+						resolve(JSON.parse(body));
+					} catch (err) {
+						if (err instanceof SyntaxError) {
+							reject(new Error(`XQSuite runner returned non-JSON: ${body.slice(0, 500)}`));
+						} else {
+							reject(err);
+						}
+					}
+				});
+			})
+			.on("error", reject);
+	});
 }
 
 function casesFromSuite(suite) {
