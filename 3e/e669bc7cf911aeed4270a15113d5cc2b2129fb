@@ -1,0 +1,31 @@
+forms/formWL.html
+  s_5790d61a112fab::t_13241d7b67648b 5
+forms/formfolia.html
+  s_5790d61a112fab::t_073717e2f75712 6
+modules/app.xqm
+  s_5790d61a112fab::t_b7a45588bcb264 37,782-829
+modules/queries.xqm
+  s_5790d61a112fab::t_e0e7e39d4abacf 737-774,778,791
+restviews/list.xqm
+  s_5790d61a112fab::t_2382bc26c6866c 24,2099,2105
+test/xqs/test-runner.xq
+  s_5790d61a112fab::t_81543aa6e7c61c 31,52-53
+test/xqs/ts-queries-formbounds.xqm
+  s_5790d61a112fab::t_3dd3254adffd5c 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3ee669bc7cf911aeed4270a15113d5cc2b2129fb",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
