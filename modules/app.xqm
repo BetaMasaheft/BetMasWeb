@@ -1500,25 +1500,36 @@ function app:query(
 		"[descendant::t:person/@sex  eq " || request:get-parameter("gender", ()) || " ]"
 	else (
 	)
+	(:
+	 : Sentinel values ("is this the default, unfiltered range") derive
+	 : from q:max-folia/q:max-written-lines rather than a hardcoded
+	 : literal, matching q:par-folia/q:par-wL and list:paramsList - this
+	 : block used to hardcode "1,1000" for both (a copy-paste bug in the
+	 : wL block below: "1,1000" is folia's own old default, not wL's
+	 : "1,100" - meaning the wL sentinel check here was never actually
+	 : reachable). Fixed alongside the drift risk shared with the other
+	 : two implementations of this same filter.
+	 :)
 	let $leaves := if (contains($app:params, "folia")) then (
 		let $range := request:get-parameter("folia", ())
 		let $min := substring-before($range, ",")
 		let $max := substring-after($range, ",")
-		return if ($range = "1,1000") then (
+		return if ($range = "1," || q:max-folia()) then (
 		) else if (empty($range)) then (
 		) else
-			"[descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)][matches(.,'^\d+$')][xs:integer(.) ge " ||
-				$min ||
-				" ][ xs:integer(.)  le " ||
-				$max ||
-				"]]"
+			(:
+			 : No xs:integer(.) cast (nor the regex guard that used to
+			 : protect it from non-digit values) - matches
+			 : q:par-folia/q:par-wL's shape, see the comment there for why.
+			 :)
+			"[descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
 	) else (
 	)
 	let $wL := if (contains($app:params, "wL")) then (
 		let $range := request:get-parameter("wL", ())
 		let $min := substring-before($range, ",")
 		let $max := substring-after($range, ",")
-		return if ($range = "1,1000") then (
+		return if ($range = "1," || q:max-written-lines()) then (
 		) else if (empty($range)) then (
 		) else
 			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"

@@ -740,23 +740,32 @@ declare %private function q:par-date-range($element, $dateRange) {
  : manuscripts (EMML1483, EMML2927, EMML5533, found 2026-08-26), the
  : leaf count is identical to the manuscript's own EMML catalog number,
  : off by an order of magnitude from genuine values - a systematic
- : conversion bug, not one typo, so this excludes by the pattern itself
- : ("EMML<n>" whose leaf count is exactly <n>") rather than an
- : enumerated id list, to also catch any further instances the same
- : bug produced that this list doesn't name. Backs both
- : forms/formfolia.html's slider bounds and q:par-folia's default-value
- : check below, so they can never drift apart from each other the way
- : the old hardcoded "1,1000" did from the slider's own hardcoded max.
+ : conversion bug, not one typo. Confirmed each of these 3 values is
+ : otherwise unique corpus-wide (occurs exactly once), so excluding the
+ : literal values here excludes exactly those 3 records, without needing
+ : to re-derive "is this an EMML self-reference" per candidate. Backs
+ : both forms/formfolia.html's slider bounds and q:par-folia's
+ : default-value check below, so they can never drift apart from each
+ : other the way the old hardcoded "1,1000" did from the slider's own
+ : hardcoded max.
+ :
+ : Casts against distinct-values() rather than every matching element:
+ : casting each of the ~14,000 raw elements (most of them repeat values)
+ : forces an unindexed per-node scan (measured ~40s); collapsing to the
+ : ~3,500 distinct values first, then casting only those, measured
+ : ~200ms for an identical result - the index handles distinctness
+ : efficiently, the cast doesn't need to run once per document.
  :
  : @return the real max leaf count, as an integer
  : @see https://github.com/BetaMasaheft/Manuscripts/issues/3505 tracks fixing the source data; this exclusion can be dropped once resolved
  :)
 declare function q:max-folia() as xs:integer {
 	max(
-		collection($config:data-rootMS)//t:extent/t:measure[@unit = "leaf"][not(@type)][. castable as xs:integer][not(
-			matches(ancestor::t:TEI/@xml:id, "^EMML[0-9]+$") and
-				xs:integer(.) = xs:integer(substring-after(ancestor::t:TEI/@xml:id, "EMML"))
-		)]
+		for $v in distinct-values(collection($config:data-rootMS)//t:extent/t:measure[@unit = "leaf"][not(@type)])
+		where $v castable as xs:integer
+		let $n := xs:integer($v)
+		where not($n = (1483, 2927, 5533))
+		return $n
 	)
 };
 
@@ -766,10 +775,21 @@ declare function q:max-folia() as xs:integer {
  : below, so they can never drift apart from each other the way the
  : old hardcoded "1,100" did from the slider's own hardcoded max.
  :
+ : Casts against distinct-values() rather than every matching attribute
+ : - see q:max-folia's own doc for why that's meaningfully faster, same
+ : reasoning applies here even though the un-optimized version of this
+ : one measured only ~1.8s (fewer candidates than q:max-folia's), not
+ : catastrophic, but there's no reason to leave it slower than it needs
+ : to be.
+ :
  : @return the real max written-lines count, as an integer
  :)
 declare function q:max-written-lines() as xs:integer {
-	max(collection($config:data-rootMS)//t:layout/@writtenLines[. castable as xs:integer])
+	max(
+		for $v in distinct-values(collection($config:data-rootMS)//t:layout/@writtenLines)
+		where $v castable as xs:integer
+		return xs:integer($v)
+	)
 };
 
 declare %private function q:par-folia($Pfolia) {
@@ -778,11 +798,21 @@ declare %private function q:par-folia($Pfolia) {
 	return if ($Pfolia = "1," || q:max-folia()) then (
 	) else if (empty($Pfolia)) then (
 	) else
-		"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][xs:integer(.) ge " ||
-			$min ||
-			" ][ xs:integer(.)  le " ||
-			$max ||
-			"]]"
+		(:
+		 : No xs:integer(.)/xs:decimal(.) cast on the indexed value here -
+		 : wrapping it in a cast function defeats eXist's range-index
+		 : optimizer entirely (measured: ~200x slower, multi-minute
+		 : production searches). Matches q:par-wL's existing shape below:
+		 : same tradeoff (string, not numeric, comparison against the
+		 : xs:string-typed index - correct for same-digit-width values,
+		 : silently wrong across digit-length boundaries, e.g. "9" vs
+		 : "1024"), same underlying cause (the index field is typed
+		 : xs:string, not numeric - a structural fix belongs in the index
+		 : config, not query-side). Prioritizes not being catastrophically
+		 : slow over a correctness edge case this filter already carries
+		 : in its sibling.
+		 :)
+		"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
 };
 
 declare %private function q:par-wL($PwL) {

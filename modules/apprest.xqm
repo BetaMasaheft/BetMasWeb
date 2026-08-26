@@ -1105,11 +1105,20 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		return if ($Pfolia = "1,1000") then (
 		) else if (empty($Pfolia)) then (
 		) else
-			"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][xs:integer(.) ge " ||
-				$min ||
-				" ][ xs:integer(.)  le " ||
-				$max ||
-				"]]"
+			(:
+			 : No xs:integer(.) cast on the indexed value - defeats
+			 : eXist's range-index optimizer, measured ~200x slower.
+			 : Matches the $wL block below and
+			 : modules/queries.xqm's q:par-folia/q:par-wL. Sentinel value
+			 : ("1,1000") intentionally left as the literal here, not
+			 : q:max-folia() - this function's own caller/widget
+			 : (restviews/list.xqm, not forms/formfolia.html) doesn't use
+			 : the corpus-computed slider bounds, so its default is still
+			 : the old hardcoded value; deriving the sentinel from
+			 : q:max-folia() here would desync it from what its own
+			 : widget actually submits.
+			 :)
+			"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][. ge " || $min || " ][ .  le " || $max || "]]"
 	)
 	let $wL := if (empty($PwL) or $PwL = "") then (
 	) else (
