@@ -52,19 +52,40 @@ declare %test:assertError("batchExpand:EMPTY") function tsbatchexp:refuse-empty-
 	batchExpand:expandCollection("")
 };
 
-declare %test:assertError("batchExpand:EMPTY") function tsbatchexp:refuse-missing-collection() {
+declare %test:assertError("batchExpand:EMPTY") function tsbatchexp:refuse-missing-param() {
 	batchExpand:expandCollection(())
+};
+
+declare %test:assertError("batchExpand:BAD_ROOT") function tsbatchexp:refuse-outside-betmasdata() {
+	batchExpand:expandCollection("/db/apps/lists")
+};
+
+declare %test:assertError("batchExpand:BAD_ROOT") function tsbatchexp:refuse-prefix-sibling() {
+	batchExpand:expandCollection("/db/apps/BetMasDataEvil")
+};
+
+declare %test:assertError("batchExpand:BAD_ROOT") function tsbatchexp:refuse-dotdot-traversal() {
+	batchExpand:expandCollection("/db/apps/BetMasData/../lists")
+};
+
+declare %test:assertError("batchExpand:MISSING") function tsbatchexp:refuse-missing-collection() {
+	batchExpand:expandCollection("/db/apps/BetMasData/works/_batchExpandMissingCol")
 };
 
 (:~
  : Expanding a one-file fixture under BetMasData stores under /db/apps/expanded/...
+ : and uses group-scoped perms (not world-writable).
  :)
 declare %test:assertTrue function tsbatchexp:stores-under-expanded() {
 	let $_clean1 := tsbatchexp:cleanup()
 	let $_src := tsbatchexp:ensure-src()
 	let $summary := batchExpand:expandCollection($tsbatchexp:src-col)
-	let $stored := doc($tsbatchexp:out-col || "/" || $tsbatchexp:file)
-	let $ok := exists($stored/t:TEI[@xml:id = "LITTESTbatchExpand"]) and matches($summary, "^expanded 1 file\(s\) in ")
+	let $stored-path := $tsbatchexp:out-col || "/" || $tsbatchexp:file
+	let $stored := doc($stored-path)
+	let $mode := sm:get-permissions(xs:anyURI($stored-path))/@mode/string()
+	let $ok := exists($stored/t:TEI[@xml:id = "LITTESTbatchExpand"]) and
+		matches($summary, "^expanded 1 file\(s\) in ") and
+		$mode = "rwxrwxr-x"
 	let $_clean2 := tsbatchexp:cleanup()
 	return $ok
 };
