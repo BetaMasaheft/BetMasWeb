@@ -187,10 +187,14 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					{
 						let $text := $node/ancestor::t:TEI//t:div[@type = "edition"]
 						let $cS := expand:citeStructBypass($text/(t:div | t:lg | t:l))
-						(: a further step to reduce the list to similar instances should be performed grouping the citeStructures obtained :)
-						return <citeStructure delim="." match="//div[@type='edition']" unit="edition" use="@xml:id">
-							{ expand:strip-ns(expand:groupCS($cS)) }
-						</citeStructure>
+						(: grouping + TEI NS citeStructure (no strip-ns); nested then desc per TEI :)
+						return <citeStructure
+							xmlns="http://www.tei-c.org/ns/1.0"
+							delim="."
+							match="//div[@type='edition']"
+							unit="edition"
+							use="@xml:id"
+						>{ expand:groupCS($cS) }</citeStructure>
 					}
 				</refsDecl>
 			}
@@ -619,7 +623,7 @@ declare function expand:rn($n) as xs:string {
 };
 
 declare function expand:citeStructure($level) {
-	<citeStructure>
+	<citeStructure xmlns="http://www.tei-c.org/ns/1.0">
 		{
 			attribute unit {
 				if ($level/@subtype) then
@@ -647,9 +651,9 @@ declare function expand:citeStructure($level) {
 					"@xml:id"
 			}
 		}
-		<desc>{ expand:rn($level) }</desc>
 		{ expand:citeStructBypass($level/(t:div | t:lg | t:l | t:cb | t:pb | t:lb)) }
 		{ expand:citeStructBypass($level/t:ab/(t:div | t:lg | t:l | t:cb | t:pb | t:lb)) }
+		<desc>{ expand:rn($level) }</desc>
 	</citeStructure>
 };
 
@@ -661,16 +665,21 @@ declare function expand:citeStructBypass($nodes) {
 declare function expand:groupCS($cS) {
 	for $c in $cS
 	group by $Unit := $c/@unit
-	return <citeStructure match="{ distinct-values($c/@match) }" unit="{ $Unit }" use="{ distinct-values($c/@match) }">
+	return <citeStructure
+		xmlns="http://www.tei-c.org/ns/1.0"
+		match="{ distinct-values($c/@match) }"
+		unit="{ $Unit }"
+		use="{ distinct-values($c/@use) }"
+	>
+		{ expand:groupCS($c/t:citeStructure) }
 		<desc>
 			<list>
 				{
-					for $desc in distinct-values($c/desc)
+					for $desc in distinct-values($c/t:desc)
 					return <item>{ $desc }</item>
 				}
 			</list>
 		</desc>
-		{ expand:groupCS($c/citeStructure) }
 	</citeStructure>
 };
 
@@ -919,16 +928,6 @@ declare function expand:file($filepath) {
 			}
 		</bibl>
 	(: let $test := console:log($zotero) :) return document { expand:tei2fulltei($expanded, $zotero) }
-};
-
-declare function expand:strip-ns($nodes) {
-	for $n in $nodes
-	return typeswitch ($n)
-		case element() return
-			element {local-name($n)} { $n/@*, expand:strip-ns($n/node()) }
-
-		default return
-			$n
 };
 
 (:
