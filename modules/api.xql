@@ -25,6 +25,7 @@ import module namespace comparems = "https://www.betamasaheft.uni-hamburg.de/Bet
 import module namespace compare = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/compare" at "../restviews/compare.xqm";
 import module namespace genderInfo = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/genderInfo" at "../restviews/genderInfo.xqm";
 import module namespace lookID = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/lookID" at "../restviews/idlookup.xqm";
+import module namespace listsTax = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/listsTax" at "../restviews/listsTaxonomy.xqm";
 import module namespace listIds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/listIds" at "../restviews/ids.xqm";
 import module namespace user = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/user" at "../restviews/user.xqm";
 import module namespace workmap = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/workmap" at "../restviews/workmap.xqm";

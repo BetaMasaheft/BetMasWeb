@@ -308,17 +308,25 @@ did not work, emailed exist db, Magdalena Turska very kindly provided this alter
 prev or next parameter, 5.3.1 or 5.3.3 or whatever is relevant for that document...
 which requires the document itself to be checked! :)
 declare function dtslib:PrevNextRef($text, $ref, $prevornext) {
-	let $l := if (contains($ref, ".")) then
-		count(tokenize($ref, "."))
+	(: Depth = dotted segments; navigate sibling labels at that depth, then
+	   re-prefix parent segments so "1.1" next → "1.2" (not bare "2"). :)
+	let $parts := tokenize($ref, "\.")[normalize-space(.) ne ""]
+	let $depth := count($parts)
+	let $leaf := $parts[last()]
+	let $raw := dtslib:listRefs($depth, $text)
+	(: stable unique — parallel citeStructure branches can repeat labels :)
+	let $list := distinct-values($raw)
+	let $pos := index-of($list, $leaf)[1]
+	let $sib := if (empty($pos)) then (
+	) else if ($prevornext = "next") then
+		$list[$pos + 1]
 	else
-		1
-	let $parseRef := dtslib:parseRef($ref)
-	let $l := $parseRef//ref[1]/xs:integer(@l)
-	let $list := dtslib:listRefs($l, $text)
-	return if ($prevornext = "next") then
-		$list[index-of($list, $ref) + 1]
+		$list[$pos - 1]
+	return if (empty($sib)) then (
+	) else if ($depth le 1) then
+		$sib
 	else
-		$list[index-of($list, $ref)[1] - 1]
+		string-join(($parts[position() lt last()], $sib), ".")
 };
 
 declare function dtslib:redirectToCollections() {
@@ -609,9 +617,10 @@ the cleaned list has no folio redundancy and removes references which are not in
 		) else
 			$possibleRefs
 		(: let $test := console:log(string-join($cleanMSrefs, ' - ')) :)
-		let $startP := index-of($cleanMSrefs, $start)
-		let $endP := index-of($cleanMSrefs, $end)
-		let $selectors :=
+		let $startP := index-of($cleanMSrefs, $start)[1]
+		let $endP := index-of($cleanMSrefs, $end)[1]
+		let $selectors := if (empty($startP) or empty($endP)) then (
+		) else
 			for $r in $startP to $endP
 			return <s>
 				<ref>{ $cleanMSrefs[$r] }</ref>
@@ -993,11 +1002,29 @@ declare function dtslib:pasLev($level, $text, $fallback, $type, $manifest, $BMid
 	(: let $t:= console:log($path) :) return dtslib:pasS(util:eval($path), $fallback, $type, $manifest, $BMid)
 };
 
+(:~
+ : citeStructure nodes at citation depth $depth under the edition-level
+ : citeStructure (depth 1 = chapter peers, 2 = verse peers, …).
+ :)
+declare %private function dtslib:citeStructuresAtDepth($nodes as element()*, $depth as xs:integer) as element()* {
+	if ($depth le 0 or empty($nodes)) then
+		$nodes
+	else
+		dtslib:citeStructuresAtDepth($nodes/t:citeStructure, $depth - 1)
+};
+
 declare %private function dtslib:listRefs($level, $text) {
-	if ($text/ancestor-or-self::t:TEI//t:citeStructure) then
-		(: (util:log("info", "citestruct"), :)
-		$text/ancestor::t:TEI//t:citeStructure//t:item/text()
-		(: ) :)
+	let $tei := $text/ancestor-or-self::t:TEI
+	let $editionCS := ($tei//t:refsDecl/t:citeStructure)[1]
+	return if (exists($editionCS)) then
+		(: level-scoped items — do not flatten all depths (duplicate "1" across chapter/verse → #93) :)
+		let $lev := if ($level castable as xs:integer) then
+			xs:integer($level)
+		else
+			1
+		let $atLevel := dtslib:citeStructuresAtDepth($editionCS, $lev)
+		let $raw := $atLevel/t:desc//t:item/string()
+		return distinct-values($raw)
 	else
 		let $levs := string-join(
 			(
@@ -1187,10 +1214,12 @@ will not work although in principle equivalent to
 start=1.4&end=1.6
 which will return the correct set of passage references contained in this range
  :)
-	let $startP := index-of($possibleRefs, $start)
-	let $endP := index-of($possibleRefs, $end)
-	for $r in $startP to $endP
-	return dtslib:pasRef($l, $text, $possibleRefs[$r], $fallback, $type, $manifest, $BMid)
+	let $startP := index-of($possibleRefs, $start)[1]
+	let $endP := index-of($possibleRefs, $end)[1]
+	return if (empty($startP) or empty($endP)) then (
+	) else
+		for $r in $startP to $endP
+		return dtslib:pasRef($l, $text, $possibleRefs[$r], $fallback, $type, $manifest, $BMid)
 };
 
 declare function dtslib:pickDivText($doc, $parsedID) {

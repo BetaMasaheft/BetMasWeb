@@ -177,20 +177,30 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				let $mainid := $node/ancestor::t:TEI/@xml:id
 				let $taxid := $expand:canontax//t:category[@xml:id]
 				return if (not($mainid = $taxid/@xml:id)) then
+					(: Public HTTPS URI so XInclude works outside eXist. Always
+					   uses prod $expand:BMurl (not the local app host) so expanded
+					   TEI artefacts stay portable; xi:fallback covers offline.
+					   Served by GET /api/lists/canonicaltaxonomy.xml (BetMasWeb
+					   Roaster for now — should move to BetMasApi one day). :)
 					<xi:include
 						xmlns:xi="http://www.w3.org/2001/XInclude"
-						href="xmldb:exist:///db/apps/lists/canonicaltaxonomy.xml"
-					><xi:fallback><p>Definitions of prefixes used.</p></xi:fallback></xi:include>
+						href="{ $expand:BMurl }api/lists/canonicaltaxonomy.xml"
+						parse="xml"
+					><xi:fallback><p>Canonical taxonomy unavailable.</p></xi:fallback></xi:include>
 				else (
 				),
 				<refsDecl xmlns="http://www.tei-c.org/ns/1.0">
 					{
 						let $text := $node/ancestor::t:TEI//t:div[@type = "edition"]
 						let $cS := expand:citeStructBypass($text/(t:div | t:lg | t:l))
-						(: a further step to reduce the list to similar instances should be performed grouping the citeStructures obtained :)
-						return <citeStructure delim="." match="//div[@type='edition']" unit="edition" use="@xml:id">
-							{ expand:strip-ns(expand:groupCS($cS)) }
-						</citeStructure>
+						(: grouping + TEI NS citeStructure (no strip-ns); nested then desc per TEI :)
+						return <citeStructure
+							xmlns="http://www.tei-c.org/ns/1.0"
+							delim="."
+							match="//div[@type='edition']"
+							unit="edition"
+							use="@xml:id"
+						>{ expand:groupCS($cS) }</citeStructure>
 					}
 				</refsDecl>
 			}
@@ -311,29 +321,29 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					else (
 					),
 					if ($node/@ref and not($node/text())) then
-						expand:printTitleMainID($node/@ref)
+						expand:printTitleMainID(string($node/@ref))
 					else (
 					),
 					if ($node/@type = "authFile" and (string-length($node/text()) = 0)) then
-						expand:printTitleMainID($node/@corresp)
+						expand:printTitleMainID(string($node/@corresp))
 					else (
 					),
 					if ($node[not(text())] and $node/@corresp and $node/@type[not(. = "authFile")]) then
 						let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
 						return if ($corrnode) then
-							let $buildID := expand:printTitleMainID($node/ancestor-or-self::t:TEI/@xml:id) ||
+							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
 								" element " ||
 								$corrnode/name() ||
 								" with id " ||
 								string($node/@corresp)
 							return $buildID
 						else if (starts-with($node/@corresp, "#")) then
-							let $buildID := expand:printTitleMainID($node/ancestor-or-self::t:TEI/@xml:id) ||
+							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
 								" id " ||
 								string($node/@corresp)
 							return $buildID
 						else
-							titles:printTitleID($node/@corresp)
+							expand:teiTitle(string($node/@corresp))
 					else (
 					),
 					expand:tei2fulltei($node/node(), $bibliography)
@@ -619,7 +629,7 @@ declare function expand:rn($n) as xs:string {
 };
 
 declare function expand:citeStructure($level) {
-	<citeStructure>
+	<citeStructure xmlns="http://www.tei-c.org/ns/1.0">
 		{
 			attribute unit {
 				if ($level/@subtype) then
@@ -647,9 +657,9 @@ declare function expand:citeStructure($level) {
 					"@xml:id"
 			}
 		}
-		<desc>{ expand:rn($level) }</desc>
 		{ expand:citeStructBypass($level/(t:div | t:lg | t:l | t:cb | t:pb | t:lb)) }
 		{ expand:citeStructBypass($level/t:ab/(t:div | t:lg | t:l | t:cb | t:pb | t:lb)) }
+		<desc>{ expand:rn($level) }</desc>
 	</citeStructure>
 };
 
@@ -661,16 +671,21 @@ declare function expand:citeStructBypass($nodes) {
 declare function expand:groupCS($cS) {
 	for $c in $cS
 	group by $Unit := $c/@unit
-	return <citeStructure match="{ distinct-values($c/@match) }" unit="{ $Unit }" use="{ distinct-values($c/@match) }">
+	return <citeStructure
+		xmlns="http://www.tei-c.org/ns/1.0"
+		match="{ string((distinct-values($c/@match))[1]) }"
+		unit="{ $Unit }"
+		use="{ string((distinct-values($c/@use))[1]) }"
+	>
+		{ expand:groupCS($c/t:citeStructure) }
 		<desc>
 			<list>
 				{
-					for $desc in distinct-values($c/desc)
+					for $desc in distinct-values($c/t:desc)
 					return <item>{ $desc }</item>
 				}
 			</list>
 		</desc>
-		{ expand:groupCS($c/citeStructure) }
 	</citeStructure>
 };
 
@@ -713,7 +728,7 @@ declare function expand:datelike($node, $bibliography) {
 								case "cert" return
 									"certainty:"
 								case "resp" return
-									expand:printTitleMainID($att)
+									string(expand:printTitleMainID(string($att)))
 								default return
 									$att/name()
 						) ||
@@ -739,7 +754,7 @@ declare function expand:refel($node, $bibliography) {
 			else (
 			),
 			if ($node/@ref and not($node/text())) then
-				titles:printTitleID($node/@ref)
+				expand:teiTitle(string($node/@ref))
 			else (
 			),
 			(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
@@ -921,16 +936,6 @@ declare function expand:file($filepath) {
 	(: let $test := console:log($zotero) :) return document { expand:tei2fulltei($expanded, $zotero) }
 };
 
-declare function expand:strip-ns($nodes) {
-	for $n in $nodes
-	return typeswitch ($n)
-		case element() return
-			element {local-name($n)} { $n/@*, expand:strip-ns($n/node()) }
-
-		default return
-			$n
-};
-
 (:
 declare function expand:optionsexpand($model, $bibliography){
 if($model/t:choice[t:corr][t:sic]) then
@@ -958,7 +963,7 @@ declare function expand:biblCorrTok($corresp, $node) {
 	let $anchornode := $node/id($anchor)
 	let $listWit := if ($anchornode/name() = "listWit") then
 		for $witness in $anchornode
-		return titles:printTitleID($witness/@corresp)
+		return expand:teiTitle(string($witness/@corresp))
 	else (
 	)
 	let $prefix := if ($listWit ge 1) then
@@ -1014,15 +1019,37 @@ declare function expand:biblCorresp($corresp, $node) {
 	</note>
 };
 
+(:~
+ : Convert HTML title fallbacks (or plain unresolved markers) into TEI seg
+ : with @corresp for expanded TEI. Website titles:printTitleID stays HTML.
+ : Non-TEI elements (empty-NS span / w3-tag) always convert; atomic strings
+ : convert when they match titlesData / titles unresolved markers (not TEI
+ : element titles that merely contain those words).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/88
+ :)
+declare function expand:asTeiTitle($value, $corresp as xs:string) {
+	let $text := normalize-space(string-join($value!string(.), ""))
+	let $isHtmlFallback := $value instance of element() and
+		namespace-uri($value) ne "http://www.tei-c.org/ns/1.0" and
+		(local-name($value) = "span" or contains(string(($value/@class)[1]), "w3-tag"))
+	let $isPlainFallback := not($value instance of element()) and
+		(
+			starts-with($text, "No item:") or
+				starts-with($text, "no item yet") or
+				$text = "no id" or
+				$text = "?" or
+				starts-with($text, "More than 1 ")
+		)
+	return if ($isHtmlFallback or $isPlainFallback) then
+		<seg xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $corresp }">{ $text }</seg>
+	else
+		$value
+};
+
+declare function expand:teiTitle($id as xs:string) {
+	expand:asTeiTitle(titles:printTitleID($id), $id)
+};
+
 declare function expand:printTitleMainID($id) {
-	if (matches($id, "wd:Q\d+") or starts-with($id, "gn:") or starts-with($id, "pleiades:")) then (
-		titles:decidePlaceNameSource($id)
-	) (: because wikidata identifiers are not speaking, the result of this operation is that the
-eventually added result is added to the place list names :) else (: always look at the root of the given node parameter of the function and then switch :)
-		let $mainID := if (contains($id, "#")) then
-			substring-before($id, "#")
-		else
-			$id
-		let $resource := collection("/db/apps/BetMasData")//t:TEI[@xml:id = $mainID]
-		return titles:switcher($resource/@type, $resource)
+	expand:asTeiTitle(titles:printTitleMainID(string($id)), string($id))
 };
