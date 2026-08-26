@@ -1,0 +1,31 @@
+modules/batchExpand.xqm
+  s_1544e160683453::t_97d4ef5a144dbf 119
+  s_5790d61a112fab::t_0c4eed23b62244 121
+test/xqs/ts-batch-expand.xqm
+  s_1544e160683453::t_4f880a9b33d437 30-34,36-38,82,89-97,99-115
+  s_1544e160683453::t_749500c0fd1217 116-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "d4891d8903ca3c73154ccb4d75efcd1db554310f",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "unknown"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
