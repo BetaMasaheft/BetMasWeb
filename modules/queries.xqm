@@ -824,14 +824,19 @@ declare %private function q:par-wL($PwL) {
 		"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
 };
 
+(:~
+ : No xs:integer(.) cast on the indexed value - same fix as q:par-folia
+ : above, same reasoning: casting the indexed value defeats eXist's
+ : range-index optimizer.
+ :)
 declare %private function q:par-qn($Pqn) {
 	if ($Pqn = "1,100") then (
 	) else
 		let $min := substring-before($Pqn, ",")
 		let $max := substring-after($Pqn, ",")
-		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][xs:integer(.) ge " ||
+		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][. ge " ||
 			$min ||
-			" ][xs:integer(.)  le " ||
+			" ][ .  le " ||
 			$max ||
 			"]]"
 };

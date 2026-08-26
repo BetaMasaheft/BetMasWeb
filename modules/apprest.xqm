@@ -1129,13 +1129,17 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		) else
 			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
 	)
+	(:
+	 : No xs:integer(.) cast on the indexed value in $quires below -
+	 : same fix as the $leaves block above.
+	 :)
 	let $quires := if (empty($Pqn) or $Pqn = "" or $Pqn = "1,100") then (
 	) else (
 		let $min := substring-before($Pqn, ",")
 		let $max := substring-after($Pqn, ",")
-		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][xs:integer(.) ge " ||
+		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][. ge " ||
 			$min ||
-			" ][xs:integer(.)  le " ||
+			" ][ .  le " ||
 			$max ||
 			"]]"
 	)
