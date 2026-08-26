@@ -85,3 +85,16 @@ declare %test:assertTrue function tsseealso:persons-role-optgroup-present() {
 	let $file := tsseealso:doc("persons", "PRS8692segeDen")
 	return exists($file//t:roleName) and exists(item2:seeAlsoOptionsPersons($file)[@label = "role"])
 };
+
+(:
+ : item2:RestSeeAlsoTemplate is the templates:apply adapter item2:RestItem
+ : now calls instead of item2:RestSeeAlso directly - confirms the adapter
+ : produces the exact same output as the plain call it replaces.
+ :)
+declare %test:assertTrue function tsseealso:template-adapter-matches-direct-call() {
+	let $file := tsseealso:doc("places", "LOC3080Ferheb")
+	return deep-equal(
+		item2:RestSeeAlsoTemplate(<div />, map {"this": $file, "collection": "places"}),
+		item2:RestSeeAlso($file, "places")
+	)
+};

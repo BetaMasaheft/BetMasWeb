@@ -11,6 +11,7 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace apprest = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apprest" at "xmldb:exist:///db/apps/BetMasWeb/modules/apprest.xqm";
@@ -22,6 +23,28 @@ import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tl = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/timeline" at "xmldb:exist:///db/apps/BetMasWeb/modules/timeline.xqm";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
+import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
+import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
+
+(:~
+ : templates:apply lookup function for this module, referenced by name
+ : (item2:lookup#2) below instead of an inline closure - see
+ : config:template-lookup-resolve for why the function-lookup() probe
+ : still has to be written locally per module rather than shared in
+ : config.xqm too.
+ :
+ : @param $functionName the data-template target name being resolved
+ : @param $arity the arity to probe
+ : @return the resolved function, or () if none matches at this arity
+ :)
+declare function item2:lookup($functionName as xs:string, $arity as xs:integer) as function(*)? {
+	config:template-lookup-resolve(
+		"item.xqm",
+		$functionName,
+		$arity,
+		try { function-lookup(xs:QName($functionName), $arity) } catch * { () }
+	)
+};
 
 declare function item2:authorsSHA($id, $this, $collection, $sha) {
 	apprest:authorsSHA($id, $this, $collection, $sha)
@@ -1577,6 +1600,22 @@ declare function item2:mainRelsInstitutions($this, $collection) {
 	)
 };
 
+(:~
+ : templates:apply adapter for item2:mainRels - reads the same
+ : $this/$collection item2:RestSeeAlso used to pass directly, out of
+ : $model. No %templates:wrap: mainRels already returns complete,
+ : specific content, so the calling marker element is meant to be
+ : replaced outright, not wrapped - same shape as
+ : item2:RestSeeAlsoTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return item2:mainRels's own output for the given $model
+ :)
+declare function item2:mainRelsTemplate($node as node(), $model as map(*)) {
+	item2:mainRels($model("this"), $model("collection"))
+};
+
 declare function item2:mainRels($this, $collection) {
 	<div class="allMainRel">
 		{
@@ -1851,6 +1890,21 @@ declare function item2:RestTabot($id) {
 		</div>
 	else (
 	)
+};
+
+(:~
+ : templates:apply adapter for item2:RestMss - reads the same $id
+ : item2:RestSeeAlso used to pass directly, out of $model. No
+ : %templates:wrap: RestMss already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:RestSeeAlsoTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:RestMss's own output for the given $model
+ :)
+declare function item2:RestMssTemplate($node as node(), $model as map(*)) {
+	item2:RestMss($model("id"))
 };
 
 (:~
@@ -2510,6 +2564,22 @@ declare function item2:seeAlsoOptions($file, $collection) {
 			item2:seeAlsoOptionsDefault($file)
 };
 
+(:~
+ : templates:apply adapter for item2:RestSeeAlso - reads the same
+ : $this/$collection item2:RestItem used to pass directly, out of $model.
+ : No %templates:wrap: RestSeeAlso already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as item2:RestViewOptionsTemplate/
+ : RestItemHeaderTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return item2:RestSeeAlso's own output for the given $model
+ :)
+declare function item2:RestSeeAlsoTemplate($node as node(), $model as map(*)) {
+	item2:RestSeeAlso($model("this"), $model("collection"))
+};
+
 declare function item2:RestSeeAlso($this, $collection) {
 	let $file := $this
 	let $id := string($this/@xml:id)
@@ -2534,11 +2604,31 @@ declare function item2:RestSeeAlso($this, $collection) {
 			) else
 				<div class="w3-container w3-margin w3-gray">No keywords associated with this item yet.</div>
 		}
-		{ item2:mainRels($this, $collection) }
 		{
-			if ($collection = "works" or $collection = "narratives" or $collection = "studies") then
-				item2:RestMss($id)
-			else (
+			(:
+			 : mainRels routed through templates:apply instead of
+			 : called directly - see item2:mainRelsTemplate.
+			 :)
+			templates:apply(
+				<div data-template="item2:mainRelsTemplate" />,
+				item2:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
+		}
+		{
+			if ($collection = "works" or $collection = "narratives" or $collection = "studies") then (
+				(:
+				 : RestMss routed through templates:apply instead of
+				 : called directly - see item2:RestMssTemplate.
+				 :)
+				templates:apply(
+					<div data-template="item2:RestMssTemplate" />,
+					item2:lookup#2,
+					map {"id": $id},
+					config:template-apply-config()
+				)
+			) else (
 			)
 		}
 		{
@@ -2644,7 +2734,18 @@ declare function item2:RestItem($this, $collection) {
 	(: because nav takes 2 colums :)
 	return <div class="w3-container " resource="http://betamasaheft.eu/{ $id }">
 		{ viewItem:main($document) }
-		{ item2:RestSeeAlso($this, $collection) }
+		{
+			(:
+			 : RestSeeAlso routed through templates:apply instead of
+			 : called directly - see item2:RestSeeAlsoTemplate.
+			 :)
+			templates:apply(
+				<div data-template="item2:RestSeeAlsoTemplate" />,
+				item2:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
+		}
 	</div>
 };
 
@@ -2668,4 +2769,334 @@ declare function item2:title($id) {
 
 declare function item2:textBibl($this, $id) {
 	viewItem:textfragmentbibl($this, $id)
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGeobrowser - reads the
+ : same $id restItem:mainContent/PermRestItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentGeobrowser
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as item2:RestSeeAlsoTemplate. Shared by both restviews/items.xqm and
+ : restviews/permanentItems.xqm's "geobrowser" $type branch - each
+ : resolves it through its own lookup (restItem:lookup/PermRestItem:lookup),
+ : not item2:lookup, since function-lookup() resolves against the
+ : *calling* module's static context, not this one.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGeobrowser's own output for the given $model
+ :)
+declare function item2:mainContentGeobrowserTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGeobrowser($model("id"))
+};
+
+(:~
+ : Shared by restItem:mainContent* (items.xqm) and PermRestItem:mainContent*
+ : (permanentItems.xqm) - these seven were byte-identical, or only
+ : accidentally drifted (a `=` vs `eq`, some whitespace), across both
+ : files' otherwise-diverged switch($type) splits. The rest stays split
+ : per file: analytic/corpus/text/default/extras genuinely differ between
+ : the live and permanent-link views.
+ :
+ : @param $id the item's xml:id
+ : @return the "geobrowser" main-content view
+ :)
+declare function item2:mainContentGeobrowser($id as xs:string*) {
+	<div class="w3-container">
+		<div class="w3-container alert alert-info">You can download the <a
+				href="{ $config:BMurl }api/KML/places/{ $id }"
+			>KML</a> file visualized below in the <a href="https://geobrowser.de.dariah.eu">Dariah-DE Geobrowser</a>.</div>
+		<h3>Map and timeline of places attestations marked up in the text.</h3>
+		<iframe
+			id="geobrowserMap"
+			src="https://geobrowser.de.dariah.eu/embed/index.html?kml1={ $config:BMurl }api/KML/places/{ $id }"
+			style="width: 100%; height: 800px;" />
+	</div>
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGraphManuscripts - reads
+ : the same $this/$id restItem:mainContentGraph/PermRestItem:mainContentGraph
+ : used to pass directly, out of $model. No %templates:wrap:
+ : mainContentGraphManuscripts already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as
+ : item2:mainContentGeobrowserTemplate. Shared by both
+ : restviews/items.xqm and restviews/permanentItems.xqm's "graph"
+ : $collection branch - each resolves it through its own lookup, not
+ : item2:lookup, same reasoning as mainContentGeobrowserTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id
+ : @return item2:mainContentGraphManuscripts's own output for the given $model
+ :)
+declare function item2:mainContentGraphManuscriptsTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphManuscripts($model("this"), $model("id"))
+};
+
+(:~
+ : @param $this the manuscript's t:TEI element
+ : @param $id   the manuscript's xml:id
+ : @return the "graph" main-content view for a manuscript
+ :)
+declare function item2:mainContentGraphManuscripts($this as element(), $id as xs:string*) {
+	let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(@type eq "blank")]/text()
+	return <div class="w3-container">
+		<button class="w3-button w3-red" disabled="disabled" id="enrichTable">Enrich Table</button>
+		<div class="alert alert-info" id="graphloadingstatus">Loading graph and synoptique table...</div>
+		<div class="w3-container">
+			<div class="w3-responsive">
+				<table
+					class="w3-table w3-bordered w3-hoverable w3-condensed"
+					data-extent="{ $ex }"
+					data-id="{ $id }"
+					id="SdCTable"
+				>
+					{
+						if ($this//t:msDesc/t:msIdentifier/t:idno[@facs]) then (
+							attribute data-images { string($this//t:msDesc/t:msIdentifier/t:idno/@facs) },
+							attribute data-imagesSource { $this//t:msDesc/t:msIdentifier/t:collection/text() }
+						) else (
+						)
+					}
+					<thead>
+						<tr>
+							<th>Quires</th>
+							<th>folios</th>
+							<th>UniMat</th>
+							<th>UniMarq</th>
+							<th>UniCah</th>
+							<th>UniCont</th>
+							<th>addition</th>
+							<th>UniMain</th>
+							<th>UniEcri</th>
+							<th>UniRegl</th>
+							<th>UniMep</th>
+							<th>decoration</th>
+							<th>UniProd</th>
+						</tr>
+					</thead>
+					<tbody />
+				</table>
+				<script src="resources/js/SdCtable.js" type="text/javascript" />
+			</div>
+		</div>
+		<div data-id="{ $id }" id="graph" />
+		<div class="w3-container">
+			<div class="w3-container">
+				<div class="w3-panel w3-red">
+					<p
+						class="w3-panel w3-red"
+					>
+    Sankey diagram of the manuscript. Showing UniProd
+    and UniCirc explicitly related. Transformations are given weight 1.
+    UniProd and UniCirc declarations are given weight 2. Exact matches are given weight 3.
+  There is no chronological implication.</p>
+				</div>
+				{ charts:mssSankey($id) }
+			</div>
+			<div class="w3-container">
+				<div class="w3-panel w3-red">
+					<p>
+    Graph of the manuscript transformations using the Syntaxe du Codex ontology.</p>
+				</div>
+				<div class="w3-container" id="SdCGraph" />
+			</div>
+		</div>
+		<!--  <div class="w3-container">
+   <div id="GraphResult"/>
+ </div> -->
+		<script src="resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
+	</div>
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGraphPlaces - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphPlaces's own output for the given $model
+ :)
+declare function item2:mainContentGraphPlacesTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphPlaces($model("id"))
+};
+
+(:~
+ : @param $id the place's xml:id
+ : @return the "graph" main-content view for a place
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphPlaces($id as xs:string*) {
+	<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGraphPersons - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphPersons's own output for the given $model
+ :)
+declare function item2:mainContentGraphPersonsTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphPersons($model("id"))
+};
+
+(:~
+ : @param $id the person's xml:id
+ : @return the "graph" main-content view for a person
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphPersons($id as xs:string*) {
+	<div class="w3-container">
+		<div data-id="{ $id }" id="graph" />
+		<div class="w3-container" id="SNAPGraph" />
+		<p>Graph view of the SNAP relations between persons.</p>
+		<div class="w3-container" id="AttestationsInWorks" />
+		<p>Annotated attestations in texts (works and manuscripts).</p>
+		<script src="resources/js/SNAPGraph.js" type="text/javascript" />
+		<div class="w3-container">{ charts:pieAttestations($id, "persName") }</div>
+	</div>
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGraphAuthorityFiles -
+ : same shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentGraphAuthorityFiles's own output for the given $model
+ :)
+declare function item2:mainContentGraphAuthorityFilesTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphAuthorityFiles($model("id"))
+};
+
+(:~
+ : @param $id the authority-file entry's xml:id
+ : @return Sankey diagrams if $id names a Subjects taxonomy category, else empty
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphAuthorityFiles($id as xs:string*) {
+	let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc =
+		"Subjects"]//t:category/t:catDesc/text()
+	return if ($id = $Subjects) then (
+		try { LitFlow:Sankey($id, "works") } catch * { $err:description },
+		try { LitFlow:Sankey($id, "mss") } catch * { $err:description }
+	) else (
+	)
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentGraphDefault - same
+ : shape/rationale as item2:mainContentGraphManuscriptsTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id/collection
+ : @return item2:mainContentGraphDefault's own output for the given $model
+ :)
+declare function item2:mainContentGraphDefaultTemplate($node as node(), $model as map(*)) {
+	item2:mainContentGraphDefault($model("id"), $model("collection"))
+};
+
+(:~
+ : @param $id         the item's xml:id
+ : @param $collection its collection name
+ : @return the fallback "graph" main-content view for any other collection
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentGraphDefault($id as xs:string*, $collection as xs:string*) {
+	<div class="w3-container">
+		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
+		<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
+		<div class="w3-container" id="GraphResultNotMS" />
+		<script src="resources/js/colorbrewer.js" />
+		<script src="resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
+	</div>
+};
+
+(:~
+ : Shared by restItem:mainContentGraph (items.xqm) and
+ : PermRestItem:mainContentGraph (permanentItems.xqm) - these were
+ : byte-identical apart from which lookup they pass to templates:apply.
+ : $lookup is that difference, passed in by the caller (e.g.
+ : restItem:lookup#2) rather than hardcoded, since function-lookup()
+ : only resolves against the *writing* module's static context.
+ : @param $this the item's own TEI node
+ : @param $id the item's xml:id
+ : @param $collection the item's collection name
+ : @param $lookup the calling module's own templates:apply resolver
+ : @return the routed "graph" main-content view for $collection
+ :)
+declare function item2:mainContentGraph(
+	$this as element(),
+	$id as xs:string*,
+	$collection as xs:string*,
+	$lookup as function (xs:string, xs:integer) as function(*)?
+) {
+	switch ($collection)
+		case "manuscripts" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphManuscriptsTemplate" />,
+				$lookup,
+				map {"this": $this, "id": $id},
+				config:template-apply-config()
+			)
+		case "places" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphPlacesTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "persons" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphPersonsTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "authority-files" return
+			templates:apply(
+				<div data-template="item2:mainContentGraphAuthorityFilesTemplate" />,
+				$lookup,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		default return
+			templates:apply(
+				<div data-template="item2:mainContentGraphDefaultTemplate" />,
+				$lookup,
+				map {"id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
+};
+
+(:~
+ : templates:apply adapter for item2:mainContentExtrasWorks - reads the
+ : same $id restItem:mainContentExtras/PermRestItem:mainContentExtras
+ : used to pass directly, out of $model. No %templates:wrap:
+ : mainContentExtrasWorks already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:mainContentGeobrowserTemplate. Shared
+ : by both restviews/items.xqm and restviews/permanentItems.xqm's
+ : "works" $collection branch - each resolves it through its own
+ : lookup, same reasoning as mainContentGeobrowserTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:mainContentExtrasWorks's own output for the given $model
+ :)
+declare function item2:mainContentExtrasWorksTemplate($node as node(), $model as map(*)) {
+	item2:mainContentExtrasWorks($model("id"))
+};
+
+(:~
+ : @param $id the work's xml:id
+ : @return the post-content "extras" for a work (miniatures)
+ : @see item2:mainContentGeobrowser
+ :)
+declare function item2:mainContentExtrasWorks($id as xs:string*) {
+	(item2:RestMiniatures($id))
 };

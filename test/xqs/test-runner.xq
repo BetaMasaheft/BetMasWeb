@@ -25,9 +25,13 @@ import module namespace tsviwork = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tsviperson = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-person" at "ts-viewitem-person.xqm";
 import module namespace tsvidocs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-documents" at "ts-viewitem-documents.xqm";
 import module namespace tsseealso = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-seealso-options" at "ts-item-seealso-options.xqm";
+import module namespace tsrestmss = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-restmss" at "ts-item-restmss.xqm";
 import module namespace tszc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-zotero-cache" at "ts-zotero-cache.xqm";
 import module namespace tsexpandtax = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-taxonomy" at "ts-expand-taxonomy.xqm";
 import module namespace tsexpandtit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-titles" at "ts-expand-titles.xqm";
+import module namespace tsmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-restitem-maincontent" at "ts-restitem-maincontent.xqm";
+import module namespace tspermmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-permrestitem-maincontent" at "ts-permrestitem-maincontent.xqm";
+import module namespace tsformbounds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-formbounds" at "ts-queries-formbounds.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -46,8 +50,12 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-viewitem-person.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-documents.xqm")),
 		inspect:module-functions(xs:anyURI("ts-item-seealso-options.xqm")),
+		inspect:module-functions(xs:anyURI("ts-item-restmss.xqm")),
 		inspect:module-functions(xs:anyURI("ts-zotero-cache.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm")),
-		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm"))
+		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm")),
+		inspect:module-functions(xs:anyURI("ts-restitem-maincontent.xqm")),
+		inspect:module-functions(xs:anyURI("ts-permrestitem-maincontent.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-formbounds.xqm"))
 	)
 )

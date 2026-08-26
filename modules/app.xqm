@@ -34,6 +34,7 @@ import module namespace validation = "http://exist-db.org/xquery/validation";
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace apptable = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apptable" at "xmldb:exist:///db/apps/BetMasWeb/modules/apptable.xqm";
+import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 
 (:~
  : declare variable $app:item-uri as xs:string := raequest:get-parameter('uri',());
@@ -779,6 +780,54 @@ declare %templates:default("context", "$exptit:col") function app:relationType(
 };
 
 (:~
+ : Written-lines range slider for forms/formWL.html. Bounds computed
+ : from the real corpus (q:max-written-lines) instead of a hand-maintained
+ : literal, so the widget's max and the "no filter applied" default
+ : value (checked in q:par-wL/list:paramsList) can never drift apart -
+ : see q:max-written-lines's own doc for why that drift was a real bug,
+ : not just cosmetic.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @return the <input> element for the bootstrap-slider widget, with real min/max/value
+ :)
+declare function app:writtenLinesInput($node as node(), $model as map(*)) {
+	let $max := q:max-written-lines()
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[1,{ $max }]"
+		id="writtenLines"
+		name="wL"
+		type="text" />
+};
+
+(:~
+ : Leaf-count range slider for forms/formfolia.html. Bounds computed
+ : from the real corpus (q:max-folia) instead of a hand-maintained
+ : literal - see q:max-folia's own doc for the EMML5533 data-quality
+ : issue its exclusion works around.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @return the <input> element for the bootstrap-slider widget, with real min/max/value
+ :)
+declare function app:foliaInput($node as node(), $model as map(*)) {
+	let $max := q:max-folia()
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[1,{ $max }]"
+		id="folia"
+		name="folia"
+		type="text" />
+};
+
+(:~
  : called by form*.html files used by advances search form as.html and filters.js
  :)
 declare function app:keywords($node as node(), $model as map(*), $context as xs:string*) {
@@ -1451,28 +1500,41 @@ function app:query(
 		"[descendant::t:person/@sex  eq " || request:get-parameter("gender", ()) || " ]"
 	else (
 	)
+	(:
+	 : Sentinel values ("is this the default, unfiltered range") derive
+	 : from q:max-folia/q:max-written-lines rather than a hardcoded
+	 : literal, matching q:par-folia/q:par-wL and list:paramsList - this
+	 : block used to hardcode "1,1000" for both (a copy-paste bug in the
+	 : wL block below: "1,1000" is folia's own old default, not wL's
+	 : "1,100" - meaning the wL sentinel check here was never actually
+	 : reachable). Fixed alongside the drift risk shared with the other
+	 : two implementations of this same filter.
+	 :)
 	let $leaves := if (contains($app:params, "folia")) then (
 		let $range := request:get-parameter("folia", ())
 		let $min := substring-before($range, ",")
 		let $max := substring-after($range, ",")
-		return if ($range = "1,1000") then (
+		return if ($range = "1," || q:max-folia()) then (
 		) else if (empty($range)) then (
 		) else
-			"[descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)][matches(.,'^\d+$')][xs:integer(.) ge " ||
-				$min ||
-				" ][ xs:integer(.)  le " ||
-				$max ||
-				"]]"
+			(: [matches(.,'^\d+$')] guards against non-integer-formatted values, same as before. :)
+			q:range-predicate(
+				"descendant::t:extent/t:measure[@unit eq 'leaf'][not(@type)]",
+				".",
+				"[matches(.,'^\d+$')]",
+				$min,
+				$max
+			)
 	) else (
 	)
 	let $wL := if (contains($app:params, "wL")) then (
 		let $range := request:get-parameter("wL", ())
 		let $min := substring-before($range, ",")
 		let $max := substring-after($range, ",")
-		return if ($range = "1,1000") then (
+		return if ($range = "1," || q:max-written-lines()) then (
 		) else if (empty($range)) then (
 		) else
-			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
+			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
 	) else (
 	)
 	let $quires := if (contains($app:params, "qn")) then (

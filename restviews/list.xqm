@@ -2095,6 +2095,17 @@ declare function list:paramsList($parameters as map(*)) {
 								}
 							</span>
 					) else if ($key = "wL") then (
+						(:
+						 : Sentinel is the literal "1,100", not
+						 : q:max-written-lines() - this page's filter is built
+						 : by apprest:searchFilter-rest (restviews/list.xqm's
+						 : only producer of these $parameters), whose own
+						 : widget/sentinel still submits the old hardcoded
+						 : default (it wasn't part of the forms/formWL.html
+						 : slider-bounds conversion). Matching that literal
+						 : here, not q:max-written-lines(), is what keeps this
+						 : chip and the filter it describes in agreement.
+						 :)
 						if ($value = "1,100") then (
 						) else
 							<span class="w3-tag w3-small w3-gray">

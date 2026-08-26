@@ -21,6 +21,7 @@ import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
@@ -1105,11 +1106,8 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		return if ($Pfolia = "1,1000") then (
 		) else if (empty($Pfolia)) then (
 		) else
-			"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][xs:integer(.) ge " ||
-				$min ||
-				" ][ xs:integer(.)  le " ||
-				$max ||
-				"]]"
+			(: Sentinel stays "1,1000" - this page's own widget (restviews/list.xqm) still submits that literal, not q:max-folia(). :)
+			q:range-predicate("descendant::t:extent/t:measure[@unit='leaf'][not(@type)]", ".", (), $min, $max)
 	)
 	let $wL := if (empty($PwL) or $PwL = "") then (
 	) else (
@@ -1118,17 +1116,19 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		return if ($PwL = "1,100") then (
 		) else if (empty($PwL)) then (
 		) else
-			"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
+			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
 	)
 	let $quires := if (empty($Pqn) or $Pqn = "" or $Pqn = "1,100") then (
 	) else (
 		let $min := substring-before($Pqn, ",")
 		let $max := substring-after($Pqn, ",")
-		return "[descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')][xs:integer(.) ge " ||
-			$min ||
-			" ][xs:integer(.)  le " ||
-			$max ||
-			"]]"
+		return q:range-predicate(
+			"descendant::t:extent/t:measure[@unit eq 'quire'][not(@type)][not(.='')]",
+			".",
+			(),
+			$min,
+			$max
+		)
 	)
 	let $quiresComp := if (empty($Pqcn) or $Pqcn = "" or $Pqcn = "1,40") then (
 	) else (

@@ -278,263 +278,25 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 									attribute style { "margin-left:10%" }
 							}
 							{
-								switch ($type)
-									case "corpus" return
-										(
-											<div class="w3-container">
-												<label class="switch diplomaticHighlight">
-													<input class="w3-check" type="checkbox" />
-													<div
-														class="slider round"
-														data-toggle="tooltip"
-														title="Highlight diplomatic disourse interpretation" />
-												</label>
-												{
-													for $document in item2:rels($id)
-													let $rootid := string($document/@active)
-													let $itemid := substring-after($rootid, "#")
-													let $msid := substring-before($rootid, "#")
-													return <div class="w3-row documentcorpus w3-panel w3-leftbar">
-														{
-															let $doc := $document/ancestor::t:TEI//id($itemid)
-															return (
-																<div class="w3-col" style="width:15%">
-																	<a href="{ $msid }">{ $msid }</a>
-																	<br />
-																	<a href="/{ $rootid }">
-																		{
-																			if ($doc/t:title) then
-																				string:additionstitles($doc/t:title/node())
-																			else if ($doc/t:desc/@type) then
-																				string($doc/t:desc/@type)
-																			else
-																				$itemid
-																		}
-																	</a>
-    ({ string:additionstitles($doc/t:locus) })
-     
-     </div>,
-																<div class="w3-rest">{ item2:documents($doc) }</div>
-															)
-														}
-													</div>
-												}
-											</div>
-										)
-									case "geobrowser" return
-										(
-											<div class="w3-container">
-												<div class="w3-container alert alert-info">You can download the <a
-														href="https://betamasaheft.eu/api/KML/places/{ $id }"
-													>KML</a> file visualized below in the <a
-														href="https://geobrowser.de.dariah.eu"
-													>Dariah-DE Geobrowser</a>.</div>
-												<h3>Map and timeline of places attestations marked up in the text.</h3>
-												<iframe
-													id="geobrowserMap"
-													src="https://geobrowser.de.dariah.eu/embed/index.html?kml1=https://betamasaheft.eu/api/KML/places/{
-														$id
-													}"
-													style="width: 100%; height: 800px;" />
-											</div>
-										)
-									case "analytic" return
-										(
-											<div class="w3-container">
-												<div class="w3-container">
-													<!--
-            <div id="BetMasRel" class="w3-half w3-padding"  style="display: none;">
-
-
-                <div class="input-group container">
-                    <button id="clusterOutliers" class="w3-button w3-gray">Cluster outliers</button>
-                    <button id="clusterByHubsize" class="w3-button w3-gray">Cluster by hubsize</button>
-                </div>
-                <div id="BetMasRelView" class="w3-container" data-value="{$id}"/>
-                <script type="text/javascript"src="resources/js/visgraphspec.js"/>
-            </div> -->
-													<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
-												</div>
-												<div class="w3-container">
-													<div class="w3-half w3-padding">
-														<div class="w3-container" id="timeLine" />
-														<script type="text/javascript">{ item2:timeline($this, $collection) }</script>
-													</div>
-													<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
-												</div>
-											</div>
-										)
-									case "text" return
-										(
-											<div class="w3-container">
-												<div class="w3-twothird" id="dtstext">
-													{
-														if ($this//t:div[@type eq "edition"]) then
-															dtsc:text($id, $edition, $ref, $start, $end, $collection)
-														else
-															<p>No text available here.</p>
-													}
-												</div>
-												<div class="w3-third w3-gray w3-padding">{ item2:textBibl($this, $id) }</div>
-											</div>,
-											(: Process contained works - prevent recursion by tracking visited IDs :)
-											restItem:processContains($this, $id, ($id))
-										)
-									case "graph" return
-										(
-											switch ($collection)
-												case "manuscripts" return
-													let $ex := $this//t:msDesc/t:physDesc//t:extent/t:measure[@unit eq "leaf"][not(
-														@type eq "blank"
-													)]/text()
-													return <div class="w3-container">
-														<button class="w3-button w3-red" disabled="disabled" id="enrichTable">Enrich Table</button>
-														<div
-															class="alert alert-info"
-															id="graphloadingstatus"
-														>Loading graph and synoptique table...</div>
-														<div class="w3-container">
-															<div class="w3-responsive">
-																<table
-																	class="w3-table w3-bordered w3-hoverable w3-condensed"
-																	data-extent="{ $ex }"
-																	data-id="{ $id }"
-																	id="SdCTable"
-																>
-																	{
-																		if ($this//t:msDesc/t:msIdentifier/t:idno[@facs]) then (
-																			attribute data-images { string($this//t:msDesc/t:msIdentifier/t:idno/@facs) },
-																			attribute data-imagesSource { $this//t:msDesc/t:msIdentifier/t:collection/text() }
-																		) else (
-																		)
-																	}
-																	<thead>
-																		<tr>
-																			<th>Quires</th>
-																			<th>folios</th>
-																			<th>UniMat</th>
-																			<th>UniMarq</th>
-																			<th>UniCah</th>
-																			<th>UniCont</th>
-																			<th>addition</th>
-																			<th>UniMain</th>
-																			<th>UniEcri</th>
-																			<th>UniRegl</th>
-																			<th>UniMep</th>
-																			<th>decoration</th>
-																			<th>UniProd</th>
-																		</tr>
-																	</thead>
-																	<tbody />
-																</table>
-																<script src="resources/js/SdCtable.js" type="text/javascript" />
-															</div>
-														</div>
-														<div data-id="{ $id }" id="graph" />
-														<div class="w3-container">
-															<div class="w3-container">
-																<div class="w3-panel w3-red">
-																	<p
-																		class="w3-panel w3-red"
-																	>
-      Sankey diagram of the manuscript. Showing UniProd
-      and UniCirc explicitly related. Transformations are given weight 1.
-      UniProd and UniCirc declarations are given weight 2. Exact matches are given weight 3.
-    There is no chronological implication.</p>
-																</div>
-																{ charts:mssSankey($id) }
-															</div>
-															<div class="w3-container">
-																<div class="w3-panel w3-red">
-																	<p
-																	>
-      Graph of the manuscript transformations using the Syntaxe du Codex ontology.</p>
-																</div>
-																<div class="w3-container" id="SdCGraph" />
-															</div>
-														</div>
-														<!--  <div class="w3-container">
-     <div id="GraphResult"/>
- </div> -->
-														<script src="resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
-													</div>
-												case "places" return
-													<div class="w3-container">{ charts:pieAttestations($id, "placeName") }</div>
-												case "persons" return
-													<div class="w3-container">
-														<div data-id="{ $id }" id="graph" />
-														<div class="w3-container" id="SNAPGraph" />
-														<p>Graph view of the SNAP relations between persons.</p>
-														<div class="w3-container" id="AttestationsInWorks" />
-														<p>Annotated attestations in texts (works and manuscripts).</p>
-														<script src="resources/js/SNAPGraph.js" type="text/javascript" />
-														<div class="w3-container">{ charts:pieAttestations($id, "persName") }</div>
-													</div>
-												case "authority-files" return
-													let $Subjects := doc(concat($config:data-rootA, "/taxonomy.xml"))//t:category[t:desc =
-														"Subjects"]//t:category/t:catDesc/text()
-													return if ($id = $Subjects) then (
-														try { LitFlow:Sankey($id, "works") } catch * { $err:description },
-														try { LitFlow:Sankey($id, "mss") } catch * { $err:description }
-													) else (
-													)
-												default return
-													<div class="w3-container">
-														<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
-														<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
-														<div class="w3-container" id="GraphResultNotMS" />
-														<script src="resources/js/colorbrewer.js" />
-														<script src="resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
-													</div>
-										)
-									default return
-										(: THE MAIN VIEW :)
-										(
-											if ($collection = "places" or $collection = "institutions") then (
-												<!--<div class="w3-container" >
-  <div 
-    class="w3-half w3-padding" ><div id="entitymap" style="height: 400px"/></div>
-<div 
-    class="w3-half w3-padding" >   <iframe
-   style="border:none;"
-                allowfullscreen="true"
-                width="100%" 
-                height="100" 
-                src="https://peripleo.pelagios.org/embed/{encode-for-uri(concat('http://betamasaheft.eu/places/',$id))}">
-            </iframe>
-            </div>
-          
-   </div>-->,
-												<script>{ 'var placeid = "' || $id || '"' }</script>,
-												<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
-											) else (
-											),
-											<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,
-											(: item2:namedentitiescorresps($this, $collection), :)
-											(: the form with a list of potental relation keywords to find related items. value is used by Jquery to query rest again on api:SharedKeyword($keyword) :)
-											switch ($collection)
-												case "works" return
-													(item2:RestMiniatures($id))
-												case "persons" return
-													(
-														item2:RestPersRole($this, $collection),
-														item2:RestTabot($id),
-														item2:RestAdditions($id),
-														item2:RestMiniatures($id)
-													)
-												case "authority-files" return
-													if (starts-with($id, "AT")) then
-														<div class="w3-container">
-															<h4
-															>Art Objects associated with this Art Theme in miniatures and other manuscript decorations</h4>
-															<div class="w3-panel w3-red">{ item2:RestMiniaturesKeys($id) }</div>
-															<div class="w3-panel w3-red">{ item2:RestMiniatures($id) }</div>
-														</div>
-													else (
-													)
-												default return
-													()
-										)
+								(:
+								 : mainContent routed through templates:apply instead of
+								 : called directly - see restItem:mainContentTemplate.
+								 :)
+								templates:apply(
+									<div data-template="restItem:mainContentTemplate" />,
+									restItem:lookup#2,
+									map {
+										"type": $type,
+										"this": $this,
+										"id": $id,
+										"collection": $collection,
+										"edition": $edition,
+										"ref": $ref,
+										"start": $start,
+										"end": $end
+									},
+									config:template-apply-config()
+								)
 							}
 							<!-- <div class="w3-container w3-margin-bottom">
    <div class="w3-twothird">
@@ -567,6 +329,401 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 		)
 	) else (: error message if the collection does not exist :) (
 		roaster:response(400, "text/html", error:error($Cmap))
+	)
+};
+
+(:~
+ : Split out of restItem:ITEM's inline switch($type) - same shape and
+ : motivation as item2:mainRels and item2:seeAlsoOptions before it:
+ : maintainability and testability for a large inline switch, not an
+ : html-templating conversion. restItem:mainContent is the thin
+ : dispatcher restItem:ITEM now calls in place of the switch it used to
+ : contain directly.
+ :)
+declare function restItem:mainContentCorpus($id as xs:string*) {
+	<div class="w3-container">
+		<label class="switch diplomaticHighlight">
+			<input class="w3-check" type="checkbox" />
+			<div class="slider round" data-toggle="tooltip" title="Highlight diplomatic disourse interpretation" />
+		</label>
+		{
+			for $document in item2:rels($id)
+			let $rootid := string($document/@active)
+			let $itemid := substring-after($rootid, "#")
+			let $msid := substring-before($rootid, "#")
+			return <div class="w3-row documentcorpus w3-panel w3-leftbar">
+				{
+					let $doc := $document/ancestor::t:TEI//id($itemid)
+					return (
+						<div class="w3-col" style="width:15%">
+							<a href="{ $msid }">{ $msid }</a>
+							<br />
+							<a href="/{ $rootid }">
+								{
+									if ($doc/t:title) then
+										string:additionstitles($doc/t:title/node())
+									else if ($doc/t:desc/@type) then
+										string($doc/t:desc/@type)
+									else
+										$itemid
+								}
+							</a>
+    ({ string:additionstitles($doc/t:locus) })
+
+     </div>,
+						<div class="w3-rest">{ item2:documents($doc) }</div>
+					)
+				}
+			</div>
+		}
+	</div>
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentCorpus - reads the
+ : same $id restItem:mainContent used to pass directly, out of $model.
+ : No %templates:wrap: mainContentCorpus already returns complete,
+ : specific content, so the calling marker element is meant to be
+ : replaced outright, not wrapped - same shape as
+ : restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return restItem:mainContentCorpus's own output for the given $model
+ :)
+declare function restItem:mainContentCorpusTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentCorpus($model("id"))
+};
+
+declare function restItem:mainContentAnalytic($this as element(), $collection as xs:string*) {
+	<div class="w3-container">
+		<div class="w3-container">
+			<!--
+            <div id="BetMasRel" class="w3-half w3-padding"  style="display: none;">
+
+
+                <div class="input-group container">
+                    <button id="clusterOutliers" class="w3-button w3-gray">Cluster outliers</button>
+                    <button id="clusterByHubsize" class="w3-button w3-gray">Cluster by hubsize</button>
+                </div>
+                <div id="BetMasRelView" class="w3-container" data-value="{$id}"/>
+                <script type="text/javascript"src="resources/js/visgraphspec.js"/>
+            </div> -->
+			<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
+		</div>
+		<div class="w3-container">
+			<div class="w3-half w3-padding">
+				<div class="w3-container" id="timeLine" />
+				<script type="text/javascript">{ item2:timeline($this, $collection) }</script>
+			</div>
+			<div class="w3-half w3-padding">{ item2:RestPersRole($this, $collection) }</div>
+		</div>
+	</div>
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentAnalytic - reads the
+ : same $this/$collection restItem:mainContent used to pass directly,
+ : out of $model. No %templates:wrap: mainContentAnalytic already
+ : returns complete, specific content, so the calling marker element is
+ : meant to be replaced outright, not wrapped - same shape as
+ : restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return restItem:mainContentAnalytic's own output for the given $model
+ :)
+declare function restItem:mainContentAnalyticTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentAnalytic($model("this"), $model("collection"))
+};
+
+declare function restItem:mainContentText(
+	$this as element(),
+	$id as xs:string*,
+	$edition as xs:string*,
+	$ref as xs:string*,
+	$start as xs:string*,
+	$end as xs:string*,
+	$collection as xs:string*
+) {
+	(
+		<div class="w3-container">
+			<div class="w3-twothird" id="dtstext">
+				{
+					if ($this//t:div[@type eq "edition"]) then
+						dtsc:text($id, $edition, $ref, $start, $end, $collection)
+					else
+						<p>No text available here.</p>
+				}
+			</div>
+			<div class="w3-third w3-gray w3-padding">{ item2:textBibl($this, $id) }</div>
+		</div>,
+		(: Process contained works - prevent recursion by tracking visited IDs :)
+		restItem:processContains($this, $id, ($id))
+	)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentText - reads the
+ : same params restItem:mainContent used to pass directly, out of
+ : $model. No %templates:wrap: mainContentText already returns
+ : complete, specific content (a sequence), so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/edition/ref/start/end/collection
+ : @return restItem:mainContentText's own output for the given $model
+ :)
+declare function restItem:mainContentTextTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentText(
+		$model("this"),
+		$model("id"),
+		$model("edition"),
+		$model("ref"),
+		$model("start"),
+		$model("end"),
+		$model("collection")
+	)
+};
+
+declare function restItem:mainContentGraph($this as element(), $id as xs:string*, $collection as xs:string*) {
+	item2:mainContentGraph($this, $id, $collection, restItem:lookup#2)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentGraph - reads the
+ : same $this/$id/$collection restItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentGraph
+ : already returns complete, specific content, so the calling marker
+ : element is meant to be replaced outright, not wrapped - same shape
+ : as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentGraph's own output for the given $model
+ :)
+declare function restItem:mainContentGraphTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentGraph($model("this"), $model("id"), $model("collection"))
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentExtrasPersons - reads
+ : the same $this/$id/$collection restItem:mainContentExtras used to
+ : pass directly, out of $model. No %templates:wrap:
+ : mainContentExtrasPersons already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentExtrasPersons's own output for the given $model
+ :)
+declare function restItem:mainContentExtrasPersonsTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentExtrasPersons($model("this"), $model("id"), $model("collection"))
+};
+
+declare function restItem:mainContentExtrasPersons($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(item2:RestPersRole($this, $collection), item2:RestTabot($id), item2:RestAdditions($id), item2:RestMiniatures($id))
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentExtrasAuthorityFiles
+ : - reads the same $id restItem:mainContentExtras used to pass
+ : directly, out of $model. No %templates:wrap:
+ : mainContentExtrasAuthorityFiles already returns complete, specific
+ : content, so the calling marker element is meant to be replaced
+ : outright, not wrapped - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return restItem:mainContentExtrasAuthorityFiles's own output for the given $model
+ :)
+declare function restItem:mainContentExtrasAuthorityFilesTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentExtrasAuthorityFiles($model("id"))
+};
+
+declare function restItem:mainContentExtrasAuthorityFiles($id as xs:string*) {
+	if (starts-with($id, "AT")) then
+		<div class="w3-container">
+			<h4>Art Objects associated with this Art Theme in miniatures and other manuscript decorations</h4>
+			<div class="w3-panel w3-red">{ item2:RestMiniaturesKeys($id) }</div>
+			<div class="w3-panel w3-red">{ item2:RestMiniatures($id) }</div>
+		</div>
+	else (
+	)
+};
+
+declare function restItem:mainContentExtras($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(:
+	 : Each non-empty branch routed through templates:apply instead of
+	 : called directly - see item2:mainContentExtrasWorksTemplate/
+	 : restItem:mainContentExtrasPersonsTemplate/
+	 : mainContentExtrasAuthorityFilesTemplate.
+	 :)
+	switch ($collection)
+		case "works" return
+			templates:apply(
+				<div data-template="item2:mainContentExtrasWorksTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "persons" return
+			templates:apply(
+				<div data-template="restItem:mainContentExtrasPersonsTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
+		case "authority-files" return
+			templates:apply(
+				<div data-template="restItem:mainContentExtrasAuthorityFilesTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		default return
+			()
+};
+
+declare function restItem:mainContentDefault($this as element(), $id as xs:string*, $collection as xs:string*) {
+	(
+		if ($collection = "places" or $collection = "institutions") then (
+			<!--<div class="w3-container" >
+  <div
+    class="w3-half w3-padding" ><div id="entitymap" style="height: 400px"/></div>
+<div
+    class="w3-half w3-padding" >   <iframe
+   style="border:none;"
+                allowfullscreen="true"
+                width="100%"
+                height="100"
+                src="https://peripleo.pelagios.org/embed/{encode-for-uri(concat('http://betamasaheft.eu/places/',$id))}">
+            </iframe>
+            </div>
+
+   </div>-->,
+			<script>{ 'var placeid = "' || $id || '"' }</script>,
+			<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
+		) else (
+		),
+		<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,
+		(: item2:namedentitiescorresps($this, $collection), :)
+		(: the form with a list of potental relation keywords to find related items. value is used by Jquery to query rest again on api:SharedKeyword($keyword) :)
+		restItem:mainContentExtras($this, $id, $collection)
+	)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContentDefault - reads the
+ : same $this/$id/$collection restItem:mainContent used to pass
+ : directly, out of $model. No %templates:wrap: mainContentDefault
+ : already returns complete, specific content (a sequence), so the
+ : calling marker element is meant to be replaced outright, not wrapped
+ : - same shape as restItem:mainContentTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/id/collection
+ : @return restItem:mainContentDefault's own output for the given $model
+ :)
+declare function restItem:mainContentDefaultTemplate($node as node(), $model as map(*)) {
+	restItem:mainContentDefault($model("this"), $model("id"), $model("collection"))
+};
+
+declare function restItem:mainContent(
+	$type as xs:string*,
+	$this as element(),
+	$id as xs:string*,
+	$collection as xs:string*,
+	$edition as xs:string*,
+	$ref as xs:string*,
+	$start as xs:string*,
+	$end as xs:string*
+) {
+	(:
+	 : Each branch routed through templates:apply instead of called
+	 : directly - see restItem:mainContentCorpusTemplate/
+	 : item2:mainContentGeobrowserTemplate/mainContentAnalyticTemplate/
+	 : mainContentTextTemplate/mainContentGraphTemplate/
+	 : mainContentDefaultTemplate.
+	 :)
+	switch ($type)
+		case "corpus" return
+			templates:apply(
+				<div data-template="restItem:mainContentCorpusTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "geobrowser" return
+			templates:apply(
+				<div data-template="item2:mainContentGeobrowserTemplate" />,
+				restItem:lookup#2,
+				map {"id": $id},
+				config:template-apply-config()
+			)
+		case "analytic" return
+			templates:apply(
+				<div data-template="restItem:mainContentAnalyticTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
+		case "text" return
+			templates:apply(
+				<div data-template="restItem:mainContentTextTemplate" />,
+				restItem:lookup#2,
+				map {
+					"this": $this,
+					"id": $id,
+					"edition": $edition,
+					"ref": $ref,
+					"start": $start,
+					"end": $end,
+					"collection": $collection
+				},
+				config:template-apply-config()
+			)
+		case "graph" return
+			templates:apply(
+				<div data-template="restItem:mainContentGraphTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
+		default return
+			(: THE MAIN VIEW :)
+			templates:apply(
+				<div data-template="restItem:mainContentDefaultTemplate" />,
+				restItem:lookup#2,
+				map {"this": $this, "id": $id, "collection": $collection},
+				config:template-apply-config()
+			)
+};
+
+(:~
+ : templates:apply adapter for restItem:mainContent - reads the same
+ : parameters restItem:ITEM used to pass directly, out of $model. No
+ : %templates:wrap: mainContent already returns complete, specific
+ : content (sometimes a sequence, e.g. mainContentText/mainContentDefault),
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:RestViewOptionsTemplate/RestItemHeaderTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with type/this/id/collection/edition/ref/start/end
+ : @return restItem:mainContent's own output for the given $model
+ :)
+declare function restItem:mainContentTemplate($node as node(), $model as map(*)) {
+	restItem:mainContent(
+		$model("type"),
+		$model("this"),
+		$model("id"),
+		$model("collection"),
+		$model("edition"),
+		$model("ref"),
+		$model("start"),
+		$model("end")
 	)
 };
 
