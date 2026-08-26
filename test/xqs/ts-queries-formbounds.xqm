@@ -21,10 +21,15 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
  : too-small literal would still pass a bare "returns an integer" test,
  : so assert a floor as well.
  :)
-declare %test:assertTrue function tsformbounds:max-written-lines-above-old-hardcoded-value() {
-	q:max-written-lines() gt 100
+declare %test:assertXPath("$result gt 100") function tsformbounds:max-written-lines-above-old-hardcoded-value() {
+	q:max-written-lines()
 };
 
+(:~
+ : Compares two dynamically-computed values (the cached bound vs a fresh
+ : corpus scan) - no static literal to hand assertXPath, so this stays
+ : assertTrue.
+ :)
 declare %test:assertTrue function tsformbounds:max-written-lines-matches-corpus() {
 	q:max-written-lines() = max(collection($config:data-rootMS)//t:layout/@writtenLines[. castable as xs:integer])
 };
@@ -34,10 +39,10 @@ declare %test:assertTrue function tsformbounds:max-written-lines-matches-corpus(
  : (BetaMasaheft/Manuscripts#3505) - this is the one behavior the
  : exclusion predicate exists to guarantee.
  :)
-declare %test:assertTrue function tsformbounds:max-folia-excludes-known-bad-values() {
-	not(q:max-folia() = (1483, 2927, 5533))
+declare %test:assertXPath("not($result = (1483, 2927, 5533))") function tsformbounds:max-folia-excludes-known-bad-values() {
+	q:max-folia()
 };
 
-declare %test:assertTrue function tsformbounds:max-folia-above-old-hardcoded-value() {
-	q:max-folia() gt 1000
+declare %test:assertXPath("$result gt 1000") function tsformbounds:max-folia-above-old-hardcoded-value() {
+	q:max-folia()
 };

@@ -52,56 +52,78 @@ declare %private function tsviwork:render($item as element()) as xs:string {
 	)
 };
 
-declare %test:assertTrue function tsviwork:renders-maindata-wrapper() {
-	contains(tsviwork:render(tsviwork:doc("LIT3508Epistle")), 'id="MainData"')
+declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviwork:renders-maindata-wrapper() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 
-declare %test:assertTrue function tsviwork:renders-titles-heading() {
-	let $item := tsviwork:doc("LIT3508Epistle")
-	return exists($item//t:titleStmt/t:title[@xml:id]) and contains(tsviwork:render($item), ">Titles<")
+declare %test:assertTrue function tsviwork:titles-fixture-has-titled-title() {
+	exists(tsviwork:doc("LIT3508Epistle")//t:titleStmt/t:title[@xml:id])
 };
 
-declare %test:assertTrue function tsviwork:renders-source-desc-paragraph() {
-	let $item := tsviwork:doc("LIT3508Epistle")
-	return exists($item//t:sourceDesc/t:p) and
-		contains(tsviwork:render($item), "Work of the literatures of Ethiopia and Eritrea")
+declare %test:assertXPath("contains($result, '>Titles<')") function tsviwork:renders-titles-heading() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 
-declare %test:assertTrue function tsviwork:renders-voyant-link() {
-	let $item := tsviwork:doc("LIT3508Epistle")
-	return exists($item//t:div[@type = "edition"]//t:ab//text()) and contains(tsviwork:render($item), "voyant-tools.org")
+declare %test:assertTrue function tsviwork:source-desc-fixture-has-paragraph() {
+	exists(tsviwork:doc("LIT3508Epistle")//t:sourceDesc/t:p)
 };
 
-declare %test:assertTrue function tsviwork:renders-witnesses-heading() {
-	let $item := tsviwork:doc("LIT3192Tergwam")
-	return exists($item//t:listWit) and contains(tsviwork:render($item), ">Witnesses<")
+declare %test:assertXPath("contains($result, 'Work of the literatures of Ethiopia and Eritrea')") function tsviwork:renders-source-desc-paragraph() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 
-declare %test:assertTrue function tsviwork:renders-clavis-bibliography() {
-	let $item := tsviwork:doc("LIT3881Miracle")
-	return exists($item//t:listBibl[@type = "clavis"]) and contains(tsviwork:render($item), 'id="clavisbibliography"')
+declare %test:assertTrue function tsviwork:voyant-fixture-has-edition-text() {
+	exists(tsviwork:doc("LIT3508Epistle")//t:div[@type = "edition"]//t:ab//text())
 };
 
-declare %test:assertTrue function tsviwork:renders-creation-date() {
-	let $item := tsviwork:doc("LIT3944ArdeetChL")
-	return exists($item//t:creation[@when or @notBefore or @notAfter]) and
-		contains(tsviwork:render($item), "Creation date")
+declare %test:assertXPath("contains($result, 'voyant-tools.org')") function tsviwork:renders-voyant-link() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 
-declare %test:assertTrue function tsviwork:renders-extent-paragraph() {
-	let $item := tsviwork:doc("LIT4275ChronAmdS")
-	return exists($item//t:extent) and contains(tsviwork:render($item), "10170 words")
+declare %test:assertTrue function tsviwork:witnesses-fixture-has-listwit() {
+	exists(tsviwork:doc("LIT3192Tergwam")//t:listWit)
 };
 
-declare %test:assertTrue function tsviwork:renders-authorship-for-studies-type-item() {
-	let $item := tsviwork:doc("STU0002Historia")
-	return $item/@type = "studies" and contains(tsviwork:render($item), ">Authorship<")
+declare %test:assertXPath("contains($result, '>Witnesses<')") function tsviwork:renders-witnesses-heading() {
+	tsviwork:render(tsviwork:doc("LIT3192Tergwam"))
 };
 
-declare %test:assertTrue function tsviwork:renders-attestations-button() {
-	contains(tsviwork:render(tsviwork:doc("LIT3508Epistle")), 'data-value="work"')
+declare %test:assertTrue function tsviwork:clavis-fixture-has-clavis-listbibl() {
+	exists(tsviwork:doc("LIT3881Miracle")//t:listBibl[@type = "clavis"])
 };
 
-declare %test:assertTrue function tsviwork:renders-resp-section() {
-	contains(tsviwork:render(tsviwork:doc("LIT3508Epistle")), 'class="w3-hide"')
+declare %test:assertXPath("contains($result, 'id=&quot;clavisbibliography&quot;')") function tsviwork:renders-clavis-bibliography() {
+	tsviwork:render(tsviwork:doc("LIT3881Miracle"))
+};
+
+declare %test:assertTrue function tsviwork:creation-date-fixture-has-dated-creation() {
+	exists(tsviwork:doc("LIT3944ArdeetChL")//t:creation[@when or @notBefore or @notAfter])
+};
+
+declare %test:assertXPath("contains($result, 'Creation date')") function tsviwork:renders-creation-date() {
+	tsviwork:render(tsviwork:doc("LIT3944ArdeetChL"))
+};
+
+declare %test:assertTrue function tsviwork:extent-fixture-has-extent() {
+	exists(tsviwork:doc("LIT4275ChronAmdS")//t:extent)
+};
+
+declare %test:assertXPath("contains($result, '10170 words')") function tsviwork:renders-extent-paragraph() {
+	tsviwork:render(tsviwork:doc("LIT4275ChronAmdS"))
+};
+
+declare %test:assertTrue function tsviwork:authorship-fixture-is-studies-type() {
+	tsviwork:doc("STU0002Historia")/@type = "studies"
+};
+
+declare %test:assertXPath("contains($result, '>Authorship<')") function tsviwork:renders-authorship-for-studies-type-item() {
+	tsviwork:render(tsviwork:doc("STU0002Historia"))
+};
+
+declare %test:assertXPath("contains($result, 'data-value=&quot;work&quot;')") function tsviwork:renders-attestations-button() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
+};
+
+declare %test:assertXPath("contains($result, 'class=&quot;w3-hide&quot;')") function tsviwork:renders-resp-section() {
+	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };

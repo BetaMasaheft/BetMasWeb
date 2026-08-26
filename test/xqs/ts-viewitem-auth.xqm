@@ -36,26 +36,26 @@ declare %private function tsviauth:render($item as element()) as xs:string {
 	)
 };
 
-declare %test:assertTrue function tsviauth:renders-maindata-wrapper() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), 'id="MainData"')
+declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviauth:renders-maindata-wrapper() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertTrue function tsviauth:renders-bibliography-header() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), "w3-text-white")
+declare %test:assertXPath("contains($result, 'w3-text-white')") function tsviauth:renders-bibliography-header() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertTrue function tsviauth:renders-keyword-link() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), "authority-files/list?keyword=AT1129MMFrank")
+declare %test:assertXPath("contains($result, 'authority-files/list?keyword=AT1129MMFrank')") function tsviauth:renders-keyword-link() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertTrue function tsviauth:renders-attestations-button() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), 'data-value="term"')
+declare %test:assertXPath("contains($result, 'data-value=&quot;term&quot;')") function tsviauth:renders-attestations-button() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertTrue function tsviauth:renders-relsinfo-block() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), "w3-tiny")
+declare %test:assertXPath("contains($result, 'w3-tiny')") function tsviauth:renders-relsinfo-block() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertTrue function tsviauth:renders-standards-section() {
-	contains(tsviauth:render(tsviauth:doc("AT1129MMFrank")), "Publication Statement")
+declare %test:assertXPath("contains($result, 'Publication Statement')") function tsviauth:renders-standards-section() {
+	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };

@@ -41,48 +41,68 @@ declare %private function tsvidocs:render($doc as element()) as xs:string {
 	)
 };
 
-declare %test:assertTrue function tsvidocs:renders-container-wrapper() {
-	contains(tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1")), "w3-container")
+declare %test:assertXPath("contains($result, 'w3-container')") function tsvidocs:renders-container-wrapper() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
-declare %test:assertTrue function tsvidocs:renders-resume-note() {
-	let $doc := tsvidocs:fragment("BNFabb152", "a1")
-	return exists($doc/t:note[@type = "résumé"]) and contains(tsvidocs:render($doc), "w3-margin-bottom w3-red")
+declare %test:assertTrue function tsvidocs:resume-note-fixture-has-resume-note() {
+	exists(tsvidocs:fragment("BNFabb152", "a1")/t:note[@type = "résumé"])
 };
 
-declare %test:assertTrue function tsvidocs:renders-gez-q() {
-	let $doc := tsvidocs:fragment("BNFabb152", "a1")
-	return exists($doc/t:q[@xml:lang = "gez"]) and contains(tsvidocs:render($doc), 'lang="gez"')
+declare %test:assertXPath("contains($result, 'w3-margin-bottom w3-red')") function tsvidocs:renders-resume-note() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
-declare %test:assertTrue function tsvidocs:renders-footnotes() {
-	let $doc := tsvidocs:fragment("BNFabb152", "a1")
-	return exists($doc/t:note[@n][@xml:id]) and contains(tsvidocs:render($doc), 'class="footnotes"')
+declare %test:assertTrue function tsvidocs:gez-q-fixture-has-gez-q() {
+	exists(tsvidocs:fragment("BNFabb152", "a1")/t:q[@xml:lang = "gez"])
 };
 
-declare %test:assertTrue function tsvidocs:renders-other-notes() {
-	let $doc := tsvidocs:fragment("BNFabb152", "a1")
-	return exists($doc/t:note[not(@n)][not(@xml:id)][not(@type = "résumé")]) and
-		contains(tsvidocs:render($doc), "w3-third w3-padding w3-card-4 w3-gray")
+declare %test:assertXPath("contains($result, 'lang=&quot;gez&quot;')") function tsvidocs:renders-gez-q() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
-declare %test:assertTrue function tsvidocs:renders-date() {
-	let $doc := tsvidocs:fragment("BNFabb152", "a21")
-	return exists($doc/t:date) and contains(tsvidocs:render($doc), "w3-tag w3-gray")
+declare %test:assertTrue function tsvidocs:footnotes-fixture-has-footnote() {
+	exists(tsvidocs:fragment("BNFabb152", "a1")/t:note[@n][@xml:id])
 };
 
-declare %test:assertTrue function tsvidocs:renders-other-language-q() {
-	let $doc := tsvidocs:fragment("MNC019", "a1")
-	return exists($doc/t:q[not(@xml:lang = "gez")]) and contains(tsvidocs:render($doc), "ጊዮርጊስ")
+declare %test:assertXPath("contains($result, 'class=&quot;footnotes&quot;')") function tsvidocs:renders-footnotes() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
-declare %test:assertTrue function tsvidocs:renders-bibliography() {
-	let $doc := tsvidocs:fragment("RNBdorn612", "a1")
-	return exists($doc/t:listBibl) and contains(tsvidocs:render($doc), "Turaev")
+declare %test:assertTrue function tsvidocs:other-notes-fixture-has-plain-note() {
+	exists(tsvidocs:fragment("BNFabb152", "a1")/t:note[not(@n)][not(@xml:id)][not(@type = "résumé")])
 };
 
-declare %test:assertTrue function tsvidocs:renders-trailing-hr() {
-	contains(tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1")), "<hr")
+declare %test:assertXPath("contains($result, 'w3-third w3-padding w3-card-4 w3-gray')") function tsvidocs:renders-other-notes() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
+};
+
+declare %test:assertTrue function tsvidocs:date-fixture-has-date() {
+	exists(tsvidocs:fragment("BNFabb152", "a21")/t:date)
+};
+
+declare %test:assertXPath("contains($result, 'w3-tag w3-gray')") function tsvidocs:renders-date() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a21"))
+};
+
+declare %test:assertTrue function tsvidocs:other-language-q-fixture-has-non-gez-q() {
+	exists(tsvidocs:fragment("MNC019", "a1")/t:q[not(@xml:lang = "gez")])
+};
+
+declare %test:assertXPath("contains($result, 'ጊዮርጊስ')") function tsvidocs:renders-other-language-q() {
+	tsvidocs:render(tsvidocs:fragment("MNC019", "a1"))
+};
+
+declare %test:assertTrue function tsvidocs:bibliography-fixture-has-listbibl() {
+	exists(tsvidocs:fragment("RNBdorn612", "a1")/t:listBibl)
+};
+
+declare %test:assertXPath("contains($result, 'Turaev')") function tsvidocs:renders-bibliography() {
+	tsvidocs:render(tsvidocs:fragment("RNBdorn612", "a1"))
+};
+
+declare %test:assertXPath("contains($result, '<hr')") function tsvidocs:renders-trailing-hr() {
+	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
 (:

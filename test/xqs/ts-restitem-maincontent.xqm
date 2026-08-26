@@ -217,9 +217,9 @@ declare %test:assertTrue function tsmaincontent:extras-dispatch-matches-direct-c
 	)
 };
 
-declare %test:assertTrue function tsmaincontent:extras-dispatch-matches-direct-call-default() {
+declare %test:assertEmpty function tsmaincontent:extras-dispatch-matches-direct-call-default() {
 	let $this := tsmaincontent:doc("MNC010", "manuscripts")
-	return deep-equal(restItem:mainContentExtras($this, "MNC010", "manuscripts"), ())
+	return restItem:mainContentExtras($this, "MNC010", "manuscripts")
 };
 
 (:
