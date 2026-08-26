@@ -1,0 +1,24 @@
+test/xqs/test-runner.xq
+  s_1544e160683453::t_074c2e78256124 27
+  s_1544e160683453::t_6e5819833c2842 18,26
+modules/dtslib.xqm
+  s_1544e160683453::t_827f54ceaeb2db 318-322,324,615-616,618-624,1001-1011,1013-1022,1212-1217
+test/xqs/ts-dtslib-prevnext.xqm
+  s_1544e160683453::t_ff685820a03425 1-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "a127f0eb94c380f316260cad275e2bcdd3b124cc",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
