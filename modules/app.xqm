@@ -34,6 +34,7 @@ import module namespace validation = "http://exist-db.org/xquery/validation";
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace apptable = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apptable" at "xmldb:exist:///db/apps/BetMasWeb/modules/apptable.xqm";
+import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
 
 (:~
  : declare variable $app:item-uri as xs:string := raequest:get-parameter('uri',());
@@ -776,6 +777,54 @@ declare %templates:default("context", "$exptit:col") function app:relationType(
 	let $relTypes := config:distinct-values($cont//t:relation/@name/tokenize(., "\s+"))
 	let $control := app:formcontrol("relType", $relTypes, "false", "values", $context)
 	return templates:form-control($control, $model)
+};
+
+(:~
+ : Written-lines range slider for forms/formWL.html. Bounds computed
+ : from the real corpus (q:max-written-lines) instead of a hand-maintained
+ : literal, so the widget's max and the "no filter applied" default
+ : value (checked in q:par-wL/list:paramsList) can never drift apart -
+ : see q:max-written-lines's own doc for why that drift was a real bug,
+ : not just cosmetic.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @return the <input> element for the bootstrap-slider widget, with real min/max/value
+ :)
+declare function app:writtenLinesInput($node as node(), $model as map(*)) {
+	let $max := q:max-written-lines()
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[1,{ $max }]"
+		id="writtenLines"
+		name="wL"
+		type="text" />
+};
+
+(:~
+ : Leaf-count range slider for forms/formfolia.html. Bounds computed
+ : from the real corpus (q:max-folia) instead of a hand-maintained
+ : literal - see q:max-folia's own doc for the EMML5533 data-quality
+ : issue its exclusion works around.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @return the <input> element for the bootstrap-slider widget, with real min/max/value
+ :)
+declare function app:foliaInput($node as node(), $model as map(*)) {
+	let $max := q:max-folia()
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[1,{ $max }]"
+		id="folia"
+		name="folia"
+		type="text" />
 };
 
 (:~

@@ -734,10 +734,48 @@ declare %private function q:par-date-range($element, $dateRange) {
             ]"
 };
 
+(:~
+ : Highest real t:extent/t:measure[@unit='leaf'] value in the corpus,
+ : excluding a recurring data-entry error: for at least 3 EMML
+ : manuscripts (EMML1483, EMML2927, EMML5533, found 2026-08-26), the
+ : leaf count is identical to the manuscript's own EMML catalog number,
+ : off by an order of magnitude from genuine values - a systematic
+ : conversion bug, not one typo, so this excludes by the pattern itself
+ : ("EMML<n>" whose leaf count is exactly <n>") rather than an
+ : enumerated id list, to also catch any further instances the same
+ : bug produced that this list doesn't name. Backs both
+ : forms/formfolia.html's slider bounds and q:par-folia's default-value
+ : check below, so they can never drift apart from each other the way
+ : the old hardcoded "1,1000" did from the slider's own hardcoded max.
+ :
+ : @return the real max leaf count, as an integer
+ : @see https://github.com/BetaMasaheft/Manuscripts/issues/3505 tracks fixing the source data; this exclusion can be dropped once resolved
+ :)
+declare function q:max-folia() as xs:integer {
+	max(
+		collection($config:data-rootMS)//t:extent/t:measure[@unit = "leaf"][not(@type)][. castable as xs:integer][not(
+			matches(ancestor::t:TEI/@xml:id, "^EMML[0-9]+$") and
+				xs:integer(.) = xs:integer(substring-after(ancestor::t:TEI/@xml:id, "EMML"))
+		)]
+	)
+};
+
+(:~
+ : Highest real t:layout/@writtenLines value in the corpus. Backs both
+ : forms/formWL.html's slider bounds and q:par-wL's default-value check
+ : below, so they can never drift apart from each other the way the
+ : old hardcoded "1,100" did from the slider's own hardcoded max.
+ :
+ : @return the real max written-lines count, as an integer
+ :)
+declare function q:max-written-lines() as xs:integer {
+	max(collection($config:data-rootMS)//t:layout/@writtenLines[. castable as xs:integer])
+};
+
 declare %private function q:par-folia($Pfolia) {
 	let $min := substring-before($Pfolia, ",")
 	let $max := substring-after($Pfolia, ",")
-	return if ($Pfolia = "1,1000") then (
+	return if ($Pfolia = "1," || q:max-folia()) then (
 	) else if (empty($Pfolia)) then (
 	) else
 		"[descendant::t:extent/t:measure[@unit='leaf'][not(@type)][xs:integer(.) ge " ||
@@ -750,7 +788,7 @@ declare %private function q:par-folia($Pfolia) {
 declare %private function q:par-wL($PwL) {
 	let $min := substring-before($PwL, ",")
 	let $max := substring-after($PwL, ",")
-	return if ($PwL = "1,100") then (
+	return if ($PwL = "1," || q:max-written-lines()) then (
 	) else if (empty($PwL)) then (
 	) else
 		"[descendant::t:layout[@writtenLines ge " || $min || "][@writtenLines  le " || $max || "]]"
