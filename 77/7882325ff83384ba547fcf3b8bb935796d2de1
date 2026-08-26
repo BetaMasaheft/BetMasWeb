@@ -1,0 +1,30 @@
+modules/apprest.xqm
+  s_5790d61a112fab::t_18073eec45d61f 1108-1109,1120
+  s_5790d61a112fab::t_5de32f8b31ea07 1110-1119
+  s_5790d61a112fab::t_803160cf0a168d 1121
+modules/queries.xqm
+  s_5790d61a112fab::t_a43106d59c7e1a 743-757,764-768,778-784,788-792
+  s_5790d61a112fab::t_803160cf0a168d 815
+  s_5790d61a112fab::t_42714f0b5e44de 801-804,814
+  s_5790d61a112fab::t_7a0573977976df 805-813
+modules/app.xqm
+  s_5790d61a112fab::t_8d715cc128e6dc 1520-1524
+  s_5790d61a112fab::t_803160cf0a168d 1525
+  s_5790d61a112fab::t_bec6f18259f1b0 1503-1512,1517,1532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "777882325ff83384ba547fcf3b8bb935796d2de1",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
