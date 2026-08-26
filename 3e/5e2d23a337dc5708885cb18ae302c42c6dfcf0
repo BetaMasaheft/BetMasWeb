@@ -1,0 +1,49 @@
+test/xqs/xqSuite.js
+  s_5790d61a112fab::t_00dd163d4f88f5 42
+modules/app.xqm
+  s_5790d61a112fab::t_b74c1858db4e2d 1520-1527,1537
+modules/item.xqm
+  s_5790d61a112fab::t_ede6c5a6792a0b 2982
+  s_5790d61a112fab::t_6130d1cc9adc13 3036
+  s_5790d61a112fab::t_4aa324224795ad 3095-3099
+  s_5790d61a112fab::t_eafd62b33e382d 2976-2980
+  s_5790d61a112fab::t_7da788e1f9fe93 2947-2951
+  s_5790d61a112fab::t_b0ca53638e35e1 2926-2930
+  s_5790d61a112fab::t_81c393592b3577 2794-2804
+  s_5790d61a112fab::t_978f1d86f20952 2808,2813
+  s_5790d61a112fab::t_56170ce476a7b6 2838-2842
+  s_5790d61a112fab::t_f8c8614a680711 3003-3008
+  s_5790d61a112fab::t_803dfd85d635d3 3020-3030,3032-3035,3037-3075
+modules/apprest.xqm
+  s_5790d61a112fab::t_91c0ff504cb7b7 24
+  s_5790d61a112fab::t_c03642fb267fa3 1109-1110,1119,1125-1131
+restviews/permanentItems.xqm
+  s_5790d61a112fab::t_e09aa51c00968b 486
+modules/queries.xqm
+  s_5790d61a112fab::t_4fa10964b37230 868
+  s_5790d61a112fab::t_763223982625b9 806-809,849-852
+  s_5790d61a112fab::t_9587b76170acdf 739-755,765,774,777-795,797-799,801-805,810-811,815-828,840-842,844-848,853-855
+  s_5790d61a112fab::t_017ed5ad3c3994 738,857-867,869-888,897,906,914-920
+  s_5790d61a112fab::t_cd8a55dacd936a 10
+  s_5790d61a112fab::t_2131e8dafecd39 856
+restviews/items.xqm
+  s_5790d61a112fab::t_89bf833355dd2f 491
+restviews/list.xqm
+  s_5790d61a112fab::t_a204796ead0d7d 2098-2109,2115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3e5e2d23a337dc5708885cb18ae302c42c6dfcf0",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
