@@ -1600,6 +1600,22 @@ declare function item2:mainRelsInstitutions($this, $collection) {
 	)
 };
 
+(:~
+ : templates:apply adapter for item2:mainRels - reads the same
+ : $this/$collection item2:RestSeeAlso used to pass directly, out of
+ : $model. No %templates:wrap: mainRels already returns complete,
+ : specific content, so the calling marker element is meant to be
+ : replaced outright, not wrapped - same shape as
+ : item2:RestSeeAlsoTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with this/collection
+ : @return item2:mainRels's own output for the given $model
+ :)
+declare function item2:mainRelsTemplate($node as node(), $model as map(*)) {
+	item2:mainRels($model("this"), $model("collection"))
+};
+
 declare function item2:mainRels($this, $collection) {
 	<div class="allMainRel">
 		{
@@ -1874,6 +1890,21 @@ declare function item2:RestTabot($id) {
 		</div>
 	else (
 	)
+};
+
+(:~
+ : templates:apply adapter for item2:RestMss - reads the same $id
+ : item2:RestSeeAlso used to pass directly, out of $model. No
+ : %templates:wrap: RestMss already returns complete, specific content,
+ : so the calling marker element is meant to be replaced outright, not
+ : wrapped - same shape as item2:RestSeeAlsoTemplate.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model map with id
+ : @return item2:RestMss's own output for the given $model
+ :)
+declare function item2:RestMssTemplate($node as node(), $model as map(*)) {
+	item2:RestMss($model("id"))
 };
 
 (:~
@@ -2573,11 +2604,31 @@ declare function item2:RestSeeAlso($this, $collection) {
 			) else
 				<div class="w3-container w3-margin w3-gray">No keywords associated with this item yet.</div>
 		}
-		{ item2:mainRels($this, $collection) }
 		{
-			if ($collection = "works" or $collection = "narratives" or $collection = "studies") then
-				item2:RestMss($id)
-			else (
+			(:
+			 : mainRels routed through templates:apply instead of
+			 : called directly - see item2:mainRelsTemplate.
+			 :)
+			templates:apply(
+				<div data-template="item2:mainRelsTemplate" />,
+				item2:lookup#2,
+				map {"this": $this, "collection": $collection},
+				config:template-apply-config()
+			)
+		}
+		{
+			if ($collection = "works" or $collection = "narratives" or $collection = "studies") then (
+				(:
+				 : RestMss routed through templates:apply instead of
+				 : called directly - see item2:RestMssTemplate.
+				 :)
+				templates:apply(
+					<div data-template="item2:RestMssTemplate" />,
+					item2:lookup#2,
+					map {"id": $id},
+					config:template-apply-config()
+				)
+			) else (
 			)
 		}
 		{

@@ -75,3 +75,16 @@ declare %test:assertTrue function tsmainrels:dispatch-matches-direct-call-places
 		<div class="allMainRel">{ item2:mainRelsPlaces($this, "places") }</div>
 	)
 };
+
+(:
+ : item2:mainRelsTemplate is the templates:apply adapter item2:RestSeeAlso
+ : now calls instead of item2:mainRels directly - confirms the adapter
+ : produces the exact same output as the plain call it replaces.
+ :)
+declare %test:assertTrue function tsmainrels:template-adapter-matches-direct-call() {
+	let $this := tsmainrels:doc("PRS11422WaldaGiyorgis", "persons")
+	return deep-equal(
+		item2:mainRelsTemplate(<div />, map {"this": $this, "collection": "persons"}),
+		item2:mainRels($this, "persons")
+	)
+};
