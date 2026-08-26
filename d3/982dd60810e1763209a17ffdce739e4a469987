@@ -1,0 +1,21 @@
+modules/dtslib.xqm
+  s_1544e160683453::t_38f7ea81703108 617-623
+test/xqs/ts-dtslib-prevnext.xqm
+  s_1544e160683453::t_c7ac2662348b17 18-25,27,29-38,40-47,54,61,68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "d3982dd60810e1763209a17ffdce739e4a469987",
+  "prompts": {},
+  "sessions": {
+    "s_1544e160683453": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9068b082-e053-4108-a625-480faaadd278",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
