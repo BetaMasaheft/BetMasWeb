@@ -57,8 +57,8 @@ declare function local:switchCol($type) {
  : silently lose.
  :)
 declare function local:view() {
-	<view><forward url="{ $exist:controller }/modules/view.xql" /></view>,
-	<error-handler>
+	<view xmlns="http://exist.sourceforge.net/NS/exist"><forward url="{ $exist:controller }/modules/view.xql" /></view>,
+	<error-handler xmlns="http://exist.sourceforge.net/NS/exist">
 		<forward method="get" url="{ $exist:controller }/error/error-page.html" />
 		<forward url="{ $exist:controller }/modules/view.xql" />
 	</error-handler>
