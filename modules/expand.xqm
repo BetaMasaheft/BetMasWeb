@@ -177,10 +177,14 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				let $mainid := $node/ancestor::t:TEI/@xml:id
 				let $taxid := $expand:canontax//t:category[@xml:id]
 				return if (not($mainid = $taxid/@xml:id)) then
+					(: Public URI so XInclude works outside eXist; served by
+					   GET /api/lists/canonicaltaxonomy.xml (BetMasWeb Roaster for now —
+					   should move to BetMasApi one day). :)
 					<xi:include
 						xmlns:xi="http://www.w3.org/2001/XInclude"
-						href="xmldb:exist:///db/apps/lists/canonicaltaxonomy.xml"
-					><xi:fallback><p>Definitions of prefixes used.</p></xi:fallback></xi:include>
+						href="{ $expand:BMurl }api/lists/canonicaltaxonomy.xml"
+						parse="xml"
+					><xi:fallback><p>Canonical taxonomy unavailable.</p></xi:fallback></xi:include>
 				else (
 				),
 				<refsDecl xmlns="http://www.tei-c.org/ns/1.0">

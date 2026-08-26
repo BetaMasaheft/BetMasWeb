@@ -1805,6 +1805,25 @@
 				"x-implementation": "db/apps/BetMasWeb/restviews/idlookup.xqm"
 			}
 		},
+		"/api/lists/canonicaltaxonomy.xml": {
+			"get": {
+				"tags": ["lists", "data"],
+				"summary": "Canonical TEI taxonomy (classDecl) for XInclude",
+				"description": "Serves /db/apps/lists/canonicaltaxonomy.xml as application/xml. Temporary BetMasWeb route (nginx exact match); should move to BetMasApi one day. Used by expanded TEI xi:include hrefs.",
+				"responses": {
+					"200": {
+						"description": "TEI classDecl document",
+						"content": {
+							"application/xml": {}
+						}
+					},
+					"404": {
+						"description": "Taxonomy not present in the database"
+					}
+				},
+				"x-implementation": "db/apps/BetMasWeb/restviews/listsTaxonomy.xqm"
+			}
+		},
 		"/search.html": {
 			"get": {
 				"tags": ["redirects"],

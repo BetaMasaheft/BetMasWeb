@@ -5035,6 +5035,28 @@
 				}
 			}
 		},
+		"/api/lists/canonicaltaxonomy.xml": {
+			"get": {
+				"operationId": "listsTax:canonicaltaxonomy",
+				"description": "Temporary BetMasWeb route; should move to BetMasApi one day. Serves /db/apps/lists/canonicaltaxonomy.xml for expanded TEI xi:include.",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "TEI classDecl canonical taxonomy",
+						"content": {
+							"application/xml": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Taxonomy document missing from /db/apps/lists"
+					}
+				}
+			}
+		},
 		"/listIds": {
 			"get": {
 				"operationId": "listIds:getlist",
