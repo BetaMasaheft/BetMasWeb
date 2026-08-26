@@ -1,7 +1,13 @@
 modules/item.xqm
   s_5790d61a112fab::t_27bff9ba1b57ff 14,29-48,2536-2551,2686-2697
+  s_5790d61a112fab::t_976a758f54774c 29-34,39-48
+  s_5790d61a112fab::t_a023eecbf1e414 2686-2697
+  s_5790d61a112fab::t_49852ce18b9921 35-38
+  s_5790d61a112fab::t_80e23ff964ea16 14
+  s_5790d61a112fab::t_c09a97e14f010d 2536-2551
 test/xqs/ts-item-seealso-options.xqm
   s_5790d61a112fab::t_85251c6ef3359c 88-100
+  s_5790d61a112fab::t_2ea1000ec2eba0 88-100
 ---
 {
   "schema_version": "authorship/3.0.0",
