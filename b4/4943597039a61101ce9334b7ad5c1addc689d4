@@ -1,0 +1,21 @@
+test/xqs/ts-restitem-maincontent.xqm
+  s_5790d61a112fab::t_462a7d5bcd92a5 220,222
+test/xqs/ts-permrestitem-maincontent.xqm
+  s_5790d61a112fab::t_4a96e4727e9d91 209-210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b44943597039a61101ce9334b7ad5c1addc689d4",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
