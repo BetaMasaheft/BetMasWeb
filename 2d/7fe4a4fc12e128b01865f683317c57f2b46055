@@ -2,6 +2,7 @@ test/xqs/test-runner.xq
   s_5790d61a112fab::t_c701746d688cba 50
   s_5790d61a112fab::t_1800d6e4c9635e 31
   s_5790d61a112fab::t_18dd96da76877f 53-54
+  s_5790d61a112fab::t_d3d36f58fcfcef 52
 modules/item.xqm
   s_5790d61a112fab::t_d14b3a1861e44c 25-26,2674-2839
 test/xqs/ts-restitem-maincontent.xqm
