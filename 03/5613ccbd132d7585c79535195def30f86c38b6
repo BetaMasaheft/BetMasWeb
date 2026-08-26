@@ -1,0 +1,21 @@
+test/xqs/ts-item-mainrels.xqm
+  s_5790d61a112fab::t_406248f74625f8 43-44
+test/xqs/ts-viewitem-place.xqm
+  s_5790d61a112fab::t_12841ae5beba48 49-50,57-58,67-68,76-77,79-80,83-92,99-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "035613ccbd132d7585c79535195def30f86c38b6",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
