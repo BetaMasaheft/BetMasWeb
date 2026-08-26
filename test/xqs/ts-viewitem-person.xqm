@@ -43,7 +43,9 @@ declare %private function tsviperson:render($item as element()) as xs:string {
 	)
 };
 
-declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviperson:renders-maindata-wrapper() {
+declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviperson:renders-maindata-wrapper(
+
+) {
 	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
@@ -71,7 +73,9 @@ declare %test:assertTrue function tsviperson:sameas-fixture-has-sameas-attribute
 	exists(tsviperson:doc("PRS8083Raphael")//t:person/@sameAs)
 };
 
-declare %test:assertXPath("contains($result, 'icon-vcard')") function tsviperson:renders-sameas-link-in-sidebar-heading() {
+declare %test:assertXPath("contains($result, 'icon-vcard')") function tsviperson:renders-sameas-link-in-sidebar-heading(
+
+) {
 	tsviperson:render(tsviperson:doc("PRS8083Raphael"))
 };
 
@@ -87,23 +91,33 @@ declare %test:assertTrue function tsviperson:residence-fixture-has-residence() {
 	exists(tsviperson:doc("PRS8692segeDen")//t:residence)
 };
 
-declare %test:assertXPath("contains($result, 'id=&quot;residence&quot;')") function tsviperson:renders-residence-section() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;residence&quot;')")
+function tsviperson:renders-residence-section() {
 	tsviperson:render(tsviperson:doc("PRS8692segeDen"))
 };
 
-declare %test:assertXPath("contains($result, '>Author of<')") function tsviperson:renders-authorship-relation-section() {
+declare %test:assertXPath("contains($result, '>Author of<')") function tsviperson:renders-authorship-relation-section(
+
+) {
 	tsviperson:render(tsviperson:doc("PRS6378Ludolf"))
 };
 
-declare %test:assertXPath("contains($result, 'id=&quot;bibliography&quot;')") function tsviperson:renders-bibliography-section() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;bibliography&quot;')")
+function tsviperson:renders-bibliography-section() {
 	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
-declare %test:assertXPath("contains($result, 'Publication Statement')") function tsviperson:renders-standards-section() {
+declare %test:assertXPath("contains($result, 'Publication Statement')") function tsviperson:renders-standards-section(
+
+) {
 	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 
-declare %test:assertXPath("contains($result, 'data-value=&quot;person&quot;')") function tsviperson:renders-attestations-button() {
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;person&quot;')")
+function tsviperson:renders-attestations-button() {
 	tsviperson:render(tsviperson:doc("PRS8278SablaWa"))
 };
 

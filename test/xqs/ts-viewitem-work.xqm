@@ -68,7 +68,9 @@ declare %test:assertTrue function tsviwork:source-desc-fixture-has-paragraph() {
 	exists(tsviwork:doc("LIT3508Epistle")//t:sourceDesc/t:p)
 };
 
-declare %test:assertXPath("contains($result, 'Work of the literatures of Ethiopia and Eritrea')") function tsviwork:renders-source-desc-paragraph() {
+declare
+	%test:assertXPath("contains($result, 'Work of the literatures of Ethiopia and Eritrea')")
+function tsviwork:renders-source-desc-paragraph() {
 	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 
@@ -92,7 +94,9 @@ declare %test:assertTrue function tsviwork:clavis-fixture-has-clavis-listbibl() 
 	exists(tsviwork:doc("LIT3881Miracle")//t:listBibl[@type = "clavis"])
 };
 
-declare %test:assertXPath("contains($result, 'id=&quot;clavisbibliography&quot;')") function tsviwork:renders-clavis-bibliography() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;clavisbibliography&quot;')")
+function tsviwork:renders-clavis-bibliography() {
 	tsviwork:render(tsviwork:doc("LIT3881Miracle"))
 };
 
@@ -116,11 +120,15 @@ declare %test:assertTrue function tsviwork:authorship-fixture-is-studies-type() 
 	tsviwork:doc("STU0002Historia")/@type = "studies"
 };
 
-declare %test:assertXPath("contains($result, '>Authorship<')") function tsviwork:renders-authorship-for-studies-type-item() {
+declare
+	%test:assertXPath("contains($result, '>Authorship<')")
+function tsviwork:renders-authorship-for-studies-type-item() {
 	tsviwork:render(tsviwork:doc("STU0002Historia"))
 };
 
-declare %test:assertXPath("contains($result, 'data-value=&quot;work&quot;')") function tsviwork:renders-attestations-button() {
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;work&quot;')")
+function tsviwork:renders-attestations-button() {
 	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
 

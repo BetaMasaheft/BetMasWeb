@@ -44,11 +44,15 @@ declare %test:assertXPath("contains($result, 'w3-text-white')") function tsviaut
 	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertXPath("contains($result, 'authority-files/list?keyword=AT1129MMFrank')") function tsviauth:renders-keyword-link() {
+declare
+	%test:assertXPath("contains($result, 'authority-files/list?keyword=AT1129MMFrank')")
+function tsviauth:renders-keyword-link() {
 	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 
-declare %test:assertXPath("contains($result, 'data-value=&quot;term&quot;')") function tsviauth:renders-attestations-button() {
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;term&quot;')")
+function tsviauth:renders-attestations-button() {
 	tsviauth:render(tsviauth:doc("AT1129MMFrank"))
 };
 

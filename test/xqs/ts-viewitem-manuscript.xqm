@@ -41,7 +41,9 @@ declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") functi
 	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertXPath("contains($result, 'data-value=&quot;mss&quot;')") function tsvimss:renders-attestations-button() {
+declare
+	%test:assertXPath("contains($result, 'data-value=&quot;mss&quot;')")
+function tsvimss:renders-attestations-button() {
 	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
@@ -57,7 +59,9 @@ declare %test:assertTrue function tsvimss:tweed-fixture-is-in-tweed-collection()
 	exists(tsvimss:doc("EMIP02001")//t:collection[. = "Tweed Collection"])
 };
 
-declare %test:assertXPath("contains($result, 'tweed.html')") function tsvimss:tweed-link-present-when-item-in-tweed-collection() {
+declare
+	%test:assertXPath("contains($result, 'tweed.html')")
+function tsvimss:tweed-link-present-when-item-in-tweed-collection() {
 	tsvimss:render(tsvimss:doc("EMIP02001"))
 };
 
@@ -65,11 +69,15 @@ declare %test:assertTrue function tsvimss:no-tweed-fixture-is-not-in-tweed-colle
 	empty(tsvimss:doc("MNC010")//t:collection[. = "Tweed Collection"])
 };
 
-declare %test:assertXPath("not(contains($result, 'tweed.html'))") function tsvimss:tweed-link-absent-when-item-not-in-tweed-collection() {
+declare
+	%test:assertXPath("not(contains($result, 'tweed.html'))")
+function tsvimss:tweed-link-absent-when-item-not-in-tweed-collection() {
 	tsvimss:render(tsvimss:doc("MNC010"))
 };
 
-declare %test:assertXPath("contains($result, 'label-primary')") function tsvimss:dated-heading-present-when-item-has-internal-date() {
+declare
+	%test:assertXPath("contains($result, 'label-primary')")
+function tsvimss:dated-heading-present-when-item-has-internal-date() {
 	tsvimss:render(tsvimss:doc("MNC014"))
 };
 
@@ -77,7 +85,9 @@ declare %test:assertTrue function tsvimss:codicological-units-fixture-has-multip
 	count(tsvimss:doc("AG00001")//(t:msPart | t:msFrag)) ge 2
 };
 
-declare %test:assertXPath("contains($result, 'label-default')") function tsvimss:codicological-units-renders-badge-class() {
+declare
+	%test:assertXPath("contains($result, 'label-default')")
+function tsvimss:codicological-units-renders-badge-class() {
 	tsvimss:render(tsvimss:doc("AG00001"))
 };
 

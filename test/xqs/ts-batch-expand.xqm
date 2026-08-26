@@ -51,8 +51,7 @@ declare %private function tsbatchexp:cleanup() {
 };
 
 declare %test:setUp function tsbatchexp:setUp() {
-	tsbatchexp:cleanup(),
-	tsbatchexp:ensure-src()
+	tsbatchexp:cleanup(), tsbatchexp:ensure-src()
 };
 
 declare %test:tearDown function tsbatchexp:tearDown() {

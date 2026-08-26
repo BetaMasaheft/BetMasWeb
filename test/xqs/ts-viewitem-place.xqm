@@ -46,7 +46,9 @@ declare %private function tsviplace:render($item as element()) as xs:string {
  : wrapper must vanish at runtime (no %templates:wrap on
  : viewItem:placeRoot), leaving MainData as a genuine top-level result.
  :)
-declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviplace:place-renders-maindata-wrapper() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;MainData&quot;')")
+function tsviplace:place-renders-maindata-wrapper() {
 	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
@@ -54,7 +56,9 @@ declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") functi
  : viewItem:main's "ins" case also delegates to viewItem:place - same
  : conversion has to serve institutions too, not just places.
  :)
-declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") function tsviplace:institution-renders-maindata-wrapper() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;MainData&quot;')")
+function tsviplace:institution-renders-maindata-wrapper() {
 	tsviplace:render(tsviplace:doc("INS0013IHA", "institutions"))
 };
 
@@ -64,7 +68,9 @@ declare %test:assertXPath("contains($result, 'id=&quot;MainData&quot;')") functi
  : shape as the narratives conversion) - assert the section has content
  : for a document with real relations data, not just "no error".
  :)
-declare %test:assertXPath("contains($result, 'id=&quot;description&quot;')") function tsviplace:relsinfo-reads-model-shared-rels() {
+declare
+	%test:assertXPath("contains($result, 'id=&quot;description&quot;')")
+function tsviplace:relsinfo-reads-model-shared-rels() {
 	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
@@ -80,7 +86,9 @@ declare %test:assertTrue function tsviplace:figure-fixture-has-figure-element() 
 	exists(tsviplace:doc("INS0091AQM", "institutions")//t:figure)
 };
 
-declare %test:assertXPath("contains($result, 'openseadragon')") function tsviplace:figure-script-present-when-item-has-figure() {
+declare
+	%test:assertXPath("contains($result, 'openseadragon')")
+function tsviplace:figure-script-present-when-item-has-figure() {
 	tsviplace:render(tsviplace:doc("INS0091AQM", "institutions"))
 };
 
@@ -88,7 +96,9 @@ declare %test:assertTrue function tsviplace:no-figure-fixture-has-no-figure-elem
 	empty(tsviplace:doc("LOC3080Ferheb", "places")//t:figure)
 };
 
-declare %test:assertXPath("not(contains($result, 'openseadragon'))") function tsviplace:figure-script-absent-when-item-has-no-figure() {
+declare
+	%test:assertXPath("not(contains($result, 'openseadragon'))")
+function tsviplace:figure-script-absent-when-item-has-no-figure() {
 	tsviplace:render(tsviplace:doc("LOC3080Ferheb", "places"))
 };
 
@@ -100,6 +110,8 @@ declare %test:assertTrue function tsviplace:sameas-fixture-has-sameas-attribute(
 	exists(tsviplace:doc("LOC3994Kampal", "places")//t:place/@sameAs)
 };
 
-declare %test:assertXPath("contains($result, 'icon-globe')") function tsviplace:sameas-link-present-when-item-has-sameas() {
+declare
+	%test:assertXPath("contains($result, 'icon-globe')")
+function tsviplace:sameas-link-present-when-item-has-sameas() {
 	tsviplace:render(tsviplace:doc("LOC3994Kampal", "places"))
 };

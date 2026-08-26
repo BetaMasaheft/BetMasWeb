@@ -39,7 +39,9 @@ declare %test:assertTrue function tsformbounds:max-written-lines-matches-corpus(
  : (BetaMasaheft/Manuscripts#3505) - this is the one behavior the
  : exclusion predicate exists to guarantee.
  :)
-declare %test:assertXPath("not($result = (1483, 2927, 5533))") function tsformbounds:max-folia-excludes-known-bad-values() {
+declare
+	%test:assertXPath("not($result = (1483, 2927, 5533))")
+function tsformbounds:max-folia-excludes-known-bad-values() {
 	q:max-folia()
 };
 

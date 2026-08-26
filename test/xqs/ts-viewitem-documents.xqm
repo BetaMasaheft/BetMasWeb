@@ -73,7 +73,9 @@ declare %test:assertTrue function tsvidocs:other-notes-fixture-has-plain-note() 
 	exists(tsvidocs:fragment("BNFabb152", "a1")/t:note[not(@n)][not(@xml:id)][not(@type = "résumé")])
 };
 
-declare %test:assertXPath("contains($result, 'w3-third w3-padding w3-card-4 w3-gray')") function tsvidocs:renders-other-notes() {
+declare
+	%test:assertXPath("contains($result, 'w3-third w3-padding w3-card-4 w3-gray')")
+function tsvidocs:renders-other-notes() {
 	tsvidocs:render(tsvidocs:fragment("BNFabb152", "a1"))
 };
 
