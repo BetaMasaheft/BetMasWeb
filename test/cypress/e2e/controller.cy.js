@@ -156,10 +156,19 @@ it("GET /studies", () => {
 	});
 });
 
+// Status-code-only checks miss a "200 OK but never templated" regression
+// (controller.xql#3b2436c: local:view()'s <view>/<error-handler> built via
+// a helper function landed in no namespace instead of exist's dispatch
+// namespace, so the view step was silently skipped and the route served
+// its raw, unrendered .html source - still 200, just never reached
+// view.xql). Asserting </html> catches that class of bug: the raw source
+// files are XML fragments with no <html>/<head>, only the fully templated
+// page has one.
 it("GET /decorations", () => {
 	cy.request({ url: "/decorations", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -167,6 +176,7 @@ it("GET /titles", () => {
 	cy.request({ url: "/titles", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -208,6 +218,7 @@ it("GET /paratexts", () => {
 	cy.request({ url: "/paratexts", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /paratexts responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /paratexts responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -215,6 +226,7 @@ it("GET /calendar", () => {
 	cy.request({ url: "/calendar", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -222,6 +234,7 @@ it("GET /bindings", () => {
 	cy.request({ url: "/bindings", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -229,6 +242,7 @@ it("GET /xpath", () => {
 	cy.request({ url: "/xpath", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /xpath responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /xpath responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -236,6 +250,7 @@ it("GET /sparql", () => {
 	cy.request({ url: "/sparql", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /sparql responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /sparql responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -243,6 +258,7 @@ it("GET /bibliography", () => {
 	cy.request({ url: "/bibliography", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /bibliography responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /bibliography responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -250,6 +266,7 @@ it("GET /additions", () => {
 	cy.request({ url: "/additions", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -257,6 +274,7 @@ it("GET /IndexPlaces", () => {
 	cy.request({ url: "/IndexPlaces", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /IndexPlaces responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /IndexPlaces responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
@@ -264,6 +282,7 @@ it("GET /IndexPersons", () => {
 	cy.request({ url: "/IndexPersons", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /IndexPersons responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /IndexPersons responded with ${res.status}`).to.not.equal(405);
+		expect(res.body, "response should be a fully templated page").to.include("</html>");
 	});
 });
 
