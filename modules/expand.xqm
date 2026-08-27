@@ -991,12 +991,15 @@ declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:s
 		error(xs:QName("expand:MISSING"), "collection not found: " || $col)
 	else
 		let $docs := collection($col)//t:TEI[@xml:id]
-		let $_ :=
+		let $resolved :=
 			for $doc in $docs
-			let $id := string($doc/@xml:id)
 			let $title := $doc//t:title[@type = "full"][1]/string()
-			return titles:updateTitleCache($id, $title)
-		return "backfilled " || count($docs) || " title(s)"
+			where normalize-space($title) != ""
+			return map {"id": string($doc/@xml:id), "title": $title}
+		let $_ :=
+			for $entry in $resolved
+			return titles:updateTitleCache($entry?id, $entry?title)
+		return "backfilled " || count($resolved) || " title(s)"
 };
 
 (:

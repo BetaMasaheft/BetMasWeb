@@ -62,3 +62,24 @@ declare
 function tsprinttitle:bmurl-prefixed-unresolvable-id-falls-back-to-original() {
 	string(exptit:printTitle($config:BMurl || $tsprinttitle:missing-id))
 };
+
+(:~
+ : A "betmas:"-prefixed id that resolves still returns the resolved
+ : title (regression guard on the fix below).
+ :)
+declare
+	%test:assertEquals("a distinctive cached title no fallback path could produce")
+function tsprinttitle:betmas-prefixed-resolvable-id-returns-title() {
+	let $_ := titles:updateTitleCache($tsprinttitle:cache-id, $tsprinttitle:cache-title)
+	return string(exptit:printTitle("betmas:" || $tsprinttitle:cache-id))
+};
+
+(:~
+ : A "betmas:"-prefixed id that does not resolve falls back to the
+ : original identifier - same bug the BMurl branch had, same fix.
+ :)
+declare
+	%test:assertEquals("betmas:INSTESTprintTitleBMurlMissing77")
+function tsprinttitle:betmas-prefixed-unresolvable-id-falls-back-to-original() {
+	string(exptit:printTitle("betmas:" || $tsprinttitle:missing-id))
+};

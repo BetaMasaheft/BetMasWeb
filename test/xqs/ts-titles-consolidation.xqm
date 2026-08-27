@@ -32,3 +32,23 @@ function tstitlesconsol:printTitleMainID-unresolved-id-is-plain-string() {
 declare %test:assertFalse function tstitlesconsol:printTitleID-unresolved-id-is-not-an-element() {
 	titles:printTitleID("LITTESTconsolidationDoesNotExist77") instance of element()
 };
+
+(:~
+ : Locks in a real behaviour change from this consolidation: dts.xqm's
+ : person titles now go through titlesData.xqm's persNameSelector,
+ : which restricts its "two-part name" branch to a persName with
+ : @xml:id="n1" - the deleted titles.xqm had no such restriction, so
+ : records without that marker (most of the corpus - measured 412 of
+ : 472 candidates) now resolve via a different branch than they did
+ : through DTS before. Not a regression: expand:file has used
+ : titlesData.xqm's persNameSelector for every already-expanded
+ : person's own title all along (confirmed against a real record,
+ : /db/apps/expanded/persons/PRS11021Entones.xml), so this makes
+ : DTS's person titles consistent with the rest of the app - DTS was
+ : the one place still out of sync, via the now-deleted fork.
+ :)
+declare
+	%test:assertEquals("ʾƎnṭonǝs (Antoine)")
+function tstitlesconsol:printTitleMainID-person-selection-matches-expand-pipeline() {
+	string(titles:printTitleMainID("PRS11021Entones"))
+};

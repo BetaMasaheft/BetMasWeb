@@ -556,6 +556,16 @@ declare function titles:updateTitleCache($id as xs:string, $title as xs:string?)
 		let $collection := "/db/apps/lists"
 		let $resource := "titleCache.xml"
 		let $path := $collection || "/" || $resource
+		(: Not race-safe: two concurrent first-ever callers could both see
+		   doc-available() = false and both store a blank list, the
+		   second clobbering whatever the first had already inserted -
+		   a real gap between this check and the store below, which no
+		   amount of re-checking closes without an actual lock. Narrow
+		   in practice: expand:file's batch driver runs sequentially,
+		   and the one other caller with prior form (gitsync) is dead
+		   code. Accepted as-is rather than adding real locking for a
+		   window this narrow - revisit if a genuinely concurrent
+		   caller shows up. :)
 		let $_bootstrap := if (doc-available($path)) then (
 		) else
 			xmldb:store($collection, $resource, <list xmlns="http://www.tei-c.org/ns/1.0" />)

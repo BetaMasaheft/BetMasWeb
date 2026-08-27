@@ -54,6 +54,21 @@ declare variable $tstitlecache:backfill-tei := <TEI
 	<text><body><div type="edition"><ab>x</ab></div></body></text>
 </TEI>;
 
+declare variable $tstitlecache:backfill-blank-id := "LITTESTtitleCacheBackfillBlank77";
+
+(:~
+ : A document with a blank full title - the backfill must skip this
+ : one when writing entries, and its summary count must not include
+ : it either.
+ :)
+declare variable $tstitlecache:backfill-blank-tei := <TEI
+	xmlns="http://www.tei-c.org/ns/1.0"
+	xml:id="{ $tstitlecache:backfill-blank-id }"
+>
+	<teiHeader><titleStmt><title type="full" /></titleStmt></teiHeader>
+	<text><body><div type="edition"><ab>x</ab></div></body></text>
+</TEI>;
+
 declare %private function tstitlecache:remove-entry($id as xs:string) {
 	if (doc-available($tstitlecache:cache-path)) then
 		let $existing := doc($tstitlecache:cache-path)//t:item[@corresp eq $id]
@@ -81,7 +96,8 @@ declare %private function tstitlecache:ensure-src() {
 	if (xmldb:collection-available($tstitlecache:backfill-col)) then (
 	) else
 		xmldb:create-collection("/db/apps/expanded/works", "_titleCacheBackfillTest"),
-	xmldb:store($tstitlecache:backfill-col, $tstitlecache:backfill-id || ".xml", $tstitlecache:backfill-tei)
+	xmldb:store($tstitlecache:backfill-col, $tstitlecache:backfill-id || ".xml", $tstitlecache:backfill-tei),
+	xmldb:store($tstitlecache:backfill-col, $tstitlecache:backfill-blank-id || ".xml", $tstitlecache:backfill-blank-tei)
 };
 
 declare %private function tstitlecache:cleanup() {
@@ -89,6 +105,7 @@ declare %private function tstitlecache:cleanup() {
 	tstitlecache:remove-entry($tstitlecache:hit-id),
 	tstitlecache:remove-entry($tstitlecache:expand-id),
 	tstitlecache:remove-entry($tstitlecache:backfill-id),
+	tstitlecache:remove-entry($tstitlecache:backfill-blank-id),
 	if (xmldb:collection-available($tstitlecache:src-col)) then
 		try { xmldb:remove($tstitlecache:src-col) } catch * { () }
 	else (
@@ -196,8 +213,18 @@ declare %test:assertEquals("backfill fixture title") function tstitlecache:backf
 };
 
 (:~
- : Summary reports exactly one title backfilled.
+ : Summary reports exactly one title backfilled - the fixture
+ : collection also has a second document with a blank title, which
+ : must be counted as skipped, not backfilled.
  :)
 declare %test:assertTrue function tstitlecache:backfill-summary-reports-one-title() {
 	matches(expand:backfillTitleCache($tstitlecache:backfill-col), "^backfilled 1 title\(s\)$")
+};
+
+(:~
+ : A document with a blank full title gets no cache entry at all.
+ :)
+declare %test:assertEmpty function tstitlecache:backfill-skips-blank-title() {
+	let $_ := expand:backfillTitleCache($tstitlecache:backfill-col)
+	return doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:backfill-blank-id]
 };

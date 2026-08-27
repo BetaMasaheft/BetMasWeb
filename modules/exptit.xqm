@@ -75,7 +75,11 @@ declare function exptit:printTitle($titleMe) {
 				else if (contains($titleMe, "betmas:")) then
 					(: it is a prefixed http thing, replace and treat it accordingly :)
 					let $id := substring-after($titleMe, "betmas:")
-					return exptit:printTitleID($id)
+					let $title := exptit:printTitleID($id)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
 				else if (starts-with($titleMe, "http")) then
 					(: it is a URI, but not ours, best guess is just return it as is :)
 					string($titleMe)
@@ -124,7 +128,8 @@ The following tests are also failing on the old system.
 %test:arg('id', 'PRS5684JesusCh#n2') %test:assertEquals('Jesus Christ, Krǝstos')
  :)
 function exptit:printTitleID($id as xs:string) {
-	if ($exptit:deleted//t:item[. = $id]) then
+	let $cacheHit := $exptit:titleCache//t:item[@corresp eq $id][1]
+	return if ($exptit:deleted//t:item[. = $id]) then
 		let $del := $exptit:deleted//t:item[. = $id]
 		let $formerly := $exptit:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
 		return if ($formerly) then
@@ -146,8 +151,8 @@ function exptit:printTitleID($id as xs:string) {
 	(: cache-first: expand:file writes every record's own resolved title
 	   here, keyed by its own xml:id - a hit skips the collection-wide
 	   id() lookup further down entirely :)
-	else if ($exptit:titleCache//t:item[@corresp eq $id]) then (
-		$exptit:titleCache//t:item[@corresp eq $id][1]/node()
+	else if (exists($cacheHit)) then (
+		$cacheHit/node()
 	) (: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :) else if (
 		$exptit:TUList//t:item[@corresp eq $id]
 	) then (
