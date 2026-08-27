@@ -1,0 +1,33 @@
+test/xqs/ts-app-msfilters.xqm
+  s_5790d61a112fab::t_f11a3bb9808731 645-749,751-776
+modules/app.xqm
+  s_5790d61a112fab::t_edf9f772c88faa 2797-2831
+  s_5790d61a112fab::t_f9967bdf884ee6 3518
+  s_5790d61a112fab::t_9fff3297f25bc7 944-963,967,971-987,989-997
+  s_5790d61a112fab::t_62d03f099d507b 988,998
+  s_5790d61a112fab::t_37bbe987c2b602 3336-3365,3367-3372,3374-3379,3381-3383,3391-3394,3396-3397,3399-3404,3406-3411,3413-3418,3420-3432
+  s_5790d61a112fab::t_fc2feb8307629f 3384-3390,3395
+  s_5790d61a112fab::t_02b5afebec4032 1475-1729,2796
+resources/js/filters.js
+  s_5790d61a112fab::t_85e6c1696ecb56 27-35
+forms/formdimensions.html
+  s_5790d61a112fab::t_940c96f6ae4f5c 6,11,16,21,28,33,38,43,48
+as.html
+  s_5790d61a112fab::t_a704e262a539b0 196-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f2be84c8ad1282d6de57ca910df47aacde85d7f3",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
