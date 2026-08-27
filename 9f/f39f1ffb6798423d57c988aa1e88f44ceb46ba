@@ -1,0 +1,14 @@
+collection.xconf
+  h_ff0005bef58c9d 5,8,15,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "9ff39f1ffb6798423d57c988aa1e88f44ceb46ba",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
