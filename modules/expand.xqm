@@ -868,6 +868,18 @@ declare function expand:syncBibliography($expanded as element()) {
 	)
 };
 
+(:~
+ : Expands one raw TEI source file into its full expanded form and syncs
+ : per-file side caches: bibliography entries (expand:syncBibliography)
+ : and, once the expanded title is known, this document's own entry in
+ : the shared title cache (titles:updateTitleCache) that
+ : exptit:printTitleID reads at render time. Does not persist the
+ : expanded document itself - that's the caller's responsibility (see
+ : batchExpand:expandOne).
+ :
+ : @param $filepath db path to the raw source TEI file
+ : @return the expanded document
+ :)
 declare function expand:file($filepath) {
 	let $doc := doc($filepath)
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
@@ -933,7 +945,12 @@ declare function expand:file($filepath) {
 				return <note>{ $a/@* }{ $a/node() }</note>
 			}
 		</bibl>
-	(: let $test := console:log($zotero) :) return document { expand:tei2fulltei($expanded, $zotero) }
+	(: let $test := console:log($zotero) :)
+	return let $result := document { expand:tei2fulltei($expanded, $zotero) }
+		let $ownId := string($result/t:TEI/@xml:id)
+		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
+		let $_cache := titles:updateTitleCache($ownId, $ownTitle)
+		return $result
 };
 
 (:

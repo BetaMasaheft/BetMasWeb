@@ -33,6 +33,7 @@ import module namespace tsmaincontent = "https://www.betamasaheft.uni-hamburg.de
 import module namespace tspermmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-permrestitem-maincontent" at "ts-permrestitem-maincontent.xqm";
 import module namespace tsformbounds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-formbounds" at "ts-queries-formbounds.xqm";
 import module namespace tsbatchexp = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-batch-expand" at "ts-batch-expand.xqm";
+import module namespace tstitlecache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-title-cache" at "ts-title-cache.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -58,6 +59,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-restitem-maincontent.xqm")),
 		inspect:module-functions(xs:anyURI("ts-permrestitem-maincontent.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-formbounds.xqm")),
-		inspect:module-functions(xs:anyURI("ts-batch-expand.xqm"))
+		inspect:module-functions(xs:anyURI("ts-batch-expand.xqm")),
+		inspect:module-functions(xs:anyURI("ts-title-cache.xqm"))
 	)
 )

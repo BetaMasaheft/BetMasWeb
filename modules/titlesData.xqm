@@ -512,6 +512,35 @@ declare function titles:updateTUList($name, $pRef) {
 	>{ $name }</item> into $TUList
 };
 
+(:~
+ : Upserts the shared works/persons/places/institutions title cache read
+ : by exptit:printTitleID's fast path. Creates the list document on
+ : first use; updates an existing entry in place rather than
+ : duplicating it. A blank title is not cached - a miss that falls
+ : through to the live lookup next time is safer than caching a value
+ : that looks resolved but isn't.
+ :
+ : @param $id the record's own xml:id, e.g. "LIT1793Leviti"
+ : @param $title the record's resolved full title
+ : @return empty sequence
+ :)
+declare function titles:updateTitleCache($id as xs:string, $title as xs:string?) as empty-sequence() {
+	if (not($title) or normalize-space($title) = "") then (
+	) else
+		let $collection := "/db/apps/lists"
+		let $resource := "titleCache.xml"
+		let $path := $collection || "/" || $resource
+		let $_bootstrap := if (doc-available($path)) then (
+		) else
+			xmldb:store($collection, $resource, <list xmlns="http://www.tei-c.org/ns/1.0" />)
+		let $list := doc($path)/t:list
+		let $existing := $list/t:item[@corresp eq $id]
+		return if ($existing) then
+			update value $existing with $title
+		else
+			update insert <item xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $id }">{ $title }</item> into $list
+};
+
 declare function titles:request($request as element(http:request)) {
 	let $_ := util:log("info", $request/@href)
 	let $response := http:send-request($request)

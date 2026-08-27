@@ -29,6 +29,13 @@ declare variable $exptit:deleted := doc("/db/apps/lists/deleted.xml");
 
 declare variable $exptit:prefixDef := doc("/db/apps/lists/listPrefixDef.xml");
 
+(:~
+ : Shared works/persons/places/institutions title cache, written by
+ : expand:file per document. Empty sequence until the cache document
+ : exists (doc() on a missing db resource returns empty, not an error).
+ :)
+declare variable $exptit:titleCache := doc("/db/apps/lists/titleCache.xml");
+
 (: The entry point function of the module. Establishes the different rules and priority to print a title referring to a record. can start from any node in the document. :)
 declare function exptit:printTitle($titleMe) {
 	if (count($titleMe) = 0 or $titleMe = "") then (
@@ -61,7 +68,17 @@ declare function exptit:printTitle($titleMe) {
 						$titleMe
 };
 
-(: this is now a switch function, deciding if to go ahead with simple print title or subtitles :)
+(:~
+ : Resolves a betmas identifier to its printable title. Checks a series
+ : of special cases and caches (deleted items, sdc: refs, the shared
+ : title cache written by expand:file, subtitle fragments after "#",
+ : external wd:/gn:/pleiades: place refs) before falling back to a
+ : live id() lookup against the expanded collection.
+ :
+ : @param $id a betmas identifier, optionally with a "#subid" suffix
+ : @return the resolved title, or an HTML fallback marker if nothing
+ : could be resolved
+ :)
 declare
 	%test:arg("id", "sdc:UniCont1")
 	%test:assertEquals("La Synthaxe du Codex UniCont1")
@@ -106,8 +123,14 @@ function exptit:printTitleID($id as xs:string) {
 	(: another hack for things like ref="#" :)
 	else if ($id = "#") then
 		<span class="w3-tag w3-red">{ "no item yet with id " || $id }</span>
-	(: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :)
-	else if ($exptit:TUList//t:item[@corresp eq $id]) then (
+	(: cache-first: expand:file writes every record's own resolved title
+	   here, keyed by its own xml:id - a hit skips the collection-wide
+	   id() lookup further down entirely :)
+	else if ($exptit:titleCache//t:item[@corresp eq $id]) then (
+		$exptit:titleCache//t:item[@corresp eq $id][1]/node()
+	) (: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :) else if (
+		$exptit:TUList//t:item[@corresp eq $id]
+	) then (
 		$exptit:TUList//t:item[@corresp eq $id][1]/node()
 	) else if ($exptit:persNamesList//t:item[@corresp eq $id]) then (
 		$exptit:persNamesList//t:item[@corresp eq $id][1]/node()
