@@ -35,6 +35,7 @@ import module namespace tsformbounds = "https://www.betamasaheft.uni-hamburg.de/
 import module namespace tsbatchexp = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-batch-expand" at "ts-batch-expand.xqm";
 import module namespace tstitlecache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-title-cache" at "ts-title-cache.xqm";
 import module namespace tsreslookup = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-resources-titlelookup" at "ts-resources-titlelookup.xqm";
+import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titles-consolidation" at "ts-titles-consolidation.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -62,6 +63,8 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-queries-formbounds.xqm")),
 		inspect:module-functions(xs:anyURI("ts-batch-expand.xqm")),
 		inspect:module-functions(xs:anyURI("ts-title-cache.xqm")),
-		inspect:module-functions(xs:anyURI("ts-resources-titlelookup.xqm"))
+		inspect:module-functions(xs:anyURI("ts-resources-titlelookup.xqm")),
+		inspect:module-functions(xs:anyURI("ts-titles-consolidation.xqm")),
+		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm"))
 	)
 )

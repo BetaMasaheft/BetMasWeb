@@ -31,7 +31,12 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 import module namespace functx = "http://www.functx.com";
 import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
-import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titles.xqm";
+(: titlesData.xqm - was titles.xqm, a near-duplicate module, merged in
+   because the two had quietly diverged (a latent #subid-lookup bug,
+   a missing placeName main-title check, and this module's callers
+   embedding titlesData.xqm's sibling's HTML fallback markers straight
+   into JSON responses). @see https://github.com/BetaMasaheft/BetMasWeb/issues/99 :)
+import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";

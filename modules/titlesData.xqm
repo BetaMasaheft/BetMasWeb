@@ -2,10 +2,15 @@ xquery version "3.1" encoding "UTF-8";
 
 (:~
  : Titles for RAW (unexpanded) source data — used by the expansion pipeline
- : (expand.xqm) and eventually gitsync. Ported from the legacy app
+ : (expand.xqm) and by dts.xqm. Ported from the legacy app
  : (/db/apps/BetMas/modules/titles.xqm, authoritative as of 2025-11) so that
  : expansion no longer depends on the legacy app.
- : Distinct from titles.xqm (web/dts variant) and exptit.xqm (expanded data).
+ : Also absorbed this app's own former titles.xqm (2026-08-27) - the two
+ : had quietly diverged into a stale, ~90%-duplicate fork; see
+ : https://github.com/BetaMasaheft/BetMasWeb/issues/99 for the bug that
+ : divergence caused (raw HTML markup leaking into dts.xqm's JSON output
+ : on unresolved ids) and the shape of the fix.
+ : Distinct from exptit.xqm (expanded data, live page render).
  :)
 module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles";
 
@@ -101,31 +106,44 @@ declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as x
 };
 
 (: this is now a switch function, deciding if to go ahead with simple print title or subtitles :)
+(:~
+ : Resolves a betmas identifier to its printable title, as a plain
+ : string (unlike exptit:printTitleID's HTML-fallback-marker sibling -
+ : this operates on raw source data at expand/DTS time, not rendered
+ : HTML). The test annotations below were stale until 2026-08-27 - they
+ : expected an older HTML-marker/", "-separator shape this function
+ : hasn't actually produced for some time; corrected to match verified
+ : current output rather than guessed-at intent.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/99
+ :
+ : @param $id a betmas identifier, optionally with a "#subid" suffix
+ : @return the resolved title as a string
+ :)
 declare
 	%test:arg("id", "sdc:UniCont1")
 	%test:assertEquals("La Synthaxe du Codex UniCont1")
 	%test:arg("id", "LIT2317Senodo#")
 	%test:assertEquals("Senodos")
 	%test:arg("id", "#")
-	%test:assertEquals('&lt;span class="w3-tag w3-red"&gt;no item yet with id #&lt;/span&gt;')
+	%test:assertEquals("no item yet with id #")
 	%test:arg("id", "")
-	%test:assertEquals('&lt;span class="w3-tag w3-red"&gt;no id&lt;/span&gt;')
+	%test:assertEquals("No item: ")
 	%test:arg("id", "BNFet32")
 	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32")
 	%test:arg("id", "LIT1367Exodus")
 	%test:assertEquals("Exodus")
 	%test:arg("id", "PRS11160HabtaS")
-	%test:assertEquals(" Habta Śǝllāse")
+	%test:assertEquals("Habta Śǝllāse")
 	%test:arg("id", "LOC1001Aallee")
 	%test:assertEquals("Aallee")
 	%test:arg("id", "BNFet32#a2")
-	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32, Donation Note a2")
+	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32:   additio a2")
 	%test:arg("id", "BNFet32#e1")
-	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32, no id e1")
+	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32: No item:  e1")
 	%test:arg("id", "LIT1367Exodus#Ex1")
-	%test:assertEquals("Exodus, Exodus 1")
+	%test:assertEquals("Exodus: Exodus 1")
 	%test:arg("id", "PRS5684JesusCh#n2")
-	%test:assertEquals("Jesus Christ, Krǝstos")
+	%test:assertEquals("Jesus Christ: Krǝstos")
 function titles:printTitleID($id as xs:string) {
 	if ($titles:deleted//t:item[. = $id]) then
 		let $del := $titles:deleted//t:item[. = $id]
@@ -207,6 +225,14 @@ eventually added result is added to the place list names :) else (: always look 
 			titles:switcher($resource/@type, $resource)
 };
 
+(:~
+ : Resolves a betmas identifier's main-record title (ignores any
+ : "#subid" suffix), as a plain string.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/99
+ :
+ : @param $id a betmas identifier, optionally with a "#subid" suffix
+ : @return the resolved title as a string
+ :)
 declare
 	%test:arg("id", "BNFet32")
 	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32")
@@ -215,7 +241,7 @@ declare
 	%test:arg("id", "LIT1367Exodus")
 	%test:assertEquals("Exodus")
 	%test:arg("id", "PRS11160HabtaS")
-	%test:assertEquals(" Habta Śǝllāse")
+	%test:assertEquals("Habta Śǝllāse")
 	%test:arg("id", "LOC1001Aallee")
 	%test:assertEquals("Aallee")
 function titles:printTitleMainID($id as xs:string) {
