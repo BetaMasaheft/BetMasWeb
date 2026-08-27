@@ -1008,6 +1008,163 @@ declare %templates:default("context", "collection($config:data-rootIn)") functio
 };
 
 (:~
+ : Strips the BMurl prefix from a reference, if present. Expanded-data
+ : @ref values are full URLs (https://betamasaheft.eu/PRS...), not
+ : bare ids - found live while smoke-testing app:persRoleResults,
+ : whose synthetic unit-test fixture used bare ids and missed it: an
+ : unstripped ref breaks both the constructed href (double-prefixed,
+ : "/https://...") and exptit:printTitleID (expects a bare id, returns
+ : empty for a full URL).
+ :
+ : @param $ref an id or a BMurl-prefixed reference
+ : @return the bare id
+ :)
+declare %private function app:bare-id($ref as xs:string) as xs:string {
+	if (starts-with($ref, $config:BMurl)) then
+		substring-after($ref, $config:BMurl)
+	else
+		$ref
+};
+
+(:~
+ : Corpus-driven "which role" selector, replacing formrole.html's
+ : stale hardcoded 10-value list (measured against the real corpus:
+ : the single most-used role, "owner" - 2,445 uses - was missing
+ : entirely; 3 of the 10 hardcoded values matched nothing). Single-
+ : select by design, unlike app:selectors' generic "values" branch
+ : (always `multiple="multiple"`) - the results side reads this as
+ : one value, not an array.
+ :
+ : @param $context a collection expression, evaluated via util:eval
+ : @param $role the currently-selected role, if any - echoed back as
+ : the selected option, the zero-JS equivalent of restoring
+ : $("#persRole").val() after a page reload
+ : @return a single-select control, name="role" id="persRole"
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRole(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*,
+	$role as xs:string*
+) as element() {
+	let $cont := util:eval($context)
+	let $selected := $role[1]
+	let $roles := config:distinct-values($cont//t:persName/@role[. != ""])
+	return <select class="w3-select w3-border" id="persRole" name="role">
+		<option value="">choose</option>
+		{
+			for $r in $roles
+			let $count := count($cont//t:persName[@role eq $r])
+			let $label := lower-case(replace($r, "([a-z])([A-Z])", "$1 $2"))
+			order by $label
+			return <option value="{ $r }">
+				{
+					if ($r = $selected) then
+						attribute selected { "selected" }
+					else (
+					)
+				}
+				{ $label || " (" || $count || ")" }
+			</option>
+		}
+	</select>
+};
+
+(:~
+ : Real, server-rendered replacement for personswithrole.js's first
+ : AJAX/JSON round-trip: given a role (submitted by app:persRole),
+ : lists every distinct person attested with it, each with a real
+ : link (`?role=X&amp;person=Y`) to app:persRolePersonDetail's
+ : specific-record breakdown - genuine lazy loading via a real URL,
+ : not a client-side fetch.
+ :
+ : @param $role the role to look up people for; empty renders nothing
+ : at all - this must stay lazy, never compute every role's people
+ : list up front
+ : @return the results markup, or an empty sequence
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRoleResults(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*,
+	$role as xs:string*
+) as element()* {
+	if (empty($role) or $role[1] = "") then (
+	) else
+		let $cont := util:eval($context)
+		let $r := $role[1]
+		let $attestations := $cont//t:persName[@role eq $r][@ref][not(starts-with(app:bare-id(string(@ref)), "PRS0000"))]
+		let $people :=
+			for $att in $attestations
+			let $id := app:bare-id(string($att/@ref))
+			group by $ID := $id
+			return map {"id": $ID, "count": count($att)}
+		return <div class="w3-container" id="persWithRoleResults">
+			<h4>There are <span class="w3-tag w3-red w3-round">{ count($people) }</span> persons with a role <span
+					class="w3-tag w3-gray w3-round"
+				>{ $r }</span>
+			</h4>
+			{
+				for $p in $people
+				order by $p?count descending
+				return <div class="w3-card-4 w3-padding w3-margin w3-third" data-person="{ $p?id }">
+					<header class="w3-container">
+						<a href="{ $config:appUrl }/{ $p?id }">{ exptit:printTitleID($p?id) }</a>
+					</header>
+					<div class="w3-container">is mentioned as { $r }{ $p?count } times:</div>
+					<a
+						class="w3-button w3-gray w3-small"
+						href="?role={ encode-for-uri($r) }&amp;person={ encode-for-uri($p?id) }"
+					>Click to see in which records.</a>
+				</div>
+			}
+		</div>
+};
+
+(:~
+ : Real, server-rendered replacement for personswithrole.js's second
+ : AJAX/JSON round-trip: given a role AND a specific person (both
+ : from the request), lists that person's individual source records
+ : for that role - computed only when this exact URL is requested,
+ : the same genuine lazy loading as app:persRoleResults.
+ :
+ : @param $role the role being looked up
+ : @param $person the specific person's id; empty renders nothing
+ : @return the per-record breakdown markup, or an empty sequence
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRolePersonDetail(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*,
+	$role as xs:string*,
+	$person as xs:string*
+) as element()* {
+	if (empty($role) or $role[1] = "" or empty($person) or $person[1] = "") then (
+	) else
+		let $cont := util:eval($context)
+		let $r := $role[1]
+		let $p := $person[1]
+		let $candidates := $cont//t:persName[@role eq $r][@ref]
+		let $atts := $candidates[app:bare-id(string(@ref)) eq $p]
+		let $sources :=
+			for $att in $atts
+			let $root := string(root($att)/t:TEI/@xml:id)
+			group by $ROOT := $root
+			return map {"source": $ROOT, "count": count($att)}
+		return <div class="w3-container" id="persRolePersonDetail">
+			<h4>{ exptit:printTitleID($p) } as { $r }, in { count($sources) } source(s):</h4>
+			<ul>
+				{
+					for $s in $sources
+					return <li data-source="{ $s?source }">
+						<a href="{ $config:appUrl }/{ $s?source }">{ exptit:printTitleID($s?source) }</a> ({ $s?count } times)
+					</li>
+				}
+			</ul>
+		</div>
+};
+
+(:~
  : called by form*.html files used by advances search form as.html and filters.js IDS, TITLES, PERSNAMES, PLACENAMES, provide lists with guessing based on typing. the list must suggest a name but search for an ID
  :)
 declare function app:BuildSearchQuery($element as xs:string, $query as xs:string) {
