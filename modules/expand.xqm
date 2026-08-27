@@ -868,6 +868,18 @@ declare function expand:syncBibliography($expanded as element()) {
 	)
 };
 
+(:~
+ : Expands one raw TEI source file into its full expanded form and syncs
+ : per-file side caches: bibliography entries (expand:syncBibliography)
+ : and, once the expanded title is known, this document's own entry in
+ : the shared title cache (titles:updateTitleCache) that
+ : exptit:printTitleID reads at render time. Does not persist the
+ : expanded document itself - that's the caller's responsibility (see
+ : batchExpand:expandOne).
+ :
+ : @param $filepath db path to the raw source TEI file
+ : @return the expanded document
+ :)
 declare function expand:file($filepath) {
 	let $doc := doc($filepath)
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
@@ -933,7 +945,61 @@ declare function expand:file($filepath) {
 				return <note>{ $a/@* }{ $a/node() }</note>
 			}
 		</bibl>
-	(: let $test := console:log($zotero) :) return document { expand:tei2fulltei($expanded, $zotero) }
+	(: let $test := console:log($zotero) :)
+	return let $result := document { expand:tei2fulltei($expanded, $zotero) }
+		let $ownId := string($result/t:TEI/@xml:id)
+		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
+		let $_cache := titles:updateTitleCache($ownId, $ownTitle)
+		return $result
+};
+
+(:~
+ : True if $col is the expanded-collection root or a path strictly
+ : under it, with no ".."/"." segments (rejects prefix tricks and
+ : traversal). Mirrors batchExpand:is-allowed-collection's shape for
+ : /db/apps/expanded instead of /db/apps/BetMasData.
+ :)
+declare %private function expand:is-allowed-backfill-collection($col as xs:string) as xs:boolean {
+	let $root := $expand:fullTEIcol-path
+	let $under := $col = $root or starts-with($col, $root || "/")
+	let $segments := tokenize($col, "/")
+	return $under and empty($segments[. = ("..", ".")])
+};
+
+(:~
+ : One-time (or re-run as needed) migration: harvests the title
+ : already present in each already-expanded document under
+ : $collectionUri into the shared title cache, keyed by each
+ : document's own xml:id. Does not re-expand anything - expand:file
+ : already keeps the cache in sync for every document expanded from
+ : here on; this only catches up documents expanded before the cache
+ : existed, or backfills a freshly-provisioned environment.
+ :
+ : @param $collectionUri a collection under /db/apps/expanded
+ : @return a one-line summary, e.g. "backfilled 42 title(s)"
+ :)
+declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:string {
+	let $col := normalize-space($collectionUri)
+	return if ($col = "" or empty($collectionUri)) then
+		error(xs:QName("expand:EMPTY"), "collection parameter is required")
+	else if (not(expand:is-allowed-backfill-collection($col))) then
+		error(
+			xs:QName("expand:BAD_ROOT"),
+			"collection must be under " || $expand:fullTEIcol-path || " without .. segments, got: " || $col
+		)
+	else if (not(xmldb:collection-available($col))) then
+		error(xs:QName("expand:MISSING"), "collection not found: " || $col)
+	else
+		let $docs := collection($col)//t:TEI[@xml:id]
+		let $resolved :=
+			for $doc in $docs
+			let $title := $doc//t:title[@type = "full"][1]/string()
+			where normalize-space($title) != ""
+			return map {"id": string($doc/@xml:id), "title": $title}
+		let $_ :=
+			for $entry in $resolved
+			return titles:updateTitleCache($entry?id, $entry?title)
+		return "backfilled " || count($resolved) || " title(s)"
 };
 
 (:

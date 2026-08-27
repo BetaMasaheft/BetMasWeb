@@ -815,8 +815,48 @@ declare function lists:biblform($node as node(), $model as map(*)) {
 	</form>
 };
 
+(:~
+ : Loads the shared works/persons/places/institutions title cache
+ : (populated by expand:file) into an in-memory lookup map. Building
+ : this map has a real fixed cost, so only call it at a site with
+ : enough distinct lookups to amortize it (e.g. additionsform/
+ : decorationsform's dropdowns) - not unconditionally on every
+ : templated page.
+ :
+ : @return a map from record id to cached title; empty if the cache
+ : document doesn't exist yet
+ :)
+declare function lists:title-lookup-map() as map(*) {
+	if (doc-available("/db/apps/lists/titleCache.xml")) then
+		map:merge(
+			for $item in doc("/db/apps/lists/titleCache.xml")//t:item
+			return map:entry(string($item/@corresp), string($item))
+		)
+	else
+		map {}
+};
+
+(:~
+ : Resolves a title from a pre-built lookup map, falling back to
+ : exptit:printTitle on a miss so an id the cache hasn't caught up
+ : with yet still resolves correctly.
+ :
+ : @param $id the record id to resolve (string or node, as
+ : exptit:printTitle accepts)
+ : @param $titleMap a map built by lists:title-lookup-map
+ : @return the resolved title
+ :)
+declare function lists:resolve-title($id, $titleMap as map(*)) {
+	let $cached := map:get($titleMap, string($id))
+	return if (exists($cached)) then
+		$cached
+	else
+		exptit:printTitle($id)
+};
+
 declare function lists:additionsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $titleMap := lists:title-lookup-map()
 	return <form action="" class="w3-container">
 		<div id="additiontypes" />
 		<div class="w3-container w3-margin">
@@ -841,7 +881,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					let $title := exptit:printTitle($d)
+					let $title := lists:resolve-title($d, $titleMap)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
 				}
@@ -864,7 +904,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -887,7 +927,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -932,7 +972,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -979,7 +1019,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 							for $d in
 								config:distinct-values($model("hits")//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))])
 							order by replace(data($d), "^.*[0-9]", "")
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
 						}
 					</select>
 				</div>
@@ -1000,7 +1040,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref[not(contains(., ".xml"))])
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1026,7 +1066,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
 							order by $d
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
 						}
 					</select>
 				</div>
@@ -1220,6 +1260,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 
 declare function lists:decorationsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $titleMap := lists:title-lookup-map()
 	return <form action="" class="w3-container">
 		<div class="w3-container  w3-margin">
 			<small class="form-text text-muted">Select one or more type of decoration</small>
@@ -1258,7 +1299,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					let $title := exptit:printTitle($d)
+					let $title := lists:resolve-title($d, $titleMap)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
 				}
@@ -1280,7 +1321,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1303,7 +1344,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1328,7 +1369,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:persName/@ref)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1353,7 +1394,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1379,7 +1420,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							let $title := exptit:printTitle($d)
+							let $title := lists:resolve-title($d, $titleMap)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1405,7 +1446,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
 							order by $d
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
 						}
 					</select>
 				</div>

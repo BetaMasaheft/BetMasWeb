@@ -29,7 +29,30 @@ declare variable $exptit:deleted := doc("/db/apps/lists/deleted.xml");
 
 declare variable $exptit:prefixDef := doc("/db/apps/lists/listPrefixDef.xml");
 
-(: The entry point function of the module. Establishes the different rules and priority to print a title referring to a record. can start from any node in the document. :)
+(:~
+ : Shared works/persons/places/institutions title cache, written by
+ : expand:file per document. Empty sequence until the cache document
+ : exists (doc() on a missing db resource returns empty, not an error).
+ :)
+declare variable $exptit:titleCache := doc("/db/apps/lists/titleCache.xml");
+
+(:~
+ : Resolves a title for a node or a raw identifier of unknown shape -
+ : an element (goes to its root's full title), a URI, or a bare id.
+ : Callers can pass attribute nodes (e.g. from config:distinct-values
+ : over a @ref sequence, which does not atomize its input here) as
+ : well as plain strings, so every non-element branch returns
+ : string($titleMe) rather than the raw item - an attribute node
+ : surfacing unchanged into element content elsewhere would be
+ : silently reattached as an attribute instead of serializing as text.
+ : Every branch also falls back to the original identifier when
+ : nothing resolves, rather than returning empty - a live-corpus smoke
+ : test found the BMurl-prefixed branch missing this, leaving up to
+ : ~14% of some dropdown options blank instead of showing the id.
+ :
+ : @param $titleMe an element, or an identifier (string or attribute)
+ : @return the resolved title as a string, or node content for elements
+ :)
 declare function exptit:printTitle($titleMe) {
 	if (count($titleMe) = 0 or $titleMe = "") then (
 	) else
@@ -44,24 +67,42 @@ declare function exptit:printTitle($titleMe) {
 				if (starts-with($titleMe, $config:BMurl)) then
 					(: check if it is a local URI :)
 					let $id := substring-after($titleMe, $config:BMurl)
-					return exptit:printTitleID($id)
+					let $title := exptit:printTitleID($id)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
 				else if (contains($titleMe, "betmas:")) then
 					(: it is a prefixed http thing, replace and treat it accordingly :)
 					let $id := substring-after($titleMe, "betmas:")
-					return exptit:printTitleID($id)
+					let $title := exptit:printTitleID($id)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
 				else if (starts-with($titleMe, "http")) then
 					(: it is a URI, but not ours, best guess is just return it as is :)
-					$titleMe
+					string($titleMe)
 				(: perhaps it is just an identifier.... try to get the full title and if you do not find it, return what was submitted :)
 				else
 					let $title := exptit:printTitleID($titleMe)
 					return if (string-length(string-join($title)) ge 1) then
 						$title
 					else
-						$titleMe
+						string($titleMe)
 };
 
-(: this is now a switch function, deciding if to go ahead with simple print title or subtitles :)
+(:~
+ : Resolves a betmas identifier to its printable title. Checks a series
+ : of special cases and caches (deleted items, sdc: refs, the shared
+ : title cache written by expand:file, subtitle fragments after "#",
+ : external wd:/gn:/pleiades: place refs) before falling back to a
+ : live id() lookup against the expanded collection.
+ :
+ : @param $id a betmas identifier, optionally with a "#subid" suffix
+ : @return the resolved title, or an HTML fallback marker if nothing
+ : could be resolved
+ :)
 declare
 	%test:arg("id", "sdc:UniCont1")
 	%test:assertEquals("La Synthaxe du Codex UniCont1")
@@ -87,7 +128,8 @@ The following tests are also failing on the old system.
 %test:arg('id', 'PRS5684JesusCh#n2') %test:assertEquals('Jesus Christ, Krǝstos')
  :)
 function exptit:printTitleID($id as xs:string) {
-	if ($exptit:deleted//t:item[. = $id]) then
+	let $cacheHit := $exptit:titleCache//t:item[@corresp eq $id][1]
+	return if ($exptit:deleted//t:item[. = $id]) then
 		let $del := $exptit:deleted//t:item[. = $id]
 		let $formerly := $exptit:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
 		return if ($formerly) then
@@ -106,8 +148,14 @@ function exptit:printTitleID($id as xs:string) {
 	(: another hack for things like ref="#" :)
 	else if ($id = "#") then
 		<span class="w3-tag w3-red">{ "no item yet with id " || $id }</span>
-	(: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :)
-	else if ($exptit:TUList//t:item[@corresp eq $id]) then (
+	(: cache-first: expand:file writes every record's own resolved title
+	   here, keyed by its own xml:id - a hit skips the collection-wide
+	   id() lookup further down entirely :)
+	else if (exists($cacheHit)) then (
+		$cacheHit/node()
+	) (: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :) else if (
+		$exptit:TUList//t:item[@corresp eq $id]
+	) then (
 		$exptit:TUList//t:item[@corresp eq $id][1]/node()
 	) else if ($exptit:persNamesList//t:item[@corresp eq $id]) then (
 		$exptit:persNamesList//t:item[@corresp eq $id][1]/node()
