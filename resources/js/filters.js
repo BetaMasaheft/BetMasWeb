@@ -11,6 +11,18 @@ $("#tooglesearchfield").click(function () {
 	$("#searchform").toggle("slow");
 });
 
+$(document).ready(function () {
+	// as.html always includes folia/writtenLines' own markup now, whether
+	// or not their section is currently active, so the widgets need a
+	// single, unconditional init
+	// here rather than each fragment's own inline <script> - inlined that
+	// close to the top of the page, ahead of bootstrap-slider's own
+	// <script> (loaded later, in the page wrapper), it would run before
+	// $.fn.bootstrapSlider even exists.
+	$("#folia").bootstrapSlider({});
+	$("#writtenLines").bootstrapSlider({});
+});
+
 $("#collectionfilter").on("change", function () {
 	if ($(this).val() === "mss") {
 		$("#manuscriptsFilters").show();
@@ -272,20 +284,6 @@ $(document).ready(function () {
 			}
 		}
 	});
-});
-
-$(document).ready(function () {
-	// as.html echoes checkbox state from the request server-side - but
-	// these facets' bootstrap-slider widgets need to be initialized
-	// while visible, so a pre-checked box
-	// on load still needs the same fetch-and-reveal a live click would
-	// trigger, run once here instead of waiting for one.
-	if ($("input[value=folia]").is(":checked")) {
-		callformpart("forms/formfolia.html", "leavesform");
-	}
-	if ($("input[value=writtenLines]").is(":checked")) {
-		callformpart("forms/formWL.html", "WLform");
-	}
 });
 
 $(document).on("change", "#target-ins", function () {

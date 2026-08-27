@@ -123,3 +123,46 @@ declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-
 	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), ()), (), ())
 	return exists($out/@style)
 };
+
+(:~
+ : Server-side include of formfolia.html - hidden without an active
+ : filter, rendering the same content a live AJAX fetch would have,
+ : without needing one (the bootstrap-slider widget was verified live
+ : to position handles with percentages, not cached pixels, so
+ : hidden-then-shown is safe).
+ :)
+declare %test:assertTrue function tsmssfilters:includeFoliaForm-hidden-without-param() {
+	let $node := <div data-template="app:includeFoliaForm" />
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for((), ()), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeFoliaForm-visible-with-nondefault-range() {
+	let $node := <div data-template="app:includeFoliaForm" />
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", ()), "5,42")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:includeFoliaForm-echoes-range-when-active() {
+	let $node := <div data-template="app:includeFoliaForm" />
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", ()), "5,42")
+	return exists($out//*:input[@id = "folia"][@data-slider-value = "[5,42]"])
+};
+
+declare %test:assertTrue function tsmssfilters:includeWLForm-hidden-without-param() {
+	let $node := <div data-template="app:includeWLForm" />
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), ()), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeWLForm-visible-with-nondefault-range() {
+	let $node := <div data-template="app:includeWLForm" />
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17"), "3,17")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:includeWLForm-echoes-range-when-active() {
+	let $node := <div data-template="app:includeWLForm" />
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17"), "3,17")
+	return exists($out//*:input[@id = "writtenLines"][@data-slider-value = "[3,17]"])
+};

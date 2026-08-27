@@ -846,18 +846,39 @@ declare function app:foliaInput($node as node(), $model as map(*), $folia as xs:
 };
 
 (:~
- : Echoes the "folia" checkbox's state from the request - checked when
- : `folia` differs from the slider's own default range, matching the
- : same sentinel q:par-folia uses to decide "no filter applied".
+ : Whether `folia` carries a real, non-default filter value - the same
+ : sentinel q:par-folia uses to decide "no filter applied", shared by
+ : every folia-facet templated function below so they can't drift
+ : apart from each other or from q:par-folia itself.
+ :
+ : @param $folia the request's folia parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:folia-active($folia as xs:string*) as xs:boolean {
+	exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
+};
+
+(:~
+ : Whether `wL` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-wL's sentinel.
+ :
+ : @param $wL the request's wL parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:wL-active($wL as xs:string*) as xs:boolean {
+	exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
+};
+
+(:~
+ : Echoes the "folia" checkbox's state from the request.
  :
  : @param $folia the request's folia parameter, auto-resolved by name
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as xs:string*) as element() {
-	let $active := exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
-	return element {node-name($node)} {
+	element {node-name($node)} {
 		$node/@* except ($node/@data-template, $node/@checked),
-		if ($active) then
+		if (app:folia-active($folia)) then
 			attribute checked { "checked" }
 		else (
 		)
@@ -865,18 +886,15 @@ declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as 
 };
 
 (:~
- : Echoes the "writtenLines" checkbox's state from the request -
- : checked when `wL` differs from the slider's own default range,
- : matching q:par-wL's own "no filter applied" sentinel.
+ : Echoes the "writtenLines" checkbox's state from the request.
  :
  : @param $wL the request's wL parameter, auto-resolved by name
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:writtenLinesCheckbox($node as node(), $model as map(*), $wL as xs:string*) as element() {
-	let $active := exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
-	return element {node-name($node)} {
+	element {node-name($node)} {
 		$node/@* except ($node/@data-template, $node/@checked),
-		if ($active) then
+		if (app:wL-active($wL)) then
 			attribute checked { "checked" }
 		else (
 		)
@@ -901,15 +919,54 @@ declare function app:manuscriptsFiltersSection(
 	$folia as xs:string*,
 	$wL as xs:string*
 ) as element() {
-	let $foliaActive := exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
-	let $wLActive := exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
-	return element {node-name($node)} {
+	element {node-name($node)} {
 		$node/@* except ($node/@data-template, $node/@style),
-		if ($foliaActive or $wLActive) then (
+		if (app:folia-active($folia) or app:wL-active($wL)) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
 	}
+};
+
+(:~
+ : Server-side include of formfolia.html's own templated content,
+ : exactly like app:includeRoleForm - a real bootstrap-slider widget
+ : is not a blocker here: verified live (2026-08-27) that this
+ : library positions its handles with percentages, not cached pixels,
+ : so it initializes correctly even while its container starts
+ : `display:none` and gets revealed later. Replaces the AJAX-fetch +
+ : pre-checked-box-scan approach this facet shipped with initially.
+ :
+ : @param $folia the request's folia parameter, auto-resolved by name
+ : @return formfolia.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element() {
+	let $fragment := doc($config:app-root || "/forms/formfolia.html")/*
+	let $rendered := templates:process($fragment, $model)
+	return if (app:folia-active($folia)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Server-side include of formWL.html's own templated content - see
+ : app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $wL the request's wL parameter, auto-resolved by name
+ : @return formWL.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element() {
+	let $fragment := doc($config:app-root || "/forms/formWL.html")/*
+	let $rendered := templates:process($fragment, $model)
+	return if (app:wL-active($wL)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~
