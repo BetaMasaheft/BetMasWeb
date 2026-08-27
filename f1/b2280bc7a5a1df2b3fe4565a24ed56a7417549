@@ -1,0 +1,42 @@
+forms/formgender.html
+  s_5790d61a112fab::t_09267ecce09833 6,10
+  s_5790d61a112fab::t_30e2d62d7e267b 5,7-9,11-12
+test/xqs/ts-app-msfilters.xqm
+  s_5790d61a112fab::t_3612e48f7ecc18 320-355
+  s_5790d61a112fab::t_1779e2e9f7a0c0 31-32,52-53
+  s_5790d61a112fab::t_09267ecce09833 182-190,196-204,210-218,224-232
+  s_5790d61a112fab::t_bd1a05ee28f0b1 238
+  s_5790d61a112fab::t_2caa4017cccc81 251,257,263,269,275,281,287,293,299,305,311,317
+forms/formCUnumber.html
+  s_5790d61a112fab::t_f802128e8c900a 5
+as.html
+  s_5790d61a112fab::t_09267ecce09833 205-207,238-239
+  s_5790d61a112fab::t_7530c9bb3abfb9 240
+test/xqs/ts-app-persrole.xqm
+  s_5790d61a112fab::t_996be23841cb7e 101,106,116,255,261,272,278,284
+  s_5790d61a112fab::t_538aa8f4bc2a02 217-221,236-237
+  s_5790d61a112fab::t_ac9d20860aa6b4 287-329
+modules/app.xqm
+  s_5790d61a112fab::t_d8cedc898b3faa 2110-2114,2117,2121
+  s_5790d61a112fab::t_20c62be39d8b7c 927,1011,1516-1529,1534-1535,1538,1541-1546,1549,1556-1593
+  s_5790d61a112fab::t_09267ecce09833 966-970,1003
+  s_5790d61a112fab::t_f869addb4d98a3 2108-2109,2115-2116,2118-2120
+  s_5790d61a112fab::t_244ffc01b3528c 928-939,951,960-961,965,971,978-1002,1004-1010
+  s_5790d61a112fab::t_6ee992aa6e056d 1012,1594
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f1b2280bc7a5a1df2b3fe4565a24ed56a7417549",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
