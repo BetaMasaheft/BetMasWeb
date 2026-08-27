@@ -789,16 +789,25 @@ declare %templates:default("context", "$exptit:col") function app:relationType(
  :
  : @param $node the data-template marker node (unused, part of the templates:apply contract)
  : @param $model unused, part of the templates:apply contract
+ : @param $wL the request's wL parameter, auto-resolved by name - a
+ : "min,max" pair, echoed back as the slider's initial position instead
+ : of always resetting to the full range (a real bug: the filter *was*
+ : already applied server-side on reload, the widget just silently
+ : failed to show that)
  : @return the <input> element for the bootstrap-slider widget, with real min/max/value
  :)
-declare function app:writtenLinesInput($node as node(), $model as map(*)) {
+declare function app:writtenLinesInput($node as node(), $model as map(*), $wL as xs:string*) as element(input) {
 	let $max := q:max-written-lines()
+	let $range := if (exists($wL) and $wL[1] != "") then
+		$wL[1]
+	else
+		"1," || $max
 	return <input
 		class="span2"
 		data-slider-max="{ $max }"
 		data-slider-min="1"
 		data-slider-step="1"
-		data-slider-value="[1,{ $max }]"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
 		id="writtenLines"
 		name="wL"
 		type="text" />
@@ -812,19 +821,95 @@ declare function app:writtenLinesInput($node as node(), $model as map(*)) {
  :
  : @param $node the data-template marker node (unused, part of the templates:apply contract)
  : @param $model unused, part of the templates:apply contract
+ : @param $folia the request's folia parameter, auto-resolved by name -
+ : a "min,max" pair, echoed back as the slider's initial position
+ : instead of always resetting to the full range (a real bug: the
+ : filter *was* already applied server-side on reload, the widget just
+ : silently failed to show that)
  : @return the <input> element for the bootstrap-slider widget, with real min/max/value
  :)
-declare function app:foliaInput($node as node(), $model as map(*)) {
+declare function app:foliaInput($node as node(), $model as map(*), $folia as xs:string*) as element(input) {
 	let $max := q:max-folia()
+	let $range := if (exists($folia) and $folia[1] != "") then
+		$folia[1]
+	else
+		"1," || $max
 	return <input
 		class="span2"
 		data-slider-max="{ $max }"
 		data-slider-min="1"
 		data-slider-step="1"
-		data-slider-value="[1,{ $max }]"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
 		id="folia"
 		name="folia"
 		type="text" />
+};
+
+(:~
+ : Echoes the "folia" checkbox's state from the request - checked when
+ : `folia` differs from the slider's own default range, matching the
+ : same sentinel q:par-folia uses to decide "no filter applied".
+ :
+ : @param $folia the request's folia parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as xs:string*) as element() {
+	let $active := exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
+	return element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if ($active) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Echoes the "writtenLines" checkbox's state from the request -
+ : checked when `wL` differs from the slider's own default range,
+ : matching q:par-wL's own "no filter applied" sentinel.
+ :
+ : @param $wL the request's wL parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:writtenLinesCheckbox($node as node(), $model as map(*), $wL as xs:string*) as element() {
+	let $active := exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
+	return element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if ($active) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Reveals the "Manuscripts Filters" section server-side when one of
+ : its facets has an active, non-default request parameter, instead of
+ : relying on filters.js's `#collectionfilter` change handler alone
+ : (JS-only, lost on reload). Only `folia`/`writtenLines` participate
+ : so far - extend this parameter list as more `#mssFilter` facets get
+ : the same treatment.
+ :
+ : @param $folia the request's folia parameter, auto-resolved by name
+ : @param $wL the request's wL parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:manuscriptsFiltersSection(
+	$node as node(),
+	$model as map(*),
+	$folia as xs:string*,
+	$wL as xs:string*
+) as element() {
+	let $foliaActive := exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
+	let $wLActive := exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
+	return element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@style),
+		if ($foliaActive or $wLActive) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
 };
 
 (:~

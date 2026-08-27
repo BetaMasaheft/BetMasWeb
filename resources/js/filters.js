@@ -43,7 +43,10 @@ function callformpart(file, id) {
 	var myElem = document.getElementById(id);
 	// if it is not there, load it
 	if (myElem === null) {
-		$.ajax(file, {
+		// forward the page's own query string so a fragment whose fields
+		// read request parameters (e.g. app:foliaInput's slider echo) has
+		// something to echo, instead of always seeing a fresh empty request
+		$.ajax(file + window.location.search, {
 			success: function (data) {
 				$("#AddFilters").append(data);
 			},
@@ -269,6 +272,20 @@ $(document).ready(function () {
 			}
 		}
 	});
+});
+
+$(document).ready(function () {
+	// as.html echoes checkbox state from the request server-side - but
+	// these facets' bootstrap-slider widgets need to be initialized
+	// while visible, so a pre-checked box
+	// on load still needs the same fetch-and-reveal a live click would
+	// trigger, run once here instead of waiting for one.
+	if ($("input[value=folia]").is(":checked")) {
+		callformpart("forms/formfolia.html", "leavesform");
+	}
+	if ($("input[value=writtenLines]").is(":checked")) {
+		callformpart("forms/formWL.html", "WLform");
+	}
 });
 
 $(document).on("change", "#target-ins", function () {

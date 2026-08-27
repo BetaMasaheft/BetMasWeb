@@ -174,17 +174,24 @@
 						</div>
 						<div class="w3-half w3-padding">Select to see a list of available specific filters</div>
 					</div>
-					<div class="w3-row" id="manuscriptsFilters" style="display: none">
+					<div
+						class="w3-row"
+						id="manuscriptsFilters"
+						style="display: none"
+						data-template="app:manuscriptsFiltersSection"
+					>
 						<div class="w3-half w3-padding">
 							<label>Manuscripts Filters</label>
 							<br />
 							<div id="mssFilter">
 								<input class="w3-check" type="checkbox" value="institutions" /> repositories<br />
 								<input class="w3-check" type="checkbox" value="dimensions" /> dimensions<br />
-								<input class="w3-check" type="checkbox" value="folia" /> number of folia<br />
+								<input class="w3-check" type="checkbox" value="folia" data-template="app:foliaCheckbox" /> number of
+								folia<br />
 								<input class="w3-check" type="checkbox" value="quires" /> number of quires<br />
 								<input class="w3-check" type="checkbox" value="quiresComp" />quires composition<br />
-								<input class="w3-check" type="checkbox" value="writtenLines" /> number of written lines<br />
+								<input class="w3-check" type="checkbox" value="writtenLines" data-template="app:writtenLinesCheckbox" />
+								number of written lines<br />
 								<input class="w3-check" type="checkbox" value="CUnumber" /> minimum number of codicological units<br />
 								<input class="w3-check" type="checkbox" value="script" /> script<br />
 								<input class="w3-check" type="checkbox" value="scribe" /> scribe<br />
