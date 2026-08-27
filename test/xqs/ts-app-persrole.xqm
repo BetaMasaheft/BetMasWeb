@@ -14,6 +14,7 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "../../modules/app.xqm";
+import module namespace templates = "http://exist-db.org/xquery/html-templating";
 
 declare variable $tspersrole:col := "/db/apps/expanded/manuscripts/_persRoleTest";
 
@@ -179,4 +180,98 @@ declare %test:assertEmpty function tspersrole:persRolePersonDetail-empty-without
 declare %test:assertEquals(1) function tspersrole:persRolePersonDetail-lists-source-records() {
 	let $out := app:persRolePersonDetail(<a />, map {}, $tspersrole:context, $tspersrole:role, $tspersrole:person1)
 	return count($out//*[@data-source])
+};
+
+(:~
+ : Echoes the "role" checkbox's checked state - the zero-JS piece of
+ : as.html's state-restoration fix.
+ :)
+declare %test:assertTrue function tspersrole:roleCheckbox-checked-when-role-selected() {
+	let $node := <input data-template="app:roleCheckbox" type="checkbox" value="role" />
+	let $out := app:roleCheckbox($node, map {}, $tspersrole:role)
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tspersrole:roleCheckbox-unchecked-without-role() {
+	let $node := <input data-template="app:roleCheckbox" type="checkbox" value="role" />
+	let $out := app:roleCheckbox($node, map {}, ())
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tspersrole:roleCheckbox-strips-data-template() {
+	let $node := <input data-template="app:roleCheckbox" type="checkbox" value="role" />
+	let $out := app:roleCheckbox($node, map {}, ())
+	return exists($out/@data-template)
+};
+
+(:~
+ : Minimal templates:apply-shaped $model, standing in for what
+ : templates:apply normally builds - needed here since
+ : app:includeRoleForm calls templates:process directly (it *is* the
+ : server-side equivalent of an AJAX include, so it has to). The
+ : param-resolver is fixed to test values instead of the real request,
+ : the same role $context override the other tests use.
+ :)
+declare %private function tspersrole:model-for($role as xs:string?, $person as xs:string?) as map(*) {
+	map {
+		$templates:CONFIGURATION:
+			map {
+				$templates:CONFIG_FN_RESOLVER:
+					function ($name as xs:string, $arity as xs:integer) as function(*)? {
+						try { function-lookup(xs:QName($name), $arity) } catch * { () }
+					},
+				$templates:CONFIG_PARAM_RESOLVER:
+					function ($var as xs:string) as item()* {
+						switch ($var)
+							case "role" return
+								$role
+							case "person" return
+								$person
+							case "context" return
+								$tspersrole:context
+							default return
+								()
+					},
+				$templates:CONFIG_USE_CLASS_SYNTAX: false(),
+				$templates:CONFIG_STOP_ON_ERROR: false()
+			}
+	}
+};
+
+(:~
+ : Reveals the persFilters wrapper server-side when role is active.
+ :)
+declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-role-selected() {
+	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
+	let $out := app:persFiltersSection($node, tspersrole:model-for($tspersrole:role, ()), $tspersrole:role)
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tspersrole:persFiltersSection-hidden-without-role() {
+	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
+	let $out := app:persFiltersSection($node, tspersrole:model-for((), ()), ())
+	return exists($out/@style)
+};
+
+(:~
+ : Server-side include of formrole.html - hidden without a role,
+ : rendering the same content a live AJAX fetch would have, without
+ : needing one.
+ :)
+declare %test:assertTrue function tspersrole:includeRoleForm-hidden-without-role() {
+	let $node := <div data-template="app:includeRoleForm" />
+	let $out := app:includeRoleForm($node, tspersrole:model-for((), ()), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tspersrole:includeRoleForm-visible-with-role() {
+	let $node := <div data-template="app:includeRoleForm" />
+	let $out := app:includeRoleForm($node, tspersrole:model-for($tspersrole:role, ()), $tspersrole:role)
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tspersrole:includeRoleForm-renders-results-with-role() {
+	let $node := <div data-template="app:includeRoleForm" />
+	let $out := app:includeRoleForm($node, tspersrole:model-for($tspersrole:role, ()), $tspersrole:role)
+	return exists($out//*[@data-person])
 };

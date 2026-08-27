@@ -212,13 +212,14 @@
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>
 					</div>
-					<div class="w3-row" id="persFilters" style="display: none">
+					<div class="w3-row" id="persFilters" style="display: none" data-template="app:persFiltersSection">
 						<div class="w3-half w3-padding">
 							<label>Persons Filters</label>
 							<div id="pFilter">
 								<input class="w3-check" type="checkbox" value="gender" /> gender<br />
 								<input class="w3-check" type="checkbox" value="occupation" /> occupation<br />
-								<input class="w3-check" type="checkbox" value="role" /> role<br />
+								<input class="w3-check" type="checkbox" value="role" data-template="app:roleCheckbox" /> role<br />
+								<div data-template="app:includeRoleForm" />
 							</div>
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>

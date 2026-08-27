@@ -1111,7 +1111,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 					<header class="w3-container">
 						<a href="{ $config:appUrl }/{ $p?id }">{ exptit:printTitleID($p?id) }</a>
 					</header>
-					<div class="w3-container">is mentioned as { $r }{ $p?count } times:</div>
+					<div class="w3-container">is mentioned as { $r || " " || $p?count } times:</div>
 					<a
 						class="w3-button w3-gray w3-small"
 						href="?role={ encode-for-uri($r) }&amp;person={ encode-for-uri($p?id) }"
@@ -1162,6 +1162,68 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 				}
 			</ul>
 		</div>
+};
+
+(:~
+ : Echoes the "role" checkbox's state from the request - zero-JS
+ : equivalent of what filters.js's client-side "checked" state used to
+ : lose on reload.
+ :
+ : @param $role the request's role parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a role is selected
+ :)
+declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (exists($role) and $role[1] != "") then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Reveals the "Persons Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload). Only `role` participates so far - extend this
+ : parameter list as more `#pFilter` facets get the same treatment.
+ :
+ : @param $role the request's role parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:persFiltersSection($node as node(), $model as map(*), $role as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@style),
+		if (exists($role) and $role[1] != "") then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Server-side equivalent of filters.js's `callformpart("forms/formrole.html",
+ : "roleform")`: includes formrole.html's own templated content directly,
+ : so it's already in the page - and already reflects `role`/`person` -
+ : on a plain reload with no JS needed. `filters.js`'s existing click
+ : handler still works unmodified: `callformpart` only fetches a
+ : fragment when its target id isn't already in the page, and toggles
+ : visibility otherwise - which is exactly what's wanted once this div
+ : is always present.
+ :
+ : @param $role the request's role parameter, auto-resolved by name
+ : @return formrole.html's own root element, hidden when no role is selected
+ :)
+declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element() {
+	let $fragment := doc($config:app-root || "/forms/formrole.html")/*
+	let $rendered := templates:process($fragment, $model)
+	return if (exists($role) and $role[1] != "") then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~
