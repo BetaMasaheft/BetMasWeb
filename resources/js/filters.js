@@ -23,6 +23,7 @@ $(document).ready(function () {
 	$("#writtenLines").bootstrapSlider({});
 	$("#quires").bootstrapSlider({});
 	$("#quiresComp").bootstrapSlider({});
+	$("#dates").bootstrapSlider({});
 });
 
 $("#collectionfilter").on("change", function () {

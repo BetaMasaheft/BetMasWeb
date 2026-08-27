@@ -732,6 +732,44 @@ declare %test:assertFalse function tsmssfilters:includeRelationsForm-visible-wit
 	return exists(app:includeRelationsForm($node, tsmssfilters:model-for(map {"relType": "rel1"}), "rel1")/@style)
 };
 
+declare %test:assertTrue function tsmssfilters:dateInput-echoes-submitted-range() {
+	let $out := app:dateInput(<a />, map {}, "500,1500")
+	return $out/@data-slider-value = "[500,1500]"
+};
+
+declare %test:assertTrue function tsmssfilters:dateInput-defaults-to-full-range-without-param() {
+	let $out := app:dateInput(<a />, map {}, ())
+	return $out/@data-slider-value = "[1,2000]"
+};
+
+declare %test:assertTrue function tsmssfilters:dateCheckbox-checked-with-nondefault-range() {
+	let $node := <input data-template="app:dateCheckbox" type="checkbox" value="date" />
+	let $out := app:dateCheckbox($node, map {}, "500,1500")
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:dateCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:dateCheckbox" type="checkbox" value="date" />
+	let $out := app:dateCheckbox($node, map {}, ())
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:dateCheckbox-unchecked-with-default-range() {
+	let $node := <input data-template="app:dateCheckbox" type="checkbox" value="date" />
+	let $out := app:dateCheckbox($node, map {}, "1,2000")
+	return exists($out/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeDateForm-hidden-without-param() {
+	let $node := <div data-template="app:includeDateForm" />
+	return exists(app:includeDateForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeDateForm-visible-with-nondefault-range() {
+	let $node := <div data-template="app:includeDateForm" />
+	return exists(app:includeDateForm($node, tsmssfilters:model-for(map {"dateRange": "500,1500"}), "500,1500")/@style)
+};
+
 declare %test:assertTrue function tsmssfilters:scriptCheckbox-checked-with-value() {
 	let $node := <input data-template="app:scriptCheckbox" type="checkbox" value="script" />
 	return exists(app:scriptCheckbox($node, map {}, "GeezScript")/@checked)

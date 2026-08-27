@@ -2070,6 +2070,90 @@ declare function app:includeRelationsForm($node as node(), $model as map(*), $re
 };
 
 (:~
+ : Whether `dateRange` carries a real, non-default filter value. Mirrors
+ : q:par-date-range's own sentinel exactly: that function - now shared
+ : by both queries.xqm's REST-facing case "dateRange" dispatch and
+ : app:query's as.html "date" facet, see its doc for why this used to
+ : be two divergent implementations - treats a submitted "1,2000" (its
+ : full slider range) the same as no filter at all, so the echoed
+ : default here must be "1,2000" too, not the fragment's original
+ : hardcoded widget preset ("350,1900"): that preset doesn't match the
+ : sentinel, so always rendering it (instead of only on click, as the
+ : pre-conversion AJAX fetch did) would have silently turned every
+ : unfiltered search into one filtered to 350-1900, discarding all
+ : undated items. See app:dateInput for where the true default is
+ : produced.
+ :
+ : @param $dateRange the request's dateRange parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:date-active($dateRange as xs:string*) as xs:boolean {
+	exists($dateRange) and $dateRange[1] != "" and $dateRange[1] != "1,2000"
+};
+
+(:~
+ : Date-range slider for forms/formdates.html. Bounds match
+ : q:par-date-range's own hardcoded sentinel (1-2000) rather than the
+ : fragment's original "350,1900" widget preset - see app:date-active.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $dateRange the request's dateRange parameter, auto-resolved by
+ : name - a "min,max" pair, echoed back as the slider's initial position
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:dateInput($node as node(), $model as map(*), $dateRange as xs:string*) as element(input) {
+	let $range := if (exists($dateRange) and $dateRange[1] != "") then
+		$dateRange[1]
+	else
+		"1,2000"
+	return <input
+		class="span2"
+		data-slider-max="2000"
+		data-slider-min="1"
+		data-slider-step="10"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="dates"
+		name="dateRange"
+		type="text" />
+};
+
+(:~
+ : Echoes the "date" checkbox's state from the request - like
+ : languages/keywords/relations, this checkbox lives under "General
+ : filters" directly, with no wrapping reveal section of its own.
+ :
+ : @param $dateRange the request's dateRange parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:dateCheckbox($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:date-active($dateRange)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formdates.html's own templated content - see
+ : app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $dateRange the request's dateRange parameter, auto-resolved by name
+ : @return formdates.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeDateForm($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formdates.html")
+	return if (app:date-active($dateRange)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
  : Echoes the "script" checkbox's state from the request.
  :
  : @param $script the request's script parameter, auto-resolved by name
@@ -2955,35 +3039,17 @@ function app:query(
 			app:paramrange("qcn", "collation//t:dim[@unit eq 'leaf']")
 	) else (
 	)
-	let $dateRange := if (contains($app:params, "dataRange")) then (
-		let $range := request:get-parameter("dateRange", ())
-		let $from := substring-before($range, ",")
-		let $to := substring-after($range, ",")
-		return if ($range = "0,2000") then (
-		) else if ($range = "") then (
-		) else
-			"[descendant::t:*[(if
-(contains(@notBefore, '-'))
-then (substring-before(@notBefore, '-'))
-else @notBefore)[. !=''][. ge " ||
-				$from ||
-				"][.  le " ||
-				$to ||
-				"]
-
-or
-(if (contains(@notAfter, '-'))
-then (substring-before(@notAfter, '-'))
-else @notAfter)[. !=''][. ge " ||
-				$from ||
-				"][.  le " ||
-				$to ||
-				"]
-
-]
-]"
-	) else (
-	)
+	(:
+	 : Delegates to q:par-date-range (see its own doc) rather than
+	 : maintaining a second, divergent implementation here. The previous
+	 : local version had two real bugs, both found live-testing this
+	 : slice: it guarded on `contains($app:params, "dataRange")` (typo
+	 : for "dateRange", so the filter never actually ran for any real
+	 : request), and its predicate applied to `descendant::t:*` with
+	 : unquoted integer literals, which crashed with `XPTY0004` on any
+	 : element carrying a non-numeric `@notBefore`/`@notAfter`.
+	 :)
+	let $dateRange := q:par-date-range("origDate", request:get-parameter("dateRange", ()))
 	let $height := if (contains($app:params, "height")) then (
 		app:paramrange("height", "height")
 	) else (
