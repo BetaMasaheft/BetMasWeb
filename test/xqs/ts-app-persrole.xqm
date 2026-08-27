@@ -98,12 +98,12 @@ declare %test:assertTrue function tspersrole:persRole-lists-role-with-count() {
 	(: 4 attestations total: person1 twice, person2 once, the
 	   placeholder once - the option's count is total attestations,
 	   not distinct (non-placeholder) people. :)
-	let $select := app:persRole(<a />, tspersrole:model-for((), (), ()), $tspersrole:context)
+	let $select := app:persRole(<a />, tspersrole:model-for(map {}), $tspersrole:context)
 	return exists($select//*:option[starts-with(@value, $tspersrole:role)][contains(., "4")])
 };
 
 declare %test:assertFalse function tspersrole:persRole-is-not-multiple() {
-	let $select := app:persRole(<a />, tspersrole:model-for((), (), ()), $tspersrole:context)
+	let $select := app:persRole(<a />, tspersrole:model-for(map {}), $tspersrole:context)
 	return exists($select/@multiple)
 };
 
@@ -113,7 +113,7 @@ declare %test:assertFalse function tspersrole:persRole-is-not-multiple() {
  : zero-JS equivalent of restoring $("#persRole").val() on reload.
  :)
 declare %test:assertTrue function tspersrole:persRole-echoes-selected-value() {
-	let $select := app:persRole(<a />, tspersrole:model-for($tspersrole:role, (), ()), $tspersrole:context)
+	let $select := app:persRole(<a />, tspersrole:model-for(map {"role": $tspersrole:role}), $tspersrole:context)
 	return exists($select//*:option[starts-with(@value, $tspersrole:role)][@selected])
 };
 
@@ -210,15 +210,16 @@ declare %test:assertFalse function tspersrole:roleCheckbox-strips-data-template(
  : Minimal templates:apply-shaped $model, standing in for what
  : templates:apply normally builds - needed here since
  : app:includeRoleForm calls templates:process directly (it *is* the
- : server-side equivalent of an AJAX include, so it has to). The
- : param-resolver is fixed to test values instead of the real request,
- : the same role $context override the other tests use.
+ : server-side equivalent of an AJAX include, so it has to). Map-keyed
+ : rather than positional - see ts-app-msfilters.xqm's own
+ : tsmssfilters:model-for for the same reasoning; this one's growing
+ : the same way as more `#pFilter` facets get closed. "context"
+ : always resolves to $tspersrole:context regardless of $params - the
+ : fixture's own context, never something a caller needs to vary.
+ :
+ : @param $params a map of request-parameter-name to value
  :)
-declare %private function tspersrole:model-for(
-	$role as xs:string?,
-	$person as xs:string?,
-	$gender as xs:string?
-) as map(*) {
+declare %private function tspersrole:model-for($params as map(*)) as map(*) {
 	map {
 		$templates:CONFIGURATION:
 			map {
@@ -228,17 +229,10 @@ declare %private function tspersrole:model-for(
 					},
 				$templates:CONFIG_PARAM_RESOLVER:
 					function ($var as xs:string) as item()* {
-						switch ($var)
-							case "role" return
-								$role
-							case "person" return
-								$person
-							case "gender" return
-								$gender
-							case "context" return
-								$tspersrole:context
-							default return
-								()
+						if ($var = "context") then
+							$tspersrole:context
+						else
+							$params($var)
 					},
 				$templates:CONFIG_USE_CLASS_SYNTAX: false(),
 				$templates:CONFIG_STOP_ON_ERROR: false(),
@@ -252,13 +246,19 @@ declare %private function tspersrole:model-for(
  :)
 declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-role-selected() {
 	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for($tspersrole:role, (), ()), $tspersrole:role, ())
+	let $out := app:persFiltersSection(
+		$node,
+		tspersrole:model-for(map {"role": $tspersrole:role}),
+		$tspersrole:role,
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tspersrole:persFiltersSection-hidden-without-role() {
 	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for((), (), ()), (), ())
+	let $out := app:persFiltersSection($node, tspersrole:model-for(map {}), (), (), ())
 	return exists($out/@style)
 };
 
@@ -269,19 +269,19 @@ declare %test:assertTrue function tspersrole:persFiltersSection-hidden-without-r
  :)
 declare %test:assertTrue function tspersrole:includeRoleForm-hidden-without-role() {
 	let $node := <div data-template="app:includeRoleForm" />
-	let $out := app:includeRoleForm($node, tspersrole:model-for((), (), ()), ())
+	let $out := app:includeRoleForm($node, tspersrole:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tspersrole:includeRoleForm-visible-with-role() {
 	let $node := <div data-template="app:includeRoleForm" />
-	let $out := app:includeRoleForm($node, tspersrole:model-for($tspersrole:role, (), ()), $tspersrole:role)
+	let $out := app:includeRoleForm($node, tspersrole:model-for(map {"role": $tspersrole:role}), $tspersrole:role)
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tspersrole:includeRoleForm-renders-results-with-role() {
 	let $node := <div data-template="app:includeRoleForm" />
-	let $out := app:includeRoleForm($node, tspersrole:model-for($tspersrole:role, (), ()), $tspersrole:role)
+	let $out := app:includeRoleForm($node, tspersrole:model-for(map {"role": $tspersrole:role}), $tspersrole:role)
 	return exists($out//*[@data-person])
 };
 
@@ -299,19 +299,19 @@ declare %test:assertFalse function tspersrole:genderCheckbox-unchecked-without-p
 
 declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-gender-active() {
 	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="gender" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for((), (), "1"), (), "1")
+	let $out := app:persFiltersSection($node, tspersrole:model-for(map {"gender": "1"}), (), "1", ())
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tspersrole:includeGenderForm-hidden-without-param() {
 	let $node := <div data-template="app:includeGenderForm" />
-	let $out := app:includeGenderForm($node, tspersrole:model-for((), (), ()), ())
+	let $out := app:includeGenderForm($node, tspersrole:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tspersrole:includeGenderForm-visible-with-value() {
 	let $node := <div data-template="app:includeGenderForm" />
-	let $out := app:includeGenderForm($node, tspersrole:model-for((), (), "1"), "1")
+	let $out := app:includeGenderForm($node, tspersrole:model-for(map {"gender": "1"}), "1")
 	return exists($out/@style)
 };
 
@@ -324,6 +324,34 @@ declare %test:assertFalse function tspersrole:includeGenderForm-visible-with-val
  :)
 declare %test:assertTrue function tspersrole:includeGenderForm-checks-matching-option() {
 	let $node := <div data-template="app:includeGenderForm" />
-	let $out := app:includeGenderForm($node, tspersrole:model-for((), (), "1"), "1")
+	let $out := app:includeGenderForm($node, tspersrole:model-for(map {"gender": "1"}), "1")
 	return exists($out//*:input[@name = "gender"][@value = "1"][@checked])
+};
+
+declare %test:assertTrue function tspersrole:occupationCheckbox-checked-with-value() {
+	let $node := <input data-template="app:occupationCheckbox" type="checkbox" value="occupation" />
+	return exists(app:occupationCheckbox($node, map {}, "scribe")/@checked)
+};
+
+declare %test:assertFalse function tspersrole:occupationCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:occupationCheckbox" type="checkbox" value="occupation" />
+	return exists(app:occupationCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-persType-active() {
+	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="occupation" /></div>
+	let $out := app:persFiltersSection($node, tspersrole:model-for(map {"persType": "scribe"}), (), (), "scribe")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tspersrole:includeOccupationForm-hidden-without-param() {
+	let $node := <div data-template="app:includeOccupationForm" />
+	let $out := app:includeOccupationForm($node, tspersrole:model-for(map {}), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tspersrole:includeOccupationForm-visible-with-value() {
+	let $node := <div data-template="app:includeOccupationForm" />
+	let $out := app:includeOccupationForm($node, tspersrole:model-for(map {"persType": "scribe"}), "scribe")
+	return exists($out/@style)
 };

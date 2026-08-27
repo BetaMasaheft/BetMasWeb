@@ -180,6 +180,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		(),
+		(),
+		(),
+		(),
+		(),
 		()
 	)
 	return exists($out/@style)
@@ -192,6 +196,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		tsmssfilters:model-for(map {"wL": "3,17"}),
 		(),
 		"3,17",
+		(),
+		(),
+		(),
+		(),
 		(),
 		(),
 		(),
@@ -224,6 +232,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		(),
+		(),
+		(),
+		(),
+		(),
 		()
 	)
 	return exists($out/@style)
@@ -246,6 +258,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		(),
+		(),
+		(),
+		(),
+		(),
 		()
 	)
 	return exists($out/@style)
@@ -256,6 +272,10 @@ declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-
 	let $out := app:manuscriptsFiltersSection(
 		$node,
 		tsmssfilters:model-for(map {}),
+		(),
+		(),
+		(),
+		(),
 		(),
 		(),
 		(),
@@ -374,6 +394,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		"3",
+		(),
+		(),
+		(),
+		(),
 		(),
 		(),
 		(),
@@ -607,6 +631,10 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		(),
+		(),
+		(),
+		(),
+		(),
 		()
 	)
 	return exists($out/@style)
@@ -629,7 +657,189 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 		(),
 		(),
 		(),
-		"contemporary"
+		"contemporary",
+		(),
+		(),
+		(),
+		()
+	)
+	return exists($out/@style)
+};
+
+(:~
+ : languages/keywords/relations live under "General filters" directly
+ : (no wrapping reveal section - unlike every other facet in this
+ : module, that div has no id/style of its own to toggle), so only
+ : checkbox+include need testing here, no section-active case.
+ :)
+declare %test:assertTrue function tsmssfilters:languagesCheckbox-checked-with-value() {
+	let $node := <input data-template="app:languagesCheckbox" type="checkbox" value="languages" />
+	return exists(app:languagesCheckbox($node, map {}, "eng")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:languagesCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:languagesCheckbox" type="checkbox" value="languages" />
+	return exists(app:languagesCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeLanguagesForm-hidden-without-param() {
+	let $node := <div data-template="app:includeLanguagesForm" />
+	return exists(app:includeLanguagesForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeLanguagesForm-visible-with-value() {
+	let $node := <div data-template="app:includeLanguagesForm" />
+	return exists(app:includeLanguagesForm($node, tsmssfilters:model-for(map {"language": "eng"}), "eng")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:keywordsCheckbox-checked-with-value() {
+	let $node := <input data-template="app:keywordsCheckbox" type="checkbox" value="keywords" />
+	return exists(app:keywordsCheckbox($node, map {}, "kw1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:keywordsCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:keywordsCheckbox" type="checkbox" value="keywords" />
+	return exists(app:keywordsCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeKeywordsForm-hidden-without-param() {
+	let $node := <div data-template="app:includeKeywordsForm" />
+	return exists(app:includeKeywordsForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeKeywordsForm-visible-with-value() {
+	let $node := <div data-template="app:includeKeywordsForm" />
+	return exists(app:includeKeywordsForm($node, tsmssfilters:model-for(map {"keyword": "kw1"}), "kw1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:relationsCheckbox-checked-with-value() {
+	let $node := <input data-template="app:relationsCheckbox" type="checkbox" value="relations" />
+	return exists(app:relationsCheckbox($node, map {}, "rel1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:relationsCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:relationsCheckbox" type="checkbox" value="relations" />
+	return exists(app:relationsCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeRelationsForm-hidden-without-param() {
+	let $node := <div data-template="app:includeRelationsForm" />
+	return exists(app:includeRelationsForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeRelationsForm-visible-with-value() {
+	let $node := <div data-template="app:includeRelationsForm" />
+	return exists(app:includeRelationsForm($node, tsmssfilters:model-for(map {"relType": "rel1"}), "rel1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:scriptCheckbox-checked-with-value() {
+	let $node := <input data-template="app:scriptCheckbox" type="checkbox" value="script" />
+	return exists(app:scriptCheckbox($node, map {}, "GeezScript")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:scriptCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:scriptCheckbox" type="checkbox" value="script" />
+	return exists(app:scriptCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeScriptForm-hidden-without-param() {
+	let $node := <div data-template="app:includeScriptForm" />
+	return exists(app:includeScriptForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeScriptForm-visible-with-value() {
+	let $node := <div data-template="app:includeScriptForm" />
+	return exists(app:includeScriptForm($node, tsmssfilters:model-for(map {"script": "GeezScript"}), "GeezScript")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:parchmentMakerCheckbox-checked-with-value() {
+	let $node := <input data-template="app:parchmentMakerCheckbox" type="checkbox" value="parchmentMaker" />
+	return exists(app:parchmentMakerCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:parchmentMakerCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:parchmentMakerCheckbox" type="checkbox" value="parchmentMaker" />
+	return exists(app:parchmentMakerCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeParchmentMakerForm-hidden-without-param() {
+	let $node := <div data-template="app:includeParchmentMakerForm" />
+	return exists(
+		app:includeParchmentMakerForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")]
+	)
+};
+
+declare %test:assertFalse function tsmssfilters:includeParchmentMakerForm-visible-with-value() {
+	let $node := <div data-template="app:includeParchmentMakerForm" />
+	return exists(
+		app:includeParchmentMakerForm($node, tsmssfilters:model-for(map {"parchmentMaker": "PRS1"}), "PRS1")/@style
+	)
+};
+
+declare %test:assertTrue function tsmssfilters:materialCheckbox-checked-with-value() {
+	let $node := <input data-template="app:materialCheckbox" type="checkbox" value="material" />
+	return exists(app:materialCheckbox($node, map {}, "parchment")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:materialCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:materialCheckbox" type="checkbox" value="material" />
+	return exists(app:materialCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeMaterialForm-hidden-without-param() {
+	let $node := <div data-template="app:includeMaterialForm" />
+	return exists(app:includeMaterialForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeMaterialForm-visible-with-value() {
+	let $node := <div data-template="app:includeMaterialForm" />
+	return exists(
+		app:includeMaterialForm($node, tsmssfilters:model-for(map {"material": "parchment"}), "parchment")/@style
+	)
+};
+
+declare %test:assertTrue function tsmssfilters:bmaterialCheckbox-checked-with-value() {
+	let $node := <input data-template="app:bmaterialCheckbox" type="checkbox" value="bmaterial" />
+	return exists(app:bmaterialCheckbox($node, map {}, "leather")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:bmaterialCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:bmaterialCheckbox" type="checkbox" value="bmaterial" />
+	return exists(app:bmaterialCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeBmaterialForm-hidden-without-param() {
+	let $node := <div data-template="app:includeBmaterialForm" />
+	return exists(app:includeBmaterialForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeBmaterialForm-visible-with-value() {
+	let $node := <div data-template="app:includeBmaterialForm" />
+	return exists(app:includeBmaterialForm($node, tsmssfilters:model-for(map {"bmaterial": "leather"}), "leather")/@style)
+};
+
+declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-material-active() {
+	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="material" /></div>
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for(map {"material": "parchment"}),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		"parchment",
+		()
 	)
 	return exists($out/@style)
 };

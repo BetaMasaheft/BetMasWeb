@@ -50,13 +50,13 @@ declare %test:assertFalse function tswpfilters:authorsCheckbox-unchecked-without
 
 declare %test:assertFalse function tswpfilters:worksFiltersSection-visible-when-author-active() {
 	let $node := <div id="worksFilters" style="display: none"><input type="checkbox" value="authors" /></div>
-	let $out := app:worksFiltersSection($node, tswpfilters:model-for(map {"author": "REL1"}), "REL1")
+	let $out := app:worksFiltersSection($node, tswpfilters:model-for(map {"author": "REL1"}), "REL1", ())
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tswpfilters:worksFiltersSection-hidden-without-author() {
 	let $node := <div id="worksFilters" style="display: none"><input type="checkbox" value="authors" /></div>
-	let $out := app:worksFiltersSection($node, tswpfilters:model-for(map {}), ())
+	let $out := app:worksFiltersSection($node, tswpfilters:model-for(map {}), (), ())
 	return exists($out/@style)
 };
 
@@ -84,13 +84,13 @@ declare %test:assertFalse function tswpfilters:tabotsCheckbox-unchecked-without-
 
 declare %test:assertFalse function tswpfilters:placesFiltersSection-visible-when-tabot-active() {
 	let $node := <div id="placesFilters" style="display: none"><input type="checkbox" value="tabots" /></div>
-	let $out := app:placesFiltersSection($node, tswpfilters:model-for(map {"tabot": "PLA1"}), "PLA1")
+	let $out := app:placesFiltersSection($node, tswpfilters:model-for(map {"tabot": "PLA1"}), "PLA1", ())
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tswpfilters:placesFiltersSection-hidden-without-tabot() {
 	let $node := <div id="placesFilters" style="display: none"><input type="checkbox" value="tabots" /></div>
-	let $out := app:placesFiltersSection($node, tswpfilters:model-for(map {}), ())
+	let $out := app:placesFiltersSection($node, tswpfilters:model-for(map {}), (), ())
 	return exists($out/@style)
 };
 
@@ -103,5 +103,61 @@ declare %test:assertTrue function tswpfilters:includeTabotsForm-hidden-without-p
 declare %test:assertFalse function tswpfilters:includeTabotsForm-visible-with-value() {
 	let $node := <div data-template="app:includeTabotsForm" />
 	let $out := app:includeTabotsForm($node, tswpfilters:model-for(map {"tabot": "PLA1"}), "PLA1")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tswpfilters:targetWorksCheckbox-checked-with-value() {
+	let $node := <input data-template="app:targetWorksCheckbox" type="checkbox" value="target-works" />
+	return exists(app:targetWorksCheckbox($node, map {}, "LIT1")/@checked)
+};
+
+declare %test:assertFalse function tswpfilters:targetWorksCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:targetWorksCheckbox" type="checkbox" value="target-works" />
+	return exists(app:targetWorksCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertFalse function tswpfilters:worksFiltersSection-visible-when-target-work-active() {
+	let $node := <div id="worksFilters" style="display: none"><input type="checkbox" value="target-works" /></div>
+	let $out := app:worksFiltersSection($node, tswpfilters:model-for(map {"target-work": "LIT1"}), (), "LIT1")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tswpfilters:includeTargetWorksForm-hidden-without-param() {
+	let $node := <div data-template="app:includeTargetWorksForm" />
+	let $out := app:includeTargetWorksForm($node, tswpfilters:model-for(map {}), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tswpfilters:includeTargetWorksForm-visible-with-value() {
+	let $node := <div data-template="app:includeTargetWorksForm" />
+	let $out := app:includeTargetWorksForm($node, tswpfilters:model-for(map {"target-work": "LIT1"}), "LIT1")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tswpfilters:placeTypeCheckbox-checked-with-value() {
+	let $node := <input data-template="app:placeTypeCheckbox" type="checkbox" value="placeType" />
+	return exists(app:placeTypeCheckbox($node, map {}, "settlement")/@checked)
+};
+
+declare %test:assertFalse function tswpfilters:placeTypeCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:placeTypeCheckbox" type="checkbox" value="placeType" />
+	return exists(app:placeTypeCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertFalse function tswpfilters:placesFiltersSection-visible-when-placeType-active() {
+	let $node := <div id="placesFilters" style="display: none"><input type="checkbox" value="placeType" /></div>
+	let $out := app:placesFiltersSection($node, tswpfilters:model-for(map {"placeType": "settlement"}), (), "settlement")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tswpfilters:includePlaceTypeForm-hidden-without-param() {
+	let $node := <div data-template="app:includePlaceTypeForm" />
+	let $out := app:includePlaceTypeForm($node, tswpfilters:model-for(map {}), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tswpfilters:includePlaceTypeForm-visible-with-value() {
+	let $node := <div data-template="app:includePlaceTypeForm" />
+	let $out := app:includePlaceTypeForm($node, tswpfilters:model-for(map {"placeType": "settlement"}), "settlement")
 	return exists($out/@style)
 };
