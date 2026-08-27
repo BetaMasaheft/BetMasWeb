@@ -40,6 +40,20 @@ declare variable $tstitlecache:tei := <TEI
 	<text><body><div type="edition"><ab>x</ab></div></body></text>
 </TEI>;
 
+declare variable $tstitlecache:backfill-col := "/db/apps/expanded/works/_titleCacheBackfillTest";
+
+declare variable $tstitlecache:backfill-id := "LITTESTtitleCacheBackfill77";
+
+declare variable $tstitlecache:backfill-title := "backfill fixture title";
+
+declare variable $tstitlecache:backfill-tei := <TEI
+	xmlns="http://www.tei-c.org/ns/1.0"
+	xml:id="{ $tstitlecache:backfill-id }"
+>
+	<teiHeader><titleStmt><title type="full">{ $tstitlecache:backfill-title }</title></titleStmt></teiHeader>
+	<text><body><div type="edition"><ab>x</ab></div></body></text>
+</TEI>;
+
 declare %private function tstitlecache:remove-entry($id as xs:string) {
 	if (doc-available($tstitlecache:cache-path)) then
 		let $existing := doc($tstitlecache:cache-path)//t:item[@corresp eq $id]
@@ -59,15 +73,28 @@ declare %private function tstitlecache:ensure-src() {
 	if (xmldb:collection-available($tstitlecache:src-col)) then (
 	) else
 		xmldb:create-collection("/db/apps/BetMasData/works", "_titleCacheTest"),
-	xmldb:store($tstitlecache:src-col, $tstitlecache:expand-id || ".xml", $tstitlecache:tei)
+	xmldb:store($tstitlecache:src-col, $tstitlecache:expand-id || ".xml", $tstitlecache:tei),
+	if (not(xmldb:collection-available("/db/apps/expanded/works"))) then
+		xmldb:create-collection("/db/apps/expanded", "works")
+	else (
+	),
+	if (xmldb:collection-available($tstitlecache:backfill-col)) then (
+	) else
+		xmldb:create-collection("/db/apps/expanded/works", "_titleCacheBackfillTest"),
+	xmldb:store($tstitlecache:backfill-col, $tstitlecache:backfill-id || ".xml", $tstitlecache:backfill-tei)
 };
 
 declare %private function tstitlecache:cleanup() {
 	tstitlecache:remove-entry($tstitlecache:write-id),
 	tstitlecache:remove-entry($tstitlecache:hit-id),
 	tstitlecache:remove-entry($tstitlecache:expand-id),
+	tstitlecache:remove-entry($tstitlecache:backfill-id),
 	if (xmldb:collection-available($tstitlecache:src-col)) then
 		try { xmldb:remove($tstitlecache:src-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tstitlecache:backfill-col)) then
+		try { xmldb:remove($tstitlecache:backfill-col) } catch * { () }
 	else (
 	)
 };
@@ -130,4 +157,47 @@ declare %test:assertEmpty function tstitlecache:printTitleID-cache-miss-falls-th
 declare %test:assertEquals("title cache expand fixture") function tstitlecache:expand-file-populates-cache() {
 	let $_ := expand:file($tstitlecache:src-col || "/" || $tstitlecache:expand-id || ".xml")
 	return string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:expand-id][1])
+};
+
+(:~
+ : Empty / missing collection must refuse (no silent full-corpus).
+ :)
+declare %test:assertError("expand:EMPTY") function tstitlecache:backfill-refuse-empty-collection() {
+	expand:backfillTitleCache("")
+};
+
+declare %test:assertError("expand:EMPTY") function tstitlecache:backfill-refuse-missing-param() {
+	expand:backfillTitleCache(())
+};
+
+declare %test:assertError("expand:BAD_ROOT") function tstitlecache:backfill-refuse-outside-expanded() {
+	expand:backfillTitleCache("/db/apps/BetMasData")
+};
+
+declare %test:assertError("expand:BAD_ROOT") function tstitlecache:backfill-refuse-prefix-sibling() {
+	expand:backfillTitleCache("/db/apps/expandedEvil")
+};
+
+declare %test:assertError("expand:BAD_ROOT") function tstitlecache:backfill-refuse-dotdot-traversal() {
+	expand:backfillTitleCache("/db/apps/expanded/../lists")
+};
+
+declare %test:assertError("expand:MISSING") function tstitlecache:backfill-refuse-missing-collection() {
+	expand:backfillTitleCache("/db/apps/expanded/works/_titleCacheBackfillMissingCol")
+};
+
+(:~
+ : Harvests the title already present in an expanded document (no
+ : re-expansion involved) into the cache, keyed by its own xml:id.
+ :)
+declare %test:assertEquals("backfill fixture title") function tstitlecache:backfill-populates-cache() {
+	let $_ := expand:backfillTitleCache($tstitlecache:backfill-col)
+	return string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:backfill-id][1])
+};
+
+(:~
+ : Summary reports exactly one title backfilled.
+ :)
+declare %test:assertTrue function tstitlecache:backfill-summary-reports-one-title() {
+	matches(expand:backfillTitleCache($tstitlecache:backfill-col), "^backfilled 1 title\(s\)$")
 };

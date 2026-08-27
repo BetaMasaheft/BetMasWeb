@@ -953,6 +953,52 @@ declare function expand:file($filepath) {
 		return $result
 };
 
+(:~
+ : True if $col is the expanded-collection root or a path strictly
+ : under it, with no ".."/"." segments (rejects prefix tricks and
+ : traversal). Mirrors batchExpand:is-allowed-collection's shape for
+ : /db/apps/expanded instead of /db/apps/BetMasData.
+ :)
+declare %private function expand:is-allowed-backfill-collection($col as xs:string) as xs:boolean {
+	let $root := $expand:fullTEIcol-path
+	let $under := $col = $root or starts-with($col, $root || "/")
+	let $segments := tokenize($col, "/")
+	return $under and empty($segments[. = ("..", ".")])
+};
+
+(:~
+ : One-time (or re-run as needed) migration: harvests the title
+ : already present in each already-expanded document under
+ : $collectionUri into the shared title cache, keyed by each
+ : document's own xml:id. Does not re-expand anything - expand:file
+ : already keeps the cache in sync for every document expanded from
+ : here on; this only catches up documents expanded before the cache
+ : existed, or backfills a freshly-provisioned environment.
+ :
+ : @param $collectionUri a collection under /db/apps/expanded
+ : @return a one-line summary, e.g. "backfilled 42 title(s)"
+ :)
+declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:string {
+	let $col := normalize-space($collectionUri)
+	return if ($col = "" or empty($collectionUri)) then
+		error(xs:QName("expand:EMPTY"), "collection parameter is required")
+	else if (not(expand:is-allowed-backfill-collection($col))) then
+		error(
+			xs:QName("expand:BAD_ROOT"),
+			"collection must be under " || $expand:fullTEIcol-path || " without .. segments, got: " || $col
+		)
+	else if (not(xmldb:collection-available($col))) then
+		error(xs:QName("expand:MISSING"), "collection not found: " || $col)
+	else
+		let $docs := collection($col)//t:TEI[@xml:id]
+		let $_ :=
+			for $doc in $docs
+			let $id := string($doc/@xml:id)
+			let $title := $doc//t:title[@type = "full"][1]/string()
+			return titles:updateTitleCache($id, $title)
+		return "backfilled " || count($docs) || " title(s)"
+};
+
 (:
 declare function expand:optionsexpand($model, $bibliography){
 if($model/t:choice[t:corr][t:sic]) then
