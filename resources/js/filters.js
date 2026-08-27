@@ -21,6 +21,8 @@ $(document).ready(function () {
 	// $.fn.bootstrapSlider even exists.
 	$("#folia").bootstrapSlider({});
 	$("#writtenLines").bootstrapSlider({});
+	$("#quires").bootstrapSlider({});
+	$("#quiresComp").bootstrapSlider({});
 });
 
 $("#collectionfilter").on("change", function () {

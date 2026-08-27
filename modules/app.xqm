@@ -21,6 +21,7 @@ declare namespace xconf = "http://exist-db.org/collection-config/1.0";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
+import module namespace lib = "http://exist-db.org/xquery/html-templating/lib";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace coord = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord" at "xmldb:exist:///db/apps/BetMasWeb/modules/coordinates.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -902,26 +903,51 @@ declare function app:writtenLinesCheckbox($node as node(), $model as map(*), $wL
 };
 
 (:~
+ : Whether `qn` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-qn's sentinel.
+ :
+ : @param $qn the request's qn parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:qn-active($qn as xs:string*) as xs:boolean {
+	exists($qn) and $qn[1] != "" and $qn[1] != "1,100"
+};
+
+(:~
+ : Whether `qcn` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-qcn's sentinel.
+ :
+ : @param $qcn the request's qcn parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:qcn-active($qcn as xs:string*) as xs:boolean {
+	exists($qcn) and $qcn[1] != "" and $qcn[1] != "1,40"
+};
+
+(:~
  : Reveals the "Manuscripts Filters" section server-side when one of
  : its facets has an active, non-default request parameter, instead of
  : relying on filters.js's `#collectionfilter` change handler alone
- : (JS-only, lost on reload). Only `folia`/`writtenLines` participate
- : so far - extend this parameter list as more `#mssFilter` facets get
- : the same treatment.
+ : (JS-only, lost on reload). Extend this parameter list as more
+ : `#mssFilter` facets get the same treatment.
  :
  : @param $folia the request's folia parameter, auto-resolved by name
  : @param $wL the request's wL parameter, auto-resolved by name
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @param $qcn the request's qcn parameter, auto-resolved by name
  : @return the section, with its `display:none` dropped when active
  :)
 declare function app:manuscriptsFiltersSection(
 	$node as node(),
 	$model as map(*),
 	$folia as xs:string*,
-	$wL as xs:string*
+	$wL as xs:string*,
+	$qn as xs:string*,
+	$qcn as xs:string*
 ) as element() {
 	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@style),
-		if (app:folia-active($folia) or app:wL-active($wL)) then (
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (app:folia-active($folia) or app:wL-active($wL) or app:qn-active($qn) or app:qcn-active($qcn)) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
@@ -941,8 +967,7 @@ declare function app:manuscriptsFiltersSection(
  : @return formfolia.html's own root element, hidden when no filter is active
  :)
 declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element() {
-	let $fragment := doc($config:app-root || "/forms/formfolia.html")/*
-	let $rendered := templates:process($fragment, $model)
+	let $rendered := lib:include($node, $model, "forms/formfolia.html")
 	return if (app:folia-active($folia)) then
 		$rendered
 	else
@@ -959,9 +984,122 @@ declare function app:includeFoliaForm($node as node(), $model as map(*), $folia 
  : @return formWL.html's own root element, hidden when no filter is active
  :)
 declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element() {
-	let $fragment := doc($config:app-root || "/forms/formWL.html")/*
-	let $rendered := templates:process($fragment, $model)
+	let $rendered := lib:include($node, $model, "forms/formWL.html")
 	return if (app:wL-active($wL)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Quire-count range slider for forms/formquires.html. Bounds are the
+ : same hardcoded "1,100" q:par-qn itself checks against - unlike
+ : folia/writtenLines, this facet's bounds weren't found to need
+ : corpus-derived correction, only the state-echo this function adds.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:quiresInput($node as node(), $model as map(*), $qn as xs:string*) as element(input) {
+	let $range := if (exists($qn) and $qn[1] != "") then
+		$qn[1]
+	else
+		"1,100"
+	return <input
+		class="span2"
+		data-slider-max="100"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="quires"
+		name="qn"
+		type="text" />
+};
+
+(:~
+ : Quire-composition range slider for forms/formquiresComp.html - see
+ : app:quiresInput, same reasoning, this facet's own "1,40" sentinel.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:quiresCompInput($node as node(), $model as map(*), $qcn as xs:string*) as element(input) {
+	let $range := if (exists($qcn) and $qcn[1] != "") then
+		$qcn[1]
+	else
+		"1,40"
+	return <input
+		class="span2"
+		data-slider-max="40"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="quiresComp"
+		name="qcn"
+		type="text" />
+};
+
+(:~
+ : Echoes the "quires" checkbox's state from the request.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:quiresCheckbox($node as node(), $model as map(*), $qn as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:qn-active($qn)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Echoes the "quiresComp" checkbox's state from the request.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:quiresCompCheckbox($node as node(), $model as map(*), $qcn as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:qcn-active($qcn)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formquires.html's own templated content -
+ : see app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return formquires.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formquires.html")
+	return if (app:qn-active($qn)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Server-side include of formquiresComp.html's own templated content -
+ : see app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return formquiresComp.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formquiresComp.html")
+	return if (app:qcn-active($qcn)) then
 		$rendered
 	else
 		element {node-name($rendered)} {
@@ -1177,39 +1315,34 @@ declare %private function app:bare-id($ref as xs:string) as xs:string {
  : (always `multiple="multiple"`) - the results side reads this as
  : one value, not an array.
  :
+ : Selection-echoing itself is templates:form-control's job (matches
+ : app:keywords/app:languages's own convention elsewhere in this
+ : module) rather than hand-rolled, since it already reads "role" from
+ : the request by this select's own @name - the zero-JS equivalent of
+ : restoring $("#persRole").val() after a page reload, with no need to
+ : take $role as its own parameter at all.
+ :
  : @param $context a collection expression, evaluated via util:eval
- : @param $role the currently-selected role, if any - echoed back as
- : the selected option, the zero-JS equivalent of restoring
- : $("#persRole").val() after a page reload
  : @return a single-select control, name="role" id="persRole"
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:persRole(
 	$node as node(),
 	$model as map(*),
-	$context as xs:string*,
-	$role as xs:string*
+	$context as xs:string*
 ) as element() {
 	let $cont := util:eval($context)
-	let $selected := $role[1]
 	let $roles := config:distinct-values($cont//t:persName/@role[. != ""])
-	return <select class="w3-select w3-border" id="persRole" name="role">
+	let $select := <select class="w3-select w3-border" id="persRole" name="role">
 		<option value="">choose</option>
 		{
 			for $r in $roles
 			let $count := count($cont//t:persName[@role eq $r])
 			let $label := lower-case(replace($r, "([a-z])([A-Z])", "$1 $2"))
 			order by $label
-			return <option value="{ $r }">
-				{
-					if ($r = $selected) then
-						attribute selected { "selected" }
-					else (
-					)
-				}
-				{ $label || " (" || $count || ")" }
-			</option>
+			return <option value="{ $r }">{ $label || " (" || $count || ")" }</option>
 		}
 	</select>
+	return templates:form-control($select, $model)
 };
 
 (:~
@@ -1336,7 +1469,7 @@ declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs
  :)
 declare function app:persFiltersSection($node as node(), $model as map(*), $role as xs:string*) as element() {
 	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@style),
+		templates:filter-attributes($node, $model) except $node/@style,
 		if (exists($role) and $role[1] != "") then (
 		) else
 			$node/@style,
@@ -1358,8 +1491,7 @@ declare function app:persFiltersSection($node as node(), $model as map(*), $role
  : @return formrole.html's own root element, hidden when no role is selected
  :)
 declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element() {
-	let $fragment := doc($config:app-root || "/forms/formrole.html")/*
-	let $rendered := templates:process($fragment, $model)
+	let $rendered := lib:include($node, $model, "forms/formrole.html")
 	return if (exists($role) and $role[1] != "") then
 		$rendered
 	else

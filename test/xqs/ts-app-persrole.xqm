@@ -14,6 +14,7 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "../../modules/app.xqm";
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "../../modules/config.xqm";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 
 declare variable $tspersrole:col := "/db/apps/expanded/manuscripts/_persRoleTest";
@@ -97,21 +98,22 @@ declare %test:assertTrue function tspersrole:persRole-lists-role-with-count() {
 	(: 4 attestations total: person1 twice, person2 once, the
 	   placeholder once - the option's count is total attestations,
 	   not distinct (non-placeholder) people. :)
-	let $select := app:persRole(<a />, map {}, $tspersrole:context, ())
+	let $select := app:persRole(<a />, tspersrole:model-for((), ()), $tspersrole:context)
 	return exists($select//*:option[starts-with(@value, $tspersrole:role)][contains(., "4")])
 };
 
 declare %test:assertFalse function tspersrole:persRole-is-not-multiple() {
-	let $select := app:persRole(<a />, map {}, $tspersrole:context, ())
+	let $select := app:persRole(<a />, tspersrole:model-for((), ()), $tspersrole:context)
 	return exists($select/@multiple)
 };
 
 (:~
- : Selecting a role echoes back as the selected option - the
+ : Selecting a role echoes back as the selected option -
+ : templates:form-control's own job now (see app:persRole's doc), the
  : zero-JS equivalent of restoring $("#persRole").val() on reload.
  :)
 declare %test:assertTrue function tspersrole:persRole-echoes-selected-value() {
-	let $select := app:persRole(<a />, map {}, $tspersrole:context, $tspersrole:role)
+	let $select := app:persRole(<a />, tspersrole:model-for($tspersrole:role, ()), $tspersrole:context)
 	return exists($select//*:option[starts-with(@value, $tspersrole:role)][@selected])
 };
 
@@ -233,7 +235,8 @@ declare %private function tspersrole:model-for($role as xs:string?, $person as x
 								()
 					},
 				$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-				$templates:CONFIG_STOP_ON_ERROR: false()
+				$templates:CONFIG_STOP_ON_ERROR: false(),
+				$templates:CONFIG_APP_ROOT: $config:app-root
 			}
 	}
 };
