@@ -949,6 +949,14 @@ declare %private function app:cuNumber-active($numberOfParts as xs:string*) as x
  : @param $qn the request's qn parameter, auto-resolved by name
  : @param $qcn the request's qcn parameter, auto-resolved by name
  : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
+ : @param $scribe the request's scribe parameter, auto-resolved by name
+ : @param $donor the request's donor parameter, auto-resolved by name
+ : @param $patron the request's patron parameter, auto-resolved by name
+ : @param $owner the request's owner parameter, auto-resolved by name
+ : @param $binder the request's binder parameter, auto-resolved by name
+ : @param $support the request's support parameter, auto-resolved by name
+ : @param $content the request's content parameter, auto-resolved by name
+ : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
  : @return the section, with its `display:none` dropped when active
  :)
 declare function app:manuscriptsFiltersSection(
@@ -958,7 +966,15 @@ declare function app:manuscriptsFiltersSection(
 	$wL as xs:string*,
 	$qn as xs:string*,
 	$qcn as xs:string*,
-	$numberOfParts as xs:string*
+	$numberOfParts as xs:string*,
+	$scribe as xs:string*,
+	$donor as xs:string*,
+	$patron as xs:string*,
+	$owner as xs:string*,
+	$binder as xs:string*,
+	$support as xs:string*,
+	$content as xs:string*,
+	$bindingtype as xs:string*
 ) as element() {
 	element {node-name($node)} {
 		templates:filter-attributes($node, $model) except $node/@style,
@@ -967,7 +983,15 @@ declare function app:manuscriptsFiltersSection(
 				app:wL-active($wL) or
 				app:qn-active($qn) or
 				app:qcn-active($qcn) or
-				app:cuNumber-active($numberOfParts)
+				app:cuNumber-active($numberOfParts) or
+				app:list-param-active($scribe) or
+				app:list-param-active($donor) or
+				app:list-param-active($patron) or
+				app:list-param-active($owner) or
+				app:list-param-active($binder) or
+				app:list-param-active($support) or
+				app:list-param-active($content) or
+				app:list-param-active($bindingtype)
 		) then (
 		) else
 			$node/@style,
@@ -1003,6 +1027,287 @@ declare function app:CUnumberCheckbox($node as node(), $model as map(*), $number
 declare function app:includeCUnumberForm($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
 	let $rendered := lib:include($node, $model, "forms/formCUnumber.html")
 	return if (app:cuNumber-active($numberOfParts)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Whether a list-style filter param is active - shared by every
+ : facet below whose query predicate (app:query/app:ListQueryParam) is
+ : simply "any non-empty value selected", with no default-range
+ : sentinel to match against (see app:gender-active/app:cuNumber-active
+ : for the same reasoning, kept separate there since they predate this
+ : helper and are already shipped).
+ :
+ : @param $value a request parameter's resolved value(s)
+ : @return true if a non-empty value is present
+ :)
+declare %private function app:list-param-active($value as xs:string*) as xs:boolean {
+	exists($value) and $value[1] != ""
+};
+
+(:~
+ : Echoes the "scribe" checkbox's state from the request.
+ :
+ : @param $scribe the request's scribe parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:scribeCheckbox($node as node(), $model as map(*), $scribe as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($scribe)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formscribes.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows.
+ :
+ : @param $scribe the request's scribe parameter, auto-resolved by name
+ : @return formscribes.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeScribeForm($node as node(), $model as map(*), $scribe as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formscribes.html")
+	return if (app:list-param-active($scribe)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "donor" checkbox's state from the request.
+ :
+ : @param $donor the request's donor parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:donorCheckbox($node as node(), $model as map(*), $donor as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($donor)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formdonor.html's own templated content.
+ :
+ : @param $donor the request's donor parameter, auto-resolved by name
+ : @return formdonor.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeDonorForm($node as node(), $model as map(*), $donor as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formdonor.html")
+	return if (app:list-param-active($donor)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "patron" checkbox's state from the request.
+ :
+ : @param $patron the request's patron parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:patronCheckbox($node as node(), $model as map(*), $patron as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($patron)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formpatron.html's own templated content.
+ :
+ : @param $patron the request's patron parameter, auto-resolved by name
+ : @return formpatron.html's own root element, hidden when no filter is active
+ :)
+declare function app:includePatronForm($node as node(), $model as map(*), $patron as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formpatron.html")
+	return if (app:list-param-active($patron)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "owner" checkbox's state from the request.
+ :
+ : @param $owner the request's owner parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:ownerCheckbox($node as node(), $model as map(*), $owner as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($owner)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formowner.html's own templated content.
+ :
+ : @param $owner the request's owner parameter, auto-resolved by name
+ : @return formowner.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeOwnerForm($node as node(), $model as map(*), $owner as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formowner.html")
+	return if (app:list-param-active($owner)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "binder" checkbox's state from the request.
+ :
+ : @param $binder the request's binder parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:binderCheckbox($node as node(), $model as map(*), $binder as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($binder)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formbinder.html's own templated content.
+ :
+ : @param $binder the request's binder parameter, auto-resolved by name
+ : @return formbinder.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeBinderForm($node as node(), $model as map(*), $binder as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formbinder.html")
+	return if (app:list-param-active($binder)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "objectType" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`support`, see app:support), matching as.html's own label
+ : ("support") for this facet.
+ :
+ : @param $support the request's support parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:objectTypeCheckbox($node as node(), $model as map(*), $support as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($support)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formobjecttype.html's own templated content.
+ :
+ : @param $support the request's support parameter, auto-resolved by name
+ : @return formobjecttype.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeObjectTypeForm($node as node(), $model as map(*), $support as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formobjecttype.html")
+	return if (app:list-param-active($support)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "contents" checkbox's state from the request - the
+ : checkbox's own value ("contents") differs from the actual request
+ : parameter it gates (`content`, see app:contents).
+ :
+ : @param $content the request's content parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:contentsCheckbox($node as node(), $model as map(*), $content as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($content)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formcontents.html's own templated content.
+ :
+ : @param $content the request's content parameter, auto-resolved by name
+ : @return formcontents.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeContentsForm($node as node(), $model as map(*), $content as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formcontents.html")
+	return if (app:list-param-active($content)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Echoes the "bindingtype" checkbox's state from the request.
+ :
+ : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:bindingtypeCheckbox($node as node(), $model as map(*), $bindingtype as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($bindingtype)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formbind.html's own templated content.
+ :
+ : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
+ : @return formbind.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeBindingtypeForm(
+	$node as node(),
+	$model as map(*),
+	$bindingtype as xs:string*
+) as element() {
+	let $rendered := lib:include($node, $model, "forms/formbind.html")
+	return if (app:list-param-active($bindingtype)) then
 		$rendered
 	else
 		element {node-name($rendered)} {
@@ -1288,7 +1593,8 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	let $elements := $cont//t:msItem[not(contains(@xml:id, "."))]
 	let $titles := $elements/t:title/@ref
 	let $keywords := config:distinct-values($titles)
-	return app:formcontrol("content", $keywords, "false", "hierels", $context)
+	let $control := app:formcontrol("content", $keywords, "false", "hierels", $context)
+	return templates:form-control($control, $model)
 };
 
 (:~
@@ -1324,7 +1630,8 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 		else
 			$r
 	let $keywords := config:distinct-values($attributions)
-	return app:formcontrol("author", $keywords, "false", "rels", $context)
+	let $control := app:formcontrol("author", $keywords, "false", "rels", $context)
+	return templates:form-control($control, $model)
 };
 
 (:~
@@ -1525,6 +1832,114 @@ declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs
  :)
 declare %private function app:gender-active($gender as xs:string*) as xs:boolean {
 	exists($gender) and $gender[1] != ""
+};
+
+(:~
+ : Reveals the "Works Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload). Only `authors` participates so far - extend this
+ : parameter list as more `#wFilter` facets get the same treatment.
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:worksFiltersSection($node as node(), $model as map(*), $author as xs:string*) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (app:list-param-active($author)) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "authors" checkbox's state from the request - the
+ : checkbox's own value ("authors") differs from the actual request
+ : parameter it gates (`author`, singular - see app:WorkAuthors).
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:authorsCheckbox($node as node(), $model as map(*), $author as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($author)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formauthors.html's own templated content.
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return formauthors.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeAuthorsForm($node as node(), $model as map(*), $author as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formauthors.html")
+	return if (app:list-param-active($author)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Reveals the "Places Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload). Only `tabots` participates so far - extend this
+ : parameter list as more `#plFilter` facets get the same treatment.
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:placesFiltersSection($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (app:list-param-active($tabot)) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "tabots" checkbox's state from the request - the
+ : checkbox's own value ("tabots") differs from the actual request
+ : parameter it gates (`tabot`, singular - see app:tabots).
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:tabotsCheckbox($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($tabot)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formtabots.html's own templated content.
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return formtabots.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formtabots.html")
+	return if (app:list-param-active($tabot)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~

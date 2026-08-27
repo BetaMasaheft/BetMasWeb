@@ -21,16 +21,17 @@ import module namespace templates = "http://exist-db.org/xquery/html-templating"
 
 (:~
  : Minimal templates:apply-shaped $model - see ts-app-persrole.xqm's
- : own tspersrole:model-for for why this is needed (app:manuscriptsFiltersSection
- : calls templates:process directly on its children).
+ : own tspersrole:model-for for why this is needed
+ : (app:manuscriptsFiltersSection and friends call templates:process
+ : directly on their children). Map-keyed rather than positional -
+ : this module tests a growing number of independent request
+ : parameters, and a positional signature stopped being readable once
+ : it passed a handful.
+ :
+ : @param $params a map of request-parameter-name to value, e.g.
+ : map { "folia": "5,42" } - any name not present resolves to ()
  :)
-declare %private function tsmssfilters:model-for(
-	$folia as xs:string?,
-	$wL as xs:string?,
-	$qn as xs:string?,
-	$qcn as xs:string?,
-	$numberOfParts as xs:string?
-) as map(*) {
+declare %private function tsmssfilters:model-for($params as map(*)) as map(*) {
 	map {
 		$templates:CONFIGURATION:
 			map {
@@ -38,22 +39,7 @@ declare %private function tsmssfilters:model-for(
 					function ($name as xs:string, $arity as xs:integer) as function(*)? {
 						try { function-lookup(xs:QName($name), $arity) } catch * { () }
 					},
-				$templates:CONFIG_PARAM_RESOLVER:
-					function ($var as xs:string) as item()* {
-						switch ($var)
-							case "folia" return
-								$folia
-							case "wL" return
-								$wL
-							case "qn" return
-								$qn
-							case "qcn" return
-								$qcn
-							case "numberOfParts" return
-								$numberOfParts
-							default return
-								()
-					},
+				$templates:CONFIG_PARAM_RESOLVER: function ($var as xs:string) as item()* { $params($var) },
 				$templates:CONFIG_USE_CLASS_SYNTAX: false(),
 				$templates:CONFIG_STOP_ON_ERROR: false(),
 				$templates:CONFIG_APP_ROOT: $config:app-root
@@ -181,8 +167,16 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="folia" /></div>
 	let $out := app:manuscriptsFiltersSection(
 		$node,
-		tsmssfilters:model-for("5,42", (), (), (), ()),
+		tsmssfilters:model-for(map {"folia": "5,42"}),
 		"5,42",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
 		(),
 		(),
 		(),
@@ -195,9 +189,17 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="writtenLines" /></div>
 	let $out := app:manuscriptsFiltersSection(
 		$node,
-		tsmssfilters:model-for((), "3,17", (), (), ()),
+		tsmssfilters:model-for(map {"wL": "3,17"}),
 		(),
 		"3,17",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
 		(),
 		(),
 		()
@@ -209,10 +211,18 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="quires" /></div>
 	let $out := app:manuscriptsFiltersSection(
 		$node,
-		tsmssfilters:model-for((), (), "5,42", (), ()),
+		tsmssfilters:model-for(map {"qn": "5,42"}),
 		(),
 		(),
 		"5,42",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
 		(),
 		()
 	)
@@ -223,11 +233,19 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="quiresComp" /></div>
 	let $out := app:manuscriptsFiltersSection(
 		$node,
-		tsmssfilters:model-for((), (), (), "3,17", ()),
+		tsmssfilters:model-for(map {"qcn": "3,17"}),
 		(),
 		(),
 		(),
 		"3,17",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
 		()
 	)
 	return exists($out/@style)
@@ -235,7 +253,23 @@ declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visibl
 
 declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-when-all-default() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="folia" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), (), ()), (), (), (), (), ())
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for(map {}),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
@@ -248,73 +282,73 @@ declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-
  :)
 declare %test:assertTrue function tsmssfilters:includeFoliaForm-hidden-without-param() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeFoliaForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), (), ()), "5,42")
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for(map {"folia": "5,42"}), "5,42")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeFoliaForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), (), ()), "5,42")
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for(map {"folia": "5,42"}), "5,42")
 	return exists($out//*:input[@id = "folia"][@data-slider-value = "[5,42]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeWLForm-hidden-without-param() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	let $out := app:includeWLForm($node, tsmssfilters:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeWLForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), (), ()), "3,17")
+	let $out := app:includeWLForm($node, tsmssfilters:model-for(map {"wL": "3,17"}), "3,17")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeWLForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), (), ()), "3,17")
+	let $out := app:includeWLForm($node, tsmssfilters:model-for(map {"wL": "3,17"}), "3,17")
 	return exists($out//*:input[@id = "writtenLines"][@data-slider-value = "[3,17]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresForm-hidden-without-param() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeQuiresForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", (), ()), "5,42")
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for(map {"qn": "5,42"}), "5,42")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", (), ()), "5,42")
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for(map {"qn": "5,42"}), "5,42")
 	return exists($out//*:input[@id = "quires"][@data-slider-value = "[5,42]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresCompForm-hidden-without-param() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeQuiresCompForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17", ()), "3,17")
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for(map {"qcn": "3,17"}), "3,17")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresCompForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17", ()), "3,17")
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for(map {"qcn": "3,17"}), "3,17")
 	return exists($out//*:input[@id = "quiresComp"][@data-slider-value = "[3,17]"])
 };
 
@@ -332,24 +366,270 @@ declare %test:assertFalse function tsmssfilters:cuNumberCheckbox-unchecked-witho
 
 declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-numberOfParts-active() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="CUnumber" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), (), "3"), (), (), (), (), "3")
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for(map {"numberOfParts": "3"}),
+		(),
+		(),
+		(),
+		(),
+		"3",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeCUnumberForm-hidden-without-param() {
 	let $node := <div data-template="app:includeCUnumberForm" />
-	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for(map {}), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeCUnumberForm-visible-with-value() {
 	let $node := <div data-template="app:includeCUnumberForm" />
-	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), "3"), "3")
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for(map {"numberOfParts": "3"}), "3")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeCUnumberForm-echoes-value-when-active() {
 	let $node := <div data-template="app:includeCUnumberForm" />
-	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), "3"), "3")
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for(map {"numberOfParts": "3"}), "3")
 	return exists($out//*:input[@name = "numberOfParts"][@value = "3"])
+};
+
+(:~
+ : scribe/donor/patron/owner/binder/objectType/contents/bindingtype:
+ : same checkbox+section+include recipe as folia/writtenLines, but
+ : simpler - all list-style params (app:list-param-active), and their
+ : own field's value-echo was already working via app:formcontrol's
+ : existing templates:form-control call (app:scribes/app:donors/etc),
+ : untouched here.
+ :)
+declare %test:assertTrue function tsmssfilters:scribeCheckbox-checked-with-value() {
+	let $node := <input data-template="app:scribeCheckbox" type="checkbox" value="scribe" />
+	return exists(app:scribeCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:scribeCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:scribeCheckbox" type="checkbox" value="scribe" />
+	return exists(app:scribeCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeScribeForm-hidden-without-param() {
+	let $node := <div data-template="app:includeScribeForm" />
+	return exists(app:includeScribeForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeScribeForm-visible-with-value() {
+	let $node := <div data-template="app:includeScribeForm" />
+	return exists(app:includeScribeForm($node, tsmssfilters:model-for(map {"scribe": "PRS1"}), "PRS1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:donorCheckbox-checked-with-value() {
+	let $node := <input data-template="app:donorCheckbox" type="checkbox" value="donor" />
+	return exists(app:donorCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:donorCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:donorCheckbox" type="checkbox" value="donor" />
+	return exists(app:donorCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeDonorForm-hidden-without-param() {
+	let $node := <div data-template="app:includeDonorForm" />
+	return exists(app:includeDonorForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeDonorForm-visible-with-value() {
+	let $node := <div data-template="app:includeDonorForm" />
+	return exists(app:includeDonorForm($node, tsmssfilters:model-for(map {"donor": "PRS1"}), "PRS1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:patronCheckbox-checked-with-value() {
+	let $node := <input data-template="app:patronCheckbox" type="checkbox" value="patron" />
+	return exists(app:patronCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:patronCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:patronCheckbox" type="checkbox" value="patron" />
+	return exists(app:patronCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includePatronForm-hidden-without-param() {
+	let $node := <div data-template="app:includePatronForm" />
+	return exists(app:includePatronForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includePatronForm-visible-with-value() {
+	let $node := <div data-template="app:includePatronForm" />
+	return exists(app:includePatronForm($node, tsmssfilters:model-for(map {"patron": "PRS1"}), "PRS1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:ownerCheckbox-checked-with-value() {
+	let $node := <input data-template="app:ownerCheckbox" type="checkbox" value="owner" />
+	return exists(app:ownerCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:ownerCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:ownerCheckbox" type="checkbox" value="owner" />
+	return exists(app:ownerCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeOwnerForm-hidden-without-param() {
+	let $node := <div data-template="app:includeOwnerForm" />
+	return exists(app:includeOwnerForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeOwnerForm-visible-with-value() {
+	let $node := <div data-template="app:includeOwnerForm" />
+	return exists(app:includeOwnerForm($node, tsmssfilters:model-for(map {"owner": "PRS1"}), "PRS1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:binderCheckbox-checked-with-value() {
+	let $node := <input data-template="app:binderCheckbox" type="checkbox" value="binder" />
+	return exists(app:binderCheckbox($node, map {}, "PRS1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:binderCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:binderCheckbox" type="checkbox" value="binder" />
+	return exists(app:binderCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeBinderForm-hidden-without-param() {
+	let $node := <div data-template="app:includeBinderForm" />
+	return exists(app:includeBinderForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeBinderForm-visible-with-value() {
+	let $node := <div data-template="app:includeBinderForm" />
+	return exists(app:includeBinderForm($node, tsmssfilters:model-for(map {"binder": "PRS1"}), "PRS1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:objectTypeCheckbox-checked-with-value() {
+	let $node := <input data-template="app:objectTypeCheckbox" type="checkbox" value="objectType" />
+	return exists(app:objectTypeCheckbox($node, map {}, "parchment")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:objectTypeCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:objectTypeCheckbox" type="checkbox" value="objectType" />
+	return exists(app:objectTypeCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeObjectTypeForm-hidden-without-param() {
+	let $node := <div data-template="app:includeObjectTypeForm" />
+	return exists(
+		app:includeObjectTypeForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")]
+	)
+};
+
+declare %test:assertFalse function tsmssfilters:includeObjectTypeForm-visible-with-value() {
+	let $node := <div data-template="app:includeObjectTypeForm" />
+	return exists(
+		app:includeObjectTypeForm($node, tsmssfilters:model-for(map {"support": "parchment"}), "parchment")/@style
+	)
+};
+
+declare %test:assertTrue function tsmssfilters:contentsCheckbox-checked-with-value() {
+	let $node := <input data-template="app:contentsCheckbox" type="checkbox" value="contents" />
+	return exists(app:contentsCheckbox($node, map {}, "LIT1")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:contentsCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:contentsCheckbox" type="checkbox" value="contents" />
+	return exists(app:contentsCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeContentsForm-hidden-without-param() {
+	let $node := <div data-template="app:includeContentsForm" />
+	return exists(app:includeContentsForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeContentsForm-visible-with-value() {
+	let $node := <div data-template="app:includeContentsForm" />
+	return exists(app:includeContentsForm($node, tsmssfilters:model-for(map {"content": "LIT1"}), "LIT1")/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:bindingtypeCheckbox-checked-with-value() {
+	let $node := <input data-template="app:bindingtypeCheckbox" type="checkbox" value="bindingtype" />
+	return exists(app:bindingtypeCheckbox($node, map {}, "contemporary")/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:bindingtypeCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:bindingtypeCheckbox" type="checkbox" value="bindingtype" />
+	return exists(app:bindingtypeCheckbox($node, map {}, ())/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeBindingtypeForm-hidden-without-param() {
+	let $node := <div data-template="app:includeBindingtypeForm" />
+	return exists(
+		app:includeBindingtypeForm($node, tsmssfilters:model-for(map {}), ())/@style[contains(., "display:none")]
+	)
+};
+
+declare %test:assertFalse function tsmssfilters:includeBindingtypeForm-visible-with-value() {
+	let $node := <div data-template="app:includeBindingtypeForm" />
+	return exists(
+		app:includeBindingtypeForm(
+			$node,
+			tsmssfilters:model-for(map {"bindingtype": "contemporary"}),
+			"contemporary"
+		)/@style
+	)
+};
+
+(:~
+ : One representative check that the new facets actually participate
+ : in app:manuscriptsFiltersSection's OR-condition (not just their own
+ : checkbox/include functions) - the wiring most likely to have a
+ : copy-paste slip across 8 near-identical additions.
+ :)
+declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-scribe-active() {
+	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="scribe" /></div>
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for(map {"scribe": "PRS1"}),
+		(),
+		(),
+		(),
+		(),
+		(),
+		"PRS1",
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		()
+	)
+	return exists($out/@style)
+};
+
+declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-bindingtype-active() {
+	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="bindingtype" /></div>
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for(map {"bindingtype": "contemporary"}),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		(),
+		"contemporary"
+	)
+	return exists($out/@style)
 };

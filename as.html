@@ -206,27 +206,47 @@
 								number of codicological units<br />
 								<div data-template="app:includeCUnumberForm" />
 								<input class="w3-check" type="checkbox" value="script" /> script<br />
-								<input class="w3-check" type="checkbox" value="scribe" /> scribe<br />
-								<input class="w3-check" type="checkbox" value="donor" /> donor<br />
-								<input class="w3-check" type="checkbox" value="patron" /> patron<br />
-								<input class="w3-check" type="checkbox" value="owner" /> owner<br />
-								<input class="w3-check" type="checkbox" value="binder" /> binder<br />
+								<input class="w3-check" type="checkbox" value="scribe" data-template="app:scribeCheckbox" />
+								scribe<br />
+								<div data-template="app:includeScribeForm" />
+								<input class="w3-check" type="checkbox" value="donor" data-template="app:donorCheckbox" /> donor<br />
+								<div data-template="app:includeDonorForm" />
+								<input class="w3-check" type="checkbox" value="patron" data-template="app:patronCheckbox" />
+								patron<br />
+								<div data-template="app:includePatronForm" />
+								<input class="w3-check" type="checkbox" value="owner" data-template="app:ownerCheckbox" /> owner<br />
+								<div data-template="app:includeOwnerForm" />
+								<input class="w3-check" type="checkbox" value="binder" data-template="app:binderCheckbox" />
+								binder<br />
+								<div data-template="app:includeBinderForm" />
 								<input class="w3-check" type="checkbox" value="parchmentMaker" /> parchment maker<br />
-								<input class="w3-check" type="checkbox" value="objectType" /> support<br />
+								<input class="w3-check" type="checkbox" value="objectType" data-template="app:objectTypeCheckbox" />
+								support<br />
+								<div data-template="app:includeObjectTypeForm" />
 								<input class="w3-check" type="checkbox" value="material" /> material<br />
 								<input class="w3-check" type="checkbox" value="bmaterial" /> binding material<br />
-								<input class="w3-check" type="checkbox" value="contents" /> contents<br />
-								<input class="w3-check" type="checkbox" value="bindingtype" /> original binding<br />
+								<input class="w3-check" type="checkbox" value="contents" data-template="app:contentsCheckbox" />
+								contents<br />
+								<div data-template="app:includeContentsForm" />
+								<input class="w3-check" type="checkbox" value="bindingtype" data-template="app:bindingtypeCheckbox" />
+								original binding<br />
+								<div data-template="app:includeBindingtypeForm" />
 							</div>
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>
 					</div>
-					<div class="w3-row" id="worksFilters" style="display: none">
+					<div class="w3-row" id="worksFilters" style="display: none" data-template="app:worksFiltersSection">
 						<div class="w3-half w3-padding">
 							<label>Works Filters</label>
 							<div id="wFilter">
 								<input class="w3-check" type="checkbox" value="target-works" />specific works<br />
-								<input class="w3-check" type="checkbox" value="authors" />author<br />
+								<input
+									class="w3-check"
+									type="checkbox"
+									value="authors"
+									data-template="app:authorsCheckbox"
+								/>author<br />
+								<div data-template="app:includeAuthorsForm" />
 							</div>
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>
@@ -245,12 +265,14 @@
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>
 					</div>
-					<div class="w3-row" id="placesFilters" style="display: none">
+					<div class="w3-row" id="placesFilters" style="display: none" data-template="app:placesFiltersSection">
 						<div class="cw3-half w3-padding">
 							<label>Places Filters</label>
 							<div id="plFilter">
 								<input class="w3-check" type="checkbox" value="placeType" /> type<br />
-								<input class="w3-check" type="checkbox" value="tabots" /> Tābots<br />
+								<input class="w3-check" type="checkbox" value="tabots" data-template="app:tabotsCheckbox" />
+								Tābots<br />
+								<div data-template="app:includeTabotsForm" />
 							</div>
 						</div>
 						<div class="w3-half w3-padding">Select more general filters</div>

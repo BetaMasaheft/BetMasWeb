@@ -39,6 +39,7 @@ import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.d
 import module namespace tsprinttitle = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-exptit-printtitle" at "ts-exptit-printtitle.xqm";
 import module namespace tspersrole = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-persrole" at "ts-app-persrole.xqm";
 import module namespace tsmssfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-msfilters" at "ts-app-msfilters.xqm";
+import module namespace tswpfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-worksplaces-filters" at "ts-app-worksplaces-filters.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -71,6 +72,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-persrole.xqm")),
-		inspect:module-functions(xs:anyURI("ts-app-msfilters.xqm"))
+		inspect:module-functions(xs:anyURI("ts-app-msfilters.xqm")),
+		inspect:module-functions(xs:anyURI("ts-app-worksplaces-filters.xqm"))
 	)
 )
