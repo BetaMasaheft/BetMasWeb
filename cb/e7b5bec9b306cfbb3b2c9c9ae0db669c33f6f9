@@ -1,0 +1,30 @@
+modules/app.xqm
+  s_5790d61a112fab::t_84373ba555c9f5 1176,1178-1181,1196,1198-1200,1221-1226
+  s_5790d61a112fab::t_23931229c5501d 1114
+  s_5790d61a112fab::t_d5c9c6afaacb38 1167-1169,1171-1175,1177,1182-1195,1197,1201-1220,1227-1228
+  s_5790d61a112fab::t_e00466ce6385e7 1170
+test/xqs/ts-app-persrole.xqm
+  s_5790d61a112fab::t_3ea3e053a62c05 242-256
+  s_5790d61a112fab::t_30791400f82156 190,196,202,217-237
+  s_5790d61a112fab::t_a24a0c0d962b81 17
+  s_5790d61a112fab::t_e00466ce6385e7 187
+  s_5790d61a112fab::t_7b2c712b98d3b6 184-186,188-189,191-195,197-201,203-216,238-241,257-277
+as.html
+  s_5790d61a112fab::t_b09485caa5a279 215,221-222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "cbe7b5bec9b306cfbb3b2c9c9ae0db669c33f6f9",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": null
+    }
+  }
+}
