@@ -36,7 +36,19 @@ declare variable $exptit:prefixDef := doc("/db/apps/lists/listPrefixDef.xml");
  :)
 declare variable $exptit:titleCache := doc("/db/apps/lists/titleCache.xml");
 
-(: The entry point function of the module. Establishes the different rules and priority to print a title referring to a record. can start from any node in the document. :)
+(:~
+ : Resolves a title for a node or a raw identifier of unknown shape -
+ : an element (goes to its root's full title), a URI, or a bare id.
+ : Callers can pass attribute nodes (e.g. from config:distinct-values
+ : over a @ref sequence, which does not atomize its input here) as
+ : well as plain strings, so every non-element branch returns
+ : string($titleMe) rather than the raw item - an attribute node
+ : surfacing unchanged into element content elsewhere would be
+ : silently reattached as an attribute instead of serializing as text.
+ :
+ : @param $titleMe an element, or an identifier (string or attribute)
+ : @return the resolved title as a string, or node content for elements
+ :)
 declare function exptit:printTitle($titleMe) {
 	if (count($titleMe) = 0 or $titleMe = "") then (
 	) else
@@ -58,14 +70,14 @@ declare function exptit:printTitle($titleMe) {
 					return exptit:printTitleID($id)
 				else if (starts-with($titleMe, "http")) then
 					(: it is a URI, but not ours, best guess is just return it as is :)
-					$titleMe
+					string($titleMe)
 				(: perhaps it is just an identifier.... try to get the full title and if you do not find it, return what was submitted :)
 				else
 					let $title := exptit:printTitleID($titleMe)
 					return if (string-length(string-join($title)) ge 1) then
 						$title
 					else
-						$titleMe
+						string($titleMe)
 };
 
 (:~
