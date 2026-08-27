@@ -1,0 +1,43 @@
+test/xqs/test-runner.xq
+  s_5790d61a112fab::t_3be091fd61909a 40
+  s_5790d61a112fab::t_576dfd40f870e5 71-72
+test/xqs/ts-app-persrole.xqm
+  s_5790d61a112fab::t_a9c1ad8bc322c2 96-98,100
+  s_5790d61a112fab::t_4ce482787f9bb2 1-19,22-27,36,38-41,58-95,101-103,105-112,114-121,123-130,132-134,146,148-151,153-158,169-171,173-179,181-182
+  s_5790d61a112fab::t_9db92373961a85 54-57
+  s_5790d61a112fab::t_d91f167fca9434 42-44,46-48,50-52
+  s_5790d61a112fab::t_dfeb2000550330 20-21
+  s_5790d61a112fab::t_8f20ed9295e7cf 159-168
+  s_5790d61a112fab::t_328fb1f0870d6f 30-35,45,49,53
+  s_5790d61a112fab::t_74bac1cae0212d 135-145
+  s_5790d61a112fab::t_f994616b5e9ce4 28-29
+  s_5790d61a112fab::t_564865eac8174a 99,104,113,122,131,147,152,172,180
+  s_5790d61a112fab::t_0783262e460076 37
+forms/formrole.html
+  s_5790d61a112fab::t_0c97de956ffa4d 5-6,10,13-14
+  s_5790d61a112fab::t_68240b7e211bd4 11
+modules/app.xqm
+  s_5790d61a112fab::t_0c6681aa5da0bd 1096
+  s_5790d61a112fab::t_63bd92159af27d 1114
+  s_5790d61a112fab::t_08cd1b0dac5198 1040-1041,1061-1066,1082-1083,1105-1106
+  s_5790d61a112fab::t_ac4a930c4f2188 1011-1029
+  s_5790d61a112fab::t_aeaa3d7e23f9c3 1010,1030-1039,1042-1060,1067-1081,1084-1095,1097-1098,1100-1104,1107-1113,1115-1146,1149-1166
+  s_5790d61a112fab::t_aec55f2d59c04f 1099
+  s_5790d61a112fab::t_615945b9f334e5 1147-1148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "38178d4e4f771a71cf39c7191b2b392f4e9bcb37",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
