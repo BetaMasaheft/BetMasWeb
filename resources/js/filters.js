@@ -24,6 +24,15 @@ $(document).ready(function () {
 	$("#quires").bootstrapSlider({});
 	$("#quiresComp").bootstrapSlider({});
 	$("#dates").bootstrapSlider({});
+	$("#heightslider").bootstrapSlider({});
+	$("#widthslider").bootstrapSlider({});
+	$("#depthslider").bootstrapSlider({});
+	$("#NumberOfcolumns").bootstrapSlider({});
+	$("#tMslider").bootstrapSlider({});
+	$("#bMslider").bootstrapSlider({});
+	$("#rMslider").bootstrapSlider({});
+	$("#lMslider").bootstrapSlider({});
+	$("#lntercolumnslider").bootstrapSlider({});
 });
 
 $("#collectionfilter").on("change", function () {

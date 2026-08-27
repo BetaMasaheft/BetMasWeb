@@ -941,69 +941,61 @@ declare %private function app:cuNumber-active($numberOfParts as xs:string*) as x
  : Reveals the "Manuscripts Filters" section server-side when one of
  : its facets has an active, non-default request parameter, instead of
  : relying on filters.js's `#collectionfilter` change handler alone
- : (JS-only, lost on reload). Extend this parameter list as more
- : `#mssFilter` facets get the same treatment.
+ : (JS-only, lost on reload).
  :
- : @param $folia the request's folia parameter, auto-resolved by name
- : @param $wL the request's wL parameter, auto-resolved by name
- : @param $qn the request's qn parameter, auto-resolved by name
- : @param $qcn the request's qcn parameter, auto-resolved by name
- : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
- : @param $scribe the request's scribe parameter, auto-resolved by name
- : @param $donor the request's donor parameter, auto-resolved by name
- : @param $patron the request's patron parameter, auto-resolved by name
- : @param $owner the request's owner parameter, auto-resolved by name
- : @param $binder the request's binder parameter, auto-resolved by name
- : @param $support the request's support parameter, auto-resolved by name
- : @param $content the request's content parameter, auto-resolved by name
- : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
- : @param $script the request's script parameter, auto-resolved by name
- : @param $parchmentMaker the request's parchmentMaker parameter, auto-resolved by name
- : @param $material the request's material parameter, auto-resolved by name
- : @param $bmaterial the request's bmaterial parameter, auto-resolved by name
+ : Reads every facet's request parameter directly via
+ : request:get-parameter rather than taking one auto-resolved parameter
+ : per facet, unlike every other *FiltersSection function in this
+ : module. That's not a stylistic choice: this section covers by far
+ : the most facets (26, after the `dimensions` slice's nine fields),
+ : and templates:call's introspection-based dispatch - the mechanism
+ : that auto-resolves a templated function's parameters by name -
+ : refuses to look up any function past 20 total parameters
+ : (`$templates:MAX_ARITY` in the vendored templating package), throwing
+ : `templates:NotFound` at request time. Found live-testing the
+ : `dimensions` facet: the previous 28-parameter version passed all of
+ : its own direct-call XQSuite tests (which bypass templates:call
+ : entirely) while being permanently broken on the real page. Reading
+ : parameters directly sidesteps the cap - this function is a
+ : `data-template` target on `#manuscriptsFilters` itself, so it's
+ : still reached by templates:call, but at its own arity of 2 rather
+ : than 28. Extend the OR-condition below as more `#mssFilter` facets
+ : get the same treatment; no signature change is ever needed again.
+ :
  : @return the section, with its `display:none` dropped when active
  :)
-declare function app:manuscriptsFiltersSection(
-	$node as node(),
-	$model as map(*),
-	$folia as xs:string*,
-	$wL as xs:string*,
-	$qn as xs:string*,
-	$qcn as xs:string*,
-	$numberOfParts as xs:string*,
-	$scribe as xs:string*,
-	$donor as xs:string*,
-	$patron as xs:string*,
-	$owner as xs:string*,
-	$binder as xs:string*,
-	$support as xs:string*,
-	$content as xs:string*,
-	$bindingtype as xs:string*,
-	$script as xs:string*,
-	$parchmentMaker as xs:string*,
-	$material as xs:string*,
-	$bmaterial as xs:string*
-) as element() {
+declare function app:manuscriptsFiltersSection($node as node(), $model as map(*)) as element() {
 	element {node-name($node)} {
 		templates:filter-attributes($node, $model) except $node/@style,
 		if (
-			app:folia-active($folia) or
-				app:wL-active($wL) or
-				app:qn-active($qn) or
-				app:qcn-active($qcn) or
-				app:cuNumber-active($numberOfParts) or
-				app:list-param-active($scribe) or
-				app:list-param-active($donor) or
-				app:list-param-active($patron) or
-				app:list-param-active($owner) or
-				app:list-param-active($binder) or
-				app:list-param-active($support) or
-				app:list-param-active($content) or
-				app:list-param-active($bindingtype) or
-				app:list-param-active($script) or
-				app:list-param-active($parchmentMaker) or
-				app:list-param-active($material) or
-				app:list-param-active($bmaterial)
+			app:folia-active(request:get-parameter("folia", ())) or
+				app:wL-active(request:get-parameter("wL", ())) or
+				app:qn-active(request:get-parameter("qn", ())) or
+				app:qcn-active(request:get-parameter("qcn", ())) or
+				app:cuNumber-active(request:get-parameter("numberOfParts", ())) or
+				app:list-param-active(request:get-parameter("scribe", ())) or
+				app:list-param-active(request:get-parameter("donor", ())) or
+				app:list-param-active(request:get-parameter("patron", ())) or
+				app:list-param-active(request:get-parameter("owner", ())) or
+				app:list-param-active(request:get-parameter("binder", ())) or
+				app:list-param-active(request:get-parameter("support", ())) or
+				app:list-param-active(request:get-parameter("content", ())) or
+				app:list-param-active(request:get-parameter("bindingtype", ())) or
+				app:list-param-active(request:get-parameter("script", ())) or
+				app:list-param-active(request:get-parameter("parchmentMaker", ())) or
+				app:list-param-active(request:get-parameter("material", ())) or
+				app:list-param-active(request:get-parameter("bmaterial", ())) or
+				app:dimensions-active(
+					request:get-parameter("height", ()),
+					request:get-parameter("width", ()),
+					request:get-parameter("depth", ()),
+					request:get-parameter("columnsNum", ()),
+					request:get-parameter("tmargin", ()),
+					request:get-parameter("bmargin", ()),
+					request:get-parameter("rmargin", ()),
+					request:get-parameter("lmargin", ()),
+					request:get-parameter("intercolumn", ())
+				)
 		) then (
 		) else
 			$node/@style,
@@ -1473,6 +1465,261 @@ declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as
 declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element() {
 	let $rendered := lib:include($node, $model, "forms/formquiresComp.html")
 	return if (app:qcn-active($qcn)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+(:~
+ : Whether a slider-backed range parameter carries a real, non-default
+ : value. Generic version of app:folia-active/app:wL-active etc. for
+ : the nine formdimensions.html fields, which - unlike folia/wL - don't
+ : need a corpus-derived bound (their widget defaults are plain
+ : hand-authored physical-measurement bounds, not a data-quality
+ : workaround), so a single shared helper taking the default as a
+ : parameter is enough.
+ :
+ : @param $value the request parameter
+ : @param $default the "no filter" sentinel, e.g. "1,1000"
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:range-active($value as xs:string*, $default as xs:string) as xs:boolean {
+	exists($value) and $value[1] != "" and $value[1] != $default
+};
+
+(:~
+ : Whether any of formdimensions.html's nine sliders carries a real
+ : filter value - the composite reveal condition for the "dimensions"
+ : checkbox/section, same OR-of-per-field-actives shape as
+ : app:manuscriptsFiltersSection's own reveal condition.
+ :
+ : @return true if at least one of the nine fields is non-default
+ :)
+declare %private function app:dimensions-active(
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as xs:boolean {
+	app:range-active($height, "1,1000") or
+		app:range-active($width, "1,1000") or
+		app:range-active($depth, "1,1000") or
+		app:range-active($columnsNum, "1,20") or
+		app:range-active($tmargin, "1,100") or
+		app:range-active($bmargin, "1,100") or
+		app:range-active($rmargin, "1,100") or
+		app:range-active($lmargin, "1,100") or
+		app:range-active($intercolumn, "1,100")
+};
+
+(:~
+ : Shared builder for formdimensions.html's nine near-identical
+ : bootstrap-slider inputs - see app:foliaInput for the pattern (real
+ : min/max/value instead of the fragment's own hardcoded, never-echoed
+ : default).
+ :
+ : @param $value the request parameter, auto-resolved by name in each per-field wrapper below
+ : @param $id the input's `id` (matches formdimensions.html's original per-field ids, and filters.js's centralized bootstrapSlider init)
+ : @param $name the input's `name` (the real request parameter)
+ : @param $min the slider's minimum
+ : @param $max the slider's maximum
+ : @param $step the slider's step
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare %private function app:rangeInput(
+	$value as xs:string*,
+	$id as xs:string,
+	$name as xs:string,
+	$min as xs:string,
+	$max as xs:string,
+	$step as xs:string
+) as element(input) {
+	let $range := if (exists($value) and $value[1] != "") then
+		$value[1]
+	else
+		$min || "," || $max
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="{ $min }"
+		data-slider-step="{ $step }"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="{ $id }"
+		name="{ $name }"
+		type="text" />
+};
+
+(:~
+ : Height slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $height the request's height parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:heightInput($node as node(), $model as map(*), $height as xs:string*) as element(input) {
+	app:rangeInput($height, "heightslider", "height", "1", "1000", "10")
+};
+
+(:~
+ : Width slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $width the request's width parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:widthInput($node as node(), $model as map(*), $width as xs:string*) as element(input) {
+	app:rangeInput($width, "widthslider", "width", "1", "1000", "10")
+};
+
+(:~
+ : Thickness/depth slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $depth the request's depth parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:depthInput($node as node(), $model as map(*), $depth as xs:string*) as element(input) {
+	app:rangeInput($depth, "depthslider", "depth", "1", "1000", "10")
+};
+
+(:~
+ : Columns-per-page slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $columnsNum the request's columnsNum parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:columnsNumInput($node as node(), $model as map(*), $columnsNum as xs:string*) as element(input) {
+	app:rangeInput($columnsNum, "NumberOfcolumns", "columnsNum", "1", "20", "1")
+};
+
+(:~
+ : Top-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $tmargin the request's tmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:tmarginInput($node as node(), $model as map(*), $tmargin as xs:string*) as element(input) {
+	app:rangeInput($tmargin, "tMslider", "tmargin", "1", "100", "1")
+};
+
+(:~
+ : Bottom-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $bmargin the request's bmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:bmarginInput($node as node(), $model as map(*), $bmargin as xs:string*) as element(input) {
+	app:rangeInput($bmargin, "bMslider", "bmargin", "1", "100", "1")
+};
+
+(:~
+ : Right-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $rmargin the request's rmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:rmarginInput($node as node(), $model as map(*), $rmargin as xs:string*) as element(input) {
+	app:rangeInput($rmargin, "rMslider", "rmargin", "1", "100", "1")
+};
+
+(:~
+ : Left-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $lmargin the request's lmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:lmarginInput($node as node(), $model as map(*), $lmargin as xs:string*) as element(input) {
+	app:rangeInput($lmargin, "lMslider", "lmargin", "1", "100", "1")
+};
+
+(:~
+ : Intercolumn slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $intercolumn the request's intercolumn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:intercolumnInput($node as node(), $model as map(*), $intercolumn as xs:string*) as element(input) {
+	app:rangeInput($intercolumn, "lntercolumnslider", "intercolumn", "1", "100", "1")
+};
+
+(:~
+ : Echoes the "dimensions" checkbox's state from the request - active
+ : when any of the nine formdimensions.html fields carries a non-default
+ : value, matching app:manuscriptsFiltersSection's own composite
+ : reveal condition.
+ :
+ : @return the checkbox, with @checked set when any field is active
+ :)
+declare function app:dimensionsCheckbox(
+	$node as node(),
+	$model as map(*),
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (
+			app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
+		) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formdimensions.html's own templated content -
+ : see app:includeFoliaForm for why the slider widgets are not a
+ : blocker.
+ :
+ : @return formdimensions.html's own root element, hidden when no field is active
+ :)
+declare function app:includeDimensionsForm(
+	$node as node(),
+	$model as map(*),
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as element() {
+	let $rendered := lib:include($node, $model, "forms/formdimensions.html")
+	return if (
+		app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
+	) then
 		$rendered
 	else
 		element {node-name($rendered)} {
@@ -2547,6 +2794,42 @@ declare function app:paramrange($par, $path as xs:string) {
 };
 
 (:~
+ : Builds a q:range-predicate-backed filter for one of formdimensions.html's
+ : nine fields, or the empty sequence when the field is absent or at its
+ : default. Not app:paramrange: that function's sentinel is a hardcoded
+ : "0,2000", which matches none of these fields' real defaults ("1,1000",
+ : "1,20", "1,100"), so every one of them would have been treated as an
+ : always-active filter the moment a value - even an untouched
+ : slider default - was submitted. q:range-predicate's own quoted,
+ : guarded comparison also avoids the crash class found and fixed in
+ : q:par-date-range's sibling bug (see that function's doc): real
+ : `t:height`/`t:width` values include non-numeric content like "1975 m"
+ : (a unit suffix left in the text), which an unguarded `[. ge 1975]`
+ : comparison can't safely evaluate.
+ :
+ : @param $param the request parameter name
+ : @param $pathPrefix an XPath step from the TEI element being filtered, e.g. "descendant::t:dimensions[@type eq 'outer']/t:height"
+ : @param $target the predicate's comparison target relative to $pathPrefix, e.g. "." or "@columns"
+ : @param $guard an extra predicate restricting $pathPrefix to numeric-looking values, or the empty sequence when the source is already reliably typed
+ : @param $default the "no filter" sentinel, e.g. "1,1000"
+ : @return an XPath predicate string, or the empty sequence when the field is absent, blank, or at its default
+ :)
+declare %private function app:range-filter(
+	$param as xs:string,
+	$pathPrefix as xs:string,
+	$target as xs:string,
+	$guard as xs:string?,
+	$default as xs:string
+) as xs:string? {
+	let $range := request:get-parameter($param, ())
+	return if (empty($range) or $range = "" or $range = $default) then (
+	) else
+		let $min := substring-before($range, ",")
+		let $max := substring-after($range, ",")
+		return q:range-predicate($pathPrefix, $target, $guard, $min, $max)
+};
+
+(:~
  : Execute the query on TEI, so that facet indexes will be reacheable
  :)
 declare function app:facetquery($node as node()*, $model as map(*), $query as xs:string*) {
@@ -3050,37 +3333,103 @@ function app:query(
 	 : element carrying a non-numeric `@notBefore`/`@notAfter`.
 	 :)
 	let $dateRange := q:par-date-range("origDate", request:get-parameter("dateRange", ()))
-	let $height := if (contains($app:params, "height")) then (
-		app:paramrange("height", "height")
-	) else (
+	(:
+	 : This whole block used to run through app:paramrange, which has
+	 : three real bugs found live-testing this facet: a hardcoded
+	 : "0,2000" sentinel matching none of these fields' actual defaults
+	 : (so an untouched slider default was treated as an active filter);
+	 : an unquoted numeric comparison, unsafe against real data (`t:height`
+	 : includes values like "1975 m", a unit suffix left in the text);
+	 : and - specific to the four margin fields - a copy-paste bug where
+	 : bmargin/rmargin/lmargin each read the "tmargin" request parameter
+	 : instead of their own, so only the top-margin slider's value ever
+	 : reached any of the four margin filters. The path itself was also
+	 : wrong: real data uses `t:dimensions` (see below), not the
+	 : `t:dimension` this block searched for, so the margin filters
+	 : matched nothing at all regardless of the other bugs. See
+	 : app:range-filter's own doc for why it replaces app:paramrange here
+	 : specifically rather than patching it in place.
+	 :
+	 : height/width/depth are scoped to `t:dimensions[@type eq 'outer']`
+	 : because the same field names recur under other @type values
+	 : (`textarea`, `inner`, `leaf`, ...) for unrelated measurements -
+	 : confirmed against the real corpus that `outer` is where the
+	 : physical extent this facet's labels ("Height (mm)" etc.) describe
+	 : actually lives.
+	 :)
+	let $height := app:range-filter(
+		"height",
+		"descendant::t:dimensions[@type eq 'outer']/t:height",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $width := if (contains($app:params, "width")) then (
-		app:paramrange("width", "width")
-	) else (
+	let $width := app:range-filter(
+		"width",
+		"descendant::t:dimensions[@type eq 'outer']/t:width",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $depth := if (contains($app:params, "depth")) then (
-		app:paramrange("depth", "depth")
-	) else (
+	let $depth := app:range-filter(
+		"depth",
+		"descendant::t:dimensions[@type eq 'outer']/t:depth",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $marginTop := if (contains($app:params, "tmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'top']")
-	) else (
+	(:
+	 : Not wired to any filter at all before this fix - the "Columns per
+	 : page" slider submitted `columnsNum`, but no code anywhere read it.
+	 : Target is an explicit xs:integer(@columns) cast, not the bare
+	 : attribute: unlike the other eight dimension fields (plain element
+	 : text content, untypedAtomic, general-comparison-promotes to
+	 : numeric automatically), `@columns` is schema-typed as xs:string,
+	 : so `[@columns ge 1]` throws `XPTY0004` ("can not compare
+	 : xs:string('2') with xs:integer('1')") on every value, guard or
+	 : not - found live-testing, not hypothetical.
+	 :)
+	let $columnsNum := app:range-filter(
+		"columnsNum",
+		"descendant::t:layout",
+		"xs:integer(@columns)",
+		"[matches(@columns,'^\d+$')]",
+		"1,20"
 	)
-	let $marginBot := if (contains($app:params, "bmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'bottom']")
-	) else (
+	let $marginTop := app:range-filter(
+		"tmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'top']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginR := if (contains($app:params, "rmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'right']")
-	) else (
+	let $marginBot := app:range-filter(
+		"bmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'bottom']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginL := if (contains($app:params, "lmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'left']")
-	) else (
+	let $marginR := app:range-filter(
+		"rmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'right']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginIntercolumn := if (contains($app:params, "intercolumn")) then (
-		app:paramrange("intercolumn", "dimension[@type eq 'margin']/t:dim[@type eq 'intercolumn']")
-	) else (
+	let $marginL := app:range-filter(
+		"lmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'left']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
+	)
+	let $marginIntercolumn := app:range-filter(
+		"intercolumn",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'intercolumn']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
 
 	let $query-string := if ($query != "") then (
@@ -3166,6 +3515,7 @@ function app:query(
 		$height,
 		$width,
 		$depth,
+		$columnsNum,
 		$marginTop,
 		$marginBot,
 		$marginL,
