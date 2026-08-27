@@ -1,0 +1,26 @@
+as.html
+  s_5790d61a112fab::t_89ef50f65d8212 215,221-222
+modules/app.xqm
+  s_5790d61a112fab::t_4928a5b34fbd49 1170
+  s_5790d61a112fab::t_89ef50f65d8212 1114,1167-1169,1171-1227
+  s_5790d61a112fab::t_04de8372e32956 1228
+test/xqs/ts-app-persrole.xqm
+  s_5790d61a112fab::t_010f45b7e98d16 187
+  s_5790d61a112fab::t_89ef50f65d8212 17,184-186,188-277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2ff8e4b7b3f6281d1704ec5cf4b6514bb8b9d498",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
