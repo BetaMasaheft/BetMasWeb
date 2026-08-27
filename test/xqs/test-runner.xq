@@ -36,6 +36,7 @@ import module namespace tsbatchexp = "https://www.betamasaheft.uni-hamburg.de/Be
 import module namespace tstitlecache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-title-cache" at "ts-title-cache.xqm";
 import module namespace tsreslookup = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-resources-titlelookup" at "ts-resources-titlelookup.xqm";
 import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titles-consolidation" at "ts-titles-consolidation.xqm";
+import module namespace tsprinttitle = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-exptit-printtitle" at "ts-exptit-printtitle.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -65,6 +66,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-title-cache.xqm")),
 		inspect:module-functions(xs:anyURI("ts-resources-titlelookup.xqm")),
 		inspect:module-functions(xs:anyURI("ts-titles-consolidation.xqm")),
+		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm"))
 	)
 )

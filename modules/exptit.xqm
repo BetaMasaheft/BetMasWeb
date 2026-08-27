@@ -45,6 +45,10 @@ declare variable $exptit:titleCache := doc("/db/apps/lists/titleCache.xml");
  : string($titleMe) rather than the raw item - an attribute node
  : surfacing unchanged into element content elsewhere would be
  : silently reattached as an attribute instead of serializing as text.
+ : Every branch also falls back to the original identifier when
+ : nothing resolves, rather than returning empty - a live-corpus smoke
+ : test found the BMurl-prefixed branch missing this, leaving up to
+ : ~14% of some dropdown options blank instead of showing the id.
  :
  : @param $titleMe an element, or an identifier (string or attribute)
  : @return the resolved title as a string, or node content for elements
@@ -63,7 +67,11 @@ declare function exptit:printTitle($titleMe) {
 				if (starts-with($titleMe, $config:BMurl)) then
 					(: check if it is a local URI :)
 					let $id := substring-after($titleMe, $config:BMurl)
-					return exptit:printTitleID($id)
+					let $title := exptit:printTitleID($id)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
 				else if (contains($titleMe, "betmas:")) then
 					(: it is a prefixed http thing, replace and treat it accordingly :)
 					let $id := substring-after($titleMe, "betmas:")
