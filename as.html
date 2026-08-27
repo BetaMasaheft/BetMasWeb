@@ -202,7 +202,9 @@
 								<input class="w3-check" type="checkbox" value="writtenLines" data-template="app:writtenLinesCheckbox" />
 								number of written lines<br />
 								<div data-template="app:includeWLForm" />
-								<input class="w3-check" type="checkbox" value="CUnumber" /> minimum number of codicological units<br />
+								<input class="w3-check" type="checkbox" value="CUnumber" data-template="app:CUnumberCheckbox" /> minimum
+								number of codicological units<br />
+								<div data-template="app:includeCUnumberForm" />
 								<input class="w3-check" type="checkbox" value="script" /> script<br />
 								<input class="w3-check" type="checkbox" value="scribe" /> scribe<br />
 								<input class="w3-check" type="checkbox" value="donor" /> donor<br />
@@ -233,7 +235,9 @@
 						<div class="w3-half w3-padding">
 							<label>Persons Filters</label>
 							<div id="pFilter">
-								<input class="w3-check" type="checkbox" value="gender" /> gender<br />
+								<input class="w3-check" type="checkbox" value="gender" data-template="app:genderCheckbox" />
+								gender<br />
+								<div data-template="app:includeGenderForm" />
 								<input class="w3-check" type="checkbox" value="occupation" /> occupation<br />
 								<input class="w3-check" type="checkbox" value="role" data-template="app:roleCheckbox" /> role<br />
 								<div data-template="app:includeRoleForm" />

@@ -925,6 +925,19 @@ declare %private function app:qcn-active($qcn as xs:string*) as xs:boolean {
 };
 
 (:~
+ : Whether `numberOfParts` carries a real filter value - see
+ : app:gender-active, same "non-empty is active" reasoning (the
+ : dispatcher that reaches q:par's "numberOfParts" case already
+ : filters out blank values before it's ever called).
+ :
+ : @param $numberOfParts the request's numberOfParts parameter
+ : @return true if a value is present
+ :)
+declare %private function app:cuNumber-active($numberOfParts as xs:string*) as xs:boolean {
+	exists($numberOfParts) and $numberOfParts[1] != ""
+};
+
+(:~
  : Reveals the "Manuscripts Filters" section server-side when one of
  : its facets has an active, non-default request parameter, instead of
  : relying on filters.js's `#collectionfilter` change handler alone
@@ -935,6 +948,7 @@ declare %private function app:qcn-active($qcn as xs:string*) as xs:boolean {
  : @param $wL the request's wL parameter, auto-resolved by name
  : @param $qn the request's qn parameter, auto-resolved by name
  : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
  : @return the section, with its `display:none` dropped when active
  :)
 declare function app:manuscriptsFiltersSection(
@@ -943,15 +957,57 @@ declare function app:manuscriptsFiltersSection(
 	$folia as xs:string*,
 	$wL as xs:string*,
 	$qn as xs:string*,
-	$qcn as xs:string*
+	$qcn as xs:string*,
+	$numberOfParts as xs:string*
 ) as element() {
 	element {node-name($node)} {
 		templates:filter-attributes($node, $model) except $node/@style,
-		if (app:folia-active($folia) or app:wL-active($wL) or app:qn-active($qn) or app:qcn-active($qcn)) then (
+		if (
+			app:folia-active($folia) or
+				app:wL-active($wL) or
+				app:qn-active($qn) or
+				app:qcn-active($qcn) or
+				app:cuNumber-active($numberOfParts)
+		) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
 	}
+};
+
+(:~
+ : Echoes the "CUnumber" checkbox's state from the request.
+ :
+ : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is present
+ :)
+declare function app:CUnumberCheckbox($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:cuNumber-active($numberOfParts)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formCUnumber.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows. No JS widget
+ : involved (formCUnumber.html's own field is a plain
+ : templates:form-control target), so no hidden-init concern here.
+ :
+ : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
+ : @return formCUnumber.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeCUnumberForm($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formCUnumber.html")
+	return if (app:cuNumber-active($numberOfParts)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~
@@ -1458,23 +1514,82 @@ declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs
 };
 
 (:~
+ : Whether `gender` carries a real filter value - unlike the slider
+ : facets' "min,max" sentinel, list-style params like this one are
+ : simply active when non-empty (q:ListQueryParam-rest's caller
+ : already filters out blank values before dispatch, so there's no
+ : separate "no filter applied" literal to match against).
+ :
+ : @param $gender the request's gender parameter
+ : @return true if any value is present
+ :)
+declare %private function app:gender-active($gender as xs:string*) as xs:boolean {
+	exists($gender) and $gender[1] != ""
+};
+
+(:~
  : Reveals the "Persons Filters" section server-side when one of its
  : facets has an active request parameter, instead of relying on
  : filters.js's `#collectionfilter` change handler alone (JS-only,
- : lost on reload). Only `role` participates so far - extend this
- : parameter list as more `#pFilter` facets get the same treatment.
+ : lost on reload). Extend this parameter list as more `#pFilter`
+ : facets get the same treatment.
  :
  : @param $role the request's role parameter, auto-resolved by name
+ : @param $gender the request's gender parameter, auto-resolved by name
  : @return the section, with its `display:none` dropped when active
  :)
-declare function app:persFiltersSection($node as node(), $model as map(*), $role as xs:string*) as element() {
+declare function app:persFiltersSection(
+	$node as node(),
+	$model as map(*),
+	$role as xs:string*,
+	$gender as xs:string*
+) as element() {
 	element {node-name($node)} {
 		templates:filter-attributes($node, $model) except $node/@style,
-		if (exists($role) and $role[1] != "") then (
+		if ((exists($role) and $role[1] != "") or app:gender-active($gender)) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
 	}
+};
+
+(:~
+ : Echoes the "gender" checkbox's state from the request - the outer
+ : `#pFilter` toggle, not the two inner Male/Female checkboxes inside
+ : formgender.html itself (those go straight through
+ : templates:form-control, a real name="gender" checkbox group).
+ :
+ : @param $gender the request's gender parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:genderCheckbox($node as node(), $model as map(*), $gender as xs:string*) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:gender-active($gender)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of formgender.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows. No JS widget
+ : involved here at all (formgender.html's own Male/Female checkboxes
+ : are plain templates:form-control targets), so there was never a
+ : hidden-init concern to check for this one.
+ :
+ : @param $gender the request's gender parameter, auto-resolved by name
+ : @return formgender.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeGenderForm($node as node(), $model as map(*), $gender as xs:string*) as element() {
+	let $rendered := lib:include($node, $model, "forms/formgender.html")
+	return if (app:gender-active($gender)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~
@@ -1990,7 +2105,20 @@ function app:query(
 	else (
 	)
 	let $genders := if (contains($app:params, "gender")) then
-		"[descendant::t:person/@sex  eq " || request:get-parameter("gender", ()) || " ]"
+		(:
+		 : @sex is stored as a string ("1"/"2") - the unquoted literal here
+		 : previously compared it against an xs:integer, which XPath's `eq`
+		 : (unlike `=`) refuses to promote, throwing XPTY0004 on every real
+		 : search with this filter active. Multiple genders selected are a
+		 : checkbox group over one field's distinct values, so OR them
+		 : together like every other multi-value filter in this function
+		 : does, not AND (which could only ever match zero records).
+		 :)
+		let $values := request:get-parameter("gender", ())
+		let $predicates :=
+			for $v in $values
+			return "descendant::t:person/@sex eq '" || $v || "'"
+		return "[" || string-join($predicates, " or ") || "]"
 	else (
 	)
 	(:

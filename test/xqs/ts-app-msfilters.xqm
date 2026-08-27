@@ -28,7 +28,8 @@ declare %private function tsmssfilters:model-for(
 	$folia as xs:string?,
 	$wL as xs:string?,
 	$qn as xs:string?,
-	$qcn as xs:string?
+	$qcn as xs:string?,
+	$numberOfParts as xs:string?
 ) as map(*) {
 	map {
 		$templates:CONFIGURATION:
@@ -48,6 +49,8 @@ declare %private function tsmssfilters:model-for(
 								$qn
 							case "qcn" return
 								$qcn
+							case "numberOfParts" return
+								$numberOfParts
 							default return
 								()
 					},
@@ -176,31 +179,63 @@ declare %test:assertFalse function tsmssfilters:quiresCompCheckbox-unchecked-wit
 
 declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-folia-active() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="folia" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for("5,42", (), (), ()), "5,42", (), (), ())
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for("5,42", (), (), (), ()),
+		"5,42",
+		(),
+		(),
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-wL-active() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="writtenLines" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), "3,17", (), ()), (), "3,17", (), ())
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for((), "3,17", (), (), ()),
+		(),
+		"3,17",
+		(),
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-qn-active() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="quires" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), "5,42", ()), (), (), "5,42", ())
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for((), (), "5,42", (), ()),
+		(),
+		(),
+		"5,42",
+		(),
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-qcn-active() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="quiresComp" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), "3,17"), (), (), (), "3,17")
+	let $out := app:manuscriptsFiltersSection(
+		$node,
+		tsmssfilters:model-for((), (), (), "3,17", ()),
+		(),
+		(),
+		(),
+		"3,17",
+		()
+	)
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-when-all-default() {
 	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="folia" /></div>
-	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), ()), (), (), (), ())
+	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), (), ()), (), (), (), (), ())
 	return exists($out/@style)
 };
 
@@ -213,72 +248,108 @@ declare %test:assertTrue function tsmssfilters:manuscriptsFiltersSection-hidden-
  :)
 declare %test:assertTrue function tsmssfilters:includeFoliaForm-hidden-without-param() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for((), (), (), ()), ())
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeFoliaForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), ()), "5,42")
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), (), ()), "5,42")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeFoliaForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeFoliaForm" />
-	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), ()), "5,42")
+	let $out := app:includeFoliaForm($node, tsmssfilters:model-for("5,42", (), (), (), ()), "5,42")
 	return exists($out//*:input[@id = "folia"][@data-slider-value = "[5,42]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeWLForm-hidden-without-param() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), (), (), ()), ())
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeWLForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), ()), "3,17")
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), (), ()), "3,17")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeWLForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeWLForm" />
-	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), ()), "3,17")
+	let $out := app:includeWLForm($node, tsmssfilters:model-for((), "3,17", (), (), ()), "3,17")
 	return exists($out//*:input[@id = "writtenLines"][@data-slider-value = "[3,17]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresForm-hidden-without-param() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), (), ()), ())
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeQuiresForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", ()), "5,42")
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", (), ()), "5,42")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeQuiresForm" />
-	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", ()), "5,42")
+	let $out := app:includeQuiresForm($node, tsmssfilters:model-for((), (), "5,42", (), ()), "5,42")
 	return exists($out//*:input[@id = "quires"][@data-slider-value = "[5,42]"])
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresCompForm-hidden-without-param() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), ()), ())
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
 	return exists($out/@style[contains(., "display:none")])
 };
 
 declare %test:assertFalse function tsmssfilters:includeQuiresCompForm-visible-with-nondefault-range() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17"), "3,17")
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17", ()), "3,17")
 	return exists($out/@style)
 };
 
 declare %test:assertTrue function tsmssfilters:includeQuiresCompForm-echoes-range-when-active() {
 	let $node := <div data-template="app:includeQuiresCompForm" />
-	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17"), "3,17")
+	let $out := app:includeQuiresCompForm($node, tsmssfilters:model-for((), (), (), "3,17", ()), "3,17")
 	return exists($out//*:input[@id = "quiresComp"][@data-slider-value = "[3,17]"])
+};
+
+declare %test:assertTrue function tsmssfilters:cuNumberCheckbox-checked-with-value() {
+	let $node := <input data-template="app:CUnumberCheckbox" type="checkbox" value="CUnumber" />
+	let $out := app:CUnumberCheckbox($node, map {}, "3")
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:cuNumberCheckbox-unchecked-without-param() {
+	let $node := <input data-template="app:CUnumberCheckbox" type="checkbox" value="CUnumber" />
+	let $out := app:CUnumberCheckbox($node, map {}, ())
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:manuscriptsFiltersSection-visible-when-numberOfParts-active() {
+	let $node := <div id="manuscriptsFilters" style="display: none"><input type="checkbox" value="CUnumber" /></div>
+	let $out := app:manuscriptsFiltersSection($node, tsmssfilters:model-for((), (), (), (), "3"), (), (), (), (), "3")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:includeCUnumberForm-hidden-without-param() {
+	let $node := <div data-template="app:includeCUnumberForm" />
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), ()), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeCUnumberForm-visible-with-value() {
+	let $node := <div data-template="app:includeCUnumberForm" />
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), "3"), "3")
+	return exists($out/@style)
+};
+
+declare %test:assertTrue function tsmssfilters:includeCUnumberForm-echoes-value-when-active() {
+	let $node := <div data-template="app:includeCUnumberForm" />
+	let $out := app:includeCUnumberForm($node, tsmssfilters:model-for((), (), (), (), "3"), "3")
+	return exists($out//*:input[@name = "numberOfParts"][@value = "3"])
 };
