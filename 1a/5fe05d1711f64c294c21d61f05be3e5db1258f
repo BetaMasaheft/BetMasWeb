@@ -1,0 +1,27 @@
+as.html
+  s_a58db9326baeb0::t_2169f0b517af1f 196-198
+forms/formdimensions.html
+  s_a58db9326baeb0::t_e575d3df96fb01 6,11,16,21,28,33,38,43,48
+modules/app.xqm
+  s_a58db9326baeb0::t_e29effe0df7eb8 944-963,967,971-998,1475-1729,2796-2831,3336-3365,3367-3372,3374-3379,3381-3397,3399-3404,3406-3411,3413-3418,3420-3432,3518
+resources/js/filters.js
+  s_a58db9326baeb0::t_6086b066c5e975 27-35
+test/xqs/ts-app-msfilters.xqm
+  s_a58db9326baeb0::t_90a04867b38caf 645-749,751-776
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1a5fe05d1711f64c294c21d61f05be3e5db1258f",
+  "prompts": {},
+  "sessions": {
+    "s_a58db9326baeb0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28c70ab6-804e-43e5-a593-9060982d5bc1",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
