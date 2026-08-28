@@ -130,6 +130,10 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					$node/@type,
 					$node/@xml:lang,
 					$node/@xml:id,
+					if ($node/@type = "mss") then
+						<msPartsCount xmlns="http://www.tei-c.org/ns/1.0">{ count($node//t:msPart) }</msPartsCount>
+					else (
+					),
 					expand:tei2fulltei($node/t:teiHeader, $bibliography),
 					if (count($node//t:listRelation) ge 1) then
 						<standOff xmlns="http://www.tei-c.org/ns/1.0">
@@ -595,6 +599,41 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 			expand:datelike($node, $bibliography)
 		case element(t:floruit) return
 			expand:datelike($node, $bibliography)
+		case element(t:height) return
+			expand:normalize-decimal($node)
+		case element(t:width) return
+			expand:normalize-decimal($node)
+		case element(t:depth) return
+			expand:normalize-decimal($node)
+		case element(t:dim) return
+			expand:normalize-decimal($node)
+		case element(t:layout) return
+			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
+				(
+					$node/@* except $node/@writtenLines,
+					if ($node/@writtenLines) then
+						attribute writtenLines { expand:normalize-numeric-text(string($node/@writtenLines)) }
+					else (
+					),
+					(:
+					 : Same value as the normalized @writtenLines attribute
+					 : above, duplicated as a child element - attribute values
+					 : need an explicit cast for numeric comparison (they don't
+					 : auto-promote from untypedAtomic the way element text
+					 : does), and that cast defeats the range-index optimizer
+					 : the same way a wrapped comparison target does elsewhere
+					 : in this codebase. This element exists purely so a range
+					 : query can stay unguarded/uncast and index-backed.
+					 :)
+					if ($node/@writtenLines) then
+						<writtenLinesNorm xmlns="http://www.tei-c.org/ns/1.0">
+							{ expand:normalize-numeric-text(string($node/@writtenLines)) }
+						</writtenLinesNorm>
+					else (
+					),
+					expand:tei2fulltei($node/node(), $bibliography)
+				)
+			}
 		(: any other not named element goes through :)
 		case element() return
 			try {
@@ -611,6 +650,47 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 		(: anything which is not a node of those named above, including text() and attributes :)
 		default return
 			$node
+};
+
+(:~
+ : Normalizes a dimension/layout value for numeric range indexing:
+ : comma-decimals become dot-decimals ("19,5" -> "19.5"), and a
+ : recorded min-max range - hyphen- or en-dash-separated ("18-19",
+ : "24-30") or space-separated packed pair ("27 31") - becomes its
+ : midpoint ("18.5"). Anything else (unit suffixes, "ca." prefixes,
+ : free-text notes) is returned unchanged - not every value can be
+ : made range-index-safe here; those are simply excluded once the
+ : underlying index field is retyped to a numeric type.
+ :
+ : @param $v the raw text content
+ : @return a normalized numeric string where recoverable, otherwise $v unchanged
+ :)
+declare function expand:normalize-numeric-text($v as xs:string) as xs:string {
+	let $v := translate(normalize-space($v), ",–—", ".--")
+	let $parts := if (matches($v, "^\d+(\.\d+)?-\d+(\.\d+)?$")) then
+		tokenize($v, "-")
+	else if (matches($v, "^\d+(\.\d+)? \d+(\.\d+)?$")) then
+		tokenize($v, " ")
+	else (
+	)
+	return if (count($parts) = 2) then
+		string((xs:double($parts[1]) + xs:double($parts[2])) div 2)
+	else
+		$v
+};
+
+(:~
+ : Normalizes a leaf dimension element's (height/width/depth/dim) text
+ : content via expand:normalize-numeric-text, preserving its
+ : attributes unchanged.
+ :
+ : @param $node a t:height/t:width/t:depth/t:dim element
+ : @return the same element with normalized text content
+ :)
+declare function expand:normalize-decimal($node as element()) as element() {
+	element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
+		$node/@*, expand:normalize-numeric-text(normalize-space($node))
+	}
 };
 
 declare function expand:rn($n) as xs:string {
