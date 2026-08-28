@@ -1,0 +1,34 @@
+forms/forminstitutions.html
+  s_5790d61a112fab::t_123289102f6645 23-24
+  s_5790d61a112fab::t_604f1bb839c6e9 14-22
+resources/js/filters.js
+  s_5790d61a112fab::t_4e5dcd02568cec 293-295,302,304
+  s_5790d61a112fab::t_7179b42b8ad57d 207
+as.html
+  s_5790d61a112fab::t_88b973d3908b18 195-197
+test/xqs/ts-app-msfilters.xqm
+  s_5790d61a112fab::t_d8b5ea65c0b7f5 788-817
+modules/app.xqm
+  s_5790d61a112fab::t_36cbd49394143b 703-754
+  s_5790d61a112fab::t_123289102f6645 662-663,665-666
+  s_5790d61a112fab::t_b43b2547944c67 448-460
+  s_5790d61a112fab::t_85344adf86c995 1070-1071
+  s_5790d61a112fab::t_fb94401e4f7f34 664,667
+  s_5790d61a112fab::t_c718511ef8396a 644-652,657-658,661,668-670
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "92f92a5a5ca50e3a0f98ca48d184dc6e3aaf5bd4",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}

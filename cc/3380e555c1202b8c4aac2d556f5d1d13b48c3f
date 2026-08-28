@@ -1,0 +1,23 @@
+test/cypress/e2e/as-manuscriptsFiltersSection.cy.js
+  s_5790d61a112fab::t_c5aab70cb2294e 51,53-59
+  s_5790d61a112fab::t_56950366848907 48,52,60,62,65
+  s_5790d61a112fab::t_7496a48c2a71f9 1-2,6,10-47,49-50,61,63-64,66-73,78-88
+  s_5790d61a112fab::t_0544eb8b2beaaf 3-5,7-9
+  s_5790d61a112fab::t_282857ae4cc8c8 74-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "cc3380e555c1202b8c4aac2d556f5d1d13b48c3f",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
