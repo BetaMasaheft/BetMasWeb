@@ -1,0 +1,23 @@
+modules/app.xqm
+  s_5790d61a112fab::t_303555059050e6 1993-1994
+test/xqs/ts-app-worksplaces-filters.xqm
+  s_5790d61a112fab::t_3204c20b73adb5 75-78,82-83,87,89-91
+  s_5790d61a112fab::t_7ab8f1f8d7148c 84
+  s_5790d61a112fab::t_eeee6a4e7b4f6c 79-81,85-86,88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "633573d2d6b17fba8b1414dcfbb9719fc8300de2",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
