@@ -1990,7 +1990,8 @@ declare %templates:default("context", "collection($config:data-rootIn)") functio
 	let $personTabot := config:distinct-values($tabots//t:persName/@ref)
 	let $thingsTabot := config:distinct-values($tabots//t:ref/@corresp)
 	let $alltabots := ($personTabot, $thingsTabot)
-	return app:formcontrol("tabot", $alltabots, "false", "rels", $context)
+	let $control := app:formcontrol("tabot", $alltabots, "false", "rels", $context)
+	return templates:form-control($control, $model)
 };
 
 (:~

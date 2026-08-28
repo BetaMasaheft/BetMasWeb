@@ -72,6 +72,23 @@ declare %test:assertFalse function tswpfilters:includeAuthorsForm-visible-with-v
 	return exists($out/@style)
 };
 
+(:~
+ : app:tabots must wrap its control in templates:form-control, same as
+ : its app:contents/app:WorkAuthors siblings - it didn't, so a selected
+ : tabot never echoed back as `selected` on reload despite the checkbox
+ : and section around it working correctly. $context is a self-contained
+ : XQuery literal (util:eval'd by app:tabots itself), not a stored
+ : fixture - no collection needed for a single-node check like this one.
+ :)
+declare %test:assertTrue function tswpfilters:tabots-echoes-selected-value() {
+	let $context := "<root xmlns='http://www.tei-c.org/ns/1.0'>
+			<ab type='tabot'><persName ref='PLA1' /></ab>
+		</root>"
+	let $node := <span data-template="app:tabots" />
+	let $out := app:tabots($node, tswpfilters:model-for(map {"tabot": "PLA1"}), $context)
+	return exists($out//*:option[@value eq "PLA1"][@selected])
+};
+
 declare %test:assertTrue function tswpfilters:tabotsCheckbox-checked-with-value() {
 	let $node := <input data-template="app:tabotsCheckbox" type="checkbox" value="tabots" />
 	return exists(app:tabotsCheckbox($node, map {}, "PLA1")/@checked)
