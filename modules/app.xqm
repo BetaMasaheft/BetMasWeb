@@ -445,7 +445,19 @@ declare function app:ListQueryParam($parameter, $context, $mode, $function) {
 								"')] or descendant::t:ref[contains(@corresp, '" ||
 								$k ||
 								"')]]"
-
+						else if ($parameter = "target-ins") then
+							(:
+							 : app:target-ins's own picker submits the bare institution
+							 : id (its <option>s come from $config:data-rootIn's
+							 : @xml:id), but t:repository/@ref in the manuscripts
+							 : collection stores the full $config:BMurl-prefixed URI -
+							 : an exact `=` match here (this branch's own default,
+							 : below) never matched anything, silently no-op'ing every
+							 : institution-filtered search. ends-with (rather than
+							 : contains) keeps the match anchored to the id's own path
+							 : segment, not any arbitrary substring of the URI.
+							 :)
+							"descendant::t:repository[ends-with(@ref, '/" || $k || "')]"
 						else
 							let $c := if (starts-with($context, "@")) then (
 							) else
@@ -629,15 +641,33 @@ declare function app:elements($node as node(), $model as map(*)) {
 };
 
 (:~
- : called by form*.html files used by advances search form as.html and filters.js
+ : called by form*.html files used by advances search form as.html and
+ : filters.js. Scoped to a single institution's manuscripts when
+ : target-ins is submitted, matching filters.js's live cascade on
+ : #target-ins - previously that cascade rebuilt this same
+ : id="target-ms"/name="target-ms" select from scratch client-side via
+ : a separate AJAX call instead of scoping this one, which collided
+ : with it under the same ids whenever both were present.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:target-mss(
 	$node as node(),
 	$model as map(*),
-	$context as xs:string*
+	$context as xs:string*,
+	$target-ins as xs:string*
 ) {
 	let $cont := util:eval($context)
-	let $control := app:formcontrol("target-ms", $cont//t:TEI, "false", "name", $context)
+	let $scoped := if (app:list-param-active($target-ins)) then
+		(:
+		 : t:repository/@ref stores a full $config:BMurl-prefixed URI, not
+		 : the bare id app:target-ins's own picker submits - see
+		 : app:ListQueryParam's "target-ins" branch for the same fix.
+		 :)
+		$cont//t:TEI[descendant::t:repository[ends-with(@ref, "/" || $target-ins)]]
+	else
+		$cont//t:TEI
+	let $control := app:formcontrol("target-ms", $scoped, "false", "name", $context)
 
 	return templates:form-control($control, $model)
 };
@@ -668,6 +698,58 @@ declare %templates:default("context", "collection($config:data-rootIn)") functio
 	let $control := app:formcontrol("target-ins", $cont//t:TEI, "false", "name", $context)
 
 	return templates:form-control($control, $model)
+};
+
+(:~
+ : Echoes the "institutions" checkbox's state from the request - active
+ : whether the user picked an institution (target-ins) or, once that
+ : cascade rendered its scoped manuscripts select, one or more specific
+ : manuscripts from it (target-ms). Covers the same ground the
+ : never-wired "msstargets" facet (formtargetmss.html, its own dead
+ : checkbox-less filters.js case) was meant to - folded in here rather
+ : than restored separately, since target-mss's own manuscripts select
+ : is now part of this same fragment.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when either is present
+ :)
+declare function app:institutionsCheckbox(
+	$node as node(),
+	$model as map(*),
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
+) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if (app:list-param-active($target-ins) or app:list-param-active($target-ms)) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Server-side include of forminstitutions.html's own templated content
+ : - see app:includeFoliaForm for the pattern this follows.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
+ : @return forminstitutions.html's own root element, hidden when neither is present
+ :)
+declare function app:includeInstitutionsForm(
+	$node as node(),
+	$model as map(*),
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
+) as element() {
+	let $rendered := lib:include($node, $model, "forms/forminstitutions.html")
+	return if (app:list-param-active($target-ins) or app:list-param-active($target-ms)) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
 };
 
 (:~
@@ -985,6 +1067,8 @@ declare function app:manuscriptsFiltersSection($node as node(), $model as map(*)
 				app:list-param-active(request:get-parameter("parchmentMaker", ())) or
 				app:list-param-active(request:get-parameter("material", ())) or
 				app:list-param-active(request:get-parameter("bmaterial", ())) or
+				app:list-param-active(request:get-parameter("target-ins", ())) or
+				app:list-param-active(request:get-parameter("target-ms", ())) or
 				app:dimensions-active(
 					request:get-parameter("height", ()),
 					request:get-parameter("width", ()),

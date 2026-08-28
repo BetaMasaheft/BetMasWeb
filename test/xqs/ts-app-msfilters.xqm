@@ -785,3 +785,33 @@ declare %test:assertFalse function tsmssfilters:includeDimensionsForm-visible-wh
 	)
 	return exists($out/@style)
 };
+
+declare %test:assertTrue function tsmssfilters:institutionsCheckbox-checked-with-target-ins() {
+	let $node := <input data-template="app:institutionsCheckbox" type="checkbox" value="institutions" />
+	let $out := app:institutionsCheckbox($node, map {}, "InsBAV", ())
+	return exists($out/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:institutionsCheckbox-checked-with-target-ms-only() {
+	let $node := <input data-template="app:institutionsCheckbox" type="checkbox" value="institutions" />
+	let $out := app:institutionsCheckbox($node, map {}, (), "EMML1")
+	return exists($out/@checked)
+};
+
+declare %test:assertFalse function tsmssfilters:institutionsCheckbox-unchecked-without-any-param() {
+	let $node := <input data-template="app:institutionsCheckbox" type="checkbox" value="institutions" />
+	let $out := app:institutionsCheckbox($node, map {}, (), ())
+	return exists($out/@checked)
+};
+
+declare %test:assertTrue function tsmssfilters:includeInstitutionsForm-hidden-without-any-param() {
+	let $node := <div data-template="app:includeInstitutionsForm" />
+	let $out := app:includeInstitutionsForm($node, tsmssfilters:model-for(map {}), (), ())
+	return exists($out/@style[contains(., "display:none")])
+};
+
+declare %test:assertFalse function tsmssfilters:includeInstitutionsForm-visible-with-target-ins() {
+	let $node := <div data-template="app:includeInstitutionsForm" />
+	let $out := app:includeInstitutionsForm($node, tsmssfilters:model-for(map {"target-ins": "InsBAV"}), "InsBAV", ())
+	return exists($out/@style)
+};

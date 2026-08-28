@@ -98,17 +98,11 @@ $(document).ready(function () {
 				case "relations":
 					callformpart("forms/formrelations.html", "relations");
 					break;
-				case "references":
-					callformpart("forms/formref.html", "containsRef");
-					break;
 				case "xpath":
 					callformpart("forms/formxpath.html", "xpathform");
 					break;
 				case "date":
 					callformpart("forms/formdates.html", "datesform");
-					break;
-				case "msstargets":
-					callformpart("forms/formtargetmss.html", "mssform");
 					break;
 				case "folia":
 					callformpart("forms/formfolia.html", "leavesform");
@@ -203,9 +197,6 @@ $(document).ready(function () {
 				case "relations":
 					$("#relations").hide();
 					break;
-				case "references":
-					$("#containsRef").hide();
-					break;
 				case "xpath":
 					$("#xpathform").hide();
 					break;
@@ -213,7 +204,7 @@ $(document).ready(function () {
 					$("#datesform").hide();
 					break;
 				case "mss":
-					$("#mssform").hide();
+					$("#insform").hide();
 					break;
 				case "works":
 					$("#worksform").hide();
@@ -299,20 +290,17 @@ $(document).ready(function () {
 });
 
 $(document).on("change", "#target-ins", function () {
+	// #target-ms is always present in forminstitutions.html now (server-rendered,
+	// scoped to the submitted target-ins on reload) - refresh its options in
+	// place instead of inserting a second, id-colliding select.
 	var ins = $(this).val();
 	var apicall = appBase + "/api/manuscripts/list/json?perpage=2000&repo=" + ins;
 	$.getJSON(apicall, function (data) {
-		console.log(data);
 		var options = "";
 		for (var i = 0; i < data.total; i++) {
 			var ms = data.items[i];
-			console.log(ms);
-			options += '<option value="' + ms.id + '" >' + ms.title + "</option>";
+			options += '<option value="' + ms.id + '">' + ms.title + "</option>";
 		}
-		var targetmss =
-			'<div class="w3-container list mss" data-toggle="tooltip" data-placement="left" title="Select Manuscripts individually" id="mssform"><label>Manuscripts</label><br/><select multiple="multiple" name="target-ms" id="target-ms" class="w3-select w3-border">' +
-			options +
-			"</select>Here you can specify exactly in which Manuscripts records you want tosearch.</div>";
-		$(targetmss).insertAfter($("#insform"));
+		$("#target-ms").html(options);
 	});
 });
