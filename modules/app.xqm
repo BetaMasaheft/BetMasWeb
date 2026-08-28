@@ -50,6 +50,32 @@ declare variable $app:params := request:get-parameter-names();
 
 declare variable $app:facets := doc("/db/system/config/db/apps/BetMasData/collection.xconf")//xconf:facet/@dimension;
 
+(:~
+ : as.html's manuscripts-facet pickers (scribe, donor, material, script,
+ : etc.) each used to independently re-resolve
+ : collection($config:data-rootMS) via util:eval on every request - one
+ : shared binding instead. collection.xconf has no range index on the
+ : attributes these facets query, so each still walks every document;
+ : tracked in https://github.com/BetaMasaheft/expanded/issues/19.
+ :)
+declare variable $app:mss-collection := collection($config:data-rootMS);
+
+(:~
+ : Resolves a facet function's own "context" parameter, reusing
+ : $app:mss-collection instead of util:eval for the common (unoverridden
+ : default) case - no caller currently overrides it, but the parameter
+ : stays honored if one ever does.
+ :
+ : @param $context the function's own context parameter (templates-resolved)
+ : @return the evaluated context node sequence
+ :)
+declare %private function app:eval-mss-context($context as xs:string*) as node()* {
+	if ($context = "collection($config:data-rootMS)") then
+		$app:mss-collection
+	else
+		util:eval($context)
+};
+
 declare variable $app:rest := "/rest/";
 
 declare variable $app:languages := doc("/db/apps/lists/languages.xml");
@@ -301,7 +327,7 @@ declare function app:selectors($nodeName, $path, $nodes, $type, $context) {
 						"form"
 					default return
 						"termkey"
-				let $ctx := util:eval($context)
+				let $ctx := app:eval-mss-context($context)
 				let $facet := if ($nodeName = "script") then (
 					$app:util-index-lookup(
 						$ctx//@script,
@@ -657,14 +683,14 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$context as xs:string*,
 	$target-ins as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $scoped := if (app:list-param-active($target-ins)) then
 		(:
-		 : t:repository/@ref stores a full $config:BMurl-prefixed URI, not
-		 : the bare id app:target-ins's own picker submits - see
-		 : app:ListQueryParam's "target-ins" branch for the same fix.
+		 : t:repository/@ref is BMurl-prefixed; target-ins submits the
+		 : bare id. Multi-select, so match any one value - `||`
+		 : concatenating the whole sequence throws err:XPTY0004.
 		 :)
-		$cont//t:TEI[descendant::t:repository[ends-with(@ref, "/" || $target-ins)]]
+		$cont//t:TEI[descendant::t:repository[some $ins in $target-ins satisfies ends-with(@ref, "/" || $ins)]]
 	else
 		$cont//t:TEI
 	let $control := app:formcontrol("target-ms", $scoped, "false", "name", $context)
@@ -720,13 +746,7 @@ declare function app:institutionsCheckbox(
 	$target-ins as xs:string*,
 	$target-ms as xs:string*
 ) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($target-ins) or app:list-param-active($target-ms)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($target-ins) or app:list-param-active($target-ms))
 };
 
 (:~
@@ -743,13 +763,12 @@ declare function app:includeInstitutionsForm(
 	$target-ins as xs:string*,
 	$target-ms as xs:string*
 ) as element() {
-	let $rendered := lib:include($node, $model, "forms/forminstitutions.html")
-	return if (app:list-param-active($target-ins) or app:list-param-active($target-ms)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form(
+		$node,
+		$model,
+		"forms/forminstitutions.html",
+		app:list-param-active($target-ins) or app:list-param-active($target-ms)
+	)
 };
 
 (:~
@@ -760,7 +779,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $scripts := $app:util-index-lookup($cont//@script, (), function ($key, $count) { $key }, 100, "lucene-index")
 	let $control := app:formcontrol("script", $scripts, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -774,7 +793,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $forms := config:distinct-values($cont//@form)
 	let $control := app:formcontrol("support", $forms, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -788,7 +807,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $materials := config:distinct-values($cont//t:support/t:material/@key)
 	let $control := app:formcontrol("material", $materials, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -802,7 +821,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $bmaterials := config:distinct-values($cont//t:decoNote[@type eq "bindingMaterial"]/t:material/@key)
 
 	let $control := app:formcontrol("bmaterial", $bmaterials, "false", "values", $context)
@@ -814,7 +833,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $bindings := config:distinct-values($cont//t:binding/@contemporary)
 	let $control := app:formcontrol("bindingtype", $bindings, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -959,13 +978,7 @@ declare %private function app:wL-active($wL as xs:string*) as xs:boolean {
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:folia-active($folia)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:folia-active($folia))
 };
 
 (:~
@@ -975,13 +988,7 @@ declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as 
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:writtenLinesCheckbox($node as node(), $model as map(*), $wL as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:wL-active($wL)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:wL-active($wL))
 };
 
 (:~
@@ -1094,13 +1101,7 @@ declare function app:manuscriptsFiltersSection($node as node(), $model as map(*)
  : @return the checkbox, with @checked set when a value is present
  :)
 declare function app:CUnumberCheckbox($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:cuNumber-active($numberOfParts)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:cuNumber-active($numberOfParts))
 };
 
 (:~
@@ -1113,13 +1114,7 @@ declare function app:CUnumberCheckbox($node as node(), $model as map(*), $number
  : @return formCUnumber.html's own root element, hidden when no filter is active
  :)
 declare function app:includeCUnumberForm($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formCUnumber.html")
-	return if (app:cuNumber-active($numberOfParts)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formCUnumber.html", app:cuNumber-active($numberOfParts))
 };
 
 (:~
@@ -1138,19 +1133,64 @@ declare %private function app:list-param-active($value as xs:string*) as xs:bool
 };
 
 (:~
+ : Shared shape behind every "echo this facet's checkbox state" function:
+ : copy $node's attributes except @data-template/@checked, then set
+ : @checked when the caller's own activity check says so. Each facet
+ : keeps its own activity predicate (app:list-param-active,
+ : app:folia-active, a multi-param "or", etc.) - only this boilerplate
+ : is shared.
+ :
+ : @param $node the checkbox's data-template marker node
+ : @param $active whether this facet has a real filter value
+ : @return the checkbox, with @checked set when $active
+ :)
+(:~
+ : Shared shape behind every "server-render this facet's form fragment,
+ : hidden when inactive" function: include the form file, then hide it
+ : (display:none, style stripped first so it can't already carry one)
+ : when the caller's own activity check says there's nothing to
+ : restore. Each facet keeps its own activity predicate - only this
+ : include+hide boilerplate is shared.
+ :
+ : @param $node the data-template marker node
+ : @param $model the current templates model
+ : @param $formfile the form fragment's path, e.g. "forms/formscribes.html"
+ : @param $active whether this facet has a real filter value
+ : @return the form fragment, hidden via @style when not $active
+ :)
+declare %private function app:include-facet-form(
+	$node as node(),
+	$model as map(*),
+	$formfile as xs:string,
+	$active as xs:boolean
+) as element() {
+	let $rendered := lib:include($node, $model, $formfile)
+	return if ($active) then
+		$rendered
+	else
+		element {node-name($rendered)} {
+			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
+		}
+};
+
+declare %private function app:checkbox-state($node as node(), $active as xs:boolean) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if ($active) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
  : Echoes the "scribe" checkbox's state from the request.
  :
  : @param $scribe the request's scribe parameter, auto-resolved by name
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:scribeCheckbox($node as node(), $model as map(*), $scribe as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($scribe)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($scribe))
 };
 
 (:~
@@ -1161,13 +1201,7 @@ declare function app:scribeCheckbox($node as node(), $model as map(*), $scribe a
  : @return formscribes.html's own root element, hidden when no filter is active
  :)
 declare function app:includeScribeForm($node as node(), $model as map(*), $scribe as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formscribes.html")
-	return if (app:list-param-active($scribe)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formscribes.html", app:list-param-active($scribe))
 };
 
 (:~
@@ -1177,13 +1211,7 @@ declare function app:includeScribeForm($node as node(), $model as map(*), $scrib
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:donorCheckbox($node as node(), $model as map(*), $donor as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($donor)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($donor))
 };
 
 (:~
@@ -1193,13 +1221,7 @@ declare function app:donorCheckbox($node as node(), $model as map(*), $donor as 
  : @return formdonor.html's own root element, hidden when no filter is active
  :)
 declare function app:includeDonorForm($node as node(), $model as map(*), $donor as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formdonor.html")
-	return if (app:list-param-active($donor)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formdonor.html", app:list-param-active($donor))
 };
 
 (:~
@@ -1209,13 +1231,7 @@ declare function app:includeDonorForm($node as node(), $model as map(*), $donor 
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:patronCheckbox($node as node(), $model as map(*), $patron as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($patron)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($patron))
 };
 
 (:~
@@ -1225,13 +1241,7 @@ declare function app:patronCheckbox($node as node(), $model as map(*), $patron a
  : @return formpatron.html's own root element, hidden when no filter is active
  :)
 declare function app:includePatronForm($node as node(), $model as map(*), $patron as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formpatron.html")
-	return if (app:list-param-active($patron)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formpatron.html", app:list-param-active($patron))
 };
 
 (:~
@@ -1241,13 +1251,7 @@ declare function app:includePatronForm($node as node(), $model as map(*), $patro
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:ownerCheckbox($node as node(), $model as map(*), $owner as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($owner)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($owner))
 };
 
 (:~
@@ -1257,13 +1261,7 @@ declare function app:ownerCheckbox($node as node(), $model as map(*), $owner as 
  : @return formowner.html's own root element, hidden when no filter is active
  :)
 declare function app:includeOwnerForm($node as node(), $model as map(*), $owner as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formowner.html")
-	return if (app:list-param-active($owner)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formowner.html", app:list-param-active($owner))
 };
 
 (:~
@@ -1273,13 +1271,7 @@ declare function app:includeOwnerForm($node as node(), $model as map(*), $owner 
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:binderCheckbox($node as node(), $model as map(*), $binder as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($binder)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($binder))
 };
 
 (:~
@@ -1289,13 +1281,7 @@ declare function app:binderCheckbox($node as node(), $model as map(*), $binder a
  : @return formbinder.html's own root element, hidden when no filter is active
  :)
 declare function app:includeBinderForm($node as node(), $model as map(*), $binder as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formbinder.html")
-	return if (app:list-param-active($binder)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formbinder.html", app:list-param-active($binder))
 };
 
 (:~
@@ -1308,13 +1294,7 @@ declare function app:includeBinderForm($node as node(), $model as map(*), $binde
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:objectTypeCheckbox($node as node(), $model as map(*), $support as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($support)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($support))
 };
 
 (:~
@@ -1324,13 +1304,7 @@ declare function app:objectTypeCheckbox($node as node(), $model as map(*), $supp
  : @return formobjecttype.html's own root element, hidden when no filter is active
  :)
 declare function app:includeObjectTypeForm($node as node(), $model as map(*), $support as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formobjecttype.html")
-	return if (app:list-param-active($support)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formobjecttype.html", app:list-param-active($support))
 };
 
 (:~
@@ -1342,13 +1316,7 @@ declare function app:includeObjectTypeForm($node as node(), $model as map(*), $s
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:contentsCheckbox($node as node(), $model as map(*), $content as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($content)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($content))
 };
 
 (:~
@@ -1358,13 +1326,7 @@ declare function app:contentsCheckbox($node as node(), $model as map(*), $conten
  : @return formcontents.html's own root element, hidden when no filter is active
  :)
 declare function app:includeContentsForm($node as node(), $model as map(*), $content as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formcontents.html")
-	return if (app:list-param-active($content)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formcontents.html", app:list-param-active($content))
 };
 
 (:~
@@ -1374,13 +1336,7 @@ declare function app:includeContentsForm($node as node(), $model as map(*), $con
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:bindingtypeCheckbox($node as node(), $model as map(*), $bindingtype as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($bindingtype)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($bindingtype))
 };
 
 (:~
@@ -1394,13 +1350,7 @@ declare function app:includeBindingtypeForm(
 	$model as map(*),
 	$bindingtype as xs:string*
 ) as element() {
-	let $rendered := lib:include($node, $model, "forms/formbind.html")
-	return if (app:list-param-active($bindingtype)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formbind.html", app:list-param-active($bindingtype))
 };
 
 (:~
@@ -1416,13 +1366,7 @@ declare function app:includeBindingtypeForm(
  : @return formfolia.html's own root element, hidden when no filter is active
  :)
 declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formfolia.html")
-	return if (app:folia-active($folia)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formfolia.html", app:folia-active($folia))
 };
 
 (:~
@@ -1433,13 +1377,7 @@ declare function app:includeFoliaForm($node as node(), $model as map(*), $folia 
  : @return formWL.html's own root element, hidden when no filter is active
  :)
 declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formWL.html")
-	return if (app:wL-active($wL)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formWL.html", app:wL-active($wL))
 };
 
 (:~
@@ -1497,13 +1435,7 @@ declare function app:quiresCompInput($node as node(), $model as map(*), $qcn as 
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:quiresCheckbox($node as node(), $model as map(*), $qn as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:qn-active($qn)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:qn-active($qn))
 };
 
 (:~
@@ -1513,13 +1445,7 @@ declare function app:quiresCheckbox($node as node(), $model as map(*), $qn as xs
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:quiresCompCheckbox($node as node(), $model as map(*), $qcn as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:qcn-active($qcn)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:qcn-active($qcn))
 };
 
 (:~
@@ -1530,13 +1456,7 @@ declare function app:quiresCompCheckbox($node as node(), $model as map(*), $qcn 
  : @return formquires.html's own root element, hidden when no filter is active
  :)
 declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formquires.html")
-	return if (app:qn-active($qn)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formquires.html", app:qn-active($qn))
 };
 
 (:~
@@ -1547,13 +1467,7 @@ declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as
  : @return formquiresComp.html's own root element, hidden when no filter is active
  :)
 declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formquiresComp.html")
-	return if (app:qcn-active($qcn)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formquiresComp.html", app:qcn-active($qcn))
 };
 
 (:~
@@ -1769,15 +1683,10 @@ declare function app:dimensionsCheckbox(
 	$lmargin as xs:string*,
 	$intercolumn as xs:string*
 ) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (
-			app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
-		) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state(
+		$node,
+		app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
+	)
 };
 
 (:~
@@ -1800,15 +1709,12 @@ declare function app:includeDimensionsForm(
 	$lmargin as xs:string*,
 	$intercolumn as xs:string*
 ) as element() {
-	let $rendered := lib:include($node, $model, "forms/formdimensions.html")
-	return if (
+	app:include-facet-form(
+		$node,
+		$model,
+		"forms/formdimensions.html",
 		app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
-	) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	)
 };
 
 (:~
@@ -1828,7 +1734,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $keywords := config:distinct-values($cont//t:language/@ident)
 	let $control := app:formcontrol("language", $keywords, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -1842,7 +1748,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "scribe"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("scribe", $keywords, "false", "rels", $context)
@@ -1857,7 +1763,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "donor"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("donor", $keywords, "false", "rels", $context)
@@ -1872,7 +1778,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "patron"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("patron", $keywords, "false", "rels", $context)
@@ -1887,7 +1793,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "owner"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("owner", $keywords, "false", "rels", $context)
@@ -1902,7 +1808,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "binder"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("binder", $keywords, "false", "rels", $context)
@@ -1917,7 +1823,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "parchmentMaker"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("parchmentMaker", $keywords, "false", "rels", $context)
@@ -1932,7 +1838,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:msItem[not(contains(@xml:id, "."))]
 	let $titles := $elements/t:title/@ref
 	let $keywords := config:distinct-values($titles)
@@ -1948,7 +1854,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $keywords :=
 		for $r in $cont//t:witness/@corresp
 		return string($r) || " "
@@ -1963,7 +1869,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $works := util:eval($context)
+	let $works := app:eval-mss-context($context)
 	let $attributions :=
 		for $rel in
 			($works//t:relation[@name eq "saws:isAttributedToAuthor"], $works//t:relation[@name eq "dcterms:creator"])
@@ -2029,7 +1935,7 @@ declare %private function app:bare-id($ref as xs:string) as xs:string {
  : restoring $("#persRole").val() after a page reload, with no need to
  : take $role as its own parameter at all.
  :
- : @param $context a collection expression, evaluated via util:eval
+ : @param $context a collection expression, resolved via app:eval-mss-context
  : @return a single-select control, name="role" id="persRole"
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:persRole(
@@ -2037,7 +1943,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) as element() {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $roles := config:distinct-values($cont//t:persName/@role[. != ""])
 	let $select := <select class="w3-select w3-border" id="persRole" name="role">
 		<option value="">choose</option>
@@ -2073,7 +1979,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 ) as element()* {
 	if (empty($role) or $role[1] = "") then (
 	) else
-		let $cont := util:eval($context)
+		let $cont := app:eval-mss-context($context)
 		let $r := $role[1]
 		let $attestations := $cont//t:persName[@role eq $r][@ref][not(starts-with(app:bare-id(string(@ref)), "PRS0000"))]
 		let $people :=
@@ -2081,6 +1987,23 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 			let $id := app:bare-id(string($att/@ref))
 			group by $ID := $id
 			return map {"id": $ID, "count": count($att)}
+		(:
+		 : Carries other active facets forward, same convention as
+		 : app:pageNav/app:pagesNav's own $params. Needs a real request
+		 : (none in direct XQSuite calls, as with
+		 : app:manuscriptsFiltersSection) - catch degrades to "nothing
+		 : to preserve".
+		 :)
+		let $preservedParams := try {
+			string-join(
+				for $param in $app:params
+				for $value in request:get-parameter($param, ())
+				return if ($param = ("role", "person")) then (
+				) else
+					encode-for-uri($param) || "=" || encode-for-uri($value),
+				"&amp;"
+			)
+		} catch * { "" }
 		return <div class="w3-container" id="persWithRoleResults">
 			<h4>There are <span class="w3-tag w3-red w3-round">{ count($people) }</span> persons with a role <span
 					class="w3-tag w3-gray w3-round"
@@ -2096,7 +2019,12 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 					<div class="w3-container">is mentioned as { $r || " " || $p?count } times:</div>
 					<a
 						class="w3-button w3-gray w3-small"
-						href="?role={ encode-for-uri($r) }&amp;person={ encode-for-uri($p?id) }"
+						href="?{
+							if ($preservedParams != "") then
+								$preservedParams || "&amp;"
+							else
+								""
+						}role={ encode-for-uri($r) }&amp;person={ encode-for-uri($p?id) }"
 					>Click to see in which records.</a>
 				</div>
 			}
@@ -2123,10 +2051,10 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 ) as element()* {
 	if (empty($role) or $role[1] = "" or empty($person) or $person[1] = "") then (
 	) else
-		let $cont := util:eval($context)
+		let $cont := app:eval-mss-context($context)
 		let $r := $role[1]
 		let $p := $person[1]
-		let $candidates := $cont//t:persName[@role eq $r][@ref]
+		let $candidates := $cont//t:persName[@role eq $r][@ref][not(starts-with(app:bare-id(string(@ref)), "PRS0000"))]
 		let $atts := $candidates[app:bare-id(string(@ref)) eq $p]
 		let $sources :=
 			for $att in $atts
@@ -2155,13 +2083,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
  : @return the checkbox, with @checked set when a role is selected
  :)
 declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (exists($role) and $role[1] != "") then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($role))
 };
 
 (:~
@@ -2212,13 +2134,7 @@ declare function app:worksFiltersSection(
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:authorsCheckbox($node as node(), $model as map(*), $author as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($author)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($author))
 };
 
 (:~
@@ -2228,13 +2144,7 @@ declare function app:authorsCheckbox($node as node(), $model as map(*), $author 
  : @return formauthors.html's own root element, hidden when no filter is active
  :)
 declare function app:includeAuthorsForm($node as node(), $model as map(*), $author as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formauthors.html")
-	return if (app:list-param-active($author)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formauthors.html", app:list-param-active($author))
 };
 
 (:~
@@ -2271,13 +2181,7 @@ declare function app:placesFiltersSection(
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:tabotsCheckbox($node as node(), $model as map(*), $tabot as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($tabot)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($tabot))
 };
 
 (:~
@@ -2287,13 +2191,7 @@ declare function app:tabotsCheckbox($node as node(), $model as map(*), $tabot as
  : @return formtabots.html's own root element, hidden when no filter is active
  :)
 declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formtabots.html")
-	return if (app:list-param-active($tabot)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formtabots.html", app:list-param-active($tabot))
 };
 
 (:~
@@ -2308,13 +2206,7 @@ declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:languagesCheckbox($node as node(), $model as map(*), $language as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($language)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($language))
 };
 
 (:~
@@ -2324,13 +2216,7 @@ declare function app:languagesCheckbox($node as node(), $model as map(*), $langu
  : @return formlanguages.html's own root element, hidden when no filter is active
  :)
 declare function app:includeLanguagesForm($node as node(), $model as map(*), $language as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formlanguages.html")
-	return if (app:list-param-active($language)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formlanguages.html", app:list-param-active($language))
 };
 
 (:~
@@ -2342,13 +2228,7 @@ declare function app:includeLanguagesForm($node as node(), $model as map(*), $la
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:keywordsCheckbox($node as node(), $model as map(*), $keyword as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($keyword)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($keyword))
 };
 
 (:~
@@ -2358,13 +2238,7 @@ declare function app:keywordsCheckbox($node as node(), $model as map(*), $keywor
  : @return formkeywords.html's own root element, hidden when no filter is active
  :)
 declare function app:includeKeywordsForm($node as node(), $model as map(*), $keyword as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formkeywords.html")
-	return if (app:list-param-active($keyword)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formkeywords.html", app:list-param-active($keyword))
 };
 
 (:~
@@ -2376,13 +2250,7 @@ declare function app:includeKeywordsForm($node as node(), $model as map(*), $key
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:relationsCheckbox($node as node(), $model as map(*), $relType as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($relType)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($relType))
 };
 
 (:~
@@ -2392,13 +2260,7 @@ declare function app:relationsCheckbox($node as node(), $model as map(*), $relTy
  : @return formrelations.html's own root element, hidden when no filter is active
  :)
 declare function app:includeRelationsForm($node as node(), $model as map(*), $relType as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formrelations.html")
-	return if (app:list-param-active($relType)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formrelations.html", app:list-param-active($relType))
 };
 
 (:~
@@ -2459,13 +2321,7 @@ declare function app:dateInput($node as node(), $model as map(*), $dateRange as 
  : @return the checkbox, with @checked set when a non-default range is active
  :)
 declare function app:dateCheckbox($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:date-active($dateRange)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:date-active($dateRange))
 };
 
 (:~
@@ -2476,13 +2332,7 @@ declare function app:dateCheckbox($node as node(), $model as map(*), $dateRange 
  : @return formdates.html's own root element, hidden when no filter is active
  :)
 declare function app:includeDateForm($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formdates.html")
-	return if (app:date-active($dateRange)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formdates.html", app:date-active($dateRange))
 };
 
 (:~
@@ -2492,13 +2342,7 @@ declare function app:includeDateForm($node as node(), $model as map(*), $dateRan
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:scriptCheckbox($node as node(), $model as map(*), $script as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($script)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($script))
 };
 
 (:~
@@ -2508,13 +2352,7 @@ declare function app:scriptCheckbox($node as node(), $model as map(*), $script a
  : @return formscripts.html's own root element, hidden when no filter is active
  :)
 declare function app:includeScriptForm($node as node(), $model as map(*), $script as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formscripts.html")
-	return if (app:list-param-active($script)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formscripts.html", app:list-param-active($script))
 };
 
 (:~
@@ -2528,13 +2366,7 @@ declare function app:parchmentMakerCheckbox(
 	$model as map(*),
 	$parchmentMaker as xs:string*
 ) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($parchmentMaker)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($parchmentMaker))
 };
 
 (:~
@@ -2548,13 +2380,7 @@ declare function app:includeParchmentMakerForm(
 	$model as map(*),
 	$parchmentMaker as xs:string*
 ) as element() {
-	let $rendered := lib:include($node, $model, "forms/formParMaker.html")
-	return if (app:list-param-active($parchmentMaker)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formParMaker.html", app:list-param-active($parchmentMaker))
 };
 
 (:~
@@ -2564,13 +2390,7 @@ declare function app:includeParchmentMakerForm(
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:materialCheckbox($node as node(), $model as map(*), $material as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($material)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($material))
 };
 
 (:~
@@ -2580,13 +2400,7 @@ declare function app:materialCheckbox($node as node(), $model as map(*), $materi
  : @return formmaterial.html's own root element, hidden when no filter is active
  :)
 declare function app:includeMaterialForm($node as node(), $model as map(*), $material as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formmaterial.html")
-	return if (app:list-param-active($material)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formmaterial.html", app:list-param-active($material))
 };
 
 (:~
@@ -2596,13 +2410,7 @@ declare function app:includeMaterialForm($node as node(), $model as map(*), $mat
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:bmaterialCheckbox($node as node(), $model as map(*), $bmaterial as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($bmaterial)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($bmaterial))
 };
 
 (:~
@@ -2612,13 +2420,7 @@ declare function app:bmaterialCheckbox($node as node(), $model as map(*), $bmate
  : @return formbmaterial.html's own root element, hidden when no filter is active
  :)
 declare function app:includeBmaterialForm($node as node(), $model as map(*), $bmaterial as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formbmaterial.html")
-	return if (app:list-param-active($bmaterial)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formbmaterial.html", app:list-param-active($bmaterial))
 };
 
 (:~
@@ -2630,13 +2432,7 @@ declare function app:includeBmaterialForm($node as node(), $model as map(*), $bm
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:targetWorksCheckbox($node as node(), $model as map(*), $target-work as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($target-work)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($target-work))
 };
 
 (:~
@@ -2650,13 +2446,7 @@ declare function app:includeTargetWorksForm(
 	$model as map(*),
 	$target-work as xs:string*
 ) as element() {
-	let $rendered := lib:include($node, $model, "forms/formworks.html")
-	return if (app:list-param-active($target-work)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formworks.html", app:list-param-active($target-work))
 };
 
 (:~
@@ -2668,13 +2458,7 @@ declare function app:includeTargetWorksForm(
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:occupationCheckbox($node as node(), $model as map(*), $persType as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($persType)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($persType))
 };
 
 (:~
@@ -2684,13 +2468,7 @@ declare function app:occupationCheckbox($node as node(), $model as map(*), $pers
  : @return formoccupation.html's own root element, hidden when no filter is active
  :)
 declare function app:includeOccupationForm($node as node(), $model as map(*), $persType as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formoccupation.html")
-	return if (app:list-param-active($persType)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formoccupation.html", app:list-param-active($persType))
 };
 
 (:~
@@ -2700,13 +2478,7 @@ declare function app:includeOccupationForm($node as node(), $model as map(*), $p
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:placeTypeCheckbox($node as node(), $model as map(*), $placeType as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:list-param-active($placeType)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:list-param-active($placeType))
 };
 
 (:~
@@ -2716,36 +2488,34 @@ declare function app:placeTypeCheckbox($node as node(), $model as map(*), $place
  : @return formplacetype.html's own root element, hidden when no filter is active
  :)
 declare function app:includePlaceTypeForm($node as node(), $model as map(*), $placeType as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formplacetype.html")
-	return if (app:list-param-active($placeType)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formplacetype.html", app:list-param-active($placeType))
 };
 
 (:~
  : Reveals the "Persons Filters" section server-side when one of its
  : facets has an active request parameter, instead of relying on
  : filters.js's `#collectionfilter` change handler alone (JS-only,
- : lost on reload). Extend this parameter list as more `#pFilter`
- : facets get the same treatment.
+ : lost on reload).
  :
- : @param $role the request's role parameter, auto-resolved by name
- : @param $gender the request's gender parameter, auto-resolved by name
+ : Reads each facet's request parameter directly via request:get-parameter
+ : rather than taking auto-resolved parameters, same reasoning as
+ : app:manuscriptsFiltersSection: templates:call's introspection-based
+ : dispatch caps at 20 total parameters, so a growing positional
+ : signature is one facet away from the same templates:NotFound failure
+ : that broke that function in production. Extend the OR-condition below
+ : as more `#pFilter` facets get the same treatment; no signature change
+ : is ever needed again.
+ :
  : @return the section, with its `display:none` dropped when active
  :)
-declare function app:persFiltersSection(
-	$node as node(),
-	$model as map(*),
-	$role as xs:string*,
-	$gender as xs:string*,
-	$persType as xs:string*
-) as element() {
+declare function app:persFiltersSection($node as node(), $model as map(*)) as element() {
 	element {node-name($node)} {
 		templates:filter-attributes($node, $model) except $node/@style,
-		if ((exists($role) and $role[1] != "") or app:gender-active($gender) or app:list-param-active($persType)) then (
+		if (
+			app:list-param-active(request:get-parameter("role", ())) or
+				app:gender-active(request:get-parameter("gender", ())) or
+				app:list-param-active(request:get-parameter("persType", ()))
+		) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
@@ -2762,13 +2532,7 @@ declare function app:persFiltersSection(
  : @return the checkbox, with @checked set when a value is selected
  :)
 declare function app:genderCheckbox($node as node(), $model as map(*), $gender as xs:string*) as element() {
-	element {node-name($node)} {
-		$node/@* except ($node/@data-template, $node/@checked),
-		if (app:gender-active($gender)) then
-			attribute checked { "checked" }
-		else (
-		)
-	}
+	app:checkbox-state($node, app:gender-active($gender))
 };
 
 (:~
@@ -2782,13 +2546,7 @@ declare function app:genderCheckbox($node as node(), $model as map(*), $gender a
  : @return formgender.html's own root element, hidden when no filter is active
  :)
 declare function app:includeGenderForm($node as node(), $model as map(*), $gender as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formgender.html")
-	return if (app:gender-active($gender)) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formgender.html", app:gender-active($gender))
 };
 
 (:~
@@ -2805,13 +2563,7 @@ declare function app:includeGenderForm($node as node(), $model as map(*), $gende
  : @return formrole.html's own root element, hidden when no role is selected
  :)
 declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element() {
-	let $rendered := lib:include($node, $model, "forms/formrole.html")
-	return if (exists($role) and $role[1] != "") then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+	app:include-facet-form($node, $model, "forms/formrole.html", exists($role) and $role[1] != "")
 };
 
 (:~

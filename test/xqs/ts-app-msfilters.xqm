@@ -815,3 +815,19 @@ declare %test:assertFalse function tsmssfilters:includeInstitutionsForm-visible-
 	let $out := app:includeInstitutionsForm($node, tsmssfilters:model-for(map {"target-ins": "InsBAV"}), "InsBAV", ())
 	return exists($out/@style)
 };
+
+(:~
+ : target-ins is multiple="multiple". 2+ values used to throw
+ : err:XPTY0004 (`||` on a multi-item sequence).
+ :)
+declare %test:assertTrue function tsmssfilters:target-mss-scopes-with-multiple-institutions() {
+	let $context :=
+	"<root xmlns='http://www.tei-c.org/ns/1.0'>
+			<TEI xml:id='MS1'><title>MS 1</title><repository ref='https://betamasaheft.eu/InsEMML' /></TEI>
+			<TEI xml:id='MS2'><title>MS 2</title><repository ref='https://betamasaheft.eu/InsBAV' /></TEI>
+			<TEI xml:id='MS3'><title>MS 3</title><repository ref='https://betamasaheft.eu/InsOther' /></TEI>
+		</root>"
+	let $node := <select data-template="app:target-mss" />
+	let $out := app:target-mss($node, tsmssfilters:model-for(map {}), $context, ("InsEMML", "InsBAV"))
+	return count($out//*:option) = 2
+};

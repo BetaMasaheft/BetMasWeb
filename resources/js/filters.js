@@ -155,7 +155,7 @@ $(document).ready(function () {
 					callformpart("forms/formcontents.html", "contentform");
 					break;
 				case "objectType":
-					callformpart("forms/formobjecttype.html", "otform");
+					callformpart("forms/formobjecttype.html", "ot");
 					break;
 				case "material":
 					callformpart("forms/formmaterial.html", "materialform");
@@ -258,7 +258,10 @@ $(document).ready(function () {
 					$("#contentform").hide();
 					break;
 				case "objectType":
-					$("#otform").hide();
+					$("#ot").hide();
+					break;
+				case "CUnumber":
+					$("#CUform").hide();
 					break;
 				case "material":
 					$("#materialform").hide();

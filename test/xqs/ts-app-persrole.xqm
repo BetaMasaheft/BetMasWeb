@@ -185,6 +185,21 @@ declare %test:assertEquals(1) function tspersrole:persRolePersonDetail-lists-sou
 };
 
 (:~
+ : Same PRS0000 placeholder exclusion as persRoleResults, applied to
+ : persRolePersonDetail's own candidates.
+ :)
+declare %test:assertEquals(0) function tspersrole:persRolePersonDetail-excludes-placeholder-person() {
+	let $out := app:persRolePersonDetail(
+		<a />,
+		map {},
+		$tspersrole:context,
+		$tspersrole:role,
+		$tspersrole:placeholder-person
+	)
+	return count($out//*[@data-source])
+};
+
+(:~
  : Echoes the "role" checkbox's checked state - the zero-JS piece of
  : as.html's state-restoration fix.
  :)
@@ -242,25 +257,12 @@ declare %private function tspersrole:model-for($params as map(*)) as map(*) {
 };
 
 (:~
- : Reveals the persFilters wrapper server-side when role is active.
+ : app:persFiltersSection's reveal condition is no longer testable via a
+ : direct XQSuite call - it now reads request:get-parameter directly
+ : (same reasoning as app:manuscriptsFiltersSection, see that function's
+ : own doc), which needs a real HTTP request. Covered instead by
+ : test/cypress/e2e/as-persFiltersSection.cy.js.
  :)
-declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-role-selected() {
-	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
-	let $out := app:persFiltersSection(
-		$node,
-		tspersrole:model-for(map {"role": $tspersrole:role}),
-		$tspersrole:role,
-		(),
-		()
-	)
-	return exists($out/@style)
-};
-
-declare %test:assertTrue function tspersrole:persFiltersSection-hidden-without-role() {
-	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="role" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for(map {}), (), (), ())
-	return exists($out/@style)
-};
 
 (:~
  : Server-side include of formrole.html - hidden without a role,
@@ -297,12 +299,6 @@ declare %test:assertFalse function tspersrole:genderCheckbox-unchecked-without-p
 	return exists($out/@checked)
 };
 
-declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-gender-active() {
-	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="gender" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for(map {"gender": "1"}), (), "1", ())
-	return exists($out/@style)
-};
-
 declare %test:assertTrue function tspersrole:includeGenderForm-hidden-without-param() {
 	let $node := <div data-template="app:includeGenderForm" />
 	let $out := app:includeGenderForm($node, tspersrole:model-for(map {}), ())
@@ -336,12 +332,6 @@ declare %test:assertTrue function tspersrole:occupationCheckbox-checked-with-val
 declare %test:assertFalse function tspersrole:occupationCheckbox-unchecked-without-param() {
 	let $node := <input data-template="app:occupationCheckbox" type="checkbox" value="occupation" />
 	return exists(app:occupationCheckbox($node, map {}, ())/@checked)
-};
-
-declare %test:assertFalse function tspersrole:persFiltersSection-visible-when-persType-active() {
-	let $node := <div id="persFilters" style="display: none"><input type="checkbox" value="occupation" /></div>
-	let $out := app:persFiltersSection($node, tspersrole:model-for(map {"persType": "scribe"}), (), (), "scribe")
-	return exists($out/@style)
 };
 
 declare %test:assertTrue function tspersrole:includeOccupationForm-hidden-without-param() {
