@@ -776,7 +776,7 @@ declare function app:includeInstitutionsForm(
 	$model as map(*),
 	$target-ins as xs:string*,
 	$target-ms as xs:string*
-) as element() {
+) as element()? {
 	app:include-facet-form(
 		$node,
 		$model,
@@ -1128,7 +1128,11 @@ declare function app:CUnumberCheckbox($node as node(), $model as map(*), $number
  : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
  : @return formCUnumber.html's own root element, hidden when no filter is active
  :)
-declare function app:includeCUnumberForm($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
+declare function app:includeCUnumberForm(
+	$node as node(),
+	$model as map(*),
+	$numberOfParts as xs:string*
+) as element()? {
 	app:include-facet-form($node, $model, "forms/formCUnumber.html", app:cuNumber-active($numberOfParts))
 };
 
@@ -1160,32 +1164,40 @@ declare %private function app:list-param-active($value as xs:string*) as xs:bool
  : @return the checkbox, with @checked set when $active
  :)
 (:~
- : Shared shape behind every "server-render this facet's form fragment,
- : hidden when inactive" function: include the form file, then hide it
- : (display:none, style stripped first so it can't already carry one)
- : when the caller's own activity check says there's nothing to
+ : Shared shape behind every "server-render this facet's form fragment
+ : when it has state to restore" function: include the form file only
+ : when the caller's own activity check says there's something to
  : restore. Each facet keeps its own activity predicate - only this
- : include+hide boilerplate is shared.
+ : include boilerplate is shared.
+ :
+ : Renders nothing at all when inactive, rather than including the
+ : fragment and hiding it via @style - lib:include runs the facet's own
+ : list-building function (e.g. a full corpus scan with a title lookup
+ : per option), which every one of these ~30 facets otherwise paid on
+ : every single as.html load regardless of whether that facet was ever
+ : opened. filters.js's own callformpart already handles the resulting
+ : gap correctly with no change needed there: it AJAX-fetches a form
+ : fragment on first checkbox click exactly when the fragment's root id
+ : isn't already present in the DOM, forwarding the page's own query
+ : string so a fragment fetched this way still echoes any submitted
+ : value.
  :
  : @param $node the data-template marker node
  : @param $model the current templates model
  : @param $formfile the form fragment's path, e.g. "forms/formscribes.html"
  : @param $active whether this facet has a real filter value
- : @return the form fragment, hidden via @style when not $active
+ : @return the form fragment when $active, otherwise nothing
  :)
 declare %private function app:include-facet-form(
 	$node as node(),
 	$model as map(*),
 	$formfile as xs:string,
 	$active as xs:boolean
-) as element() {
-	let $rendered := lib:include($node, $model, $formfile)
-	return if ($active) then
-		$rendered
-	else
-		element {node-name($rendered)} {
-			$rendered/@* except $rendered/@style, attribute style { "display:none" }, $rendered/node()
-		}
+) as element()? {
+	if ($active) then
+		lib:include($node, $model, $formfile)
+	else (
+	)
 };
 
 declare %private function app:checkbox-state($node as node(), $active as xs:boolean) as element() {
@@ -1215,7 +1227,7 @@ declare function app:scribeCheckbox($node as node(), $model as map(*), $scribe a
  : @param $scribe the request's scribe parameter, auto-resolved by name
  : @return formscribes.html's own root element, hidden when no filter is active
  :)
-declare function app:includeScribeForm($node as node(), $model as map(*), $scribe as xs:string*) as element() {
+declare function app:includeScribeForm($node as node(), $model as map(*), $scribe as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formscribes.html", app:list-param-active($scribe))
 };
 
@@ -1235,7 +1247,7 @@ declare function app:donorCheckbox($node as node(), $model as map(*), $donor as 
  : @param $donor the request's donor parameter, auto-resolved by name
  : @return formdonor.html's own root element, hidden when no filter is active
  :)
-declare function app:includeDonorForm($node as node(), $model as map(*), $donor as xs:string*) as element() {
+declare function app:includeDonorForm($node as node(), $model as map(*), $donor as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formdonor.html", app:list-param-active($donor))
 };
 
@@ -1255,7 +1267,7 @@ declare function app:patronCheckbox($node as node(), $model as map(*), $patron a
  : @param $patron the request's patron parameter, auto-resolved by name
  : @return formpatron.html's own root element, hidden when no filter is active
  :)
-declare function app:includePatronForm($node as node(), $model as map(*), $patron as xs:string*) as element() {
+declare function app:includePatronForm($node as node(), $model as map(*), $patron as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formpatron.html", app:list-param-active($patron))
 };
 
@@ -1275,7 +1287,7 @@ declare function app:ownerCheckbox($node as node(), $model as map(*), $owner as 
  : @param $owner the request's owner parameter, auto-resolved by name
  : @return formowner.html's own root element, hidden when no filter is active
  :)
-declare function app:includeOwnerForm($node as node(), $model as map(*), $owner as xs:string*) as element() {
+declare function app:includeOwnerForm($node as node(), $model as map(*), $owner as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formowner.html", app:list-param-active($owner))
 };
 
@@ -1295,7 +1307,7 @@ declare function app:binderCheckbox($node as node(), $model as map(*), $binder a
  : @param $binder the request's binder parameter, auto-resolved by name
  : @return formbinder.html's own root element, hidden when no filter is active
  :)
-declare function app:includeBinderForm($node as node(), $model as map(*), $binder as xs:string*) as element() {
+declare function app:includeBinderForm($node as node(), $model as map(*), $binder as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formbinder.html", app:list-param-active($binder))
 };
 
@@ -1318,7 +1330,7 @@ declare function app:objectTypeCheckbox($node as node(), $model as map(*), $supp
  : @param $support the request's support parameter, auto-resolved by name
  : @return formobjecttype.html's own root element, hidden when no filter is active
  :)
-declare function app:includeObjectTypeForm($node as node(), $model as map(*), $support as xs:string*) as element() {
+declare function app:includeObjectTypeForm($node as node(), $model as map(*), $support as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formobjecttype.html", app:list-param-active($support))
 };
 
@@ -1340,7 +1352,7 @@ declare function app:contentsCheckbox($node as node(), $model as map(*), $conten
  : @param $content the request's content parameter, auto-resolved by name
  : @return formcontents.html's own root element, hidden when no filter is active
  :)
-declare function app:includeContentsForm($node as node(), $model as map(*), $content as xs:string*) as element() {
+declare function app:includeContentsForm($node as node(), $model as map(*), $content as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formcontents.html", app:list-param-active($content))
 };
 
@@ -1364,7 +1376,7 @@ declare function app:includeBindingtypeForm(
 	$node as node(),
 	$model as map(*),
 	$bindingtype as xs:string*
-) as element() {
+) as element()? {
 	app:include-facet-form($node, $model, "forms/formbind.html", app:list-param-active($bindingtype))
 };
 
@@ -1380,7 +1392,7 @@ declare function app:includeBindingtypeForm(
  : @param $folia the request's folia parameter, auto-resolved by name
  : @return formfolia.html's own root element, hidden when no filter is active
  :)
-declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element() {
+declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formfolia.html", app:folia-active($folia))
 };
 
@@ -1391,7 +1403,7 @@ declare function app:includeFoliaForm($node as node(), $model as map(*), $folia 
  : @param $wL the request's wL parameter, auto-resolved by name
  : @return formWL.html's own root element, hidden when no filter is active
  :)
-declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element() {
+declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formWL.html", app:wL-active($wL))
 };
 
@@ -1470,7 +1482,7 @@ declare function app:quiresCompCheckbox($node as node(), $model as map(*), $qcn 
  : @param $qn the request's qn parameter, auto-resolved by name
  : @return formquires.html's own root element, hidden when no filter is active
  :)
-declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as xs:string*) as element() {
+declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formquires.html", app:qn-active($qn))
 };
 
@@ -1481,7 +1493,7 @@ declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as
  : @param $qcn the request's qcn parameter, auto-resolved by name
  : @return formquiresComp.html's own root element, hidden when no filter is active
  :)
-declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element() {
+declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formquiresComp.html", app:qcn-active($qcn))
 };
 
@@ -1723,7 +1735,7 @@ declare function app:includeDimensionsForm(
 	$rmargin as xs:string*,
 	$lmargin as xs:string*,
 	$intercolumn as xs:string*
-) as element() {
+) as element()? {
 	app:include-facet-form(
 		$node,
 		$model,
@@ -2158,7 +2170,7 @@ declare function app:authorsCheckbox($node as node(), $model as map(*), $author 
  : @param $author the request's author parameter, auto-resolved by name
  : @return formauthors.html's own root element, hidden when no filter is active
  :)
-declare function app:includeAuthorsForm($node as node(), $model as map(*), $author as xs:string*) as element() {
+declare function app:includeAuthorsForm($node as node(), $model as map(*), $author as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formauthors.html", app:list-param-active($author))
 };
 
@@ -2205,7 +2217,7 @@ declare function app:tabotsCheckbox($node as node(), $model as map(*), $tabot as
  : @param $tabot the request's tabot parameter, auto-resolved by name
  : @return formtabots.html's own root element, hidden when no filter is active
  :)
-declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formtabots.html", app:list-param-active($tabot))
 };
 
@@ -2230,7 +2242,7 @@ declare function app:languagesCheckbox($node as node(), $model as map(*), $langu
  : @param $language the request's language parameter, auto-resolved by name
  : @return formlanguages.html's own root element, hidden when no filter is active
  :)
-declare function app:includeLanguagesForm($node as node(), $model as map(*), $language as xs:string*) as element() {
+declare function app:includeLanguagesForm($node as node(), $model as map(*), $language as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formlanguages.html", app:list-param-active($language))
 };
 
@@ -2252,7 +2264,7 @@ declare function app:keywordsCheckbox($node as node(), $model as map(*), $keywor
  : @param $keyword the request's keyword parameter, auto-resolved by name
  : @return formkeywords.html's own root element, hidden when no filter is active
  :)
-declare function app:includeKeywordsForm($node as node(), $model as map(*), $keyword as xs:string*) as element() {
+declare function app:includeKeywordsForm($node as node(), $model as map(*), $keyword as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formkeywords.html", app:list-param-active($keyword))
 };
 
@@ -2274,7 +2286,7 @@ declare function app:relationsCheckbox($node as node(), $model as map(*), $relTy
  : @param $relType the request's relType parameter, auto-resolved by name
  : @return formrelations.html's own root element, hidden when no filter is active
  :)
-declare function app:includeRelationsForm($node as node(), $model as map(*), $relType as xs:string*) as element() {
+declare function app:includeRelationsForm($node as node(), $model as map(*), $relType as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formrelations.html", app:list-param-active($relType))
 };
 
@@ -2346,7 +2358,7 @@ declare function app:dateCheckbox($node as node(), $model as map(*), $dateRange 
  : @param $dateRange the request's dateRange parameter, auto-resolved by name
  : @return formdates.html's own root element, hidden when no filter is active
  :)
-declare function app:includeDateForm($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
+declare function app:includeDateForm($node as node(), $model as map(*), $dateRange as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formdates.html", app:date-active($dateRange))
 };
 
@@ -2366,7 +2378,7 @@ declare function app:scriptCheckbox($node as node(), $model as map(*), $script a
  : @param $script the request's script parameter, auto-resolved by name
  : @return formscripts.html's own root element, hidden when no filter is active
  :)
-declare function app:includeScriptForm($node as node(), $model as map(*), $script as xs:string*) as element() {
+declare function app:includeScriptForm($node as node(), $model as map(*), $script as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formscripts.html", app:list-param-active($script))
 };
 
@@ -2394,7 +2406,7 @@ declare function app:includeParchmentMakerForm(
 	$node as node(),
 	$model as map(*),
 	$parchmentMaker as xs:string*
-) as element() {
+) as element()? {
 	app:include-facet-form($node, $model, "forms/formParMaker.html", app:list-param-active($parchmentMaker))
 };
 
@@ -2414,7 +2426,7 @@ declare function app:materialCheckbox($node as node(), $model as map(*), $materi
  : @param $material the request's material parameter, auto-resolved by name
  : @return formmaterial.html's own root element, hidden when no filter is active
  :)
-declare function app:includeMaterialForm($node as node(), $model as map(*), $material as xs:string*) as element() {
+declare function app:includeMaterialForm($node as node(), $model as map(*), $material as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formmaterial.html", app:list-param-active($material))
 };
 
@@ -2434,7 +2446,7 @@ declare function app:bmaterialCheckbox($node as node(), $model as map(*), $bmate
  : @param $bmaterial the request's bmaterial parameter, auto-resolved by name
  : @return formbmaterial.html's own root element, hidden when no filter is active
  :)
-declare function app:includeBmaterialForm($node as node(), $model as map(*), $bmaterial as xs:string*) as element() {
+declare function app:includeBmaterialForm($node as node(), $model as map(*), $bmaterial as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formbmaterial.html", app:list-param-active($bmaterial))
 };
 
@@ -2460,7 +2472,7 @@ declare function app:includeTargetWorksForm(
 	$node as node(),
 	$model as map(*),
 	$target-work as xs:string*
-) as element() {
+) as element()? {
 	app:include-facet-form($node, $model, "forms/formworks.html", app:list-param-active($target-work))
 };
 
@@ -2482,7 +2494,7 @@ declare function app:occupationCheckbox($node as node(), $model as map(*), $pers
  : @param $persType the request's persType parameter, auto-resolved by name
  : @return formoccupation.html's own root element, hidden when no filter is active
  :)
-declare function app:includeOccupationForm($node as node(), $model as map(*), $persType as xs:string*) as element() {
+declare function app:includeOccupationForm($node as node(), $model as map(*), $persType as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formoccupation.html", app:list-param-active($persType))
 };
 
@@ -2502,7 +2514,7 @@ declare function app:placeTypeCheckbox($node as node(), $model as map(*), $place
  : @param $placeType the request's placeType parameter, auto-resolved by name
  : @return formplacetype.html's own root element, hidden when no filter is active
  :)
-declare function app:includePlaceTypeForm($node as node(), $model as map(*), $placeType as xs:string*) as element() {
+declare function app:includePlaceTypeForm($node as node(), $model as map(*), $placeType as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formplacetype.html", app:list-param-active($placeType))
 };
 
@@ -2560,7 +2572,7 @@ declare function app:genderCheckbox($node as node(), $model as map(*), $gender a
  : @param $gender the request's gender parameter, auto-resolved by name
  : @return formgender.html's own root element, hidden when no filter is active
  :)
-declare function app:includeGenderForm($node as node(), $model as map(*), $gender as xs:string*) as element() {
+declare function app:includeGenderForm($node as node(), $model as map(*), $gender as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formgender.html", app:gender-active($gender))
 };
 
@@ -2577,7 +2589,7 @@ declare function app:includeGenderForm($node as node(), $model as map(*), $gende
  : @param $role the request's role parameter, auto-resolved by name
  : @return formrole.html's own root element, hidden when no role is selected
  :)
-declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element() {
+declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element()? {
 	app:include-facet-form($node, $model, "forms/formrole.html", exists($role) and $role[1] != "")
 };
 

@@ -272,7 +272,7 @@ declare %private function tspersrole:model-for($params as map(*)) as map(*) {
 declare %test:assertTrue function tspersrole:includeRoleForm-hidden-without-role() {
 	let $node := <div data-template="app:includeRoleForm" />
 	let $out := app:includeRoleForm($node, tspersrole:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tspersrole:includeRoleForm-visible-with-role() {
@@ -302,7 +302,7 @@ declare %test:assertFalse function tspersrole:genderCheckbox-unchecked-without-p
 declare %test:assertTrue function tspersrole:includeGenderForm-hidden-without-param() {
 	let $node := <div data-template="app:includeGenderForm" />
 	let $out := app:includeGenderForm($node, tspersrole:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tspersrole:includeGenderForm-visible-with-value() {
@@ -337,7 +337,7 @@ declare %test:assertFalse function tspersrole:occupationCheckbox-unchecked-witho
 declare %test:assertTrue function tspersrole:includeOccupationForm-hidden-without-param() {
 	let $node := <div data-template="app:includeOccupationForm" />
 	let $out := app:includeOccupationForm($node, tspersrole:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tspersrole:includeOccupationForm-visible-with-value() {

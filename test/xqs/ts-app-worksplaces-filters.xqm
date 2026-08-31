@@ -63,7 +63,7 @@ declare %test:assertTrue function tswpfilters:worksFiltersSection-hidden-without
 declare %test:assertTrue function tswpfilters:includeAuthorsForm-hidden-without-param() {
 	let $node := <div data-template="app:includeAuthorsForm" />
 	let $out := app:includeAuthorsForm($node, tswpfilters:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tswpfilters:includeAuthorsForm-visible-with-value() {
@@ -114,7 +114,7 @@ declare %test:assertTrue function tswpfilters:placesFiltersSection-hidden-withou
 declare %test:assertTrue function tswpfilters:includeTabotsForm-hidden-without-param() {
 	let $node := <div data-template="app:includeTabotsForm" />
 	let $out := app:includeTabotsForm($node, tswpfilters:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tswpfilters:includeTabotsForm-visible-with-value() {
@@ -142,7 +142,7 @@ declare %test:assertFalse function tswpfilters:worksFiltersSection-visible-when-
 declare %test:assertTrue function tswpfilters:includeTargetWorksForm-hidden-without-param() {
 	let $node := <div data-template="app:includeTargetWorksForm" />
 	let $out := app:includeTargetWorksForm($node, tswpfilters:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tswpfilters:includeTargetWorksForm-visible-with-value() {
@@ -170,7 +170,7 @@ declare %test:assertFalse function tswpfilters:placesFiltersSection-visible-when
 declare %test:assertTrue function tswpfilters:includePlaceTypeForm-hidden-without-param() {
 	let $node := <div data-template="app:includePlaceTypeForm" />
 	let $out := app:includePlaceTypeForm($node, tswpfilters:model-for(map {}), ())
-	return exists($out/@style[contains(., "display:none")])
+	return empty($out)
 };
 
 declare %test:assertFalse function tswpfilters:includePlaceTypeForm-visible-with-value() {
