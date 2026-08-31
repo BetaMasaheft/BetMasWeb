@@ -106,18 +106,24 @@ declare function expand:should-mint-edition-id($node as node()) as xs:boolean {
 };
 
 (:~
- : Stable edition @xml:id suffix: element-local sibling index, not $node/position().
+ : Mint a unique @xml:id for edition-structure nodes that lack @n/@subtype.
+ : Suffix encodes each ancestor-or-self div's local sibling index under the
+ : edition subtree so nested divs (e.g. edition + section) cannot collide.
+ : @param $node element in or under t:div[@type='edition']
+ : @return minted id string
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/100
  :)
 declare function expand:mint-edition-id($node as node()) as xs:string {
-	local-name($node) ||
-		(
-			if ($node/ancestor-or-self::*/@xml:id[1]) then
-				string-join($node/ancestor-or-self::*/@xml:id[1]) ||
-					string(count($node/preceding-sibling::*[local-name() = local-name($node)]) + 1)
-			else
-				generate-id()
-		)
+	let $tei-id := string(($node/ancestor::t:TEI/@xml:id)[1])
+	let $path := string-join(
+		for $d in $node/ancestor-or-self::t:div[ancestor-or-self::t:div[@type = "edition"]]
+		return local-name($d) || string(count($d/preceding-sibling::*[local-name() = local-name($d)]) + 1),
+		""
+	)
+	return if ($tei-id != "") then
+		$path || $tei-id
+	else
+		$path || generate-id()
 };
 
 declare function expand:token($val) {

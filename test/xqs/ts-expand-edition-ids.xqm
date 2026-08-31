@@ -8,6 +8,19 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "../../modules/expand.xqm";
 
 (:~
+ : Return comma-separated @xml:id values that appear more than once.
+ :)
+declare function tsexpedids:duplicate-ids($root as node()) as xs:string {
+	let $ids := $root//@xml:id
+	return string-join(
+		for $id in distinct-values($ids)
+		where count($ids[. = $id]) gt 1
+		return string($id),
+		", "
+	)
+};
+
+(:~
  : Edition with three subtype textparts and no @xml:id — mirrors LIT0183EtanaMogar.
  :)
 declare variable $tsexpedids:tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LIT0183EtanaMogar">
@@ -61,30 +74,34 @@ declare variable $tsexpedids:tei-nested := <TEI
 	</text>
 </TEI>;
 
-declare %test:assertTrue function tsexpedids:edition-div-gets-xml-id() {
-	count(expand:tei2fulltei($tsexpedids:tei, ())//t:div[@type = "edition"]/@xml:id) eq 1
+declare %test:assertEquals(1) function tsexpedids:edition-div-xml-id-count() {
+	count(expand:tei2fulltei($tsexpedids:tei, ())//t:div[@type = "edition"]/@xml:id)
 };
 
-declare %test:assertTrue function tsexpedids:subtype-textparts-not-minted() {
-	count(expand:tei2fulltei($tsexpedids:tei, ())//t:div[@subtype]/@xml:id) eq 0
+declare %test:assertEquals(0) function tsexpedids:subtype-textpart-xml-id-count() {
+	count(expand:tei2fulltei($tsexpedids:tei, ())//t:div[@subtype]/@xml:id)
 };
 
-declare %test:assertTrue function tsexpedids:no-duplicate-xml-ids() {
-	let $out := expand:tei2fulltei($tsexpedids:tei, ())
-	return count(distinct-values($out//@xml:id)) eq count($out//@xml:id)
+declare %test:assertEquals("") function tsexpedids:lit0183-no-duplicate-xml-ids() {
+	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei, ()))
 };
 
-declare %test:assertTrue function tsexpedids:refsDecl-edition-citeStructure() {
-	exists(expand:tei2fulltei($tsexpedids:tei, ())//t:refsDecl/t:citeStructure[@unit = "edition"][@use = "@xml:id"])
+declare %test:assertEquals("@xml:id") function tsexpedids:refsDecl-edition-citeStructure-use() {
+	string(expand:tei2fulltei($tsexpedids:tei, ())//t:refsDecl/t:citeStructure[@unit = "edition"]/@use)
 };
 
-declare %test:assertTrue function tsexpedids:lit0428-no-duplicate-xml-ids() {
-	let $out := expand:tei2fulltei($tsexpedids:tei-two, ())
-	return count(distinct-values($out//@xml:id)) eq count($out//@xml:id)
+declare %test:assertEquals("edition") function tsexpedids:refsDecl-edition-citeStructure-unit() {
+	string(expand:tei2fulltei($tsexpedids:tei, ())//t:refsDecl/t:citeStructure[@use = "@xml:id"]/@unit)
 };
 
-declare %test:assertTrue function tsexpedids:nested-sections-get-unique-ids() {
-	let $out := expand:tei2fulltei($tsexpedids:tei-nested, ())
-	let $ids := $out//t:div[@type = "section"]/@xml:id
-	return count($ids) eq 2 and count(distinct-values($ids)) eq 2
+declare %test:assertEquals("") function tsexpedids:lit0428-no-duplicate-xml-ids() {
+	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei-two, ()))
+};
+
+declare %test:assertEquals(2) function tsexpedids:nested-section-xml-id-count() {
+	count(expand:tei2fulltei($tsexpedids:tei-nested, ())//t:div[@type = "section"]/@xml:id)
+};
+
+declare %test:assertEquals("") function tsexpedids:nested-sections-no-duplicate-xml-ids() {
+	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei-nested, ()))
 };
