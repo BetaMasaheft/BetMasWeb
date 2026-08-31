@@ -1,0 +1,27 @@
+test/cypress/e2e/as-persFiltersSection.cy.js
+  s_5790d61a112fab::t_86aeed12c8f844 7-13,18-26,30,37,45,54
+test/cypress/e2e/as-manuscriptsFiltersSection.cy.js
+  s_5790d61a112fab::t_05e31a7cc2334f 21-29,34-41
+  s_5790d61a112fab::t_28c559b9ca9ee7 54
+  s_5790d61a112fab::t_8396b08f6fd175 68
+  s_5790d61a112fab::t_f1a113143c11eb 86,106
+  s_5790d61a112fab::t_fda49acb00d9f9 42
+modules/app.xqm
+  s_5790d61a112fab::t_5ae1685a57b788 1079
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8ca5419fe510660788a636a4fa02bd4cef3f8439",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
