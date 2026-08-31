@@ -184,6 +184,26 @@ declare %test:assertEquals("12.5") function tsexpnorm:margin-spaced-range-quanti
 	)
 };
 
+declare variable $tsexpnorm:en-dash-range := tsexpnorm:wrap(
+	<supportDesc xmlns="http://www.tei-c.org/ns/1.0">
+		<extent><dimensions type="leaf" unit="mm"><height>24–30</height></dimensions></extent>
+	</supportDesc>
+);
+
+declare %test:assertEquals("27") function tsexpnorm:en-dash-range-quantity() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:en-dash-range//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@quantity
+	)
+};
+
+declare %test:assertEquals("24") function tsexpnorm:en-dash-range-atLeast() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:en-dash-range//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@atLeast
+	)
+};
+
 declare variable $tsexpnorm:written-lines-single := tsexpnorm:wrap(
 	<layoutDesc xmlns="http://www.tei-c.org/ns/1.0"><layout writtenLines="20" /></layoutDesc>
 );

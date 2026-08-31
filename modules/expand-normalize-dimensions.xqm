@@ -250,7 +250,8 @@ declare function expandnorm:computed-measure(
 };
 
 declare function expandnorm:parse-measure($text as xs:string, $block-unit as xs:string) as map(*)? {
-	let $normalized := normalize-space(replace($text, ",", "."))
+	(: ASCII hyphen and en-dash (U+2013) both separate ranges — same as superseded PR #104. :)
+	let $normalized := normalize-space(replace(replace($text, ",", "."), "–", "-"))
 	let $compact := replace($normalized, "\s*-\s*", "-")
 	return if (contains($compact, "-")) then
 		let $parts := tokenize($compact, "-")
