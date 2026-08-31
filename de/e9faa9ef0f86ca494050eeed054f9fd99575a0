@@ -1,0 +1,21 @@
+test/cypress/e2e/as-manuscriptsFiltersSection.cy.js
+  s_5790d61a112fab::t_9f2dc15feea902 66
+  s_5790d61a112fab::t_9eb9160035a7e0 15-24,33
+  s_5790d61a112fab::t_0dc49c32be6c77 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "dee9faa9ef0f86ca494050eeed054f9fd99575a0",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
