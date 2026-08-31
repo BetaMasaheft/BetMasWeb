@@ -36,27 +36,34 @@ declare variable $tsvicomputed:tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" t
 	</text>
 </TEI>;
 
-declare %private function tsvicomputed:render-extent() as xs:string {
-	serialize(viewItem:TEI2HTML($tsvicomputed:tei//t:extent))
+declare %private function tsvicomputed:extent-html() as node()* {
+	viewItem:TEI2HTML($tsvicomputed:tei//t:extent)
 };
 
-declare %private function tsvicomputed:render-layoutDesc() as xs:string {
-	serialize(viewItem:TEI2HTML($tsvicomputed:tei//t:layoutDesc))
+declare %private function tsvicomputed:layoutDesc-html() as node()* {
+	viewItem:TEI2HTML($tsvicomputed:tei//t:layoutDesc)
 };
 
-declare %test:assertTrue function tsvicomputed:extent-shows-cataloguer-height() {
-	contains(tsvicomputed:render-extent(), "22,0")
+declare %test:assertEquals(1) function tsvicomputed:extent-dimension-heading-count() {
+	count(tsvicomputed:extent-html()//*:h5[contains(., "Dimensions")])
 };
 
-declare %test:assertTrue function tsvicomputed:extent-hides-computed-quantity() {
-	not(contains(tsvicomputed:render-extent(), "quantity=&quot;220&quot;"))
+declare %test:assertEquals("22,0") function tsvicomputed:extent-cataloguer-height() {
+	string((tsvicomputed:extent-html()//*:span[@class = "lead"])[1])
 };
 
-declare %test:assertTrue function tsvicomputed:layoutDesc-one-layout-note() {
-	contains(tsvicomputed:render-layoutDesc(), "Layout note 1") and
-		not(contains(tsvicomputed:render-layoutDesc(), "Layout note 2"))
+declare %test:assertEquals(0) function tsvicomputed:extent-computed-quantity-attr-count() {
+	count(tsvicomputed:extent-html()//@quantity)
 };
 
-declare %test:assertTrue function tsvicomputed:layoutDesc-shows-cataloguer-lines() {
-	contains(tsvicomputed:render-layoutDesc(), "17-18")
+declare %test:assertEquals(1) function tsvicomputed:layoutDesc-layout-note-count() {
+	count(tsvicomputed:layoutDesc-html()//*:h4[starts-with(., "Layout note")])
+};
+
+declare %test:assertEquals("Layout note 1") function tsvicomputed:layoutDesc-first-layout-note() {
+	string((tsvicomputed:layoutDesc-html()//*:h4[starts-with(., "Layout note")])[1])
+};
+
+declare %test:assertEquals("Number of lines: 17-18") function tsvicomputed:layoutDesc-cataloguer-lines() {
+	string((tsvicomputed:layoutDesc-html()//*:p[starts-with(., "Number of lines:")])[1])
 };

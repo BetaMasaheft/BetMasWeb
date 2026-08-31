@@ -1,7 +1,7 @@
 xquery version "3.1";
 
 (:~
- : Targeted XQSuite runner — edition @xml:id minting only.
+ : Local fast path for agent-stack iteration. CI and full suite use ../test-runner.xq.
  :)
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
