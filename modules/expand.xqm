@@ -99,11 +99,25 @@ declare function expand:id($id) {
 		"https://betamasaheft.eu/" || $id
 };
 
-declare function expand:ids($node as node()) as xs:string {
-	if ($node/@xml:id) then (
-		$node/@xml:id
-	) else
-		$node/name() || $node/ancestor-or-self::*/@xml:id[1] || $node/position()
+declare function expand:should-mint-edition-id($node as node()) as xs:boolean {
+	$node/ancestor-or-self::t:div[@type = "edition"] and
+		not($node/@xml:id) and
+		($node/self::t:div[@type = "edition"] or (not($node/@n) and not($node/@subtype)))
+};
+
+(:~
+ : Stable edition @xml:id suffix: element-local sibling index, not $node/position().
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/100
+ :)
+declare function expand:mint-edition-id($node as node()) as xs:string {
+	local-name($node) ||
+		(
+			if ($node/ancestor-or-self::*/@xml:id[1]) then
+				string-join($node/ancestor-or-self::*/@xml:id[1]) ||
+					string(count($node/preceding-sibling::*[local-name() = local-name($node)]) + 1)
+			else
+				generate-id()
+		)
 };
 
 declare function expand:token($val) {
@@ -770,17 +784,8 @@ declare function expand:attributes($node, $bibliography) {
 				name() = "sameAs"
 			)][not(name() = "calendar")],
 			(
-				if (not($node/@xml:id) and $node/ancestor-or-self::t:div[@type = "edition"]) then
-					attribute xml:id {
-						local-name($node) ||
-							(
-								if ($node/ancestor-or-self::*/@xml:id[1]) then
-									string-join($node/ancestor-or-self::*/@xml:id[1]) || $node/position()
-								else (
-									generate-id()
-								)
-							)
-					}
+				if (expand:should-mint-edition-id($node)) then
+					attribute xml:id { expand:mint-edition-id($node) }
 				else (
 				)
 			),
