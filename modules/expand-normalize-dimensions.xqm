@@ -9,9 +9,10 @@ declare variable $expandnorm:computed-subtype := "computed";
 declare variable $expandnorm:mm-unit := "mm";
 
 (:~
- : Add computed @subtype siblings for indexable physical measurements (Schema #45).
+ : Add computed @subtype siblings for indexable physical measurements.
  : @param $tei expanded TEI root
  : @return TEI with computed dimensions/layout siblings inserted
+ : @see https://github.com/BetaMasaheft/Schema/issues/45
  :)
 declare function expandnorm:normalize-tei($tei as element(t:TEI)) as element(t:TEI) {
 	let $normalized := expandnorm:normalize-node(expandnorm:strip-computed($tei))
@@ -195,28 +196,39 @@ declare function expandnorm:computed-dim($dim as element(t:dim), $block-unit as 
 	)
 };
 
+declare function expandnorm:resolved-unit($el as element(), $block-unit as xs:string) as xs:string {
+	let $child := normalize-space(string($el/@unit))
+	return if ($child != "") then
+		$child
+	else
+		$block-unit
+};
+
 declare function expandnorm:computed-measure(
 	$el as element(),
 	$block-unit as xs:string,
 	$name as xs:string
 ) as element()? {
 	let $text := normalize-space(string($el))
-	return if ($text = "" or expandnorm:is-unparseable($text)) then (
+	let $unit := expandnorm:resolved-unit($el, $block-unit)
+	return if (expandnorm:is-unparseable($text)) then (
 	) else
-		let $parsed := expandnorm:parse-measure($text, $block-unit)
+		let $parsed := if ($text = "") then (
+		) else
+			expandnorm:parse-measure($text, $unit)
 		let $lo := (
 			if ($el/@atLeast castable as xs:double) then
-				expandnorm:to-mm(xs:double($el/@atLeast), $block-unit)
+				expandnorm:to-mm(xs:double($el/@atLeast), $unit)
 			else
 				$parsed?atLeast
 		)
 		let $hi := (
 			if ($el/@atMost castable as xs:double) then
-				expandnorm:to-mm(xs:double($el/@atMost), $block-unit)
+				expandnorm:to-mm(xs:double($el/@atMost), $unit)
 			else
 				$parsed?atMost
 		)
-		let $qty := if ($lo and $hi) then
+		let $qty := if (exists($lo) and exists($hi)) then
 			($lo + $hi) div 2
 		else
 			$parsed?quantity
@@ -224,11 +236,11 @@ declare function expandnorm:computed-measure(
 			element {fn:QName("http://www.tei-c.org/ns/1.0", $name)} {
 				attribute quantity { $qty },
 				attribute unit { $expandnorm:mm-unit },
-				if ($lo) then
+				if (exists($lo)) then
 					attribute atLeast { $lo }
 				else (
 				),
-				if ($hi) then
+				if (exists($hi)) then
 					attribute atMost { $hi }
 				else (
 				)

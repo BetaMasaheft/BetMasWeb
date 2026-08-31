@@ -285,3 +285,49 @@ declare %test:assertTrue function tsexpnorm:computed-sibling-follows-cataloguer(
 		not($extent/t:dimensions[1]/@subtype = "computed") and
 		$extent/t:dimensions[2]/@subtype = "computed"
 };
+
+declare variable $tsexpnorm:zero-bound := tsexpnorm:wrap(
+	<supportDesc xmlns="http://www.tei-c.org/ns/1.0">
+		<extent><dimensions type="outer" unit="mm"><height atLeast="0" atMost="10">0-10</height></dimensions></extent>
+	</supportDesc>
+);
+
+declare %test:assertEquals("0") function tsexpnorm:zero-bound-atLeast() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:zero-bound//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@atLeast
+	)
+};
+
+declare %test:assertEquals("5") function tsexpnorm:zero-bound-quantity() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:zero-bound//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@quantity
+	)
+};
+
+declare variable $tsexpnorm:attrs-only := tsexpnorm:wrap(
+	<supportDesc xmlns="http://www.tei-c.org/ns/1.0">
+		<extent><dimensions type="outer" unit="mm"><height atLeast="100" atMost="120" /></dimensions></extent>
+	</supportDesc>
+);
+
+declare %test:assertEquals("110") function tsexpnorm:attrs-only-quantity() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:attrs-only//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@quantity
+	)
+};
+
+declare variable $tsexpnorm:child-unit-cm := tsexpnorm:wrap(
+	<supportDesc xmlns="http://www.tei-c.org/ns/1.0">
+		<extent><dimensions type="outer"><height unit="cm">12</height></dimensions></extent>
+	</supportDesc>
+);
+
+declare %test:assertEquals("120") function tsexpnorm:child-unit-cm-to-mm() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:child-unit-cm//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:height/@quantity
+	)
+};

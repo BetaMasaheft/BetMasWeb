@@ -101,16 +101,18 @@ declare function expand:id($id) {
 };
 
 declare function expand:should-mint-edition-id($node as node()) as xs:boolean {
-	$node/ancestor-or-self::t:div[@type = "edition"] and
+	(: Only edition-structure divs — handNote/witness also use expand:attributes but must not share the div path. :)
+	$node/self::t:div and
+		$node/ancestor-or-self::t:div[@type = "edition"] and
 		not($node/@xml:id) and
-		($node/self::t:div[@type = "edition"] or (not($node/@n) and not($node/@subtype)))
+		($node/@type = "edition" or (not($node/@n) and not($node/@subtype)))
 };
 
 (:~
- : Mint a unique @xml:id for edition-structure nodes that lack @n/@subtype.
+ : Mint a unique @xml:id for edition-structure divs that lack @n/@subtype.
  : Suffix encodes each ancestor-or-self div's local sibling index under the
  : edition subtree so nested divs (e.g. edition + section) cannot collide.
- : @param $node element in or under t:div[@type='edition']
+ : @param $node edition-structure t:div
  : @return minted id string
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/100
  :)

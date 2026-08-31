@@ -105,3 +105,33 @@ declare %test:assertEquals(2) function tsexpedids:nested-section-xml-id-count() 
 declare %test:assertEquals("") function tsexpedids:nested-sections-no-duplicate-xml-ids() {
 	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei-nested, ()))
 };
+
+(:~
+ : handNote/witness under edition must not share the edition div's minted @xml:id.
+ :)
+declare variable $tsexpedids:tei-wit := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITwitness88">
+	<teiHeader>
+		<titleStmt><title xml:lang="en">seed</title></titleStmt>
+		<encodingDesc><p>seed</p></encodingDesc>
+	</teiHeader>
+	<text>
+		<body>
+			<div type="edition">
+				<listWit><witness>A</witness><witness>B</witness></listWit>
+				<div type="section"><ab>x</ab></div>
+			</div>
+		</body>
+	</text>
+</TEI>;
+
+declare %test:assertEquals("") function tsexpedids:witness-under-edition-no-duplicate-xml-ids() {
+	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei-wit, ()))
+};
+
+declare %test:assertEquals(0) function tsexpedids:witness-under-edition-not-minted() {
+	count(expand:tei2fulltei($tsexpedids:tei-wit, ())//t:witness/@xml:id)
+};
+
+declare %test:assertEquals("div1LITwitness88") function tsexpedids:edition-minted-id-shape() {
+	string(expand:tei2fulltei($tsexpedids:tei-wit, ())//t:div[@type = "edition"]/@xml:id)
+};

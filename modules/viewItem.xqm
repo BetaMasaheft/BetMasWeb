@@ -46,7 +46,7 @@ declare %private function viewItem:is-computed-catalogue($node as element()) as 
 };
 
 declare %private function viewItem:catalogue-dimensions($node as element()) as element(t:dimensions)* {
-	$node/t:dimensions[not(viewItem:is-computed-catalogue(.))]
+	$node/t:dimensions[not(@xml:lang)][not(viewItem:is-computed-catalogue(.))]
 };
 
 (:~
