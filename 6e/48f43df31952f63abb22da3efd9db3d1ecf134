@@ -1,0 +1,31 @@
+.gitignore
+  s_bfac4543151ff7::t_c46c123fc027d4 10-11
+package.json
+  s_bfac4543151ff7::t_7428cae0522b36 18,21-24
+docker-compose.agent.yml
+  s_bfac4543151ff7::t_bf6be64fbde556 1-14
+scripts/agent-stack.sh
+  s_bfac4543151ff7::t_56078f8ba06a3a 1-35
+scripts/deploy-agent-hot.sh
+  s_bfac4543151ff7::t_7cf67097823b7d 1-36
+test/xqs/ts-expand-edition-ids.xqm
+  s_bfac4543151ff7::t_eb7b63d30d16c0 10-22,77-86,89-90,93-94,97-98,101-102,105-106
+test/xqs/runners/edition-ids.xq
+  s_bfac4543151ff7::t_72ee8fafad9727 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "6e48f43df31952f63abb22da3efd9db3d1ecf134",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
