@@ -13,24 +13,19 @@
 // @style attribute, leaving `id="manuscriptsFilters">` with nothing before
 // the closing bracket - the regexes below match those exact shapes.
 //
-// Whole file skipped, not deleted: even a raised 90s timeout wasn't enough
-// in CI (the zero-filter baseline alone exceeded it), and running these
-// real, corpus-scale requests here also coincided with many other,
-// unrelated, pre-existing specs later in the same CI run failing on their
-// own request timeouts - consistent with this eXist container degrading
-// under sustained heavy query load over a run, not just these tests being
-// individually slow. Re-enable once BetaMasaheft/BetMasWeb#104 and
-// BetaMasaheft/expanded#21 land and the corpus is reindexed, which should
-// make the underlying queries fast enough that this stops being a factor.
+// Timeouts here are generous (real corpus-scale render, CI's shared
+// runner is slower than local) but bounded, not the many-minutes-or-hung
+// values this file carried before app:target-mss was fixed to stop
+// rendering its full ~20,000-manuscript unscoped list on every as.html
+// load regardless of filters.
 
 const HIDDEN = /id="manuscriptsFilters" style="display: none"/;
 const VISIBLE = /id="manuscriptsFilters">/;
 
 // Even the zero-filter case runs a real search against the full corpus, so
-// this has real latency on its own (~20s warm-local; CI's shared runner is
-// slower still, especially on a just-started, cache-cold container) -
-// timeouts throughout this file are sized for that, not for a hang.
-it.skip("GET /as.html?work-types=mss (no facet params) - #manuscriptsFilters stays hidden", () => {
+// this has real latency on its own - timeouts throughout this file are
+// sized for that, not for a hang.
+it("GET /as.html?work-types=mss (no facet params) - #manuscriptsFilters stays hidden", () => {
 	cy.request({
 		url: "/as.html?work-types=mss",
 		method: "GET",
@@ -45,7 +40,7 @@ it.skip("GET /as.html?work-types=mss (no facet params) - #manuscriptsFilters sta
 
 // language belongs to "General filters", not #manuscriptsFilters - a
 // non-manuscripts facet being active must not reveal this section.
-it.skip("GET /as.html?language=gez (an unrelated facet) - #manuscriptsFilters stays hidden", () => {
+it("GET /as.html?language=gez (an unrelated facet) - #manuscriptsFilters stays hidden", () => {
 	cy.request({
 		url: "/as.html?work-types=mss&language=gez",
 		method: "GET",
@@ -63,7 +58,7 @@ it.skip("GET /as.html?language=gez (an unrelated facet) - #manuscriptsFilters st
 // above, without pulling in app:folia-active - folia shares the same
 // range-index-defeating guard as dimensions (see below) and would make
 // this request minutes slow for no extra coverage.
-it.skip("GET /as.html?gender=1 - #manuscriptsFilters is visible", () => {
+it("GET /as.html?gender=1 - #manuscriptsFilters is visible", () => {
 	cy.request({
 		url: "/as.html?work-types=mss&gender=1",
 		method: "GET",
