@@ -697,7 +697,30 @@ declare %private function q:par-clavisType($clavisID, $clavisType) {
 	return q:par-clavis($clavisID, $clavisType)
 };
 
-declare %private function q:par-date-range($element, $dateRange) {
+(:~
+ : Builds an XPath predicate filtering `descendant::t:origDate` by a
+ : "min,max" year range - shared by queries.xqm's own case "dateRange"
+ : dispatch (birth/death/floruit-style REST callers) and, since
+ : 2026-08-27, app:query's as.html "date" facet, which used to
+ : duplicate this logic with its own unquoted, unscoped predicate: that
+ : version applied to `descendant::t:*` (any element at all, not just
+ : `t:origDate`) and interpolated the raw year bounds as unquoted
+ : integer literals, so a real search crashed with `XPTY0004` ("can
+ : not compare xs:string('1400') with xs:integer('1700')") the moment
+ : any element in the corpus had a non-numeric `@notBefore`/`@notAfter`
+ : value - not a hypothetical, reproduced live with `dateRange=1700,
+ : 1800`. This function's own comparisons are quoted strings against a
+ : zero-padded 4-digit year, so they can't hit that failure mode.
+ :
+ : @param $element unused - always "origDate" in practice; kept for
+ : the two existing call sites' signatures rather than widening scope
+ : here
+ : @param $dateRange the raw "min,max" (or comma-joined multi-value)
+ : request parameter
+ : @return an XPath predicate string, or the empty sequence when
+ : $dateRange is absent, blank, or the full default range ("1,2000")
+ :)
+declare function q:par-date-range($element, $dateRange) {
 	let $combinedString := string-join($dateRange, ",")
 	let $parts := tokenize($combinedString, ",")
 

@@ -11,6 +11,30 @@ $("#tooglesearchfield").click(function () {
 	$("#searchform").toggle("slow");
 });
 
+$(document).ready(function () {
+	// as.html always includes folia/writtenLines' own markup now, whether
+	// or not their section is currently active, so the widgets need a
+	// single, unconditional init
+	// here rather than each fragment's own inline <script> - inlined that
+	// close to the top of the page, ahead of bootstrap-slider's own
+	// <script> (loaded later, in the page wrapper), it would run before
+	// $.fn.bootstrapSlider even exists.
+	$("#folia").bootstrapSlider({});
+	$("#writtenLines").bootstrapSlider({});
+	$("#quires").bootstrapSlider({});
+	$("#quiresComp").bootstrapSlider({});
+	$("#dates").bootstrapSlider({});
+	$("#heightslider").bootstrapSlider({});
+	$("#widthslider").bootstrapSlider({});
+	$("#depthslider").bootstrapSlider({});
+	$("#NumberOfcolumns").bootstrapSlider({});
+	$("#tMslider").bootstrapSlider({});
+	$("#bMslider").bootstrapSlider({});
+	$("#rMslider").bootstrapSlider({});
+	$("#lMslider").bootstrapSlider({});
+	$("#lntercolumnslider").bootstrapSlider({});
+});
+
 $("#collectionfilter").on("change", function () {
 	if ($(this).val() === "mss") {
 		$("#manuscriptsFilters").show();
@@ -43,7 +67,10 @@ function callformpart(file, id) {
 	var myElem = document.getElementById(id);
 	// if it is not there, load it
 	if (myElem === null) {
-		$.ajax(file, {
+		// forward the page's own query string so a fragment whose fields
+		// read request parameters (e.g. app:foliaInput's slider echo) has
+		// something to echo, instead of always seeing a fresh empty request
+		$.ajax(file + window.location.search, {
 			success: function (data) {
 				$("#AddFilters").append(data);
 			},
@@ -71,17 +98,11 @@ $(document).ready(function () {
 				case "relations":
 					callformpart("forms/formrelations.html", "relations");
 					break;
-				case "references":
-					callformpart("forms/formref.html", "containsRef");
-					break;
 				case "xpath":
 					callformpart("forms/formxpath.html", "xpathform");
 					break;
 				case "date":
 					callformpart("forms/formdates.html", "datesform");
-					break;
-				case "msstargets":
-					callformpart("forms/formtargetmss.html", "mssform");
 					break;
 				case "folia":
 					callformpart("forms/formfolia.html", "leavesform");
@@ -134,7 +155,7 @@ $(document).ready(function () {
 					callformpart("forms/formcontents.html", "contentform");
 					break;
 				case "objectType":
-					callformpart("forms/formobjecttype.html", "otform");
+					callformpart("forms/formobjecttype.html", "ot");
 					break;
 				case "material":
 					callformpart("forms/formmaterial.html", "materialform");
@@ -176,9 +197,6 @@ $(document).ready(function () {
 				case "relations":
 					$("#relations").hide();
 					break;
-				case "references":
-					$("#containsRef").hide();
-					break;
 				case "xpath":
 					$("#xpathform").hide();
 					break;
@@ -186,7 +204,7 @@ $(document).ready(function () {
 					$("#datesform").hide();
 					break;
 				case "mss":
-					$("#mssform").hide();
+					$("#insform").hide();
 					break;
 				case "works":
 					$("#worksform").hide();
@@ -240,7 +258,10 @@ $(document).ready(function () {
 					$("#contentform").hide();
 					break;
 				case "objectType":
-					$("#otform").hide();
+					$("#ot").hide();
+					break;
+				case "CUnumber":
+					$("#CUform").hide();
 					break;
 				case "material":
 					$("#materialform").hide();
@@ -272,20 +293,17 @@ $(document).ready(function () {
 });
 
 $(document).on("change", "#target-ins", function () {
+	// #target-ms is always present in forminstitutions.html now (server-rendered,
+	// scoped to the submitted target-ins on reload) - refresh its options in
+	// place instead of inserting a second, id-colliding select.
 	var ins = $(this).val();
 	var apicall = appBase + "/api/manuscripts/list/json?perpage=2000&repo=" + ins;
 	$.getJSON(apicall, function (data) {
-		console.log(data);
 		var options = "";
 		for (var i = 0; i < data.total; i++) {
 			var ms = data.items[i];
-			console.log(ms);
-			options += '<option value="' + ms.id + '" >' + ms.title + "</option>";
+			options += '<option value="' + ms.id + '">' + ms.title + "</option>";
 		}
-		var targetmss =
-			'<div class="w3-container list mss" data-toggle="tooltip" data-placement="left" title="Select Manuscripts individually" id="mssform"><label>Manuscripts</label><br/><select multiple="multiple" name="target-ms" id="target-ms" class="w3-select w3-border">' +
-			options +
-			"</select>Here you can specify exactly in which Manuscripts records you want tosearch.</div>";
-		$(targetmss).insertAfter($("#insform"));
+		$("#target-ms").html(options);
 	});
 });

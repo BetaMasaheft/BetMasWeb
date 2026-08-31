@@ -21,6 +21,7 @@ declare namespace xconf = "http://exist-db.org/collection-config/1.0";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
+import module namespace lib = "http://exist-db.org/xquery/html-templating/lib";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace coord = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/coord" at "xmldb:exist:///db/apps/BetMasWeb/modules/coordinates.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -48,6 +49,30 @@ declare variable $app:name := request:get-parameter("name", ());
 declare variable $app:params := request:get-parameter-names();
 
 declare variable $app:facets := doc("/db/system/config/db/apps/BetMasData/collection.xconf")//xconf:facet/@dimension;
+
+(:~
+ : Resolves a facet function's own "context" parameter, calling
+ : collection() directly for the common (unoverridden default) case
+ : instead of util:eval - the parameter stays honored for any caller
+ : that overrides it.
+ :
+ : Must call collection() fresh per invocation, not read a module-level
+ : variable bound to it once: a persisted global reference to a large
+ : collection() result held eXist document locks across requests via
+ : compiled-query caching, hanging every as.html request. No range
+ : index exists for the attributes these facets query
+ : (https://github.com/BetaMasaheft/expanded/issues/19), so each call
+ : still walks every document either way.
+ :
+ : @param $context the function's own context parameter (templates-resolved)
+ : @return the evaluated context node sequence
+ :)
+declare %private function app:eval-mss-context($context as xs:string*) as node()* {
+	if ($context = "collection($config:data-rootMS)") then
+		collection($config:data-rootMS)
+	else
+		util:eval($context)
+};
 
 declare variable $app:rest := "/rest/";
 
@@ -212,8 +237,9 @@ declare function app:selectors($nodeName, $path, $nodes, $type, $context) {
 								$n
 				order by $work
 				return let $label := try {
-						if ($exptit:col/id($work)) then
-							exptit:printTitle($exptit:col/id($work))
+						let $title := exptit:printTitleID($work)
+						return if (string-length(string-join($title)) ge 1) then
+							$title
 						else
 							$work
 					} (: this has to stay because optgroup requires label and this cannot be computed from the javascript as in other places :) catch * {
@@ -300,7 +326,7 @@ declare function app:selectors($nodeName, $path, $nodes, $type, $context) {
 						"form"
 					default return
 						"termkey"
-				let $ctx := util:eval($context)
+				let $ctx := app:eval-mss-context($context)
 				let $facet := if ($nodeName = "script") then (
 					$app:util-index-lookup(
 						$ctx//@script,
@@ -444,7 +470,19 @@ declare function app:ListQueryParam($parameter, $context, $mode, $function) {
 								"')] or descendant::t:ref[contains(@corresp, '" ||
 								$k ||
 								"')]]"
-
+						else if ($parameter = "target-ins") then
+							(:
+							 : app:target-ins's own picker submits the bare institution
+							 : id (its <option>s come from $config:data-rootIn's
+							 : @xml:id), but t:repository/@ref in the manuscripts
+							 : collection stores the full $config:BMurl-prefixed URI -
+							 : an exact `=` match here (this branch's own default,
+							 : below) never matched anything, silently no-op'ing every
+							 : institution-filtered search. ends-with (rather than
+							 : contains) keeps the match anchored to the id's own path
+							 : segment, not any arbitrary substring of the URI.
+							 :)
+							"descendant::t:repository[ends-with(@ref, '/" || $k || "')]"
 						else
 							let $c := if (starts-with($context, "@")) then (
 							) else
@@ -628,15 +666,48 @@ declare function app:elements($node as node(), $model as map(*)) {
 };
 
 (:~
- : called by form*.html files used by advances search form as.html and filters.js
+ : called by form*.html files used by advances search form as.html and
+ : filters.js. Scoped to a single institution's manuscripts when
+ : target-ins is submitted, matching filters.js's live cascade on
+ : #target-ins - previously that cascade rebuilt this same
+ : id="target-ms"/name="target-ms" select from scratch client-side via
+ : a separate AJAX call instead of scoping this one, which collided
+ : with it under the same ids whenever both were present.
+ :
+ : Without target-ins, renders no options rather than falling through
+ : to the full ~20,000-manuscript corpus - forminstitutions.html is
+ : always included on every as.html load, so an unscoped fallback here
+ : ran app:selectors' per-option exptit:printTitleID lookup ~20,000
+ : times on every page load, unconditionally. Measured:
+ : several minutes per request against the real corpus, severe enough
+ : to starve concurrent requests waiting on the same title-lookup
+ : locks. A flat, unscoped 20,000-option dropdown was never usable UI
+ : either way. target-ms alone (no target-ins) still needs its
+ : currently-selected manuscript(s) present so they render `selected`.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:target-mss(
 	$node as node(),
 	$model as map(*),
-	$context as xs:string*
+	$context as xs:string*,
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
 ) {
-	let $cont := util:eval($context)
-	let $control := app:formcontrol("target-ms", $cont//t:TEI, "false", "name", $context)
+	let $cont := app:eval-mss-context($context)
+	let $scoped := if (app:list-param-active($target-ins)) then
+		(:
+		 : t:repository/@ref is BMurl-prefixed; target-ins submits the
+		 : bare id. Multi-select, so match any one value - `||`
+		 : concatenating the whole sequence throws err:XPTY0004.
+		 :)
+		$cont//t:TEI[descendant::t:repository[some $ins in $target-ins satisfies ends-with(@ref, "/" || $ins)]]
+	else if (app:list-param-active($target-ms)) then
+		$cont//t:TEI[some $ms in $target-ms satisfies @xml:id eq $ms]
+	else (
+	)
+	let $control := app:formcontrol("target-ms", $scoped, "false", "name", $context)
 
 	return templates:form-control($control, $model)
 };
@@ -670,6 +741,51 @@ declare %templates:default("context", "collection($config:data-rootIn)") functio
 };
 
 (:~
+ : Echoes the "institutions" checkbox's state from the request - active
+ : whether the user picked an institution (target-ins) or, once that
+ : cascade rendered its scoped manuscripts select, one or more specific
+ : manuscripts from it (target-ms). Covers the same ground the
+ : never-wired "msstargets" facet (formtargetmss.html, its own dead
+ : checkbox-less filters.js case) was meant to - folded in here rather
+ : than restored separately, since target-mss's own manuscripts select
+ : is now part of this same fragment.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when either is present
+ :)
+declare function app:institutionsCheckbox(
+	$node as node(),
+	$model as map(*),
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
+) as element() {
+	app:checkbox-state($node, app:list-param-active($target-ins) or app:list-param-active($target-ms))
+};
+
+(:~
+ : Server-side include of forminstitutions.html's own templated content
+ : - see app:includeFoliaForm for the pattern this follows.
+ :
+ : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
+ : @return forminstitutions.html's own root element, hidden when neither is present
+ :)
+declare function app:includeInstitutionsForm(
+	$node as node(),
+	$model as map(*),
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
+) as element()? {
+	app:include-facet-form(
+		$node,
+		$model,
+		"forms/forminstitutions.html",
+		app:list-param-active($target-ins) or app:list-param-active($target-ms)
+	)
+};
+
+(:~
  : called by form*.html files used by advances search form as.html and filters.js MANUSCRIPTS FILTERS for CONTEXT
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:scripts(
@@ -677,7 +793,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $scripts := $app:util-index-lookup($cont//@script, (), function ($key, $count) { $key }, 100, "lucene-index")
 	let $control := app:formcontrol("script", $scripts, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -691,7 +807,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $forms := config:distinct-values($cont//@form)
 	let $control := app:formcontrol("support", $forms, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -705,7 +821,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $materials := config:distinct-values($cont//t:support/t:material/@key)
 	let $control := app:formcontrol("material", $materials, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -719,7 +835,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $bmaterials := config:distinct-values($cont//t:decoNote[@type eq "bindingMaterial"]/t:material/@key)
 
 	let $control := app:formcontrol("bmaterial", $bmaterials, "false", "values", $context)
@@ -731,7 +847,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $bindings := config:distinct-values($cont//t:binding/@contemporary)
 	let $control := app:formcontrol("bindingtype", $bindings, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -789,16 +905,25 @@ declare %templates:default("context", "$exptit:col") function app:relationType(
  :
  : @param $node the data-template marker node (unused, part of the templates:apply contract)
  : @param $model unused, part of the templates:apply contract
+ : @param $wL the request's wL parameter, auto-resolved by name - a
+ : "min,max" pair, echoed back as the slider's initial position instead
+ : of always resetting to the full range (a real bug: the filter *was*
+ : already applied server-side on reload, the widget just silently
+ : failed to show that)
  : @return the <input> element for the bootstrap-slider widget, with real min/max/value
  :)
-declare function app:writtenLinesInput($node as node(), $model as map(*)) {
+declare function app:writtenLinesInput($node as node(), $model as map(*), $wL as xs:string*) as element(input) {
 	let $max := q:max-written-lines()
+	let $range := if (exists($wL) and $wL[1] != "") then
+		$wL[1]
+	else
+		"1," || $max
 	return <input
 		class="span2"
 		data-slider-max="{ $max }"
 		data-slider-min="1"
 		data-slider-step="1"
-		data-slider-value="[1,{ $max }]"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
 		id="writtenLines"
 		name="wL"
 		type="text" />
@@ -812,19 +937,811 @@ declare function app:writtenLinesInput($node as node(), $model as map(*)) {
  :
  : @param $node the data-template marker node (unused, part of the templates:apply contract)
  : @param $model unused, part of the templates:apply contract
+ : @param $folia the request's folia parameter, auto-resolved by name -
+ : a "min,max" pair, echoed back as the slider's initial position
+ : instead of always resetting to the full range (a real bug: the
+ : filter *was* already applied server-side on reload, the widget just
+ : silently failed to show that)
  : @return the <input> element for the bootstrap-slider widget, with real min/max/value
  :)
-declare function app:foliaInput($node as node(), $model as map(*)) {
+declare function app:foliaInput($node as node(), $model as map(*), $folia as xs:string*) as element(input) {
 	let $max := q:max-folia()
+	let $range := if (exists($folia) and $folia[1] != "") then
+		$folia[1]
+	else
+		"1," || $max
 	return <input
 		class="span2"
 		data-slider-max="{ $max }"
 		data-slider-min="1"
 		data-slider-step="1"
-		data-slider-value="[1,{ $max }]"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
 		id="folia"
 		name="folia"
 		type="text" />
+};
+
+(:~
+ : Whether `folia` carries a real, non-default filter value - the same
+ : sentinel q:par-folia uses to decide "no filter applied", shared by
+ : every folia-facet templated function below so they can't drift
+ : apart from each other or from q:par-folia itself.
+ :
+ : @param $folia the request's folia parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:folia-active($folia as xs:string*) as xs:boolean {
+	exists($folia) and $folia[1] != "" and $folia[1] != ("1," || q:max-folia())
+};
+
+(:~
+ : Whether `wL` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-wL's sentinel.
+ :
+ : @param $wL the request's wL parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:wL-active($wL as xs:string*) as xs:boolean {
+	exists($wL) and $wL[1] != "" and $wL[1] != ("1," || q:max-written-lines())
+};
+
+(:~
+ : Echoes the "folia" checkbox's state from the request.
+ :
+ : @param $folia the request's folia parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:foliaCheckbox($node as node(), $model as map(*), $folia as xs:string*) as element() {
+	app:checkbox-state($node, app:folia-active($folia))
+};
+
+(:~
+ : Echoes the "writtenLines" checkbox's state from the request.
+ :
+ : @param $wL the request's wL parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:writtenLinesCheckbox($node as node(), $model as map(*), $wL as xs:string*) as element() {
+	app:checkbox-state($node, app:wL-active($wL))
+};
+
+(:~
+ : Whether `qn` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-qn's sentinel.
+ :
+ : @param $qn the request's qn parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:qn-active($qn as xs:string*) as xs:boolean {
+	exists($qn) and $qn[1] != "" and $qn[1] != "1,100"
+};
+
+(:~
+ : Whether `qcn` carries a real, non-default filter value - see
+ : app:folia-active, same reasoning for q:par-qcn's sentinel.
+ :
+ : @param $qcn the request's qcn parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:qcn-active($qcn as xs:string*) as xs:boolean {
+	exists($qcn) and $qcn[1] != "" and $qcn[1] != "1,40"
+};
+
+(:~
+ : Whether `numberOfParts` carries a real filter value - see
+ : app:gender-active, same "non-empty is active" reasoning (the
+ : dispatcher that reaches q:par's "numberOfParts" case already
+ : filters out blank values before it's ever called).
+ :
+ : @param $numberOfParts the request's numberOfParts parameter
+ : @return true if a value is present
+ :)
+declare %private function app:cuNumber-active($numberOfParts as xs:string*) as xs:boolean {
+	exists($numberOfParts) and $numberOfParts[1] != ""
+};
+
+(:~
+ : Reveals the "Manuscripts Filters" section server-side when one of
+ : its facets has an active, non-default request parameter, instead of
+ : relying on filters.js's `#collectionfilter` change handler alone
+ : (JS-only, lost on reload).
+ :
+ : Reads every facet's request parameter directly via
+ : request:get-parameter rather than taking one auto-resolved parameter
+ : per facet, unlike every other *FiltersSection function in this
+ : module. That's not a stylistic choice: this section covers by far
+ : the most facets (26, after the `dimensions` slice's nine fields),
+ : and templates:call's introspection-based dispatch - the mechanism
+ : that auto-resolves a templated function's parameters by name -
+ : refuses to look up any function past 20 total parameters
+ : (`$templates:MAX_ARITY` in the vendored templating package), throwing
+ : `templates:NotFound` at request time. Found live-testing the
+ : `dimensions` facet: the previous 28-parameter version passed all of
+ : its own direct-call XQSuite tests (which bypass templates:call
+ : entirely) while being permanently broken on the real page. Reading
+ : parameters directly sidesteps the cap - this function is a
+ : `data-template` target on `#manuscriptsFilters` itself, so it's
+ : still reached by templates:call, but at its own arity of 2 rather
+ : than 28. Extend the OR-condition below as more `#mssFilter` facets
+ : get the same treatment; no signature change is ever needed again.
+ :
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:manuscriptsFiltersSection($node as node(), $model as map(*)) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (
+			app:folia-active(request:get-parameter("folia", ())) or
+				app:wL-active(request:get-parameter("wL", ())) or
+				app:qn-active(request:get-parameter("qn", ())) or
+				app:qcn-active(request:get-parameter("qcn", ())) or
+				app:cuNumber-active(request:get-parameter("numberOfParts", ())) or
+				app:gender-active(request:get-parameter("gender", ())) or
+				app:list-param-active(request:get-parameter("scribe", ())) or
+				app:list-param-active(request:get-parameter("donor", ())) or
+				app:list-param-active(request:get-parameter("patron", ())) or
+				app:list-param-active(request:get-parameter("owner", ())) or
+				app:list-param-active(request:get-parameter("binder", ())) or
+				app:list-param-active(request:get-parameter("support", ())) or
+				app:list-param-active(request:get-parameter("content", ())) or
+				app:list-param-active(request:get-parameter("bindingtype", ())) or
+				app:list-param-active(request:get-parameter("script", ())) or
+				app:list-param-active(request:get-parameter("parchmentMaker", ())) or
+				app:list-param-active(request:get-parameter("material", ())) or
+				app:list-param-active(request:get-parameter("bmaterial", ())) or
+				app:list-param-active(request:get-parameter("target-ins", ())) or
+				app:list-param-active(request:get-parameter("target-ms", ())) or
+				app:dimensions-active(
+					request:get-parameter("height", ()),
+					request:get-parameter("width", ()),
+					request:get-parameter("depth", ()),
+					request:get-parameter("columnsNum", ()),
+					request:get-parameter("tmargin", ()),
+					request:get-parameter("bmargin", ()),
+					request:get-parameter("rmargin", ()),
+					request:get-parameter("lmargin", ()),
+					request:get-parameter("intercolumn", ())
+				)
+		) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "CUnumber" checkbox's state from the request.
+ :
+ : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is present
+ :)
+declare function app:CUnumberCheckbox($node as node(), $model as map(*), $numberOfParts as xs:string*) as element() {
+	app:checkbox-state($node, app:cuNumber-active($numberOfParts))
+};
+
+(:~
+ : Server-side include of formCUnumber.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows. No JS widget
+ : involved (formCUnumber.html's own field is a plain
+ : templates:form-control target), so no hidden-init concern here.
+ :
+ : @param $numberOfParts the request's numberOfParts parameter, auto-resolved by name
+ : @return formCUnumber.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeCUnumberForm(
+	$node as node(),
+	$model as map(*),
+	$numberOfParts as xs:string*
+) as element()? {
+	app:include-facet-form($node, $model, "forms/formCUnumber.html", app:cuNumber-active($numberOfParts))
+};
+
+(:~
+ : Whether a list-style filter param is active - shared by every
+ : facet below whose query predicate (app:query/app:ListQueryParam) is
+ : simply "any non-empty value selected", with no default-range
+ : sentinel to match against (see app:gender-active/app:cuNumber-active
+ : for the same reasoning, kept separate there since they predate this
+ : helper and are already shipped).
+ :
+ : @param $value a request parameter's resolved value(s)
+ : @return true if a non-empty value is present
+ :)
+declare %private function app:list-param-active($value as xs:string*) as xs:boolean {
+	exists($value) and $value[1] != ""
+};
+
+(:~
+ : Shared shape behind every "echo this facet's checkbox state" function:
+ : copy $node's attributes except @data-template/@checked, then set
+ : @checked when the caller's own activity check says so. Each facet
+ : keeps its own activity predicate (app:list-param-active,
+ : app:folia-active, a multi-param "or", etc.) - only this boilerplate
+ : is shared.
+ :
+ : @param $node the checkbox's data-template marker node
+ : @param $active whether this facet has a real filter value
+ : @return the checkbox, with @checked set when $active
+ :)
+(:~
+ : Shared shape behind every "server-render this facet's form fragment
+ : when it has state to restore" function: include the form file only
+ : when the caller's own activity check says there's something to
+ : restore. Each facet keeps its own activity predicate - only this
+ : include boilerplate is shared.
+ :
+ : Renders nothing at all when inactive, rather than including the
+ : fragment and hiding it via @style - lib:include runs the facet's own
+ : list-building function (e.g. a full corpus scan with a title lookup
+ : per option), which every one of these ~30 facets otherwise paid on
+ : every single as.html load regardless of whether that facet was ever
+ : opened. filters.js's own callformpart already handles the resulting
+ : gap correctly with no change needed there: it AJAX-fetches a form
+ : fragment on first checkbox click exactly when the fragment's root id
+ : isn't already present in the DOM, forwarding the page's own query
+ : string so a fragment fetched this way still echoes any submitted
+ : value.
+ :
+ : @param $node the data-template marker node
+ : @param $model the current templates model
+ : @param $formfile the form fragment's path, e.g. "forms/formscribes.html"
+ : @param $active whether this facet has a real filter value
+ : @return the form fragment when $active, otherwise nothing
+ :)
+declare %private function app:include-facet-form(
+	$node as node(),
+	$model as map(*),
+	$formfile as xs:string,
+	$active as xs:boolean
+) as element()? {
+	if ($active) then
+		lib:include($node, $model, $formfile)
+	else (
+	)
+};
+
+declare %private function app:checkbox-state($node as node(), $active as xs:boolean) as element() {
+	element {node-name($node)} {
+		$node/@* except ($node/@data-template, $node/@checked),
+		if ($active) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
+(:~
+ : Echoes the "scribe" checkbox's state from the request.
+ :
+ : @param $scribe the request's scribe parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:scribeCheckbox($node as node(), $model as map(*), $scribe as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($scribe))
+};
+
+(:~
+ : Server-side include of formscribes.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows.
+ :
+ : @param $scribe the request's scribe parameter, auto-resolved by name
+ : @return formscribes.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeScribeForm($node as node(), $model as map(*), $scribe as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formscribes.html", app:list-param-active($scribe))
+};
+
+(:~
+ : Echoes the "donor" checkbox's state from the request.
+ :
+ : @param $donor the request's donor parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:donorCheckbox($node as node(), $model as map(*), $donor as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($donor))
+};
+
+(:~
+ : Server-side include of formdonor.html's own templated content.
+ :
+ : @param $donor the request's donor parameter, auto-resolved by name
+ : @return formdonor.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeDonorForm($node as node(), $model as map(*), $donor as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formdonor.html", app:list-param-active($donor))
+};
+
+(:~
+ : Echoes the "patron" checkbox's state from the request.
+ :
+ : @param $patron the request's patron parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:patronCheckbox($node as node(), $model as map(*), $patron as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($patron))
+};
+
+(:~
+ : Server-side include of formpatron.html's own templated content.
+ :
+ : @param $patron the request's patron parameter, auto-resolved by name
+ : @return formpatron.html's own root element, hidden when no filter is active
+ :)
+declare function app:includePatronForm($node as node(), $model as map(*), $patron as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formpatron.html", app:list-param-active($patron))
+};
+
+(:~
+ : Echoes the "owner" checkbox's state from the request.
+ :
+ : @param $owner the request's owner parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:ownerCheckbox($node as node(), $model as map(*), $owner as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($owner))
+};
+
+(:~
+ : Server-side include of formowner.html's own templated content.
+ :
+ : @param $owner the request's owner parameter, auto-resolved by name
+ : @return formowner.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeOwnerForm($node as node(), $model as map(*), $owner as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formowner.html", app:list-param-active($owner))
+};
+
+(:~
+ : Echoes the "binder" checkbox's state from the request.
+ :
+ : @param $binder the request's binder parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:binderCheckbox($node as node(), $model as map(*), $binder as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($binder))
+};
+
+(:~
+ : Server-side include of formbinder.html's own templated content.
+ :
+ : @param $binder the request's binder parameter, auto-resolved by name
+ : @return formbinder.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeBinderForm($node as node(), $model as map(*), $binder as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formbinder.html", app:list-param-active($binder))
+};
+
+(:~
+ : Echoes the "objectType" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`support`, see app:support), matching as.html's own label
+ : ("support") for this facet.
+ :
+ : @param $support the request's support parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:objectTypeCheckbox($node as node(), $model as map(*), $support as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($support))
+};
+
+(:~
+ : Server-side include of formobjecttype.html's own templated content.
+ :
+ : @param $support the request's support parameter, auto-resolved by name
+ : @return formobjecttype.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeObjectTypeForm($node as node(), $model as map(*), $support as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formobjecttype.html", app:list-param-active($support))
+};
+
+(:~
+ : Echoes the "contents" checkbox's state from the request - the
+ : checkbox's own value ("contents") differs from the actual request
+ : parameter it gates (`content`, see app:contents).
+ :
+ : @param $content the request's content parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:contentsCheckbox($node as node(), $model as map(*), $content as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($content))
+};
+
+(:~
+ : Server-side include of formcontents.html's own templated content.
+ :
+ : @param $content the request's content parameter, auto-resolved by name
+ : @return formcontents.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeContentsForm($node as node(), $model as map(*), $content as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formcontents.html", app:list-param-active($content))
+};
+
+(:~
+ : Echoes the "bindingtype" checkbox's state from the request.
+ :
+ : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:bindingtypeCheckbox($node as node(), $model as map(*), $bindingtype as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($bindingtype))
+};
+
+(:~
+ : Server-side include of formbind.html's own templated content.
+ :
+ : @param $bindingtype the request's bindingtype parameter, auto-resolved by name
+ : @return formbind.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeBindingtypeForm(
+	$node as node(),
+	$model as map(*),
+	$bindingtype as xs:string*
+) as element()? {
+	app:include-facet-form($node, $model, "forms/formbind.html", app:list-param-active($bindingtype))
+};
+
+(:~
+ : Server-side include of formfolia.html's own templated content,
+ : exactly like app:includeRoleForm - a real bootstrap-slider widget
+ : is not a blocker here: verified live (2026-08-27) that this
+ : library positions its handles with percentages, not cached pixels,
+ : so it initializes correctly even while its container starts
+ : `display:none` and gets revealed later. Replaces the AJAX-fetch +
+ : pre-checked-box-scan approach this facet shipped with initially.
+ :
+ : @param $folia the request's folia parameter, auto-resolved by name
+ : @return formfolia.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeFoliaForm($node as node(), $model as map(*), $folia as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formfolia.html", app:folia-active($folia))
+};
+
+(:~
+ : Server-side include of formWL.html's own templated content - see
+ : app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $wL the request's wL parameter, auto-resolved by name
+ : @return formWL.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeWLForm($node as node(), $model as map(*), $wL as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formWL.html", app:wL-active($wL))
+};
+
+(:~
+ : Quire-count range slider for forms/formquires.html. Bounds are the
+ : same hardcoded "1,100" q:par-qn itself checks against - unlike
+ : folia/writtenLines, this facet's bounds weren't found to need
+ : corpus-derived correction, only the state-echo this function adds.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:quiresInput($node as node(), $model as map(*), $qn as xs:string*) as element(input) {
+	let $range := if (exists($qn) and $qn[1] != "") then
+		$qn[1]
+	else
+		"1,100"
+	return <input
+		class="span2"
+		data-slider-max="100"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="quires"
+		name="qn"
+		type="text" />
+};
+
+(:~
+ : Quire-composition range slider for forms/formquiresComp.html - see
+ : app:quiresInput, same reasoning, this facet's own "1,40" sentinel.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:quiresCompInput($node as node(), $model as map(*), $qcn as xs:string*) as element(input) {
+	let $range := if (exists($qcn) and $qcn[1] != "") then
+		$qcn[1]
+	else
+		"1,40"
+	return <input
+		class="span2"
+		data-slider-max="40"
+		data-slider-min="1"
+		data-slider-step="1"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="quiresComp"
+		name="qcn"
+		type="text" />
+};
+
+(:~
+ : Echoes the "quires" checkbox's state from the request.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:quiresCheckbox($node as node(), $model as map(*), $qn as xs:string*) as element() {
+	app:checkbox-state($node, app:qn-active($qn))
+};
+
+(:~
+ : Echoes the "quiresComp" checkbox's state from the request.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:quiresCompCheckbox($node as node(), $model as map(*), $qcn as xs:string*) as element() {
+	app:checkbox-state($node, app:qcn-active($qcn))
+};
+
+(:~
+ : Server-side include of formquires.html's own templated content -
+ : see app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $qn the request's qn parameter, auto-resolved by name
+ : @return formquires.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeQuiresForm($node as node(), $model as map(*), $qn as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formquires.html", app:qn-active($qn))
+};
+
+(:~
+ : Server-side include of formquiresComp.html's own templated content -
+ : see app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $qcn the request's qcn parameter, auto-resolved by name
+ : @return formquiresComp.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeQuiresCompForm($node as node(), $model as map(*), $qcn as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formquiresComp.html", app:qcn-active($qcn))
+};
+
+(:~
+ : Whether a slider-backed range parameter carries a real, non-default
+ : value. Generic version of app:folia-active/app:wL-active etc. for
+ : the nine formdimensions.html fields, which - unlike folia/wL - don't
+ : need a corpus-derived bound (their widget defaults are plain
+ : hand-authored physical-measurement bounds, not a data-quality
+ : workaround), so a single shared helper taking the default as a
+ : parameter is enough.
+ :
+ : @param $value the request parameter
+ : @param $default the "no filter" sentinel, e.g. "1,1000"
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:range-active($value as xs:string*, $default as xs:string) as xs:boolean {
+	exists($value) and $value[1] != "" and $value[1] != $default
+};
+
+(:~
+ : Whether any of formdimensions.html's nine sliders carries a real
+ : filter value - the composite reveal condition for the "dimensions"
+ : checkbox/section, same OR-of-per-field-actives shape as
+ : app:manuscriptsFiltersSection's own reveal condition.
+ :
+ : @return true if at least one of the nine fields is non-default
+ :)
+declare %private function app:dimensions-active(
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as xs:boolean {
+	app:range-active($height, "1,1000") or
+		app:range-active($width, "1,1000") or
+		app:range-active($depth, "1,1000") or
+		app:range-active($columnsNum, "1,20") or
+		app:range-active($tmargin, "1,100") or
+		app:range-active($bmargin, "1,100") or
+		app:range-active($rmargin, "1,100") or
+		app:range-active($lmargin, "1,100") or
+		app:range-active($intercolumn, "1,100")
+};
+
+(:~
+ : Shared builder for formdimensions.html's nine near-identical
+ : bootstrap-slider inputs - see app:foliaInput for the pattern (real
+ : min/max/value instead of the fragment's own hardcoded, never-echoed
+ : default).
+ :
+ : @param $value the request parameter, auto-resolved by name in each per-field wrapper below
+ : @param $id the input's `id` (matches formdimensions.html's original per-field ids, and filters.js's centralized bootstrapSlider init)
+ : @param $name the input's `name` (the real request parameter)
+ : @param $min the slider's minimum
+ : @param $max the slider's maximum
+ : @param $step the slider's step
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare %private function app:rangeInput(
+	$value as xs:string*,
+	$id as xs:string,
+	$name as xs:string,
+	$min as xs:string,
+	$max as xs:string,
+	$step as xs:string
+) as element(input) {
+	let $range := if (exists($value) and $value[1] != "") then
+		$value[1]
+	else
+		$min || "," || $max
+	return <input
+		class="span2"
+		data-slider-max="{ $max }"
+		data-slider-min="{ $min }"
+		data-slider-step="{ $step }"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="{ $id }"
+		name="{ $name }"
+		type="text" />
+};
+
+(:~
+ : Height slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $height the request's height parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:heightInput($node as node(), $model as map(*), $height as xs:string*) as element(input) {
+	app:rangeInput($height, "heightslider", "height", "1", "1000", "10")
+};
+
+(:~
+ : Width slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $width the request's width parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:widthInput($node as node(), $model as map(*), $width as xs:string*) as element(input) {
+	app:rangeInput($width, "widthslider", "width", "1", "1000", "10")
+};
+
+(:~
+ : Thickness/depth slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $depth the request's depth parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:depthInput($node as node(), $model as map(*), $depth as xs:string*) as element(input) {
+	app:rangeInput($depth, "depthslider", "depth", "1", "1000", "10")
+};
+
+(:~
+ : Columns-per-page slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $columnsNum the request's columnsNum parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:columnsNumInput($node as node(), $model as map(*), $columnsNum as xs:string*) as element(input) {
+	app:rangeInput($columnsNum, "NumberOfcolumns", "columnsNum", "1", "20", "1")
+};
+
+(:~
+ : Top-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $tmargin the request's tmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:tmarginInput($node as node(), $model as map(*), $tmargin as xs:string*) as element(input) {
+	app:rangeInput($tmargin, "tMslider", "tmargin", "1", "100", "1")
+};
+
+(:~
+ : Bottom-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $bmargin the request's bmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:bmarginInput($node as node(), $model as map(*), $bmargin as xs:string*) as element(input) {
+	app:rangeInput($bmargin, "bMslider", "bmargin", "1", "100", "1")
+};
+
+(:~
+ : Right-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $rmargin the request's rmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:rmarginInput($node as node(), $model as map(*), $rmargin as xs:string*) as element(input) {
+	app:rangeInput($rmargin, "rMslider", "rmargin", "1", "100", "1")
+};
+
+(:~
+ : Left-margin slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $lmargin the request's lmargin parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:lmarginInput($node as node(), $model as map(*), $lmargin as xs:string*) as element(input) {
+	app:rangeInput($lmargin, "lMslider", "lmargin", "1", "100", "1")
+};
+
+(:~
+ : Intercolumn slider for forms/formdimensions.html.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $intercolumn the request's intercolumn parameter, auto-resolved by name
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:intercolumnInput($node as node(), $model as map(*), $intercolumn as xs:string*) as element(input) {
+	app:rangeInput($intercolumn, "lntercolumnslider", "intercolumn", "1", "100", "1")
+};
+
+(:~
+ : Echoes the "dimensions" checkbox's state from the request - active
+ : when any of the nine formdimensions.html fields carries a non-default
+ : value, matching app:manuscriptsFiltersSection's own composite
+ : reveal condition.
+ :
+ : @return the checkbox, with @checked set when any field is active
+ :)
+declare function app:dimensionsCheckbox(
+	$node as node(),
+	$model as map(*),
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as element() {
+	app:checkbox-state(
+		$node,
+		app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
+	)
+};
+
+(:~
+ : Server-side include of formdimensions.html's own templated content -
+ : see app:includeFoliaForm for why the slider widgets are not a
+ : blocker.
+ :
+ : @return formdimensions.html's own root element, hidden when no field is active
+ :)
+declare function app:includeDimensionsForm(
+	$node as node(),
+	$model as map(*),
+	$height as xs:string*,
+	$width as xs:string*,
+	$depth as xs:string*,
+	$columnsNum as xs:string*,
+	$tmargin as xs:string*,
+	$bmargin as xs:string*,
+	$rmargin as xs:string*,
+	$lmargin as xs:string*,
+	$intercolumn as xs:string*
+) as element()? {
+	app:include-facet-form(
+		$node,
+		$model,
+		"forms/formdimensions.html",
+		app:dimensions-active($height, $width, $depth, $columnsNum, $tmargin, $bmargin, $rmargin, $lmargin, $intercolumn)
+	)
 };
 
 (:~
@@ -844,7 +1761,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $keywords := config:distinct-values($cont//t:language/@ident)
 	let $control := app:formcontrol("language", $keywords, "false", "values", $context)
 	return templates:form-control($control, $model)
@@ -858,7 +1775,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "scribe"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("scribe", $keywords, "false", "rels", $context)
@@ -873,7 +1790,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "donor"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("donor", $keywords, "false", "rels", $context)
@@ -888,7 +1805,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "patron"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("patron", $keywords, "false", "rels", $context)
@@ -903,7 +1820,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "owner"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("owner", $keywords, "false", "rels", $context)
@@ -918,7 +1835,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "binder"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("binder", $keywords, "false", "rels", $context)
@@ -933,7 +1850,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:persName[@role eq "parchmentMaker"][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := config:distinct-values($elements/@ref)
 	let $control := app:formcontrol("parchmentMaker", $keywords, "false", "rels", $context)
@@ -948,11 +1865,12 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $elements := $cont//t:msItem[not(contains(@xml:id, "."))]
 	let $titles := $elements/t:title/@ref
 	let $keywords := config:distinct-values($titles)
-	return app:formcontrol("content", $keywords, "false", "hierels", $context)
+	let $control := app:formcontrol("content", $keywords, "false", "hierels", $context)
+	return templates:form-control($control, $model)
 };
 
 (:~
@@ -963,7 +1881,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $cont := util:eval($context)
+	let $cont := app:eval-mss-context($context)
 	let $keywords :=
 		for $r in $cont//t:witness/@corresp
 		return string($r) || " "
@@ -978,7 +1896,7 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 	$model as map(*),
 	$context as xs:string*
 ) {
-	let $works := util:eval($context)
+	let $works := app:eval-mss-context($context)
 	let $attributions :=
 		for $rel in
 			($works//t:relation[@name eq "saws:isAttributedToAuthor"], $works//t:relation[@name eq "dcterms:creator"])
@@ -988,7 +1906,8 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 		else
 			$r
 	let $keywords := config:distinct-values($attributions)
-	return app:formcontrol("author", $keywords, "false", "rels", $context)
+	let $control := app:formcontrol("author", $keywords, "false", "rels", $context)
+	return templates:form-control($control, $model)
 };
 
 (:~
@@ -1004,7 +1923,674 @@ declare %templates:default("context", "collection($config:data-rootIn)") functio
 	let $personTabot := config:distinct-values($tabots//t:persName/@ref)
 	let $thingsTabot := config:distinct-values($tabots//t:ref/@corresp)
 	let $alltabots := ($personTabot, $thingsTabot)
-	return app:formcontrol("tabot", $alltabots, "false", "rels", $context)
+	let $control := app:formcontrol("tabot", $alltabots, "false", "rels", $context)
+	return templates:form-control($control, $model)
+};
+
+(:~
+ : Strips the BMurl prefix from a reference, if present. Expanded-data
+ : @ref values are full URLs (https://betamasaheft.eu/PRS...), not
+ : bare ids - found live while smoke-testing app:persRoleResults,
+ : whose synthetic unit-test fixture used bare ids and missed it: an
+ : unstripped ref breaks both the constructed href (double-prefixed,
+ : "/https://...") and exptit:printTitleID (expects a bare id, returns
+ : empty for a full URL).
+ :
+ : @param $ref an id or a BMurl-prefixed reference
+ : @return the bare id
+ :)
+declare %private function app:bare-id($ref as xs:string) as xs:string {
+	if (starts-with($ref, $config:BMurl)) then
+		substring-after($ref, $config:BMurl)
+	else
+		$ref
+};
+
+(:~
+ : Corpus-driven "which role" selector, replacing formrole.html's
+ : stale hardcoded 10-value list (measured against the real corpus:
+ : the single most-used role, "owner" - 2,445 uses - was missing
+ : entirely; 3 of the 10 hardcoded values matched nothing). Single-
+ : select by design, unlike app:selectors' generic "values" branch
+ : (always `multiple="multiple"`) - the results side reads this as
+ : one value, not an array.
+ :
+ : Selection-echoing itself is templates:form-control's job (matches
+ : app:keywords/app:languages's own convention elsewhere in this
+ : module) rather than hand-rolled, since it already reads "role" from
+ : the request by this select's own @name - the zero-JS equivalent of
+ : restoring $("#persRole").val() after a page reload, with no need to
+ : take $role as its own parameter at all.
+ :
+ : @param $context a collection expression, resolved via app:eval-mss-context
+ : @return a single-select control, name="role" id="persRole"
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRole(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*
+) as element() {
+	let $cont := app:eval-mss-context($context)
+	let $roles := config:distinct-values($cont//t:persName/@role[. != ""])
+	let $select := <select class="w3-select w3-border" id="persRole" name="role">
+		<option value="">choose</option>
+		{
+			for $r in $roles
+			let $count := count($cont//t:persName[@role eq $r])
+			let $label := lower-case(replace($r, "([a-z])([A-Z])", "$1 $2"))
+			order by $label
+			return <option value="{ $r }">{ $label || " (" || $count || ")" }</option>
+		}
+	</select>
+	return templates:form-control($select, $model)
+};
+
+(:~
+ : Real, server-rendered replacement for personswithrole.js's first
+ : AJAX/JSON round-trip: given a role (submitted by app:persRole),
+ : lists every distinct person attested with it, each with a real
+ : link (`?role=X&amp;person=Y`) to app:persRolePersonDetail's
+ : specific-record breakdown - genuine lazy loading via a real URL,
+ : not a client-side fetch.
+ :
+ : @param $role the role to look up people for; empty renders nothing
+ : at all - this must stay lazy, never compute every role's people
+ : list up front
+ : @return the results markup, or an empty sequence
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRoleResults(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*,
+	$role as xs:string*
+) as element()* {
+	if (empty($role) or $role[1] = "") then (
+	) else
+		let $cont := app:eval-mss-context($context)
+		let $r := $role[1]
+		let $attestations := $cont//t:persName[@role eq $r][@ref][not(starts-with(app:bare-id(string(@ref)), "PRS0000"))]
+		let $people :=
+			for $att in $attestations
+			let $id := app:bare-id(string($att/@ref))
+			group by $ID := $id
+			return map {"id": $ID, "count": count($att)}
+		(:
+		 : Carries other active facets forward, same convention as
+		 : app:pageNav/app:pagesNav's own $params. Needs a real request
+		 : (none in direct XQSuite calls, as with
+		 : app:manuscriptsFiltersSection) - catch degrades to "nothing
+		 : to preserve".
+		 :)
+		let $preservedParams := try {
+			string-join(
+				for $param in $app:params
+				for $value in request:get-parameter($param, ())
+				return if ($param = ("role", "person")) then (
+				) else
+					encode-for-uri($param) || "=" || encode-for-uri($value),
+				"&amp;"
+			)
+		} catch * { "" }
+		return <div class="w3-container" id="persWithRoleResults">
+			<h4>There are <span class="w3-tag w3-red w3-round">{ count($people) }</span> persons with a role <span
+					class="w3-tag w3-gray w3-round"
+				>{ $r }</span>
+			</h4>
+			{
+				for $p in $people
+				order by $p?count descending
+				return <div class="w3-card-4 w3-padding w3-margin w3-third" data-person="{ $p?id }">
+					<header class="w3-container">
+						<a href="{ $config:appUrl }/{ $p?id }">{ exptit:printTitleID($p?id) }</a>
+					</header>
+					<div class="w3-container">is mentioned as { $r || " " || $p?count } times:</div>
+					<a
+						class="w3-button w3-gray w3-small"
+						href="?{
+							if ($preservedParams != "") then
+								$preservedParams || "&amp;"
+							else
+								""
+						}role={ encode-for-uri($r) }&amp;person={ encode-for-uri($p?id) }"
+					>Click to see in which records.</a>
+				</div>
+			}
+		</div>
+};
+
+(:~
+ : Real, server-rendered replacement for personswithrole.js's second
+ : AJAX/JSON round-trip: given a role AND a specific person (both
+ : from the request), lists that person's individual source records
+ : for that role - computed only when this exact URL is requested,
+ : the same genuine lazy loading as app:persRoleResults.
+ :
+ : @param $role the role being looked up
+ : @param $person the specific person's id; empty renders nothing
+ : @return the per-record breakdown markup, or an empty sequence
+ :)
+declare %templates:default("context", "collection($config:data-rootMS)") function app:persRolePersonDetail(
+	$node as node(),
+	$model as map(*),
+	$context as xs:string*,
+	$role as xs:string*,
+	$person as xs:string*
+) as element()* {
+	if (empty($role) or $role[1] = "" or empty($person) or $person[1] = "") then (
+	) else
+		let $cont := app:eval-mss-context($context)
+		let $r := $role[1]
+		let $p := $person[1]
+		let $candidates := $cont//t:persName[@role eq $r][@ref][not(starts-with(app:bare-id(string(@ref)), "PRS0000"))]
+		let $atts := $candidates[app:bare-id(string(@ref)) eq $p]
+		let $sources :=
+			for $att in $atts
+			let $root := string(root($att)/t:TEI/@xml:id)
+			group by $ROOT := $root
+			return map {"source": $ROOT, "count": count($att)}
+		return <div class="w3-container" id="persRolePersonDetail">
+			<h4>{ exptit:printTitleID($p) } as { $r }, in { count($sources) } source(s):</h4>
+			<ul>
+				{
+					for $s in $sources
+					return <li data-source="{ $s?source }">
+						<a href="{ $config:appUrl }/{ $s?source }">{ exptit:printTitleID($s?source) }</a> ({ $s?count } times)
+					</li>
+				}
+			</ul>
+		</div>
+};
+
+(:~
+ : Echoes the "role" checkbox's state from the request - zero-JS
+ : equivalent of what filters.js's client-side "checked" state used to
+ : lose on reload.
+ :
+ : @param $role the request's role parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a role is selected
+ :)
+declare function app:roleCheckbox($node as node(), $model as map(*), $role as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($role))
+};
+
+(:~
+ : Whether `gender` carries a real filter value - unlike the slider
+ : facets' "min,max" sentinel, list-style params like this one are
+ : simply active when non-empty (q:ListQueryParam-rest's caller
+ : already filters out blank values before dispatch, so there's no
+ : separate "no filter applied" literal to match against).
+ :
+ : @param $gender the request's gender parameter
+ : @return true if any value is present
+ :)
+declare %private function app:gender-active($gender as xs:string*) as xs:boolean {
+	exists($gender) and $gender[1] != ""
+};
+
+(:~
+ : Reveals the "Works Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload). Only `authors` participates so far - extend this
+ : parameter list as more `#wFilter` facets get the same treatment.
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:worksFiltersSection(
+	$node as node(),
+	$model as map(*),
+	$author as xs:string*,
+	$target-work as xs:string*
+) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (app:list-param-active($author) or app:list-param-active($target-work)) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "authors" checkbox's state from the request - the
+ : checkbox's own value ("authors") differs from the actual request
+ : parameter it gates (`author`, singular - see app:WorkAuthors).
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:authorsCheckbox($node as node(), $model as map(*), $author as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($author))
+};
+
+(:~
+ : Server-side include of formauthors.html's own templated content.
+ :
+ : @param $author the request's author parameter, auto-resolved by name
+ : @return formauthors.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeAuthorsForm($node as node(), $model as map(*), $author as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formauthors.html", app:list-param-active($author))
+};
+
+(:~
+ : Reveals the "Places Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload). Only `tabots` participates so far - extend this
+ : parameter list as more `#plFilter` facets get the same treatment.
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:placesFiltersSection(
+	$node as node(),
+	$model as map(*),
+	$tabot as xs:string*,
+	$placeType as xs:string*
+) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (app:list-param-active($tabot) or app:list-param-active($placeType)) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "tabots" checkbox's state from the request - the
+ : checkbox's own value ("tabots") differs from the actual request
+ : parameter it gates (`tabot`, singular - see app:tabots).
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:tabotsCheckbox($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($tabot))
+};
+
+(:~
+ : Server-side include of formtabots.html's own templated content.
+ :
+ : @param $tabot the request's tabot parameter, auto-resolved by name
+ : @return formtabots.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeTabotsForm($node as node(), $model as map(*), $tabot as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formtabots.html", app:list-param-active($tabot))
+};
+
+(:~
+ : Echoes the "languages" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`language`, singular - see app:languages). Unlike the
+ : Manuscripts/Persons/Works/Places facets, this checkbox lives under
+ : "General filters" directly, which has no wrapping reveal section of
+ : its own to extend - only the checkbox and its fragment need echoing.
+ :
+ : @param $language the request's language parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:languagesCheckbox($node as node(), $model as map(*), $language as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($language))
+};
+
+(:~
+ : Server-side include of formlanguages.html's own templated content.
+ :
+ : @param $language the request's language parameter, auto-resolved by name
+ : @return formlanguages.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeLanguagesForm($node as node(), $model as map(*), $language as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formlanguages.html", app:list-param-active($language))
+};
+
+(:~
+ : Echoes the "keywords" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`keyword`, singular - see app:keywords).
+ :
+ : @param $keyword the request's keyword parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:keywordsCheckbox($node as node(), $model as map(*), $keyword as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($keyword))
+};
+
+(:~
+ : Server-side include of formkeywords.html's own templated content.
+ :
+ : @param $keyword the request's keyword parameter, auto-resolved by name
+ : @return formkeywords.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeKeywordsForm($node as node(), $model as map(*), $keyword as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formkeywords.html", app:list-param-active($keyword))
+};
+
+(:~
+ : Echoes the "relations" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`relType` - see app:relationType).
+ :
+ : @param $relType the request's relType parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:relationsCheckbox($node as node(), $model as map(*), $relType as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($relType))
+};
+
+(:~
+ : Server-side include of formrelations.html's own templated content.
+ :
+ : @param $relType the request's relType parameter, auto-resolved by name
+ : @return formrelations.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeRelationsForm($node as node(), $model as map(*), $relType as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formrelations.html", app:list-param-active($relType))
+};
+
+(:~
+ : Whether `dateRange` carries a real, non-default filter value. Mirrors
+ : q:par-date-range's own sentinel exactly: that function - now shared
+ : by both queries.xqm's REST-facing case "dateRange" dispatch and
+ : app:query's as.html "date" facet, see its doc for why this used to
+ : be two divergent implementations - treats a submitted "1,2000" (its
+ : full slider range) the same as no filter at all, so the echoed
+ : default here must be "1,2000" too, not the fragment's original
+ : hardcoded widget preset ("350,1900"): that preset doesn't match the
+ : sentinel, so always rendering it (instead of only on click, as the
+ : pre-conversion AJAX fetch did) would have silently turned every
+ : unfiltered search into one filtered to 350-1900, discarding all
+ : undated items. See app:dateInput for where the true default is
+ : produced.
+ :
+ : @param $dateRange the request's dateRange parameter
+ : @return true if a non-default "min,max" range is present
+ :)
+declare %private function app:date-active($dateRange as xs:string*) as xs:boolean {
+	exists($dateRange) and $dateRange[1] != "" and $dateRange[1] != "1,2000"
+};
+
+(:~
+ : Date-range slider for forms/formdates.html. Bounds match
+ : q:par-date-range's own hardcoded sentinel (1-2000) rather than the
+ : fragment's original "350,1900" widget preset - see app:date-active.
+ :
+ : @param $node the data-template marker node (unused, part of the templates:apply contract)
+ : @param $model unused, part of the templates:apply contract
+ : @param $dateRange the request's dateRange parameter, auto-resolved by
+ : name - a "min,max" pair, echoed back as the slider's initial position
+ : @return the <input> element for the bootstrap-slider widget, with the submitted range echoed
+ :)
+declare function app:dateInput($node as node(), $model as map(*), $dateRange as xs:string*) as element(input) {
+	let $range := if (exists($dateRange) and $dateRange[1] != "") then
+		$dateRange[1]
+	else
+		"1,2000"
+	return <input
+		class="span2"
+		data-slider-max="2000"
+		data-slider-min="1"
+		data-slider-step="10"
+		data-slider-value="[{ substring-before($range, ",") },{ substring-after($range, ",") }]"
+		id="dates"
+		name="dateRange"
+		type="text" />
+};
+
+(:~
+ : Echoes the "date" checkbox's state from the request - like
+ : languages/keywords/relations, this checkbox lives under "General
+ : filters" directly, with no wrapping reveal section of its own.
+ :
+ : @param $dateRange the request's dateRange parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a non-default range is active
+ :)
+declare function app:dateCheckbox($node as node(), $model as map(*), $dateRange as xs:string*) as element() {
+	app:checkbox-state($node, app:date-active($dateRange))
+};
+
+(:~
+ : Server-side include of formdates.html's own templated content - see
+ : app:includeFoliaForm for why the slider widget is not a blocker.
+ :
+ : @param $dateRange the request's dateRange parameter, auto-resolved by name
+ : @return formdates.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeDateForm($node as node(), $model as map(*), $dateRange as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formdates.html", app:date-active($dateRange))
+};
+
+(:~
+ : Echoes the "script" checkbox's state from the request.
+ :
+ : @param $script the request's script parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:scriptCheckbox($node as node(), $model as map(*), $script as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($script))
+};
+
+(:~
+ : Server-side include of formscripts.html's own templated content.
+ :
+ : @param $script the request's script parameter, auto-resolved by name
+ : @return formscripts.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeScriptForm($node as node(), $model as map(*), $script as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formscripts.html", app:list-param-active($script))
+};
+
+(:~
+ : Echoes the "parchmentMaker" checkbox's state from the request.
+ :
+ : @param $parchmentMaker the request's parchmentMaker parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:parchmentMakerCheckbox(
+	$node as node(),
+	$model as map(*),
+	$parchmentMaker as xs:string*
+) as element() {
+	app:checkbox-state($node, app:list-param-active($parchmentMaker))
+};
+
+(:~
+ : Server-side include of formParMaker.html's own templated content.
+ :
+ : @param $parchmentMaker the request's parchmentMaker parameter, auto-resolved by name
+ : @return formParMaker.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeParchmentMakerForm(
+	$node as node(),
+	$model as map(*),
+	$parchmentMaker as xs:string*
+) as element()? {
+	app:include-facet-form($node, $model, "forms/formParMaker.html", app:list-param-active($parchmentMaker))
+};
+
+(:~
+ : Echoes the "material" checkbox's state from the request.
+ :
+ : @param $material the request's material parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:materialCheckbox($node as node(), $model as map(*), $material as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($material))
+};
+
+(:~
+ : Server-side include of formmaterial.html's own templated content.
+ :
+ : @param $material the request's material parameter, auto-resolved by name
+ : @return formmaterial.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeMaterialForm($node as node(), $model as map(*), $material as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formmaterial.html", app:list-param-active($material))
+};
+
+(:~
+ : Echoes the "bmaterial" checkbox's state from the request.
+ :
+ : @param $bmaterial the request's bmaterial parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:bmaterialCheckbox($node as node(), $model as map(*), $bmaterial as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($bmaterial))
+};
+
+(:~
+ : Server-side include of formbmaterial.html's own templated content.
+ :
+ : @param $bmaterial the request's bmaterial parameter, auto-resolved by name
+ : @return formbmaterial.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeBmaterialForm($node as node(), $model as map(*), $bmaterial as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formbmaterial.html", app:list-param-active($bmaterial))
+};
+
+(:~
+ : Echoes the "target-works" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`target-work`, singular - see app:target-works).
+ :
+ : @param $target-work the request's target-work parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:targetWorksCheckbox($node as node(), $model as map(*), $target-work as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($target-work))
+};
+
+(:~
+ : Server-side include of formworks.html's own templated content.
+ :
+ : @param $target-work the request's target-work parameter, auto-resolved by name
+ : @return formworks.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeTargetWorksForm(
+	$node as node(),
+	$model as map(*),
+	$target-work as xs:string*
+) as element()? {
+	app:include-facet-form($node, $model, "forms/formworks.html", app:list-param-active($target-work))
+};
+
+(:~
+ : Echoes the "occupation" checkbox's state from the request - the
+ : checkbox's own value differs from the actual request parameter it
+ : gates (`persType` - see app:personType).
+ :
+ : @param $persType the request's persType parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:occupationCheckbox($node as node(), $model as map(*), $persType as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($persType))
+};
+
+(:~
+ : Server-side include of formoccupation.html's own templated content.
+ :
+ : @param $persType the request's persType parameter, auto-resolved by name
+ : @return formoccupation.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeOccupationForm($node as node(), $model as map(*), $persType as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formoccupation.html", app:list-param-active($persType))
+};
+
+(:~
+ : Echoes the "placeType" checkbox's state from the request.
+ :
+ : @param $placeType the request's placeType parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:placeTypeCheckbox($node as node(), $model as map(*), $placeType as xs:string*) as element() {
+	app:checkbox-state($node, app:list-param-active($placeType))
+};
+
+(:~
+ : Server-side include of formplacetype.html's own templated content.
+ :
+ : @param $placeType the request's placeType parameter, auto-resolved by name
+ : @return formplacetype.html's own root element, hidden when no filter is active
+ :)
+declare function app:includePlaceTypeForm($node as node(), $model as map(*), $placeType as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formplacetype.html", app:list-param-active($placeType))
+};
+
+(:~
+ : Reveals the "Persons Filters" section server-side when one of its
+ : facets has an active request parameter, instead of relying on
+ : filters.js's `#collectionfilter` change handler alone (JS-only,
+ : lost on reload).
+ :
+ : Reads each facet's request parameter directly via request:get-parameter
+ : rather than taking auto-resolved parameters, same reasoning as
+ : app:manuscriptsFiltersSection: templates:call's introspection-based
+ : dispatch caps at 20 total parameters, so a growing positional
+ : signature is one facet away from the same templates:NotFound failure
+ : that broke that function in production. Extend the OR-condition below
+ : as more `#pFilter` facets get the same treatment; no signature change
+ : is ever needed again.
+ :
+ : @return the section, with its `display:none` dropped when active
+ :)
+declare function app:persFiltersSection($node as node(), $model as map(*)) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@style,
+		if (
+			app:list-param-active(request:get-parameter("role", ())) or
+				app:gender-active(request:get-parameter("gender", ())) or
+				app:list-param-active(request:get-parameter("persType", ()))
+		) then (
+		) else
+			$node/@style,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Echoes the "gender" checkbox's state from the request - the outer
+ : `#pFilter` toggle, not the two inner Male/Female checkboxes inside
+ : formgender.html itself (those go straight through
+ : templates:form-control, a real name="gender" checkbox group).
+ :
+ : @param $gender the request's gender parameter, auto-resolved by name
+ : @return the checkbox, with @checked set when a value is selected
+ :)
+declare function app:genderCheckbox($node as node(), $model as map(*), $gender as xs:string*) as element() {
+	app:checkbox-state($node, app:gender-active($gender))
+};
+
+(:~
+ : Server-side include of formgender.html's own templated content -
+ : see app:includeFoliaForm for the pattern this follows. No JS widget
+ : involved here at all (formgender.html's own Male/Female checkboxes
+ : are plain templates:form-control targets), so there was never a
+ : hidden-init concern to check for this one.
+ :
+ : @param $gender the request's gender parameter, auto-resolved by name
+ : @return formgender.html's own root element, hidden when no filter is active
+ :)
+declare function app:includeGenderForm($node as node(), $model as map(*), $gender as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formgender.html", app:gender-active($gender))
+};
+
+(:~
+ : Server-side equivalent of filters.js's `callformpart("forms/formrole.html",
+ : "roleform")`: includes formrole.html's own templated content directly,
+ : so it's already in the page - and already reflects `role`/`person` -
+ : on a plain reload with no JS needed. `filters.js`'s existing click
+ : handler still works unmodified: `callformpart` only fetches a
+ : fragment when its target id isn't already in the page, and toggles
+ : visibility otherwise - which is exactly what's wanted once this div
+ : is always present.
+ :
+ : @param $role the request's role parameter, auto-resolved by name
+ : @return formrole.html's own root element, hidden when no role is selected
+ :)
+declare function app:includeRoleForm($node as node(), $model as map(*), $role as xs:string*) as element()? {
+	app:include-facet-form($node, $model, "forms/formrole.html", exists($role) and $role[1] != "")
 };
 
 (:~
@@ -1069,6 +2655,42 @@ declare function app:paramrange($par, $path as xs:string) {
 	) else (
 		"[descendant::t:" || $path || "[. ge " || $from || " ][ .  le " || $to || "]]"
 	)
+};
+
+(:~
+ : Builds a q:range-predicate-backed filter for one of formdimensions.html's
+ : nine fields, or the empty sequence when the field is absent or at its
+ : default. Not app:paramrange: that function's sentinel is a hardcoded
+ : "0,2000", which matches none of these fields' real defaults ("1,1000",
+ : "1,20", "1,100"), so every one of them would have been treated as an
+ : always-active filter the moment a value - even an untouched
+ : slider default - was submitted. q:range-predicate's own quoted,
+ : guarded comparison also avoids the crash class found and fixed in
+ : q:par-date-range's sibling bug (see that function's doc): real
+ : `t:height`/`t:width` values include non-numeric content like "1975 m"
+ : (a unit suffix left in the text), which an unguarded `[. ge 1975]`
+ : comparison can't safely evaluate.
+ :
+ : @param $param the request parameter name
+ : @param $pathPrefix an XPath step from the TEI element being filtered, e.g. "descendant::t:dimensions[@type eq 'outer']/t:height"
+ : @param $target the predicate's comparison target relative to $pathPrefix, e.g. "." or "@columns"
+ : @param $guard an extra predicate restricting $pathPrefix to numeric-looking values, or the empty sequence when the source is already reliably typed
+ : @param $default the "no filter" sentinel, e.g. "1,1000"
+ : @return an XPath predicate string, or the empty sequence when the field is absent, blank, or at its default
+ :)
+declare %private function app:range-filter(
+	$param as xs:string,
+	$pathPrefix as xs:string,
+	$target as xs:string,
+	$guard as xs:string?,
+	$default as xs:string
+) as xs:string? {
+	let $range := request:get-parameter($param, ())
+	return if (empty($range) or $range = "" or $range = $default) then (
+	) else
+		let $min := substring-before($range, ",")
+		let $max := substring-after($range, ",")
+		return q:range-predicate($pathPrefix, $target, $guard, $min, $max)
 };
 
 (:~
@@ -1497,7 +3119,20 @@ function app:query(
 	else (
 	)
 	let $genders := if (contains($app:params, "gender")) then
-		"[descendant::t:person/@sex  eq " || request:get-parameter("gender", ()) || " ]"
+		(:
+		 : @sex is stored as a string ("1"/"2") - the unquoted literal here
+		 : previously compared it against an xs:integer, which XPath's `eq`
+		 : (unlike `=`) refuses to promote, throwing XPTY0004 on every real
+		 : search with this filter active. Multiple genders selected are a
+		 : checkbox group over one field's distinct values, so OR them
+		 : together like every other multi-value filter in this function
+		 : does, not AND (which could only ever match zero records).
+		 :)
+		let $values := request:get-parameter("gender", ())
+		let $predicates :=
+			for $v in $values
+			return "descendant::t:person/@sex eq '" || $v || "'"
+		return "[" || string-join($predicates, " or ") || "]"
 	else (
 	)
 	(:
@@ -1551,66 +3186,114 @@ function app:query(
 			app:paramrange("qcn", "collation//t:dim[@unit eq 'leaf']")
 	) else (
 	)
-	let $dateRange := if (contains($app:params, "dataRange")) then (
-		let $range := request:get-parameter("dateRange", ())
-		let $from := substring-before($range, ",")
-		let $to := substring-after($range, ",")
-		return if ($range = "0,2000") then (
-		) else if ($range = "") then (
-		) else
-			"[descendant::t:*[(if
-(contains(@notBefore, '-'))
-then (substring-before(@notBefore, '-'))
-else @notBefore)[. !=''][. ge " ||
-				$from ||
-				"][.  le " ||
-				$to ||
-				"]
-
-or
-(if (contains(@notAfter, '-'))
-then (substring-before(@notAfter, '-'))
-else @notAfter)[. !=''][. ge " ||
-				$from ||
-				"][.  le " ||
-				$to ||
-				"]
-
-]
-]"
-	) else (
+	(:
+	 : Delegates to q:par-date-range (see its own doc) rather than
+	 : maintaining a second, divergent implementation here. The previous
+	 : local version had two real bugs, both found live-testing this
+	 : slice: it guarded on `contains($app:params, "dataRange")` (typo
+	 : for "dateRange", so the filter never actually ran for any real
+	 : request), and its predicate applied to `descendant::t:*` with
+	 : unquoted integer literals, which crashed with `XPTY0004` on any
+	 : element carrying a non-numeric `@notBefore`/`@notAfter`.
+	 :)
+	let $dateRange := q:par-date-range("origDate", request:get-parameter("dateRange", ()))
+	(:
+	 : This whole block used to run through app:paramrange, which has
+	 : three real bugs found live-testing this facet: a hardcoded
+	 : "0,2000" sentinel matching none of these fields' actual defaults
+	 : (so an untouched slider default was treated as an active filter);
+	 : an unquoted numeric comparison, unsafe against real data (`t:height`
+	 : includes values like "1975 m", a unit suffix left in the text);
+	 : and - specific to the four margin fields - a copy-paste bug where
+	 : bmargin/rmargin/lmargin each read the "tmargin" request parameter
+	 : instead of their own, so only the top-margin slider's value ever
+	 : reached any of the four margin filters. The path itself was also
+	 : wrong: real data uses `t:dimensions` (see below), not the
+	 : `t:dimension` this block searched for, so the margin filters
+	 : matched nothing at all regardless of the other bugs. See
+	 : app:range-filter's own doc for why it replaces app:paramrange here
+	 : specifically rather than patching it in place.
+	 :
+	 : height/width/depth are scoped to `t:dimensions[@type eq 'outer']`
+	 : because the same field names recur under other @type values
+	 : (`textarea`, `inner`, `leaf`, ...) for unrelated measurements -
+	 : confirmed against the real corpus that `outer` is where the
+	 : physical extent this facet's labels ("Height (mm)" etc.) describe
+	 : actually lives.
+	 :)
+	let $height := app:range-filter(
+		"height",
+		"descendant::t:dimensions[@type eq 'outer']/t:height",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $height := if (contains($app:params, "height")) then (
-		app:paramrange("height", "height")
-	) else (
+	let $width := app:range-filter(
+		"width",
+		"descendant::t:dimensions[@type eq 'outer']/t:width",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $width := if (contains($app:params, "width")) then (
-		app:paramrange("width", "width")
-	) else (
+	let $depth := app:range-filter(
+		"depth",
+		"descendant::t:dimensions[@type eq 'outer']/t:depth",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,1000"
 	)
-	let $depth := if (contains($app:params, "depth")) then (
-		app:paramrange("depth", "depth")
-	) else (
+	(:
+	 : Not wired to any filter at all before this fix - the "Columns per
+	 : page" slider submitted `columnsNum`, but no code anywhere read it.
+	 : Target is an explicit xs:integer(@columns) cast, not the bare
+	 : attribute: unlike the other eight dimension fields (plain element
+	 : text content, untypedAtomic, general-comparison-promotes to
+	 : numeric automatically), `@columns` is schema-typed as xs:string,
+	 : so `[@columns ge 1]` throws `XPTY0004` ("can not compare
+	 : xs:string('2') with xs:integer('1')") on every value, guard or
+	 : not - found live-testing, not hypothetical.
+	 :)
+	let $columnsNum := app:range-filter(
+		"columnsNum",
+		"descendant::t:layout",
+		"xs:integer(@columns)",
+		"[matches(@columns,'^\d+$')]",
+		"1,20"
 	)
-	let $marginTop := if (contains($app:params, "tmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'top']")
-	) else (
+	let $marginTop := app:range-filter(
+		"tmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'top']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginBot := if (contains($app:params, "bmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'bottom']")
-	) else (
+	let $marginBot := app:range-filter(
+		"bmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'bottom']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginR := if (contains($app:params, "rmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'right']")
-	) else (
+	let $marginR := app:range-filter(
+		"rmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'right']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginL := if (contains($app:params, "lmargin")) then (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'left']")
-	) else (
+	let $marginL := app:range-filter(
+		"lmargin",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'left']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
-	let $marginIntercolumn := if (contains($app:params, "intercolumn")) then (
-		app:paramrange("intercolumn", "dimension[@type eq 'margin']/t:dim[@type eq 'intercolumn']")
-	) else (
+	let $marginIntercolumn := app:range-filter(
+		"intercolumn",
+		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'intercolumn']",
+		".",
+		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
+		"1,100"
 	)
 
 	let $query-string := if ($query != "") then (
@@ -1696,6 +3379,7 @@ else @notAfter)[. !=''][. ge " ||
 		$height,
 		$width,
 		$depth,
+		$columnsNum,
 		$marginTop,
 		$marginBot,
 		$marginL,
