@@ -1,0 +1,23 @@
+modules/expand-normalize-dimensions.xqm
+  s_bfac4543151ff7::t_7a0981da4475ce 253-254
+test/xqs/ts-expand-normalize-dimensions.xqm
+  s_bfac4543151ff7::t_bb7b3a83009285 187-206
+.gitignore
+  s_bfac4543151ff7::t_ba6b4ef0eefa94 10-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f136c23ca30d95d222a179e4a26637922a93702b",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
