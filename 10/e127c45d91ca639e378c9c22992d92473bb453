@@ -1,0 +1,44 @@
+test/xqs/ts-app-worksplaces-filters.xqm
+  s_5790d61a112fab::t_6f40e2ddea55bb 66,117,145,173
+test/xqs/ts-app-persrole.xqm
+  s_5790d61a112fab::t_6f40e2ddea55bb 275,305,340
+modules/app.xqm
+  s_5790d61a112fab::t_a82460c048e2ff 779
+  s_5790d61a112fab::t_67b660cfd704f0 1131-1135
+  s_5790d61a112fab::t_8fde0913878aca 1379
+  s_5790d61a112fab::t_9d595d283164cc 1167-1169,1171-1183,1189,1196-1200
+  s_5790d61a112fab::t_926a9b52e1525a 1230,1250,1270,1290,1310,1333,1355,1395,1406,1485,1496,2173,2220,2245,2267,2289,2361,2381,2429,2449,2497,2517,2575,2592
+  s_5790d61a112fab::t_0f50b004564fda 1738
+  s_5790d61a112fab::t_a6b1c0f2488f57 2409
+  s_5790d61a112fab::t_68a97c3d17a95b 2475
+test/cypress/e2e/as-persFiltersSection.cy.js
+  s_5790d61a112fab::t_f542cc00f103fe 10
+  s_5790d61a112fab::t_03fcd10f85122f 51
+  s_5790d61a112fab::t_88ece795171d97 3-4,7-9,11-15,30,37,44-47
+test/cypress/e2e/as-persRoleResults.cy.js
+  s_5790d61a112fab::t_3a0a73cbfa6dd2 10
+  s_5790d61a112fab::t_a54229bbe703a9 3-4
+test/cypress/e2e/as-filtersToggle.cy.js
+  s_5790d61a112fab::t_39838c8b913c60 7-10,12-13,21-22
+test/xqs/ts-app-msfilters.xqm
+  s_5790d61a112fab::t_6f40e2ddea55bb 176,194,212,230,260,295,315,335,355,375,417,469,489,509,547,567,609,631,762,804
+  s_5790d61a112fab::t_a2d608e58f4f86 395,437,587
+test/cypress/e2e/as-manuscriptsFiltersSection.cy.js
+  s_5790d61a112fab::t_a71f7e8d1bbf48 4,6-7,9-12,15-18,33,39,41,47,49,55-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "10e127c45d91ca639e378c9c22992d92473bb453",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
