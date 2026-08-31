@@ -1,0 +1,24 @@
+test/xqs/ts-expand-edition-ids.xqm
+  s_bfac4543151ff7::t_8a5ab724b2b697 106
+  s_bfac4543151ff7::t_eb7b63d30d16c0 10-22,77-86,89-90,93-94,97-98,101-102,105
+modules/expand.xqm
+  s_bfac4543151ff7::t_3bad1f2d01a810 109-113,117-126
+test/xqs/runners/edition-ids.xq
+  s_bfac4543151ff7::t_daf602ae07b077 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "c008891cbd52b71ae802d33ef3bf5719aa613b3c",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
