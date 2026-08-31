@@ -1,0 +1,27 @@
+test/xqs/ts-app-msfilters.xqm
+  s_5790d61a112fab::t_a50aff3844396f 844,860
+  s_5790d61a112fab::t_460ad242c59ed0 831,834-843,845-859,861-867
+modules/app.xqm
+  s_5790d61a112fab::t_73583b8b366d2c 54,58,72
+  s_5790d61a112fab::t_7f655b361958b1 55-57,59-65
+  s_5790d61a112fab::t_ee5827ec4c5622 679-681
+  s_5790d61a112fab::t_600cad733910d9 240-242
+  s_5790d61a112fab::t_8d36138c502aab 677-678,682-687,689,695-696,706-707
+  s_5790d61a112fab::t_a50aff3844396f 708-709
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "b9eaf2f6dd07c22cf4140094d7f27b523ad00a26",
+  "prompts": {},
+  "sessions": {
+    "s_5790d61a112fab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afee661f-7272-43aa-9fa9-756d05500b88",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
