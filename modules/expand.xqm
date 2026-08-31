@@ -9,6 +9,7 @@ declare namespace b = "betmas.biblio";
 import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
 import module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb" at "xmldb:exist:///db/apps/BetMasWeb/modules/generateFormattedBibliography.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");
@@ -100,24 +101,32 @@ declare function expand:id($id) {
 };
 
 declare function expand:should-mint-edition-id($node as node()) as xs:boolean {
-	$node/ancestor-or-self::t:div[@type = "edition"] and
+	(: Only edition-structure divs — handNote/witness also use expand:attributes but must not share the div path. :)
+	$node/self::t:div and
+		$node/ancestor-or-self::t:div[@type = "edition"] and
 		not($node/@xml:id) and
-		($node/self::t:div[@type = "edition"] or (not($node/@n) and not($node/@subtype)))
+		($node/@type = "edition" or (not($node/@n) and not($node/@subtype)))
 };
 
 (:~
- : Stable edition @xml:id suffix: element-local sibling index, not $node/position().
+ : Mint a unique @xml:id for edition-structure divs that lack @n/@subtype.
+ : Suffix encodes each ancestor-or-self div's local sibling index under the
+ : edition subtree so nested divs (e.g. edition + section) cannot collide.
+ : @param $node edition-structure t:div
+ : @return minted id string
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/100
  :)
 declare function expand:mint-edition-id($node as node()) as xs:string {
-	local-name($node) ||
-		(
-			if ($node/ancestor-or-self::*/@xml:id[1]) then
-				string-join($node/ancestor-or-self::*/@xml:id[1]) ||
-					string(count($node/preceding-sibling::*[local-name() = local-name($node)]) + 1)
-			else
-				generate-id()
-		)
+	let $tei-id := string(($node/ancestor::t:TEI/@xml:id)[1])
+	let $path := string-join(
+		for $d in $node/ancestor-or-self::t:div[ancestor-or-self::t:div[@type = "edition"]]
+		return local-name($d) || string(count($d/preceding-sibling::*[local-name() = local-name($d)]) + 1),
+		""
+	)
+	return if ($tei-id != "") then
+		$path || $tei-id
+	else
+		$path || generate-id()
 };
 
 declare function expand:token($val) {
@@ -950,8 +959,9 @@ declare function expand:file($filepath) {
 				return <note>{ $a/@* }{ $a/node() }</note>
 			}
 		</bibl>
-	(: let $test := console:log($zotero) :)
-	return let $result := document { expand:tei2fulltei($expanded, $zotero) }
+	(: let $test := console:log($zotero) :)(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
+	return let $full := expand:tei2fulltei($expanded, $zotero)[self::t:TEI]
+		let $result := document { expandnorm:normalize-tei($full) }
 		let $ownId := string($result/t:TEI/@xml:id)
 		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
 		let $_cache := titles:updateTitleCache($ownId, $ownTitle)

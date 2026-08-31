@@ -64,6 +64,8 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-edition-ids.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expand-normalize-dimensions.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-computed.xqm")),
 		inspect:module-functions(xs:anyURI("ts-restitem-maincontent.xqm")),
 		inspect:module-functions(xs:anyURI("ts-permrestitem-maincontent.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-formbounds.xqm")),

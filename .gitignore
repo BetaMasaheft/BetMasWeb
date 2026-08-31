@@ -8,3 +8,5 @@ docker/seed.xq
 .codacy/
 .cursor/
 .zed/
+# Local agent-stack XQSuite shims (not for CI; suites live in test-runner.xq)
+test/xqs/runners/
