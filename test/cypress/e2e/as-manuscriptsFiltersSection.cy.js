@@ -18,9 +18,27 @@
 // values this file carried before app:target-mss was fixed to stop
 // rendering its full ~20,000-manuscript unscoped list on every as.html
 // load regardless of filters.
+//
+// Assert on a plain boolean, never `expect(res.body).to.match(...)`
+// directly: res.body is the full rendered page (multi-MB), and Chai's
+// default failure message for a failed .match() includes the entire
+// actual string - a genuinely CI-breaking mistake found live, not a
+// theoretical one: a real assertion failure here (the app:gender-active
+// regression fixed alongside this) dumped ~2.6MB into one log line,
+// which is fast to print locally but took long enough streaming through
+// GitHub Actions' log UI to look exactly like a many-minutes hang.
 
 const HIDDEN = /id="manuscriptsFilters" style="display: none"/;
 const VISIBLE = /id="manuscriptsFilters">/;
+
+function expectHidden(body) {
+	expect(HIDDEN.test(body), "expected #manuscriptsFilters to render hidden").to.be.true;
+	expect(VISIBLE.test(body), "expected #manuscriptsFilters not to render visible").to.be.false;
+}
+
+function expectVisible(body) {
+	expect(VISIBLE.test(body), "expected #manuscriptsFilters to render visible").to.be.true;
+}
 
 // Even the zero-filter case runs a real search against the full corpus, so
 // this has real latency on its own - timeouts throughout this file are
@@ -33,8 +51,7 @@ it("GET /as.html?work-types=mss (no facet params) - #manuscriptsFilters stays hi
 		timeout: 90000,
 	}).then((res) => {
 		expect(res.status, `responded with ${res.status}`).to.eq(200);
-		expect(res.body).to.match(HIDDEN);
-		expect(res.body).to.not.match(VISIBLE);
+		expectHidden(res.body);
 	});
 });
 
@@ -48,7 +65,7 @@ it("GET /as.html?language=gez (an unrelated facet) - #manuscriptsFilters stays h
 		timeout: 90000,
 	}).then((res) => {
 		expect(res.status, `responded with ${res.status}`).to.eq(200);
-		expect(res.body).to.match(HIDDEN);
+		expectHidden(res.body);
 	});
 });
 
@@ -66,7 +83,7 @@ it("GET /as.html?gender=1 - #manuscriptsFilters is visible", () => {
 		timeout: 90000,
 	}).then((res) => {
 		expect(res.status, `responded with ${res.status}`).to.eq(200);
-		expect(res.body).to.match(VISIBLE);
+		expectVisible(res.body);
 	});
 });
 
@@ -86,6 +103,6 @@ it.skip("GET /as.html?height=150,250 (dimensions) - #manuscriptsFilters is visib
 		timeout: 330000,
 	}).then((res) => {
 		expect(res.status, `responded with ${res.status}`).to.eq(200);
-		expect(res.body).to.match(VISIBLE);
+		expectVisible(res.body);
 	});
 });

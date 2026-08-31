@@ -1076,6 +1076,7 @@ declare function app:manuscriptsFiltersSection($node as node(), $model as map(*)
 				app:qn-active(request:get-parameter("qn", ())) or
 				app:qcn-active(request:get-parameter("qcn", ())) or
 				app:cuNumber-active(request:get-parameter("numberOfParts", ())) or
+				app:gender-active(request:get-parameter("gender", ())) or
 				app:list-param-active(request:get-parameter("scribe", ())) or
 				app:list-param-active(request:get-parameter("donor", ())) or
 				app:list-param-active(request:get-parameter("patron", ())) or
