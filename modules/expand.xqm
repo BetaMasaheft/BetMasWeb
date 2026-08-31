@@ -9,6 +9,7 @@ declare namespace b = "betmas.biblio";
 import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
 import module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb" at "xmldb:exist:///db/apps/BetMasWeb/modules/generateFormattedBibliography.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");
@@ -957,7 +958,8 @@ declare function expand:file($filepath) {
 			}
 		</bibl>
 	(: let $test := console:log($zotero) :)
-	return let $result := document { expand:tei2fulltei($expanded, $zotero) }
+	return let $full := expand:tei2fulltei($expanded, $zotero)[self::t:TEI]
+		let $result := document { expandnorm:normalize-tei($full) }
 		let $ownId := string($result/t:TEI/@xml:id)
 		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
 		let $_cache := titles:updateTitleCache($ownId, $ownTitle)

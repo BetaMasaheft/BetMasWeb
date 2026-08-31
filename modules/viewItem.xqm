@@ -39,6 +39,17 @@ declare variable $viewItem:editors := doc("/db/apps/lists/editors.xml")//t:list;
 declare variable $viewItem:lang := doc("/db/apps/lists/languages.xml")//t:list;
 
 (:~
+ : Expand-derived catalogue blocks marked @subtype='computed' are for indexing only.
+ :)
+declare %private function viewItem:is-computed-catalogue($node as element()) as xs:boolean {
+	exists($node[@subtype = "computed"])
+};
+
+declare %private function viewItem:catalogue-dimensions($node as element()) as element(t:dimensions)* {
+	$node/t:dimensions[not(viewItem:is-computed-catalogue(.))]
+};
+
+(:~
  : templates:apply lookup function for this module, referenced by name
  : (viewItem:lookup#2) at each of this module's templates:apply call
  : sites instead of each writing its own copy - see
@@ -1861,7 +1872,7 @@ declare %private function viewItem:layoutDesc($node) {
 		<h3>Layout { viewItem:headercontext($node) }</h3>
 		{ viewItem:TEI2HTML($node/t:summary) }
 		{
-			for $l in $node/t:layout
+			for $l in $node/t:layout[not(viewItem:is-computed-catalogue(.))]
 			order by $l/position()
 			return viewItem:layout($l)
 		}
@@ -1925,73 +1936,78 @@ declare %private function viewItem:layoutdimensionunit($dim) {
 };
 
 declare %private function viewItem:layout($node) {
-	let $pos := index-of($node/parent::*/t:layout, $node)[1]
-	return <div id="layout{ $pos }" resource="{ $config:appUrl }/{ $node/ancestor::t:TEI/@xml:id }#layout{ $pos }">
-		<h4>Layout note { $pos }
+	if (viewItem:is-computed-catalogue($node)) then (
+	) else
+		let $pos := index-of($node/parent::*/t:layout[not(viewItem:is-computed-catalogue(.))], $node)[1]
+		return <div id="layout{ $pos }" resource="{ $config:appUrl }/{ $node/ancestor::t:TEI/@xml:id }#layout{ $pos }">
+			<h4>Layout note { $pos }
+				{
+					if ($node/t:locus) then (
+						"(", viewItem:TEI2HTML($node/t:locus), ")"
+					) else (
+					)
+				}
+			</h4>
 			{
-				if ($node/t:locus) then (
-					"(", viewItem:TEI2HTML($node/t:locus), ")"
-				) else (
+				if ($node/@columns) then
+					<p>Number of columns: { string($node/@columns) }</p>
+				else (
 				)
 			}
-		</h4>
-		{
-			if ($node/@columns) then
-				<p>Number of columns: { string($node/@columns) }</p>
-			else (
-			)
-		}
-		{
-			if ($node/@writtenLines) then
-				<p>Number of lines: {
-						if (contains($node/@writtenLines, " ")) then
-							replace($node/@writtenLines, " ", "-")
-						else
-							string($node/@writtenLines)
-					}
-				</p>
-			else (
-			)
-		}
-		{
-			if ($node//t:dimensions[not(@xml:lang)]) then
-				<div class="w3-responsive">
-					<table class="w3-table w3-hoverable">
-						<tr><td>H</td><td>{ viewItem:layoutdimensionunit($node/t:dimensions[not(@xml:lang)]/t:height) }</td></tr>
-						<tr><td>W</td><td>{ viewItem:layoutdimensionunit($node/t:dimensions[not(@xml:lang)]/t:width) }</td></tr>
-						{
-							if ($node/t:dimensions[not(@xml:lang)][not(@type = "margin")]/t:dim[@type = "intercolumn"]) then
-								<tr>
-									<td>Intercolumn</td>
-									<td>
-										{
-											viewItem:layoutdimensionunit(
-												$node/t:dimensions[not(@xml:lang)][not(@type = "margin")]/t:dim[@type = "intercolumn"]
-											)
-										}
-									</td>
-								</tr>
-							else (
-							)
+			{
+				if ($node/@writtenLines) then
+					<p>Number of lines: {
+							if (contains($node/@writtenLines, " ")) then
+								replace($node/@writtenLines, " ", "-")
+							else
+								string($node/@writtenLines)
 						}
-						{
-							if ($node/t:dimensions[not(@xml:lang)][@type = "margin"]/t:dim[@type]) then (
-								<tr><td><b>Margins</b></td><td /></tr>,
-								for $margin in $node/t:dimensions[not(@xml:lang)][@type = "margin"]/t:dim[@type]
-								return <tr><td>{ string($margin/@type) }</td><td>{ viewItem:layoutdimensionunit($margin) }</td></tr>
-							) else (
-							)
-						}
-					</table>
-				</div>
-			else (
-			)
-		}
-		{
-			if ($node/t:note) then
-				viewItem:TEI2HTML($node/t:note)
-			else (
-			) (: ,
+					</p>
+				else (
+				)
+			}
+			{
+				if (viewItem:catalogue-dimensions($node)) then
+					<div class="w3-responsive">
+						<table class="w3-table w3-hoverable">
+							<tr>
+								<td>H</td>
+								<td>{ viewItem:layoutdimensionunit(viewItem:catalogue-dimensions($node)/t:height) }</td>
+							</tr>
+							<tr><td>W</td><td>{ viewItem:layoutdimensionunit(viewItem:catalogue-dimensions($node)/t:width) }</td></tr>
+							{
+								if (viewItem:catalogue-dimensions($node)[not(@type = "margin")]/t:dim[@type = "intercolumn"]) then
+									<tr>
+										<td>Intercolumn</td>
+										<td>
+											{
+												viewItem:layoutdimensionunit(
+													viewItem:catalogue-dimensions($node)[not(@type = "margin")]/t:dim[@type = "intercolumn"]
+												)
+											}
+										</td>
+									</tr>
+								else (
+								)
+							}
+							{
+								if (viewItem:catalogue-dimensions($node)[@type = "margin"]/t:dim[@type]) then (
+									<tr><td><b>Margins</b></td><td /></tr>,
+									for $margin in viewItem:catalogue-dimensions($node)[@type = "margin"]/t:dim[@type]
+									return <tr><td>{ string($margin/@type) }</td><td>{ viewItem:layoutdimensionunit($margin) }</td></tr>
+								) else (
+								)
+							}
+						</table>
+					</div>
+				else (
+				)
+			}
+			{
+				if ($node/t:note) then
+					viewItem:TEI2HTML($node/t:note)
+				else (
+				) (: ,
             let $topmargin := if ($node/t:dimensions[not(@xml:lang)][@type = 'margin'][1]/t:dim[@type = 'top'][1]/text()) then
                 ($node/t:dimensions[not(@xml:lang)][@type = 'margin'][1]/t:dim[@type = 'top'][1])
             else
@@ -2116,134 +2132,134 @@ declare %private function viewItem:layout($node) {
                 )
                 else
                 () :)
-		}
-		{
-			if ($node//t:ab[@type = "ruling"]) then (
-				<h5>Ruling { viewItem:headercontext($node) }</h5>,
-				<ul>
-					{
-						for $ruling in $node//t:ab[@type = "ruling"]
-						return <li>
-							{
-								if ($ruling/@subtype) then
-									"(Subtype: " || string($ruling/@subtype) || ")"
-								else (
-								)
-							}
-							{
-								if ($ruling/@subtype = "pattern") then
-									let $regex := "(([A-Z\d\-]+)/([A-Z\d\-]+)/([A-Z\d\-]+)/([A-Z\d\-]+))"
-									let $analyze := analyze-string($ruling, $regex)
-									for $m in $analyze/node()
-									return if ($m/name() = "match") then
-										let $muzerelle := "http://palaeographia.org/muzerelle/regGraph2.php?F="
-										let $formula := $m/s:group[@nr = "1"]//text()
-										return <a href="{ concat($muzerelle, string-join($formula)) }" target="_blank">{ $formula }</a>
+			}
+			{
+				if ($node//t:ab[@type = "ruling"]) then (
+					<h5>Ruling { viewItem:headercontext($node) }</h5>,
+					<ul>
+						{
+							for $ruling in $node//t:ab[@type = "ruling"]
+							return <li>
+								{
+									if ($ruling/@subtype) then
+										"(Subtype: " || string($ruling/@subtype) || ")"
+									else (
+									)
+								}
+								{
+									if ($ruling/@subtype = "pattern") then
+										let $regex := "(([A-Z\d\-]+)/([A-Z\d\-]+)/([A-Z\d\-]+)/([A-Z\d\-]+))"
+										let $analyze := analyze-string($ruling, $regex)
+										for $m in $analyze/node()
+										return if ($m/name() = "match") then
+											let $muzerelle := "http://palaeographia.org/muzerelle/regGraph2.php?F="
+											let $formula := $m/s:group[@nr = "1"]//text()
+											return <a href="{ concat($muzerelle, string-join($formula)) }" target="_blank">{ $formula }</a>
+										else
+											$m/text()
 									else
-										$m/text()
-								else
-									viewItem:TEI2HTML($ruling/node())
-							}
-						</li>
-					}
-				</ul>
-			) else (
-			)
-		}
-		{
-			if ($node//t:ab[@type = "pricking"]) then (
-				<h5>Pricking { viewItem:headercontext($node) }</h5>,
-				<ul>
-					{
-						for $ruling in $node//t:ab[@type = "pricking"]
-						return <li>
-							{
-								if ($ruling/@subtype) then
-									"(Subtype: " || string($ruling/@subtype) || ")"
-								else (
-								)
-							}
-							{ viewItem:TEI2HTML($ruling/node()) }
-						</li>
-					}
-				</ul>
-			) else (
-			)
-		}
-		{
-			if (
-				$node//t:ab[@type != "pricking"][@type != "ruling"][@type != "punctuation"][@type != "CruxAnsata"][@type !=
-					"ChiRho"][@type != "coronis"]
-			) then (
-				<h5>Other { viewItem:headercontext($node) }</h5>,
-				<ul>
-					{
-						for $ruling in
-							$node//t:ab[@type != "pricking"][@type != "ruling"][@type != "punctuation"][@type !=
-								"CruxAnsata"][@type != "ChiRho"][@type != "coronis"]
-						return <li>
-							{
-								if ($ruling/@subtype) then
-									"(Subtype: " || string($ruling/@subtype) || ")"
-								else (
-								)
-							}
-							{ viewItem:TEI2HTML($ruling/node()) }
-						</li>
-					}
-				</ul>
-			) else (
-			)
-		}
-		{
-			if ($node//t:ab[not(@type)]) then (
-				<h5 style="color:red;">
-					<code>ab</code> element without <code>@type</code> in layout { viewItem:headercontext($node) }
-				</h5>,
-				<ul>
-					{
-						for $ruling in $node//t:ab[not(@type)]
-						return <li>
-							<b style="color:red;">This ab element does not have a required type.</b>
-							{
-								if ($ruling/@subtype) then
-									"(Subtype: " || string($ruling/@subtype) || ")"
-								else (
-								)
-							}
-							{ viewItem:TEI2HTML($ruling/node()) }
-						</li>
-					}
-				</ul>
-			) else (
-			)
-		}
-		{
-			if (
-				$node//t:ab[@subtype = "Executed"] or $node//t:ab[@subtype = "Usage"] or $node//t:ab[@subtype = "Dividers"]
-			) then (
-				<h4>Punctuation { viewItem:headercontext($node) }</h4>,
-				for $punctuation in
-					($node//t:ab[@subtype = "Executed"] | $node//t:ab[@subtype = "Usage"] | $node//t:ab[@subtype = "Dividers"])
-				return <p>{ string($punctuation/@subtype) || ": " }{ viewItem:TEI2HTML($punctuation/node()) }</p>
-			) else (
-			)
-		}
-		{
-			if ($node//t:ab[@type = "punctuation"][not(@subtype)]) then
-				for $n in $node//t:ab[@type = "punctuation"][not(@subtype)]
-				return viewItem:TEI2HTML($n)
-			else (
-			)
-		}
-		{
-			for $ab in ("CruxAnsata", "coronis", "ChiRho")
-			return if ($node//t:ab[@type = $ab][not(@subtype)]) then (
-				<h4>{ $ab }</h4>, <p>Yes { viewItem:TEI2HTML($node//t:ab[@type = $ab][not(@subtype)]) }</p>
-			) else (
-			)
-		}
-	</div>
+										viewItem:TEI2HTML($ruling/node())
+								}
+							</li>
+						}
+					</ul>
+				) else (
+				)
+			}
+			{
+				if ($node//t:ab[@type = "pricking"]) then (
+					<h5>Pricking { viewItem:headercontext($node) }</h5>,
+					<ul>
+						{
+							for $ruling in $node//t:ab[@type = "pricking"]
+							return <li>
+								{
+									if ($ruling/@subtype) then
+										"(Subtype: " || string($ruling/@subtype) || ")"
+									else (
+									)
+								}
+								{ viewItem:TEI2HTML($ruling/node()) }
+							</li>
+						}
+					</ul>
+				) else (
+				)
+			}
+			{
+				if (
+					$node//t:ab[@type != "pricking"][@type != "ruling"][@type != "punctuation"][@type != "CruxAnsata"][@type !=
+						"ChiRho"][@type != "coronis"]
+				) then (
+					<h5>Other { viewItem:headercontext($node) }</h5>,
+					<ul>
+						{
+							for $ruling in
+								$node//t:ab[@type != "pricking"][@type != "ruling"][@type != "punctuation"][@type !=
+									"CruxAnsata"][@type != "ChiRho"][@type != "coronis"]
+							return <li>
+								{
+									if ($ruling/@subtype) then
+										"(Subtype: " || string($ruling/@subtype) || ")"
+									else (
+									)
+								}
+								{ viewItem:TEI2HTML($ruling/node()) }
+							</li>
+						}
+					</ul>
+				) else (
+				)
+			}
+			{
+				if ($node//t:ab[not(@type)]) then (
+					<h5 style="color:red;">
+						<code>ab</code> element without <code>@type</code> in layout { viewItem:headercontext($node) }
+					</h5>,
+					<ul>
+						{
+							for $ruling in $node//t:ab[not(@type)]
+							return <li>
+								<b style="color:red;">This ab element does not have a required type.</b>
+								{
+									if ($ruling/@subtype) then
+										"(Subtype: " || string($ruling/@subtype) || ")"
+									else (
+									)
+								}
+								{ viewItem:TEI2HTML($ruling/node()) }
+							</li>
+						}
+					</ul>
+				) else (
+				)
+			}
+			{
+				if (
+					$node//t:ab[@subtype = "Executed"] or $node//t:ab[@subtype = "Usage"] or $node//t:ab[@subtype = "Dividers"]
+				) then (
+					<h4>Punctuation { viewItem:headercontext($node) }</h4>,
+					for $punctuation in
+						($node//t:ab[@subtype = "Executed"] | $node//t:ab[@subtype = "Usage"] | $node//t:ab[@subtype = "Dividers"])
+					return <p>{ string($punctuation/@subtype) || ": " }{ viewItem:TEI2HTML($punctuation/node()) }</p>
+				) else (
+				)
+			}
+			{
+				if ($node//t:ab[@type = "punctuation"][not(@subtype)]) then
+					for $n in $node//t:ab[@type = "punctuation"][not(@subtype)]
+					return viewItem:TEI2HTML($n)
+				else (
+				)
+			}
+			{
+				for $ab in ("CruxAnsata", "coronis", "ChiRho")
+				return if ($node//t:ab[@type = $ab][not(@subtype)]) then (
+					<h4>{ $ab }</h4>, <p>Yes { viewItem:TEI2HTML($node//t:ab[@type = $ab][not(@subtype)]) }</p>
+				) else (
+				)
+			}
+		</div>
 };
 
 declare %private function viewItem:ab($node as element(t:ab)) {
@@ -2405,66 +2421,69 @@ declare %private function viewItem:condition($node as element(t:condition)) {
 };
 
 declare %private function viewItem:dimensions($node as element(t:dimensions)) {
-	<h5>Dimensions {
-			if ($node/@type) then
-				"(" || string($node/@type) || ")"
-			else (
-			)
-		}
-		{ viewItem:headercontext($node) }
-	</h5>,
-	<div class="w3-responsive">
-		<table class="w3-table w3-hoverable">
-			{
-				if ($node[@type = "margin"]/t:dim[@type]) then (
-					<tr><td><b>Margins</b></td><td /></tr>,
-					for $margin in $node[@type = "margin"]/t:dim[@type]
-					return <tr><td>{ string($margin/@type) }</td><td>{ viewItem:layoutdimensionunit($margin) }</td></tr>
-				) else (
-				)
-			}
-			{ (: for EMML with dim :)
-				if ($node[not(contains(@type, "margin"))]/t:dim) then
-					for $dim in $node/t:dim
-					return <tr>{ string($dim) }</tr>
+	if (viewItem:is-computed-catalogue($node)) then (
+	) else (
+		<h5>Dimensions {
+				if ($node/@type) then
+					"(" || string($node/@type) || ")"
 				else (
 				)
 			}
-			{
-				if ($node/t:height) then
-					<tr><td>Height</td><td>{ viewItem:layoutdimensionunit($node/t:height) }</td></tr>
-				else (
-				)
-			}
-			{
-				if ($node/t:width) then
-					<tr><td>Width</td><td>{ viewItem:layoutdimensionunit($node/t:width) }</td></tr>
-				else (
-				)
-			}
-			{
-				if ($node/t:depth) then
-					<tr><td>Depth</td><td>{ viewItem:layoutdimensionunit($node/t:depth) }</td></tr>
-				else (
-				)
-			}
-			{
-				if ($node[not(@type = "margin")]/t:dim[@type = "intercolumn"]) then
-					<tr>
-						<td>Intercolumn</td>
-						<td>
-							{
-								viewItem:layoutdimensionunit(
-									$node/t:dimensions[not(@xml:lang)][not(@type = "margin")]/t:dim[@type = "intercolumn"]
-								)
-							}
-						</td>
-					</tr>
-				else (
-				)
-			}
-		</table>
-	</div>
+			{ viewItem:headercontext($node) }
+		</h5>,
+		<div class="w3-responsive">
+			<table class="w3-table w3-hoverable">
+				{
+					if ($node[@type = "margin"]/t:dim[@type]) then (
+						<tr><td><b>Margins</b></td><td /></tr>,
+						for $margin in $node[@type = "margin"]/t:dim[@type]
+						return <tr><td>{ string($margin/@type) }</td><td>{ viewItem:layoutdimensionunit($margin) }</td></tr>
+					) else (
+					)
+				}
+				{ (: for EMML with dim :)
+					if ($node[not(contains(@type, "margin"))]/t:dim) then
+						for $dim in $node/t:dim
+						return <tr>{ string($dim) }</tr>
+					else (
+					)
+				}
+				{
+					if ($node/t:height) then
+						<tr><td>Height</td><td>{ viewItem:layoutdimensionunit($node/t:height) }</td></tr>
+					else (
+					)
+				}
+				{
+					if ($node/t:width) then
+						<tr><td>Width</td><td>{ viewItem:layoutdimensionunit($node/t:width) }</td></tr>
+					else (
+					)
+				}
+				{
+					if ($node/t:depth) then
+						<tr><td>Depth</td><td>{ viewItem:layoutdimensionunit($node/t:depth) }</td></tr>
+					else (
+					)
+				}
+				{
+					if ($node[not(@type = "margin")]/t:dim[@type = "intercolumn"]) then
+						<tr>
+							<td>Intercolumn</td>
+							<td>
+								{
+									viewItem:layoutdimensionunit(
+										$node/t:dimensions[not(@xml:lang)][not(@type = "margin")]/t:dim[@type = "intercolumn"]
+									)
+								}
+							</td>
+						</tr>
+					else (
+					)
+				}
+			</table>
+		</div>
+	)
 };
 
 declare %private function viewItem:extent($node as element(t:extent)) {
