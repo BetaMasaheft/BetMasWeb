@@ -106,6 +106,14 @@ declare %test:assertEquals("") function tsexpedids:nested-sections-no-duplicate-
 	tsexpedids:duplicate-ids(expand:tei2fulltei($tsexpedids:tei-nested, ()))
 };
 
+declare %test:assertEquals("div1div1LITTESTnested88") function tsexpedids:nested-section-first-id-shape() {
+	string((expand:tei2fulltei($tsexpedids:tei-nested, ())//t:div[@type = "section"]/@xml:id)[1])
+};
+
+declare %test:assertEquals("div1div2LITTESTnested88") function tsexpedids:nested-section-second-id-shape() {
+	string((expand:tei2fulltei($tsexpedids:tei-nested, ())//t:div[@type = "section"]/@xml:id)[2])
+};
+
 (:~
  : handNote/witness under edition must not share the edition div's minted @xml:id.
  :)

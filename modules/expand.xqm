@@ -959,7 +959,7 @@ declare function expand:file($filepath) {
 				return <note>{ $a/@* }{ $a/node() }</note>
 			}
 		</bibl>
-	(: let $test := console:log($zotero) :)
+	(: let $test := console:log($zotero) :)(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
 	return let $full := expand:tei2fulltei($expanded, $zotero)[self::t:TEI]
 		let $result := document { expandnorm:normalize-tei($full) }
 		let $ownId := string($result/t:TEI/@xml:id)

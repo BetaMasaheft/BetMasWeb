@@ -64,6 +64,20 @@ declare %test:assertEquals("85") function tsexpnorm:comma-cm-depth-mm() {
 	)
 };
 
+declare %test:assertEquals("172") function tsexpnorm:comma-cm-width-mm() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:comma-cm//t:objectDesc/node())//t:dimensions[@subtype = "computed"]/t:width/@quantity
+	)
+};
+
+declare %test:assertEquals("mm") function tsexpnorm:clean-mm-computed-unit() {
+	string(tsexpnorm:normalize($tsexpnorm:clean-mm//t:objectDesc/node())//t:dimensions[@subtype = "computed"]/@unit)
+};
+
+declare %test:assertEquals(0) function tsexpnorm:tei2fulltei-alone-no-computed() {
+	count(expand:tei2fulltei($tsexpnorm:clean-mm, ())[self::t:TEI]//t:dimensions[@subtype = "computed"])
+};
+
 declare variable $tsexpnorm:leaf-range := tsexpnorm:wrap(
 	<supportDesc xmlns="http://www.tei-c.org/ns/1.0">
 		<extent><dimensions type="leaf" unit="mm"><height>210-215</height><width>265-270</width></dimensions></extent>
@@ -75,6 +89,10 @@ declare %test:assertEquals("210") function tsexpnorm:leaf-range-atLeast() {
 		tsexpnorm:normalize($tsexpnorm:leaf-range//t:objectDesc/node())//t:dimensions[@subtype =
 			"computed"]/t:height/@atLeast
 	)
+};
+
+declare %test:assertEquals("leaf") function tsexpnorm:leaf-range-computed-type() {
+	string(tsexpnorm:normalize($tsexpnorm:leaf-range//t:objectDesc/node())//t:dimensions[@subtype = "computed"]/@type)
 };
 
 declare variable $tsexpnorm:unparseable := tsexpnorm:wrap(
@@ -95,6 +113,10 @@ declare %test:assertEquals("18") function tsexpnorm:written-lines-upper-bound() 
 	string(
 		tsexpnorm:normalize($tsexpnorm:written-lines//t:objectDesc/node())//t:layout[@subtype = "computed"]/@writtenLines
 	)
+};
+
+declare %test:assertEquals("2") function tsexpnorm:written-lines-columns-copied() {
+	string(tsexpnorm:normalize($tsexpnorm:written-lines//t:objectDesc/node())//t:layout[@subtype = "computed"]/@columns)
 };
 
 declare %test:assertEquals(1) function tsexpnorm:re-expand-idempotent() {
@@ -133,6 +155,13 @@ declare %test:assertEquals("10") function tsexpnorm:margin-text-range-atLeast() 
 	string(
 		tsexpnorm:normalize($tsexpnorm:margin-text-range//t:objectDesc/node())//t:dimensions[@subtype =
 			"computed"]/t:dim[@type = "top"]/@atLeast
+	)
+};
+
+declare %test:assertEquals("13") function tsexpnorm:margin-text-range-atMost() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:margin-text-range//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:dim[@type = "top"]/@atMost
 	)
 };
 
@@ -181,6 +210,20 @@ declare %test:assertEquals("12.5") function tsexpnorm:margin-spaced-range-quanti
 	string(
 		tsexpnorm:normalize($tsexpnorm:margin-spaced-range//t:objectDesc/node())//t:dimensions[@subtype =
 			"computed"]/t:dim[@type = "intercolumn"]/@quantity
+	)
+};
+
+declare %test:assertEquals("13") function tsexpnorm:margin-spaced-range-atLeast-not-swapped() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:margin-spaced-range//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:dim[@type = "intercolumn"]/@atLeast
+	)
+};
+
+declare %test:assertEquals("12") function tsexpnorm:margin-spaced-range-atMost-not-swapped() {
+	string(
+		tsexpnorm:normalize($tsexpnorm:margin-spaced-range//t:objectDesc/node())//t:dimensions[@subtype =
+			"computed"]/t:dim[@type = "intercolumn"]/@atMost
 	)
 };
 

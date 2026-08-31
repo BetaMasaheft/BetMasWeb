@@ -254,6 +254,7 @@ declare function expandnorm:parse-measure($text as xs:string, $block-unit as xs:
 	let $normalized := normalize-space(replace(replace($text, ",", "."), "–", "-"))
 	let $compact := replace($normalized, "\s*-\s*", "-")
 	return if (contains($compact, "-")) then
+		(: Token order is preserved: "13 - 12" → atLeast=13, atMost=12; quantity is still midpoint. :)
 		let $parts := tokenize($compact, "-")
 		let $lo := expandnorm:parse-number($parts[1])
 		let $hi := expandnorm:parse-number($parts[2])
