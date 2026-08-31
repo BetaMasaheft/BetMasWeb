@@ -51,27 +51,25 @@ declare variable $app:params := request:get-parameter-names();
 declare variable $app:facets := doc("/db/system/config/db/apps/BetMasData/collection.xconf")//xconf:facet/@dimension;
 
 (:~
- : as.html's manuscripts-facet pickers (scribe, donor, material, script,
- : etc.) each used to independently re-resolve
- : collection($config:data-rootMS) via util:eval on every request - one
- : shared binding instead. collection.xconf has no range index on the
- : attributes these facets query, so each still walks every document;
- : tracked in https://github.com/BetaMasaheft/expanded/issues/19.
- :)
-declare variable $app:mss-collection := collection($config:data-rootMS);
-
-(:~
- : Resolves a facet function's own "context" parameter, reusing
- : $app:mss-collection instead of util:eval for the common (unoverridden
- : default) case - no caller currently overrides it, but the parameter
- : stays honored if one ever does.
+ : Resolves a facet function's own "context" parameter, calling
+ : collection() directly for the common (unoverridden default) case
+ : instead of util:eval - the parameter stays honored for any caller
+ : that overrides it.
+ :
+ : Must call collection() fresh per invocation, not read a module-level
+ : variable bound to it once: a persisted global reference to a large
+ : collection() result held eXist document locks across requests via
+ : compiled-query caching, hanging every as.html request. No range
+ : index exists for the attributes these facets query
+ : (https://github.com/BetaMasaheft/expanded/issues/19), so each call
+ : still walks every document either way.
  :
  : @param $context the function's own context parameter (templates-resolved)
  : @return the evaluated context node sequence
  :)
 declare %private function app:eval-mss-context($context as xs:string*) as node()* {
 	if ($context = "collection($config:data-rootMS)") then
-		$app:mss-collection
+		collection($config:data-rootMS)
 	else
 		util:eval($context)
 };
@@ -239,8 +237,9 @@ declare function app:selectors($nodeName, $path, $nodes, $type, $context) {
 								$n
 				order by $work
 				return let $label := try {
-						if ($exptit:col/id($work)) then
-							exptit:printTitle($exptit:col/id($work))
+						let $title := exptit:printTitleID($work)
+						return if (string-length(string-join($title)) ge 1) then
+							$title
 						else
 							$work
 					} (: this has to stay because optgroup requires label and this cannot be computed from the javascript as in other places :) catch * {
@@ -675,13 +674,26 @@ declare function app:elements($node as node(), $model as map(*)) {
  : a separate AJAX call instead of scoping this one, which collided
  : with it under the same ids whenever both were present.
  :
+ : Without target-ins, renders no options rather than falling through
+ : to the full ~20,000-manuscript corpus - forminstitutions.html is
+ : always included on every as.html load, so an unscoped fallback here
+ : ran app:selectors' per-option exptit:printTitleID lookup ~20,000
+ : times on every page load, unconditionally. Measured:
+ : several minutes per request against the real corpus, severe enough
+ : to starve concurrent requests waiting on the same title-lookup
+ : locks. A flat, unscoped 20,000-option dropdown was never usable UI
+ : either way. target-ms alone (no target-ins) still needs its
+ : currently-selected manuscript(s) present so they render `selected`.
+ :
  : @param $target-ins the request's target-ins parameter, auto-resolved by name
+ : @param $target-ms the request's target-ms parameter, auto-resolved by name
  :)
 declare %templates:default("context", "collection($config:data-rootMS)") function app:target-mss(
 	$node as node(),
 	$model as map(*),
 	$context as xs:string*,
-	$target-ins as xs:string*
+	$target-ins as xs:string*,
+	$target-ms as xs:string*
 ) {
 	let $cont := app:eval-mss-context($context)
 	let $scoped := if (app:list-param-active($target-ins)) then
@@ -691,8 +703,10 @@ declare %templates:default("context", "collection($config:data-rootMS)") functio
 		 : concatenating the whole sequence throws err:XPTY0004.
 		 :)
 		$cont//t:TEI[descendant::t:repository[some $ins in $target-ins satisfies ends-with(@ref, "/" || $ins)]]
-	else
-		$cont//t:TEI
+	else if (app:list-param-active($target-ms)) then
+		$cont//t:TEI[some $ms in $target-ms satisfies @xml:id eq $ms]
+	else (
+	)
 	let $control := app:formcontrol("target-ms", $scoped, "false", "name", $context)
 
 	return templates:form-control($control, $model)

@@ -828,6 +828,40 @@ declare %test:assertTrue function tsmssfilters:target-mss-scopes-with-multiple-i
 			<TEI xml:id='MS3'><title>MS 3</title><repository ref='https://betamasaheft.eu/InsOther' /></TEI>
 		</root>"
 	let $node := <select data-template="app:target-mss" />
-	let $out := app:target-mss($node, tsmssfilters:model-for(map {}), $context, ("InsEMML", "InsBAV"))
+	let $out := app:target-mss($node, tsmssfilters:model-for(map {}), $context, ("InsEMML", "InsBAV"), ())
 	return count($out//*:option) = 2
+};
+
+(:~
+ : Without target-ins, must not fall through to the full unscoped
+ : corpus - forminstitutions.html is always included on every as.html
+ : load, so an unscoped fallback here would run its per-option title
+ : lookup across the entire manuscripts collection unconditionally,
+ : on every request.
+ :)
+declare %test:assertTrue function tsmssfilters:target-mss-empty-without-target-ins() {
+	let $context :=
+	"<root xmlns='http://www.tei-c.org/ns/1.0'>
+			<TEI xml:id='MS1'><title>MS 1</title><repository ref='https://betamasaheft.eu/InsEMML' /></TEI>
+		</root>"
+	let $node := <select data-template="app:target-mss" />
+	let $out := app:target-mss($node, tsmssfilters:model-for(map {}), $context, (), ())
+	return count($out//*:option) = 0
+};
+
+(:~
+ : target-ms alone (no target-ins) must still surface its own
+ : selected manuscript, not an empty select - the reveal condition's
+ : target-ms-only branch depends on this option existing to render
+ : `selected`.
+ :)
+declare %test:assertTrue function tsmssfilters:target-mss-scopes-to-selected-manuscript-without-target-ins() {
+	let $context :=
+	"<root xmlns='http://www.tei-c.org/ns/1.0'>
+			<TEI xml:id='MS1'><title>MS 1</title><repository ref='https://betamasaheft.eu/InsEMML' /></TEI>
+			<TEI xml:id='MS2'><title>MS 2</title><repository ref='https://betamasaheft.eu/InsBAV' /></TEI>
+		</root>"
+	let $node := <select data-template="app:target-mss" />
+	let $out := app:target-mss($node, tsmssfilters:model-for(map {}), $context, (), "MS1")
+	return count($out//*:option) = 1
 };
