@@ -23,15 +23,27 @@
   [ "$result" == 'Server has started' ]
 }
 
-# Make sure the package has been deployed. This Dockerfile installs at
-# build time (exec-form client boot), so the runtime boot correctly logs
-# "already installed" rather than "Deploying package" - at least one of
-# either line is valid evidence of deployment, not exactly one:
-# AutoDeploymentTrigger's scan has been observed logging the same
-# package's "already installed" line twice in a single boot.
-@test "logs show package deployment" {
-  result=$(docker logs exist | grep -cF -e "Deploying package https://betamasaheft.eu/betmasweb/" -e "Application package https://betamasaheft.eu/betmasweb/ already installed")
-  [ "$result" -ge 1 ]
+# Packages install at image build via docker/overlay-packages.xq (repo:*), not
+# at container boot. Verify deployed versions directly instead of inferring
+# from runtime autodeploy logs (exist-db/exist#5579 skip is invisible there).
+@test "BetMasService overlay deployed" {
+  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/BetMasService/expath-pkg.xml")/*:package/@version)')
+  [ "$result" = "0.1" ]
+}
+
+@test "parser overlay deployed" {
+  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/parser/expath-pkg.xml")/*:package/@version)')
+  [ "$result" = "0.5" ]
+}
+
+@test "BetMasWeb overlay deployed this build" {
+  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/BetMasWeb/expath-pkg.xml")/*:package/@version)')
+  [ "$result" = "0.2.0" ]
+}
+
+@test "BetMasWeb overlay content canary present" {
+  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'contains(util:binary-to-string(util:binary-doc("/db/apps/BetMasWeb/modules/queries.xqm")), "q:ms-parts-count-filter")')
+  [ "$result" = "true" ]
 }
 
 @test "logs are error free" {

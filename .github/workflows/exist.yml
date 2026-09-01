@@ -50,8 +50,8 @@ jobs:
         env:
           SEED_XQ: ${{ secrets.SEED_XQ }}
 
-      # Builds BetMasService + parser from source and layers them + this
-      # repo's own package onto the published betmas-data base.
+      # Builds BetMasService + parser from source and overlays them + this
+      # repo's package onto the published betmas-data base (repo:*, not autodeploy).
       - name: Build eXist image
         uses: docker/build-push-action@v7
         with:
