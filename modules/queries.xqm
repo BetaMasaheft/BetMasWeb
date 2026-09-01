@@ -232,27 +232,12 @@ declare function q:fieldsSection($node as node(), $model as map(*)) as element()
  : default, so it doesn't need this section's own disabled-fieldset
  : treatment - see q:generalFiltersSection below).
  :)
-declare %private variable $q:general-fields-only-params := ("ident", "termkey", "changewho", "dateRange");
 
 (:~
- : Request parameter names for the "#filters" panel's own top-level
- : fields (outside any of the four per-collection sections below) - the
- : item-type checkboxes and the "General filters" block. Used only for
- : q:filtersPanelFieldset's own outer reveal - "work-types" belongs here
- : (the panel should open if only a work-type is checked) even though it
- : doesn't belong in $q:general-fields-only-params above.
+ : Plain numeric/checkbox fields in "#manuscriptsFilters" that are not
+ : paramargs.xml range-index lookups.
  :)
-declare %private variable $q:general-filter-params := ("work-types", $q:general-fields-only-params);
-
-(:~
- : Request parameter names "#manuscriptsFilters" can submit. Keep in
- : sync with newSearch.html's own markup and the q:includeXXX section
- : guards further down this module. "author" also appears in
- : $q:works-filter-params - a pre-existing collision between
- : q:MssPersRoles' "author" production-role and q:WorkAuthors' own
- : "author" param, not introduced here.
- :)
-declare %private variable $q:manuscripts-filter-params := (
+declare %private variable $q:manuscripts-dimension-params := (
 	"images",
 	"height",
 	"width",
@@ -267,21 +252,15 @@ declare %private variable $q:manuscripts-filter-params := (
 	"qcn",
 	"folia",
 	"wL",
-	"numberOfParts",
-	"script",
-	"bindingtype",
-	"custEventsubtype",
-	"colophon-subtype",
-	"incipit-subtype",
-	"explicit-subtype",
-	"itemtype",
-	"desctype",
-	"materialkey",
-	"decoNtype",
-	"repositorytext",
-	"form",
-	"writtenLines",
-	"collectiontext",
+	"numberOfParts"
+);
+
+(:~
+ : q:MssPersRoles production-role request parameter names. "author" is
+ : shared with q:WorkAuthors' own "author" param - see
+ : q:mss-author-role-active below.
+ :)
+declare %private variable $q:mss-pers-role-param-names := (
 	"translator",
 	"sponsor",
 	"scribe",
@@ -293,42 +272,126 @@ declare %private variable $q:manuscripts-filter-params := (
 	"illustrator",
 	"bequeather",
 	"author",
-	"donor",
-	"persrole"
+	"donor"
 );
+
+(:~
+ : Production-role names unambiguous on a manuscripts search - every
+ : name except the shared "author" param.
+ :)
+declare %private variable $q:mss-pers-unambiguous-role-param-names := (
+	"translator",
+	"sponsor",
+	"scribe",
+	"presentCustodian",
+	"patron",
+	"owner",
+	"other",
+	"mainCollector",
+	"illustrator",
+	"bequeather",
+	"donor"
+);
+
+declare %private variable $q:persons-plain-params := ("gender", "birthRange", "deathRange", "floruitRange");
+
+declare %private variable $q:places-plain-params := ("tabot", "anyDateRange");
+
+(:~
+ : "General filters" param names: paramargs form="g" plus dateRange.
+ :)
+declare %private function q:general-fields-only-param-names() as xs:string* {
+	distinct-values(("dateRange", $q:paramargs/rangeindex[@form = "g"]/@name/string()))
+};
+
+(:~
+ : Top-level "#filters" panel fields outside the four collection sections.
+ :)
+declare %private function q:general-filter-param-names() as xs:string* {
+	distinct-values(("work-types", q:general-fields-only-param-names()))
+};
+
+(:~
+ : Every request parameter "#manuscriptsFilters" can submit: plain
+ : dimension/role fields plus all paramargs form="m" range-index names.
+ :)
+declare function q:manuscripts-filter-param-names() as xs:string* {
+	distinct-values(
+		($q:manuscripts-dimension-params, $q:mss-pers-role-param-names, $q:paramargs/rangeindex[@form = "m"]/@name/string())
+	)
+};
 
 (:~
  : Request parameter names "#worksFilters" can submit.
  :)
-declare %private variable $q:works-filter-params := ("divtype", "divsubtype", "witnesstext", "author");
+declare %private function q:works-filter-param-names() as xs:string* {
+	distinct-values(("author", $q:paramargs/rangeindex[@form = "w"]/@name/string()))
+};
 
 (:~
  : Request parameter names "#persFilters" can submit.
  :)
-declare %private variable $q:persons-filter-params := (
-	"gender", "birthRange", "deathRange", "floruitRange", "persontype", "occtype", "faithtype"
-);
+declare %private function q:persons-filter-param-names() as xs:string* {
+	distinct-values(($q:persons-plain-params, $q:paramargs/rangeindex[@form = "pr"]/@name/string()))
+};
 
 (:~
  : Request parameter names "#placesFilters" can submit.
  :)
-declare %private variable $q:places-filter-params := (
-	"regiontext", "settlementtext", "countrytext", "placetype", "tabot", "anyDateRange"
-);
+declare %private function q:places-filter-param-names() as xs:string* {
+	distinct-values(($q:places-plain-params, $q:paramargs/rangeindex[@form = "pl"]/@name/string()))
+};
 
 (:~
- : Every request parameter name the "#filters" advanced-search panel's
- : own fields can submit, across all five sections (general + the four
- : per-collection ones) - the single source of truth behind
- : q:filtersPanelFieldset's own reveal-on-load check below.
+ : Every request parameter the "#filters" panel can submit.
  :)
-declare %private variable $q:filters-panel-params := (
-	$q:general-filter-params,
-	$q:manuscripts-filter-params,
-	$q:works-filter-params,
-	$q:persons-filter-params,
-	$q:places-filter-params
-);
+declare %private function q:filters-panel-param-names() as xs:string* {
+	distinct-values(
+		(
+			q:general-filter-param-names(),
+			q:manuscripts-filter-param-names(),
+			q:works-filter-param-names(),
+			q:persons-filter-param-names(),
+			q:places-filter-param-names()
+		)
+	)
+};
+
+(:~
+ : Whether a submitted "author" value counts as a manuscripts production-
+ : role search (shared with q:WorkAuthors' unrelated "author" param).
+ :)
+declare function q:mss-author-role-active-impl($author as xs:string*, $work-types as xs:string*) as xs:boolean {
+	q:any-active($author) and "mss" = $work-types
+};
+
+declare %private function q:mss-author-role-active($values as map(*)) as xs:boolean {
+	q:mss-author-role-active-impl($values("author"), request:get-parameter("work-types", ()))
+};
+
+(:~
+ : Whether "#manuscriptsFilters" should reveal on reload. Bare "author"
+ : alone is not enough - it also opens q:WorkAuthors' works section.
+ :)
+declare function q:manuscripts-section-active-impl($values as map(*), $work-types as xs:string*) as xs:boolean {
+	let $non-author-mss-params := distinct-values(
+		(
+			$q:manuscripts-dimension-params,
+			$q:mss-pers-unambiguous-role-param-names,
+			$q:paramargs/rangeindex[@form = "m"]/@name/string()
+		)
+	)
+	return q:any-active($non-author-mss-params!$values(.)) or
+		q:mss-author-role-active-impl($values("author"), $work-types)
+};
+
+declare %private function q:manuscripts-section-active($values as map(*)) as xs:boolean {
+	q:manuscripts-section-active-impl($values, request:get-parameter("work-types", ()))
+};
+
+declare %private function q:mss-pers-roles-active($values as map(*)) as xs:boolean {
+	q:any-active($q:mss-pers-unambiguous-role-param-names!$values(.)) or q:mss-author-role-active($values)
+};
 
 (:~
  : Shared reveal shape for the panel and its section-reveal functions.
@@ -359,7 +422,7 @@ declare function q:sectionReveal($node as node(), $model as map(*), $active as x
  : its own fields (across all five sections) has a submitted value.
  :)
 declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:filters-panel-params!request:get-parameter(., ())))
+	q:sectionReveal($node, $model, q:any-active(q:filters-panel-param-names()!request:get-parameter(., ())))
 };
 
 (:~
@@ -368,7 +431,7 @@ declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as el
  : client-side.
  :)
 (:~
- : Every $q:manuscripts-filter-params name resolved from the request,
+ : Every q:manuscripts-filter-param-names() entry resolved from the request,
  : computed once and threaded to this section's children via $model
  : (key "mssFieldValues") - q:includeMssRangeIndexesFilters/
  : q:includeMssPersRoles/q:includeRoles read it instead of each taking
@@ -379,13 +442,13 @@ declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as el
  : place.
  :)
 declare %private function q:manuscripts-field-values() as map(*) {
-	map:merge($q:manuscripts-filter-params!map:entry(., request:get-parameter(., ())))
+	map:merge(q:manuscripts-filter-param-names()!map:entry(., request:get-parameter(., ())))
 };
 
 declare function q:manuscriptsFiltersSection($node as node(), $model as map(*)) as element() {
 	let $values := q:manuscripts-field-values()
 	let $model2 := map:merge(($model, map {"mssFieldValues": $values}))
-	return q:sectionReveal($node, $model2, q:any-active(map:keys($values)!$values(.)))
+	return q:sectionReveal($node, $model2, q:manuscripts-section-active($values))
 };
 
 (:~
@@ -393,28 +456,28 @@ declare function q:manuscriptsFiltersSection($node as node(), $model as map(*)) 
  : is submitted - see q:manuscriptsFiltersSection.
  :)
 declare function q:generalFiltersSection($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:general-fields-only-params!request:get-parameter(., ())))
+	q:sectionReveal($node, $model, q:any-active(q:general-fields-only-param-names()!request:get-parameter(., ())))
 };
 
 (:~
  : Reveals "#worksFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
  :)
 declare function q:worksFiltersSection($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:works-filter-params!request:get-parameter(., ())))
+	q:sectionReveal($node, $model, q:any-active(q:works-filter-param-names()!request:get-parameter(., ())))
 };
 
 (:~
  : Reveals "#persFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
  :)
 declare function q:persFiltersSection($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:persons-filter-params!request:get-parameter(., ())))
+	q:sectionReveal($node, $model, q:any-active(q:persons-filter-param-names()!request:get-parameter(., ())))
 };
 
 (:~
  : Reveals "#placesFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
  :)
 declare function q:placesFiltersSection($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:places-filter-params!request:get-parameter(., ())))
+	q:sectionReveal($node, $model, q:any-active(q:places-filter-param-names()!request:get-parameter(., ())))
 };
 
 (:~
@@ -4165,22 +4228,13 @@ declare function q:includeMssRangeIndexesFilters($node as node(), $model as map(
  :)
 declare function q:includeMssPersRoles($node as node(), $model as map(*)) as element() {
 	let $values := $model("mssFieldValues")
-	let $unambiguous-roles := (
-		"translator",
-		"sponsor",
-		"scribe",
-		"presentCustodian",
-		"patron",
-		"owner",
-		"other",
-		"mainCollector",
-		"illustrator",
-		"bequeather",
-		"donor"
+	return q:include-facet-form(
+		$node,
+		$model,
+		"forms/formMssPersRoles.html",
+		"mssPersRoles",
+		q:mss-pers-roles-active($values)
 	)
-	let $active := q:any-active($unambiguous-roles!$values(.)) or
-		(q:any-active($values("author")) and "mss" = request:get-parameter("work-types", ()))
-	return q:include-facet-form($node, $model, "forms/formMssPersRoles.html", "mssPersRoles", $active)
 };
 
 (:~

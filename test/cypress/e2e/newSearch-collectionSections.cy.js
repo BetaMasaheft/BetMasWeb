@@ -30,17 +30,22 @@ it("GET /newSearch.html?script=geez reveals only #manuscriptsFilters", () => {
 	cy.get("#placesFilters").should("not.be.visible");
 });
 
-// "author" is intentionally shared between q:MssPersRoles' "author"
-// production-role and q:WorkAuthors' own "author" param (a pre-existing
-// collision, documented on $q:manuscripts-filter-params in
-// modules/queries.xqm) - so this legitimately reveals both sections,
-// not just #worksFilters.
-it("GET /newSearch.html?author=... reveals #worksFilters (and, by the same param, #manuscriptsFilters)", () => {
+// "author" is shared between q:MssPersRoles' production-role search and
+// q:WorkAuthors' own "author" param. A bare author=... request should
+// reveal #worksFilters only; #manuscriptsFilters needs real manuscripts
+// evidence (another mss field, or author together with work-types=mss).
+it("GET /newSearch.html?author=... reveals only #worksFilters, not #manuscriptsFilters", () => {
 	cy.visit("/newSearch.html?searchType=text&author=PRS12345");
-	cy.get("#manuscriptsFilters").should("be.visible");
+	cy.get("#manuscriptsFilters").should("not.be.visible");
 	cy.get("#worksFilters").should("be.visible");
 	cy.get("#persFilters").should("not.be.visible");
 	cy.get("#placesFilters").should("not.be.visible");
+});
+
+it("GET /newSearch.html?author=...&work-types=mss reveals both manuscripts and works sections", () => {
+	cy.visit("/newSearch.html?searchType=text&author=PRS12345&work-types=mss");
+	cy.get("#manuscriptsFilters").should("be.visible");
+	cy.get("#worksFilters").should("be.visible");
 });
 
 it("GET /newSearch.html?gender=1 reveals only #persFilters", () => {
