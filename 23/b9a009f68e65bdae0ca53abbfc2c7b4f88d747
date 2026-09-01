@@ -1,0 +1,30 @@
+.github/workflows/exist.yml
+  s_bfac4543151ff7::t_2d670818c8c711 53-54
+expath-pkg.xml
+  s_bfac4543151ff7::t_ddfe356684ef03 1
+docker/overlay-packages.xq
+  s_bfac4543151ff7::t_13d91c01ea51ae 66
+  s_bfac4543151ff7::t_b7838d0bdfa231 1-65,67-75
+Dockerfile
+  s_bfac4543151ff7::t_4a82dbd9dedd8a 15-16,19-20,24,32-42,45-46
+docker/seed.xq.example
+  s_bfac4543151ff7::t_8b200a37c285a2 10-13
+test/connect_spec.bats
+  s_bfac4543151ff7::t_f18dfe999367bb 26-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "23b9a009f68e65bdae0ca53abbfc2c7b4f88d747",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
