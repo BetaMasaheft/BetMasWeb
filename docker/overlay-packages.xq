@@ -54,8 +54,8 @@ local:overlay-package(
 	"BetMasService",
 	"/exist/overlay/BetMasService.xar",
 	"/exist/overlay/BetMasService-expath-pkg.xml",
-	"/db/apps/BetMasService/modules/registerRESTXQ.xql",
-	"registerRESTXQ"
+	(),
+	()
 ),
 local:overlay-package(
 	"http://betamasaheft.aai.uni-hamburg.de/parser/",
