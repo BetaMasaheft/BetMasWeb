@@ -1,0 +1,22 @@
+test/cypress/e2e/newSearch-predicateOrder.cy.js
+  s_38ac4e737ca8c4::t_4aa9e73b478967 1-26
+modules/queries.xqm
+  s_38ac4e737ca8c4::t_44bdb82c17a60d 1087-1088,1098-1099
+  s_38ac4e737ca8c4::t_e6db64d9419831 1089-1097,1100,1102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "548effbc7ad7d7eff0dbbbdc8d30c0985444e1ba",
+  "prompts": {},
+  "sessions": {
+    "s_38ac4e737ca8c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6622c5-8ff3-4195-aad8-c75e5bdf0e79",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
