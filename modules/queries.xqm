@@ -27,6 +27,8 @@ import module namespace morpho = "http://betamasaheft.eu/parser/morpho" at "xmld
 
 declare variable $q:col := collection("/db/apps/expanded");
 
+declare variable $q:computed-subtype := "computed";
+
 declare variable $q:deleted := doc("/db/apps/lists/deleted.xml");
 
 declare variable $q:collection := request:get-parameter("collection", ());
@@ -838,7 +840,7 @@ declare function q:max-folia() as xs:integer {
  : @return the corpus's real written-lines candidates, empty if none are castable
  :)
 declare %private function q:max-written-lines-candidates() as xs:integer* {
-	for $v in distinct-values(collection($config:data-rootMS)//t:layout/@writtenLines)
+	for $v in distinct-values(collection($config:data-rootMS)//t:layout[@subtype = $q:computed-subtype]/@writtenLines)
 	where $v castable as xs:integer
 	return xs:integer($v)
 };
@@ -911,6 +913,69 @@ declare function q:range-predicate(
 		"]]"
 };
 
+(:~
+ : Expand-emitted outer axis path for range filters (BetMasWeb#113).
+ : @param $axis height | width | depth
+ :)
+declare function q:computed-outer-axis-path($axis as xs:string) as xs:string {
+	"descendant::t:dimensions[@subtype eq '" || $q:computed-subtype || "'][@type eq 'outer']/t:" || $axis
+};
+
+(:~
+ : XPath prefix for expand-emitted computed layout rows.
+ :)
+declare function q:computed-layout-path() as xs:string {
+	"descendant::t:layout[@subtype eq '" || $q:computed-subtype || "']"
+};
+
+(:~
+ : XPath prefix for expand-emitted margin dims (@quantity in mm).
+ : @param $dimType top | bottom | right | left | intercolumn
+ :)
+declare function q:computed-margin-dim-path($dimType as xs:string) as xs:string {
+	"descendant::t:dimensions[@subtype eq '" ||
+		$q:computed-subtype ||
+		"'][@type eq 'margin']/t:dim[@type eq '" ||
+		$dimType ||
+		"']"
+};
+
+declare %private function q:computed-range-filter(
+	$range as xs:string?,
+	$pathPrefix as xs:string,
+	$target as xs:string,
+	$default as xs:string
+) as xs:string? {
+	if (empty($range) or $range = "" or $range = $default) then (
+	) else
+		let $min := substring-before($range, ",")
+		let $max := substring-after($range, ",")
+		return q:range-predicate($pathPrefix, $target, (), $min, $max)
+};
+
+(:~
+ : Range filter on computed outer height (@quantity, mm). Empty when $range is absent or at default.
+ :)
+declare function q:computed-height-filter($range as xs:string?) as xs:string? {
+	q:computed-range-filter($range, q:computed-outer-axis-path("height"), "@quantity", "1,1000")
+};
+
+declare function q:computed-width-filter($range as xs:string?) as xs:string? {
+	q:computed-range-filter($range, q:computed-outer-axis-path("width"), "@quantity", "1,1000")
+};
+
+declare function q:computed-depth-filter($range as xs:string?) as xs:string? {
+	q:computed-range-filter($range, q:computed-outer-axis-path("depth"), "@quantity", "1,1000")
+};
+
+declare function q:computed-written-lines-filter($range as xs:string?) as xs:string? {
+	q:computed-range-filter($range, q:computed-layout-path(), "@writtenLines", "1," || string(q:max-written-lines()))
+};
+
+declare function q:computed-margin-filter($range as xs:string?, $dimType as xs:string) as xs:string? {
+	q:computed-range-filter($range, q:computed-margin-dim-path($dimType), "@quantity", "1,100")
+};
+
 declare %private function q:par-folia($Pfolia) {
 	let $min := substring-before($Pfolia, ",")
 	let $max := substring-after($Pfolia, ",")
@@ -921,12 +986,7 @@ declare %private function q:par-folia($Pfolia) {
 };
 
 declare %private function q:par-wL($PwL) {
-	let $min := substring-before($PwL, ",")
-	let $max := substring-after($PwL, ",")
-	return if ($PwL = "1," || q:max-written-lines()) then (
-	) else if (empty($PwL)) then (
-	) else
-		q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
+	q:computed-written-lines-filter($PwL)
 };
 
 declare %private function q:par-qn($Pqn) {
@@ -1028,21 +1088,21 @@ names are those of the indexes where the filter is built directly from there, ot
 				case "origPlace" return
 					q:ListQueryParam-rest($r, "t:origPlace/t:placeName/@ref", "any", "search")
 				case "height" return
-					q:paramrange(string-join($r, ","), "height")
+					q:computed-height-filter(string-join($r, ","))
 				case "width" return
-					q:paramrange(string-join($r, ","), "width")
+					q:computed-width-filter(string-join($r, ","))
 				case "depth" return
-					q:paramrange(string-join($r, ","), "depth")
+					q:computed-depth-filter(string-join($r, ","))
 				case "tmargin" return
-					q:paramrange(string-join($r, ","), "dimension[@type eq 'margin']/t:dim[@type eq 'top']")
+					q:computed-margin-filter(string-join($r, ","), "top")
 				case "bmargin" return
-					q:paramrange(string-join($r, ","), "dimension[@type eq 'margin']/t:dim[@type eq 'bottom']")
+					q:computed-margin-filter(string-join($r, ","), "bottom")
 				case "rmargin" return
-					q:paramrange(string-join($r, ","), "dimension[@type eq 'margin']/t:dim[@type eq 'right']")
+					q:computed-margin-filter(string-join($r, ","), "right")
 				case "lmargin" return
-					q:paramrange(string-join($r, ","), "dimension[@type eq 'margin']/t:dim[@type eq 'left']")
+					q:computed-margin-filter(string-join($r, ","), "left")
 				case "intercolumn" return
-					q:paramrange(string-join($r, ","), "dimension[@type eq 'margin']/t:dim[@type eq 'intercolumn']")
+					q:computed-margin-filter(string-join($r, ","), "intercolumn")
 				case "form" return
 					q:ListQueryParam-rest($r, "t:objectDesc/@form", "any", "list")
 				case "materialkey" return

@@ -16,22 +16,24 @@ import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/q
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "../../modules/config.xqm";
 
 (:~
- : Sanity bound - the real corpus max is a few hundred, nowhere near
- : the old hardcoded "100". A regression that silently reverted to a
- : too-small literal would still pass a bare "returns an integer" test,
- : so assert a floor as well.
+ : Floor is 100 until corpus re-expand emits computed layouts; after
+ : re-expand the real max is expected to exceed the old hardcoded bound.
  :)
-declare %test:assertXPath("$result gt 100") function tsformbounds:max-written-lines-above-old-hardcoded-value() {
+declare %test:assertXPath("$result ge 100") function tsformbounds:max-written-lines-above-old-hardcoded-value() {
 	q:max-written-lines()
 };
 
 (:~
- : Compares two dynamically-computed values (the cached bound vs a fresh
- : corpus scan) - no static literal to hand assertXPath, so this stays
- : assertTrue.
+ : Until re-expand, computed layout candidates are empty and the bound
+ : falls back to 100; after re-expand it tracks the computed corpus max.
  :)
 declare %test:assertTrue function tsformbounds:max-written-lines-matches-corpus() {
-	q:max-written-lines() = max(collection($config:data-rootMS)//t:layout/@writtenLines[. castable as xs:integer])
+	let $computed := collection($config:data-rootMS)//t:layout[@subtype =
+		"computed"]/@writtenLines[. castable as xs:integer]
+	return if (exists($computed)) then
+		q:max-written-lines() = max($computed)
+	else
+		q:max-written-lines() = 100
 };
 
 (:~

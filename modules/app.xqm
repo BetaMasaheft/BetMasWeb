@@ -3162,15 +3162,9 @@ function app:query(
 			)
 	) else (
 	)
-	let $wL := if (contains($app:params, "wL")) then (
-		let $range := request:get-parameter("wL", ())
-		let $min := substring-before($range, ",")
-		let $max := substring-after($range, ",")
-		return if ($range = "1," || q:max-written-lines()) then (
-		) else if (empty($range)) then (
-		) else
-			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
-	) else (
+	let $wL := if (contains($app:params, "wL")) then
+		q:computed-written-lines-filter(request:get-parameter("wL", ()))
+	else (
 	)
 	let $quires := if (contains($app:params, "qn")) then (
 		let $range := request:get-parameter("qn", ())
@@ -3214,34 +3208,12 @@ function app:query(
 	 : app:range-filter's own doc for why it replaces app:paramrange here
 	 : specifically rather than patching it in place.
 	 :
-	 : height/width/depth are scoped to `t:dimensions[@type eq 'outer']`
-	 : because the same field names recur under other @type values
-	 : (`textarea`, `inner`, `leaf`, ...) for unrelated measurements -
-	 : confirmed against the real corpus that `outer` is where the
-	 : physical extent this facet's labels ("Height (mm)" etc.) describe
-	 : actually lives.
+	 : height/width/depth filters target expand-emitted computed siblings
+	 : (`@subtype='computed'`, mm `@quantity`) — see BetMasWeb#113.
 	 :)
-	let $height := app:range-filter(
-		"height",
-		"descendant::t:dimensions[@type eq 'outer']/t:height",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,1000"
-	)
-	let $width := app:range-filter(
-		"width",
-		"descendant::t:dimensions[@type eq 'outer']/t:width",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,1000"
-	)
-	let $depth := app:range-filter(
-		"depth",
-		"descendant::t:dimensions[@type eq 'outer']/t:depth",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,1000"
-	)
+	let $height := q:computed-height-filter(request:get-parameter("height", ()))
+	let $width := q:computed-width-filter(request:get-parameter("width", ()))
+	let $depth := q:computed-depth-filter(request:get-parameter("depth", ()))
 	(:
 	 : Not wired to any filter at all before this fix - the "Columns per
 	 : page" slider submitted `columnsNum`, but no code anywhere read it.
@@ -3255,46 +3227,16 @@ function app:query(
 	 :)
 	let $columnsNum := app:range-filter(
 		"columnsNum",
-		"descendant::t:layout",
+		q:computed-layout-path(),
 		"xs:integer(@columns)",
 		"[matches(@columns,'^\d+$')]",
 		"1,20"
 	)
-	let $marginTop := app:range-filter(
-		"tmargin",
-		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'top']",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,100"
-	)
-	let $marginBot := app:range-filter(
-		"bmargin",
-		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'bottom']",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,100"
-	)
-	let $marginR := app:range-filter(
-		"rmargin",
-		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'right']",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,100"
-	)
-	let $marginL := app:range-filter(
-		"lmargin",
-		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'left']",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,100"
-	)
-	let $marginIntercolumn := app:range-filter(
-		"intercolumn",
-		"descendant::t:dimensions[@type eq 'margin']/t:dim[@type eq 'intercolumn']",
-		".",
-		"[matches(normalize-space(.),'^\d+(\.\d+)?$')]",
-		"1,100"
-	)
+	let $marginTop := q:computed-margin-filter(request:get-parameter("tmargin", ()), "top")
+	let $marginBot := q:computed-margin-filter(request:get-parameter("bmargin", ()), "bottom")
+	let $marginR := q:computed-margin-filter(request:get-parameter("rmargin", ()), "right")
+	let $marginL := q:computed-margin-filter(request:get-parameter("lmargin", ()), "left")
+	let $marginIntercolumn := q:computed-margin-filter(request:get-parameter("intercolumn", ()), "intercolumn")
 
 	let $query-string := if ($query != "") then (
 		if ($homophones = "true") then

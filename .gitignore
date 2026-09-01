@@ -10,3 +10,7 @@ docker/seed.xq
 .zed/
 # Local agent-stack XQSuite shims (not for CI; suites live in test-runner.xq)
 test/xqs/runners/
+# Local agent eXist stack on 8082 (not for CI)
+docker-compose.agent.yml
+scripts/agent-stack.sh
+.worktrees/

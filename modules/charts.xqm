@@ -17,6 +17,44 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 
+declare variable $charts:computed-subtype := "computed";
+
+(:~
+ : Prefer expand-emitted mm @quantity; fall back to cataloguer text for pre-re-expand data.
+ :)
+declare %private function charts:outer-axis-mm($extent as element(), $axis as xs:string) as xs:string {
+	let $computed := $extent/t:dimensions[@subtype = $charts:computed-subtype][@type eq "outer"]
+	return if ($computed/*[local-name() = $axis]/@quantity) then
+		string($computed/*[local-name() = $axis]/@quantity)
+	else
+		let $catalogue := $extent/t:dimensions[@type eq "outer"][not(@subtype = $charts:computed-subtype)]
+		return if ($catalogue/*[local-name() = $axis]/text()) then
+			string-join($catalogue/*[local-name() = $axis]/text(), " ")
+		else
+			"0"
+};
+
+declare %private function charts:layout-written-lines($layout as element(t:layout)) as xs:string {
+	let $computed := (
+		$layout/following-sibling::t:layout[@subtype = $charts:computed-subtype],
+		$layout/preceding-sibling::t:layout[@subtype = $charts:computed-subtype]
+	)[1]
+	return if ($computed/@writtenLines) then
+		string($computed/@writtenLines)
+	else if ($layout/@writtenLines) then
+		if (contains($layout/@writtenLines, " ")) then
+			string(
+				avg(
+					for $x in tokenize($layout/@writtenLines, " ")
+					return number($x)
+				)
+			)
+		else
+			string($layout/@writtenLines)
+	else
+		"0"
+};
+
 declare function charts:mssSankey($itemid) {
 	let $query := (
 		$config:sparqlPrefixes ||
@@ -290,18 +328,9 @@ declare function charts:chart($hits) {
 					let $all := $allwithar[not(@xml:lang = "ar")]
 					let $SM := $d//ancestor::t:TEI//t:msIdentifier/t:idno/text()
 					let $title := exptit:printTitle($d)
-					let $h := if ($all/t:height/text()) then
-						string-join($all/t:height[1]/text())
-					else
-						"0"
-					let $w := if ($all/t:width/text()) then
-						string-join($all/t:width[1]/text())
-					else
-						"0"
-					let $dep := if ($all/t:depth/text()) then
-						string-join($all/t:depth[1]/text())
-					else
-						"0"
+					let $h := charts:outer-axis-mm($d, "height")
+					let $w := charts:outer-axis-mm($d, "width")
+					let $dep := charts:outer-axis-mm($d, "depth")
 					return '["' || $SM || '",' || $w || "," || $h || ',"' || $title || '",' || $dep || "]"
 
 				let $dimensionsTable := '[["shelf mark","width","height","title","depth"],' || string-join($dims, ", ") || "]"
@@ -311,14 +340,8 @@ declare function charts:chart($hits) {
 
 					let $allwithar := $d/t:dimensions[@type eq "outer"]
 					let $all := $allwithar[not(@xml:lang = "ar")]
-					let $h := if ($all/t:height/text()) then
-						string-join($all/t:height/text(), " ")
-					else
-						"0"
-					let $w := if ($all/t:width/text()) then
-						string-join($all/t:width/text(), " ")
-					else
-						"0"
+					let $h := charts:outer-axis-mm($d, "height")
+					let $w := charts:outer-axis-mm($d, "width")
 					let $realtaglia := number($h) + number($w)
 
 					let $grouppedtaglia := if ($realtaglia lt 200) then
@@ -1132,24 +1155,9 @@ chart.draw(data, google.charts.Bar.convertOptions(options));
 				let $all := $allwithar[not(@xml:lang = "ar")]
 				let $SM := string-join($d/ancestor::t:TEI//t:msIdentifier/t:idno/text(), " / ")
 				let $title := exptit:printTitle($d)
-				let $h := if ($all/t:height/text()) then
-					string-join($all/t:height/text(), " ")
-				else
-					"0"
-				let $w := if ($all/t:width/text()) then
-					string-join($all/t:width/text(), " ")
-				else
-					"0"
-				let $writtenlines := if ($d/@writtenLines) then
-					if (contains($d/@writtenLines, " ")) then
-						let $dims :=
-							for $x in tokenize($d/@writtenLines, " ")
-							return number($x)
-						return avg($dims)
-					else
-						$d/@writtenLines
-				else
-					"0"
+				let $h := charts:outer-axis-mm($d, "height")
+				let $w := charts:outer-axis-mm($d, "width")
+				let $writtenlines := charts:layout-written-lines($d)
 				return '["' || $SM || '",' || $w || "," || $h || ',"' || $title || '", ' || $writtenlines || "]"
 
 			let $dimensionsTable := '[["shelf mark","width","height","title","written lines"],
@@ -1203,14 +1211,8 @@ declare function charts:tagliasupport($mssDate, $totcount, $from, $to) {
 
 		let $allwithar := $ms/t:dimensions[@type eq "outer"]
 		let $all := $allwithar[not(@xml:lang = "ar")]
-		let $h := if ($all/t:height/text()) then
-			string-join($all/t:height/text(), " ")
-		else
-			"0"
-		let $w := if ($all/t:width/text()) then
-			string-join($all/t:width/text(), " ")
-		else
-			"0"
+		let $h := charts:outer-axis-mm($ms, "height")
+		let $w := charts:outer-axis-mm($ms, "width")
 		let $realtaglia := number($h) + number($w)
 		return if ((number($realtaglia) ge $from) and (number($realtaglia) le $to)) then
 			1

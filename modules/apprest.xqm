@@ -992,38 +992,14 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 	let $opl := if (empty($PorigPlace) or $PorigPlace = "") then (
 	) else
 		apprest:ListQueryParam-rest($PorigPlace, "t:origPlace/t:placeName/@ref", "any", "search")
-	let $height := if (empty($Pheight) or $Pheight = "") then (
-	) else (
-		app:paramrange("height", "height")
-	)
-	let $width := if (empty($Pwidth) or $Pwidth = "") then (
-	) else (
-		app:paramrange("width", "width")
-	)
-	let $depth := if (empty($Pdepth) or $Pdepth = "") then (
-	) else (
-		app:paramrange("depth", "depth")
-	)
-	let $marginTop := if (empty($Ptmargin) or $Ptmargin = "") then (
-	) else (
-		app:paramrange("tmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'top']")
-	)
-	let $marginBot := if (empty($Pbmargin) or $Pbmargin = "") then (
-	) else (
-		app:paramrange("bmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'bottom']")
-	)
-	let $marginR := if (empty($Prmargin) or $Prmargin = "") then (
-	) else (
-		app:paramrange("rmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'right']")
-	)
-	let $marginL := if (empty($Plmargin) or $Plmargin = "") then (
-	) else (
-		app:paramrange("lmargin", "dimension[@type eq 'margin']/t:dim[@type eq 'left']")
-	)
-	let $marginIntercolumn := if (empty($Pintercolumn) or $Pintercolumn = "") then (
-	) else (
-		app:paramrange("intercolumn", "dimension[@type eq 'margin']/t:dim[@type eq 'intercolumn']")
-	)
+	let $height := q:computed-height-filter($Pheight)
+	let $width := q:computed-width-filter($Pwidth)
+	let $depth := q:computed-depth-filter($Pdepth)
+	let $marginTop := q:computed-margin-filter($Ptmargin, "top")
+	let $marginBot := q:computed-margin-filter($Pbmargin, "bottom")
+	let $marginR := q:computed-margin-filter($Prmargin, "right")
+	let $marginL := q:computed-margin-filter($Plmargin, "left")
+	let $marginIntercolumn := q:computed-margin-filter($Pintercolumn, "intercolumn")
 	let $support := if (empty($PobjectType) or $PobjectType = "") then (
 	) else
 		apprest:ListQueryParam-rest($PobjectType, "t:objectDesc/@form", "any", "search")
@@ -1109,15 +1085,7 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 			(: Sentinel stays "1,1000" - this page's own widget (restviews/list.xqm) still submits that literal, not q:max-folia(). :)
 			q:range-predicate("descendant::t:extent/t:measure[@unit='leaf'][not(@type)]", ".", (), $min, $max)
 	)
-	let $wL := if (empty($PwL) or $PwL = "") then (
-	) else (
-		let $min := substring-before($PwL, ",")
-		let $max := substring-after($PwL, ",")
-		return if ($PwL = "1,100") then (
-		) else if (empty($PwL)) then (
-		) else
-			q:range-predicate("descendant::t:layout", "@writtenLines", (), $min, $max)
-	)
+	let $wL := q:computed-written-lines-filter($PwL)
 	let $quires := if (empty($Pqn) or $Pqn = "" or $Pqn = "1,100") then (
 	) else (
 		let $min := substring-before($Pqn, ",")
