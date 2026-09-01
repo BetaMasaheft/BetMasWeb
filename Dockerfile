@@ -12,11 +12,11 @@ ARG BUILDER_IMAGE=ghcr.io/eeditiones/builder:latest
 FROM ${BUILDER_IMAGE} AS build-stage
 
 ADD https://github.com/BetaMasaheft/BetMas.git /src/BetMas
-RUN ant -f /src/BetMas/db/apps/BetMasService/build.xml &&
+RUN ant -f /src/BetMas/db/apps/BetMasService/build.xml && \
 	mv /src/BetMas/db/apps/BetMasService/build/*.xar /src/BetMas/db/apps/BetMasService/build/BetMasService.xar
 # Ge'ez morphological parser - queries.xqm imports it unconditionally, so
 # BetMasWeb won't even compile without it installed
-RUN ant -f /src/BetMas/db/apps/parser/build.xml &&
+RUN ant -f /src/BetMas/db/apps/parser/build.xml && \
 	mv /src/BetMas/db/apps/parser/build/*.xar /src/BetMas/db/apps/parser/build/parser.xar
 
 WORKDIR /src/BetMasWeb
