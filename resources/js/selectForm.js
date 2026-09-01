@@ -51,28 +51,55 @@ function loadFacetFragment(file, id) {
 		success: function (data) {
 			$("#" + id).replaceWith(data);
 		},
+		error: function (xhr, status, error) {
+			console.error("Failed to load facet fragment " + file + ":", error);
+		},
 	});
 }
 
+// #manuscriptsFilters/etc. are <fieldset disabled> by default - CSS
+// display:none alone doesn't stop a browser from submitting a hidden
+// field's value, and #gsf is one form wrapping every panel field, so a
+// disabled fieldset is what actually keeps an unopened section's
+// hardcoded defaults (dateRange="0001" etc.) out of the next
+// submission. Showing/hiding a section here must enable/disable it too,
+// or a live "+"-then-pick-a-type click couldn't submit anything.
+//
+// filters.js (loaded after this file) binds its own, simpler show/hide-
+// only handler to this same #collectionfilter, shared with as.html's
+// equivalent dropdown. This handler is a strict superset of that one, so
+// stopImmediatePropagation() keeps filters.js's from redundantly
+// re-running the same show/hide on every change - jQuery fires
+// same-element handlers in binding order, and this one binds first.
 function initCollectionFilter() {
-	$("#collectionfilter").change(function () {
+	$("#collectionfilter").change(function (event) {
+		event.stopImmediatePropagation();
 		var val = $(this).val();
+		var sections = ["manuscriptsFilters", "worksFilters", "persFilters", "placesFilters"];
+		sections.forEach(function (id) {
+			document.getElementById(id).disabled = true;
+		});
 		$("#manuscriptsFilters, #worksFilters, #persFilters, #placesFilters").hide();
 
+		function reveal(id) {
+			document.getElementById(id).disabled = false;
+			$("#" + id).show();
+		}
+
 		if (val === "mss") {
-			$("#manuscriptsFilters").show();
+			reveal("manuscriptsFilters");
 			loadFacetFragment("forms/formMssRangeIndexes.html", "mssRangeIndexes");
 			loadFacetFragment("forms/formMssPersRoles.html", "mssPersRoles");
 			loadFacetFragment("forms/formRoles.html", "rolesLookup");
 		} else if (val === "works") {
-			$("#worksFilters").show();
+			reveal("worksFilters");
 			loadFacetFragment("forms/formWorksRangeIndexes.html", "worksRangeIndexes");
 			loadFacetFragment("forms/formWorkAuthors.html", "workAuthors");
 		} else if (val === "pers") {
-			$("#persFilters").show();
+			reveal("persFilters");
 			loadFacetFragment("forms/formPersonsRangeIndexes.html", "personsRangeIndexes");
 		} else if (val === "places") {
-			$("#placesFilters").show();
+			reveal("placesFilters");
 			loadFacetFragment("forms/formPlacesRangeIndexes.html", "placesRangeIndexes");
 			loadFacetFragment("forms/formTabot.html", "tabotLookup");
 		}
@@ -92,7 +119,14 @@ $("#showfilters").one("click", function () {
 
 $("#showfilters").click(function () {
 	$(".filter").toggle("slow");
-	if (document.getElementById("advanced")) {
+	var advanced = document.getElementById("advanced");
+	if (advanced) {
+		// "General filters" is always relevant once the panel itself is
+		// open (unlike the four collection-specific sections, gated
+		// separately by #collectionfilter above), so it enables together
+		// with #advanced rather than needing its own reveal gesture.
+		advanced.disabled = !advanced.disabled;
+		document.getElementById("generalFilters").disabled = advanced.disabled;
 		$("#advanced").toggle("slow");
 	}
 });
@@ -125,22 +159,5 @@ $(document).ready(function () {
 		return true;
 	});
 });
-
-function callformpart(file, id) {
-	// check first that the element is not there already
-	var myElem = document.getElementById(id);
-	// if it is not there, load it
-	if (myElem === null) {
-		$.ajax(file, {
-			success: function (data) {
-				//console.log(data)
-				$("#filters").append(data);
-			},
-		});
-	}
-	// else it has already been loaded, therefore simply show it.
-	var jid = "#" + id;
-	$(jid).toggle();
-}
 
 /*remove or disable text box for sparql and xpath not to confuse usage.*/

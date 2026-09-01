@@ -175,7 +175,7 @@ declare function q:querytype($node as node(), $model as map(*)) {
  :)
 declare function q:searchTypeFieldset($node as node(), $model as map(*), $expected-type as xs:string) as element() {
 	element {node-name($node)} {
-		$node/@* except $node/@class,
+		templates:filter-attributes($node, $model) except $node/@class,
 		let $class := string($node/@class)
 		return if (request:get-parameter("searchType", ()) = $expected-type) then
 			attribute class { normalize-space(replace($class, "w3-hide", "")) }
@@ -186,11 +186,63 @@ declare function q:searchTypeFieldset($node as node(), $model as map(*), $expect
 };
 
 (:~
+ : Request parameter names the ten "#fields" field-scoped search rows
+ : (q:fieldInputXXX) can submit.
+ :)
+declare %private variable $q:field-search-params := (
+	"signature-field",
+	"decoDesc-field",
+	"handDesc-field",
+	"binding-field",
+	"supportDesc-field",
+	"msContent-field",
+	"text-field",
+	"colophon-field",
+	"incipit-field",
+	"explicit-field",
+	"additions-field",
+	"title-field",
+	"place-field",
+	"person-field"
+);
+
+(:~
+ : Reveals "#fields" when any field-scoped search row is submitted.
+ : Previously guarded by q:searchTypeFieldset checking searchType =
+ : "fields", a value #SType's real options never include - that guard
+ : could never open on any real request.
+ :)
+declare function q:fieldsSection($node as node(), $model as map(*)) as element() {
+	element {node-name($node)} {
+		templates:filter-attributes($node, $model) except $node/@class,
+		let $class := string($node/@class)
+		return if (q:any-active($q:field-search-params!request:get-parameter(., ()))) then
+			attribute class { normalize-space(replace($class, "w3-hide", "")) }
+		else
+			$node/@class,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Request parameter names the "General filters" block itself (ident/
+ : termkey/changewho/dateRange) can submit - deliberately excludes
+ : "work-types", which lives in its own separate visual block above
+ : "General filters" and is a checkbox (never has a non-blank markup
+ : default, so it doesn't need this section's own disabled-fieldset
+ : treatment - see q:generalFiltersSection below).
+ :)
+declare %private variable $q:general-fields-only-params := ("ident", "termkey", "changewho", "dateRange");
+
+(:~
  : Request parameter names for the "#filters" panel's own top-level
  : fields (outside any of the four per-collection sections below) - the
- : item-type checkboxes and the "General filters" block.
+ : item-type checkboxes and the "General filters" block. Used only for
+ : q:filtersPanelFieldset's own outer reveal - "work-types" belongs here
+ : (the panel should open if only a work-type is checked) even though it
+ : doesn't belong in $q:general-fields-only-params above.
  :)
-declare %private variable $q:general-filter-params := ("work-types", "ident", "termkey", "changewho", "dateRange");
+declare %private variable $q:general-filter-params := ("work-types", $q:general-fields-only-params);
 
 (:~
  : Request parameter names "#manuscriptsFilters" can submit. Keep in
@@ -279,25 +331,25 @@ declare %private variable $q:filters-panel-params := (
 );
 
 (:~
- : Shared @style-reveal shape behind q:filtersPanelFieldset and the four
- : q:xxxFiltersSection functions below - split out as pure rendering
- : logic (given $active directly) so it's unit-testable without a live
- : request, same reasoning as q:rangeInput-impl. Deliberately keyed on
- : the inline `style` attribute rather than a "w3-hide" class: both
- : selectForm.js's "+" click handler and initCollectionFilter()'s
- : `.show()`/`.hide()` toggle these elements via genuine jQuery, which
- : only ever writes an inline `style.display` - it cannot override a CSS
- : class rule declared `!important` (w3.css's `.w3-hide` is), so a
- : class-based default here would silently break those live handlers.
+ : Shared reveal shape for the panel and its section-reveal functions.
+ : $node must be a <fieldset>: disabling it excludes every descendant
+ : control from submission, unlike @style alone - #gsf is one form
+ : wrapping every field, and CSS display:none doesn't stop a hidden
+ : field's markup default from being resubmitted. @style/@disabled
+ : (not a class) since selectForm.js/filters.js toggle these elements
+ : via jQuery, which only writes inline attributes - it can't override
+ : w3.css's `!important` `.w3-hide` class.
  :
- : @param $active whether this section/panel has a real filter value to restore
+ : @param $active whether this section/panel has a submitted value to restore
+ : @return $node with @style/@disabled stripped when active, kept when not
  :)
 declare function q:sectionReveal($node as node(), $model as map(*), $active as xs:boolean) as element() {
 	element {node-name($node)} {
-		$node/@* except $node/@style,
+		templates:filter-attributes($node, $model) except ($node/@style, $node/@disabled),
 		if ($active) then (
-		) else
-			$node/@style,
+		) else (
+			$node/@style, $node/@disabled
+		),
 		$node/node()!templates:process(., $model)
 	}
 };
@@ -311,14 +363,37 @@ declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as el
 };
 
 (:~
- : Reveals "#manuscriptsFilters" server-side when any of its own fields
- : has a submitted value - deliberately ignores "#collectionfilter"'s
- : own dropdown value (a client-only convenience with no persisted
- : state, never itself submitted), same as app:worksFiltersSection's own
- : precedent for as.html's equivalent dropdown.
+ : Reveals "#manuscriptsFilters" when any of its own fields is submitted.
+ : Ignores "#collectionfilter"'s dropdown value - unpersisted, purely
+ : client-side.
  :)
+(:~
+ : Every $q:manuscripts-filter-params name resolved from the request,
+ : computed once and threaded to this section's children via $model
+ : (key "mssFieldValues") - q:includeMssRangeIndexesFilters/
+ : q:includeMssPersRoles/q:includeRoles read it instead of each taking
+ : their own positional param per field name, which both avoids
+ : templates:call's 20-parameter arity cap (as.html's
+ : app:manuscriptsFiltersSection hit exactly this in production once
+ : this list grew past it) and keeps the field-name list itself in one
+ : place.
+ :)
+declare %private function q:manuscripts-field-values() as map(*) {
+	map:merge($q:manuscripts-filter-params!map:entry(., request:get-parameter(., ())))
+};
+
 declare function q:manuscriptsFiltersSection($node as node(), $model as map(*)) as element() {
-	q:sectionReveal($node, $model, q:any-active($q:manuscripts-filter-params!request:get-parameter(., ())))
+	let $values := q:manuscripts-field-values()
+	let $model2 := map:merge(($model, map {"mssFieldValues": $values}))
+	return q:sectionReveal($node, $model2, q:any-active(map:keys($values)!$values(.)))
+};
+
+(:~
+ : Reveals "General filters" (ident/termkey/changewho/dateRange) when any
+ : is submitted - see q:manuscriptsFiltersSection.
+ :)
+declare function q:generalFiltersSection($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:general-fields-only-params!request:get-parameter(., ())))
 };
 
 (:~
@@ -359,13 +434,20 @@ declare function q:placesFiltersSection($node as node(), $model as map(*)) as el
  : @param $position which submitted value to use, 1-based (data-template-position)
  : @return $node with @value set to the submitted value, or unchanged when nothing was submitted at that position
  :)
+(:~
+ : Rebuilds $node with data-template/data-template-* markers stripped, matching templates:filter-attributes.
+ :)
+declare %private function q:strip-markers($node as element(), $model as map(*)) as element() {
+	element {node-name($node)} { templates:filter-attributes($node, $model), $node/node() }
+};
+
 declare function q:rangeInput(
 	$node as node(),
 	$model as map(*),
 	$name as xs:string,
 	$position as xs:integer
 ) as element() {
-	q:rangeInput-impl($node, request:get-parameter($name, ()), $position)
+	q:strip-markers(q:rangeInput-impl($node, request:get-parameter($name, ()), $position), $model)
 };
 
 (:~
@@ -391,7 +473,7 @@ declare function q:rangeInput-impl($node as node(), $submitted as xs:string*, $p
  : @return $node with @checked set when its own @value was submitted
  :)
 declare function q:checkboxEcho($node as node(), $model as map(*), $name as xs:string) as element() {
-	q:checkboxEcho-impl($node, request:get-parameter($name, ()))
+	q:strip-markers(q:checkboxEcho-impl($node, request:get-parameter($name, ())), $model)
 };
 
 (:~
@@ -3979,25 +4061,20 @@ declare function q:formatOption($rangeindexname, $key, $count) {
 };
 
 (:~
- : Shared shape behind every "server-render this newSearch.html advanced
- : filter section when it has state to restore" function - mirrors
- : app:include-facet-form (modules/app.xqm) exactly, for the same reason:
- : each of these sections wraps a corpus-scanning lookup (a `q:datalist`
- : range-index facet list, or a full `$q:col//` scan for
- : q:MssPersRoles/q:WorkAuthors/q:tabot), and rendering it unconditionally
- : on every newSearch.html load - active filter or not - would tax every
- : request for a section most requests never touch. Renders nothing at
- : all when inactive, not the fragment hidden via CSS.
- :
- : A live "+"-then-open-this-section click with no prior state still
- : works: filters.js's callformpart() AJAX-fetches $formfile directly
- : (routed through templating, unlike the old filters.html.txt fragment
- : it replaces) exactly when the section's root id isn't already in the
- : DOM, the same fallback as.html already relies on.
+ : Shared shape behind every "#includeXXX" facet guard: skips a
+ : section's corpus-scanning lookup entirely when inactive, rather than
+ : rendering it and hiding it via CSS - active filter or not, that
+ : lookup would otherwise tax every newSearch.html request. Same
+ : reasoning as app:include-facet-form (modules/app.xqm), different
+ : return shape: always returns an id-carrying element, an empty
+ : placeholder when inactive rather than nothing at all, since
+ : loadFacetFragment() (resources/js/selectForm.js) needs a stable
+ : anchor to test presence against for its own live-fetch fallback.
  :
  : @param $formfile the form fragment's path, e.g. "forms/formTabot.html"
+ : @param $anchor-id the placeholder id when inactive, matching $formfile's own root id when active
  : @param $active whether this section has a real filter value to restore
- : @return the form fragment when $active, otherwise nothing
+ : @return $formfile's included content when $active, an empty placeholder otherwise
  :)
 declare %private function q:include-facet-form(
 	$node as node(),
@@ -4010,12 +4087,9 @@ declare %private function q:include-facet-form(
 		lib:include($node, $model, $formfile)
 	else
 		(:
-		 : an empty, id-carrying placeholder rather than nothing at all -
-		 : loadFacetFragment() (resources/js/filters.js) needs a stable
-		 : anchor to test for presence against and to append a live-fetched
-		 : fragment into, and $formfile's own root always carries this same
-		 : id when it *is* included, so an empty div with it costs nothing
-		 : query-wise but keeps the anchor point consistent either way
+		 : empty id-carrying placeholder - loadFacetFragment()
+		 : (resources/js/selectForm.js) needs a stable anchor to test
+		 : presence against and replace when live-fetching
 		 :)
 		<div id="{ $anchor-id }" />
 };
@@ -4028,6 +4102,9 @@ declare %private function q:any-active($values as xs:string*) as xs:boolean {
 	exists($values[normalize-space(.) != ""])
 };
 
+(:~
+ : Reveals "#generalRangeIndexes" when ident/termkey/changewho is submitted.
+ :)
 declare function q:includeGeneralRangeIndexesFilters(
 	$node as node(),
 	$model as map(*),
@@ -4044,101 +4121,64 @@ declare function q:includeGeneralRangeIndexesFilters(
 	)
 };
 
-declare function q:includeMssRangeIndexesFilters(
-	$node as node(),
-	$model as map(*),
-	$script as xs:string*,
-	$bindingtype as xs:string*,
-	$custEventsubtype as xs:string*,
-	$colophon-subtype as xs:string*,
-	$incipit-subtype as xs:string*,
-	$explicit-subtype as xs:string*,
-	$itemtype as xs:string*,
-	$desctype as xs:string*,
-	$materialkey as xs:string*,
-	$decoNtype as xs:string*,
-	$repositorytext as xs:string*,
-	$form as xs:string*,
-	$writtenLines as xs:string*,
-	$collectiontext as xs:string*
-) as element() {
-	q:include-facet-form(
+(:~
+ : Reveals "#mssRangeIndexes" when any $q:paramargs form="m" field
+ : (minus "persrole", its own facet below) is submitted. Field names come
+ : from $model("mssFieldValues") - see q:manuscripts-field-values - not
+ : positional params, so this list has one source (paramargs.xml)
+ : instead of two kept in sync by hand.
+ :)
+declare function q:includeMssRangeIndexesFilters($node as node(), $model as map(*)) as element() {
+	let $values := $model("mssFieldValues")
+	let $indexnames := $q:paramargs/rangeindex[@form = "m"]/@name/string()[not(. = "persrole")]
+	return q:include-facet-form(
 		$node,
 		$model,
 		"forms/formMssRangeIndexes.html",
 		"mssRangeIndexes",
-		q:any-active(
-			(
-				$script,
-				$bindingtype,
-				$custEventsubtype,
-				$colophon-subtype,
-				$incipit-subtype,
-				$explicit-subtype,
-				$itemtype,
-				$desctype,
-				$materialkey,
-				$decoNtype,
-				$repositorytext,
-				$form,
-				$writtenLines,
-				$collectiontext
-			)
-		)
+		q:any-active($indexnames!$values(.))
 	)
 };
 
 (:~
- : One explicit param per role name - the same 12 labels q:MssPersRoles'
- : own switch knows how to name - rather than a request:get-parameter
- : loop, so this stays a plain, directly-callable/testable function like
- : every other q:includeXXX guard (auto-bound by the templating engine in
- : production the same way either way).
+ : Reveals "#mssPersRoles" - and runs its unindexed per-role corpus scan
+ : (q:MssPersRoles) - when there's real evidence of a manuscripts
+ : production-role search. "author" alone isn't enough: it's shared with
+ : $q:works-filter-params' own "author" (q:WorkAuthors, an unrelated
+ : work-authorship search), so a pure Works search submitting only
+ : "author" must not trigger this scan. Requires either an unambiguous
+ : role name, or "author" together with "mss" explicitly in work-types.
  :)
-declare function q:includeMssPersRoles(
-	$node as node(),
-	$model as map(*),
-	$translator as xs:string*,
-	$sponsor as xs:string*,
-	$scribe as xs:string*,
-	$presentCustodian as xs:string*,
-	$patron as xs:string*,
-	$owner as xs:string*,
-	$other as xs:string*,
-	$mainCollector as xs:string*,
-	$illustrator as xs:string*,
-	$bequeather as xs:string*,
-	$author as xs:string*,
-	$donor as xs:string*
-) as element() {
-	q:include-facet-form(
-		$node,
-		$model,
-		"forms/formMssPersRoles.html",
-		"mssPersRoles",
-		q:any-active(
-			(
-				$translator,
-				$sponsor,
-				$scribe,
-				$presentCustodian,
-				$patron,
-				$owner,
-				$other,
-				$mainCollector,
-				$illustrator,
-				$bequeather,
-				$author,
-				$donor
-			)
-		)
+declare function q:includeMssPersRoles($node as node(), $model as map(*)) as element() {
+	let $values := $model("mssFieldValues")
+	let $unambiguous-roles := (
+		"translator",
+		"sponsor",
+		"scribe",
+		"presentCustodian",
+		"patron",
+		"owner",
+		"other",
+		"mainCollector",
+		"illustrator",
+		"bequeather",
+		"donor"
 	)
+	let $active := q:any-active($unambiguous-roles!$values(.)) or
+		(q:any-active($values("author")) and "mss" = request:get-parameter("work-types", ()))
+	return q:include-facet-form($node, $model, "forms/formMssPersRoles.html", "mssPersRoles", $active)
 };
 
+(:~
+ : Reveals "#rolesLookup" when persrole is submitted.
+ :)
 declare function q:includeRoles($node as node(), $model as map(*), $persrole as xs:string*) as element() {
 	q:include-facet-form($node, $model, "forms/formRoles.html", "rolesLookup", q:any-active($persrole))
 };
 
+(:~
+ : Reveals "#worksRangeIndexes" when divtype/divsubtype/witnesstext is submitted.
+ :)
 declare function q:includeWorksRangeIndexesFilters(
 	$node as node(),
 	$model as map(*),
@@ -4155,10 +4195,16 @@ declare function q:includeWorksRangeIndexesFilters(
 	)
 };
 
+(:~
+ : Reveals "#workAuthors" when author is submitted.
+ :)
 declare function q:includeWorkAuthors($node as node(), $model as map(*), $author as xs:string*) as element() {
 	q:include-facet-form($node, $model, "forms/formWorkAuthors.html", "workAuthors", q:any-active($author))
 };
 
+(:~
+ : Reveals "#personsRangeIndexes" when persontype/occtype/faithtype is submitted.
+ :)
 declare function q:includePersonsRangeIndexesFilters(
 	$node as node(),
 	$model as map(*),
@@ -4175,6 +4221,9 @@ declare function q:includePersonsRangeIndexesFilters(
 	)
 };
 
+(:~
+ : Reveals "#placesRangeIndexes" when regiontext/settlementtext/countrytext/placetype is submitted.
+ :)
 declare function q:includePlacesRangeIndexesFilters(
 	$node as node(),
 	$model as map(*),
@@ -4192,6 +4241,9 @@ declare function q:includePlacesRangeIndexesFilters(
 	)
 };
 
+(:~
+ : Reveals "#tabotLookup" when tabot is submitted.
+ :)
 declare function q:includeTabot($node as node(), $model as map(*), $tabot as xs:string*) as element() {
 	q:include-facet-form($node, $model, "forms/formTabot.html", "tabotLookup", q:any-active($tabot))
 };

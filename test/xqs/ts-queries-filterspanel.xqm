@@ -29,16 +29,19 @@ import module namespace templates = "http://exist-db.org/xquery/html-templating"
 declare %private function tsfilterspanel:model() as map(*) {
 	map {
 		$templates:CONFIGURATION:
-			map {
-				$templates:CONFIG_FN_RESOLVER:
-					function ($name as xs:string, $arity as xs:integer) as function(*)? {
-						try { function-lookup(xs:QName($name), $arity) } catch * { () }
-					},
-				$templates:CONFIG_PARAM_RESOLVER: function ($var as xs:string) as item()* { () },
-				$templates:CONFIG_USE_CLASS_SYNTAX: false(),
-				$templates:CONFIG_STOP_ON_ERROR: false(),
-				$templates:CONFIG_APP_ROOT: $config:app-root
-			}
+			map:merge(
+				(
+					config:template-apply-config(),
+					map {
+						$templates:CONFIG_FN_RESOLVER:
+							function ($name as xs:string, $arity as xs:integer) as function(*)? {
+								try { function-lookup(xs:QName($name), $arity) } catch * { () }
+							},
+						$templates:CONFIG_PARAM_RESOLVER: function ($var as xs:string) as item()* { () },
+						$templates:CONFIG_APP_ROOT: $config:app-root
+					}
+				)
+			)
 	}
 };
 
@@ -52,55 +55,34 @@ declare %test:assertTrue function tsfilterspanel:includeGeneralRangeIndexesFilte
 	return $out/@id = "generalRangeIndexes" and exists($out/*)
 };
 
+declare %private function tsfilterspanel:model-with-mss-values($values as map(*)) as map(*) {
+	map:merge((tsfilterspanel:model(), map {"mssFieldValues": $values}))
+};
+
 declare %test:assertTrue function tsfilterspanel:includeMssRangeIndexesFilters-inactive-is-empty-placeholder() {
-	let $out := q:includeMssRangeIndexesFilters(<div />, map {}, (), (), (), (), (), (), (), (), (), (), (), (), (), ())
+	let $out := q:includeMssRangeIndexesFilters(<div />, tsfilterspanel:model-with-mss-values(map {}))
 	return $out/@id = "mssRangeIndexes" and empty($out/*)
 };
 
 declare %test:assertTrue function tsfilterspanel:includeMssRangeIndexesFilters-active-renders-content() {
-	let $out := q:includeMssRangeIndexesFilters(
-		<div />,
-		tsfilterspanel:model(),
-		"geez",
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		()
-	)
+	let $out := q:includeMssRangeIndexesFilters(<div />, tsfilterspanel:model-with-mss-values(map {"script": "geez"}))
 	return $out/@id = "mssRangeIndexes" and exists($out/*)
 };
 
 declare %test:assertTrue function tsfilterspanel:includeMssPersRoles-inactive-is-empty-placeholder() {
-	let $out := q:includeMssPersRoles(<div />, map {}, (), (), (), (), (), (), (), (), (), (), (), ())
+	let $out := q:includeMssPersRoles(<div />, tsfilterspanel:model-with-mss-values(map {}))
 	return $out/@id = "mssPersRoles" and empty($out/*)
 };
 
+(:
+ : author-collision fix: q:includeMssPersRoles' "author" branch also reads
+ : work-types via request:get-parameter directly (not $model), so it
+ : can't be exercised from a direct XQSuite call - see
+ : newSearch-collectionSections.cy.js for the live coverage.
+ :)
+
 declare %test:assertTrue function tsfilterspanel:includeMssPersRoles-active-renders-content() {
-	let $out := q:includeMssPersRoles(
-		<div />,
-		tsfilterspanel:model(),
-		(),
-		(),
-		"scribe",
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		(),
-		()
-	)
+	let $out := q:includeMssPersRoles(<div />, tsfilterspanel:model-with-mss-values(map {"scribe": "yes"}))
 	return $out/@id = "mssPersRoles" and exists($out/*)
 };
 
@@ -154,17 +136,41 @@ declare %test:assertTrue function tsfilterspanel:blank-strings-do-not-count-as-a
 	return empty($out/*)
 };
 
-declare %test:assertTrue function tsfilterspanel:sectionReveal-strips-style-when-active() {
-	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, true())
-	return empty($out/@style)
+declare %private function tsfilterspanel:fieldset() as element(fieldset) {
+	<fieldset
+		data-template="q:manuscriptsFiltersSection"
+		disabled="disabled"
+		id="manuscriptsFilters"
+		style="display: none" />
 };
 
-declare %test:assertEquals("display: none") function tsfilterspanel:sectionReveal-keeps-style-when-inactive() {
-	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, false())
-	return string($out/@style)
+declare %test:assertTrue function tsfilterspanel:sectionReveal-strips-style-and-disabled-when-active() {
+	let $out := q:sectionReveal(tsfilterspanel:fieldset(), map {}, true())
+	return empty($out/@style) and empty($out/@disabled)
+};
+
+declare %test:assertTrue function tsfilterspanel:sectionReveal-keeps-style-and-disabled-when-inactive() {
+	let $out := q:sectionReveal(tsfilterspanel:fieldset(), map {}, false())
+	return $out/@style = "display: none" and $out/@disabled = "disabled"
 };
 
 declare %test:assertEquals("manuscriptsFilters") function tsfilterspanel:sectionReveal-preserves-other-attributes() {
-	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, true())
+	let $out := q:sectionReveal(tsfilterspanel:fieldset(), map {}, true())
 	return string($out/@id)
 };
+
+declare %test:assertTrue function tsfilterspanel:sectionReveal-strips-data-template-attrs-with-real-config() {
+	let $out := q:sectionReveal(tsfilterspanel:fieldset(), tsfilterspanel:model(), true())
+	return empty($out/@data-template)
+};
+
+declare %test:assertTrue function tsfilterspanel:sectionReveal-without-config-falls-back-to-keeping-data-template() {
+	let $out := q:sectionReveal(tsfilterspanel:fieldset(), map {}, true())
+	return $out/@data-template = "q:manuscriptsFiltersSection"
+};
+(:
+ : q:fieldsSection/q:generalFiltersSection read request:get-parameter
+ : internally (via q:sectionReveal/q:any-active) - not directly callable
+ : from XQSuite (no live request bound). Covered live instead: see
+ : newSearch-fieldsReveal.cy.js and newSearch-collectionSections.cy.js.
+ :)

@@ -396,7 +396,13 @@
 					</div>
 				</fieldset>
 				<fieldset id="filters" class="w3-container" style="border: none">
-					<div class="w3-padding" id="advanced" style="display: none" data-template="q:filtersPanelFieldset">
+					<fieldset
+						class="w3-padding"
+						id="advanced"
+						style="border: none; display: none"
+						disabled="disabled"
+						data-template="q:filtersPanelFieldset"
+					>
 						<div class="w3-container">
 							<div class="w3-container w3-half w3-left-align">
 								<div
@@ -489,35 +495,42 @@
 								</div>
 								<div class="w3-row">
 									<div class="w3-padding">
-										<label>General filters</label>
-										<br />
-										<div data-template="q:includeGeneralRangeIndexesFilters" />
-										<div class="w3-padding">
-											<label>Years Range</label>
+										<fieldset
+											id="generalFilters"
+											style="border: none; margin: 0; padding: 0"
+											disabled="disabled"
+											data-template="q:generalFiltersSection"
+										>
+											<label>General filters</label>
 											<br />
-											<input
-												id="dateFrom"
-												class="w3-input w3-border w3-half"
-												type="number"
-												name="dateRange"
-												placeholder="from"
-												value="0001"
-												data-template="q:rangeInput"
-												data-template-name="dateRange"
-												data-template-position="1"
-											/>
-											<input
-												id="dateTo"
-												class="w3-input w3-border w3-half"
-												type="number"
-												name="dateRange"
-												placeholder="to"
-												value="2000"
-												data-template="q:rangeInput"
-												data-template-name="dateRange"
-												data-template-position="2"
-											/>
-										</div>
+											<div data-template="q:includeGeneralRangeIndexesFilters" />
+											<div class="w3-padding">
+												<label>Years Range</label>
+												<br />
+												<input
+													id="dateFrom"
+													class="w3-input w3-border w3-half"
+													type="number"
+													name="dateRange"
+													placeholder="from"
+													value="0001"
+													data-template="q:rangeInput"
+													data-template-name="dateRange"
+													data-template-position="1"
+												/>
+												<input
+													id="dateTo"
+													class="w3-input w3-border w3-half"
+													type="number"
+													name="dateRange"
+													placeholder="to"
+													value="2000"
+													data-template="q:rangeInput"
+													data-template-name="dateRange"
+													data-template-position="2"
+												/>
+											</div>
+										</fieldset>
 									</div>
 								</div>
 							</div>
@@ -536,10 +549,11 @@
 										</select>
 									</div>
 								</div>
-								<div
+								<fieldset
 									class="w3-row"
 									id="manuscriptsFilters"
-									style="display: none"
+									style="border: none; display: none"
+									disabled="disabled"
 									data-template="q:manuscriptsFiltersSection"
 								>
 									<label>Manuscripts Filters</label>
@@ -906,15 +920,27 @@
 									<div class="w3-padding">
 										<div data-template="q:includeMssRangeIndexesFilters" />
 									</div>
-								</div>
-								<div class="w3-row" id="worksFilters" style="display: none" data-template="q:worksFiltersSection">
+								</fieldset>
+								<fieldset
+									class="w3-row"
+									id="worksFilters"
+									style="border: none; display: none"
+									disabled="disabled"
+									data-template="q:worksFiltersSection"
+								>
 									<div class="w3-padding">
 										<label>Works Filters</label>
 										<div data-template="q:includeWorksRangeIndexesFilters" />
 										<div data-template="q:includeWorkAuthors" />
 									</div>
-								</div>
-								<div class="w3-row" id="persFilters" style="display: none" data-template="q:persFiltersSection">
+								</fieldset>
+								<fieldset
+									class="w3-row"
+									id="persFilters"
+									style="border: none; display: none"
+									disabled="disabled"
+									data-template="q:persFiltersSection"
+								>
 									<div class="w3-padding">
 										<label>Persons Filters</label>
 										<div
@@ -1027,8 +1053,14 @@
 											/>
 										</div>
 									</div>
-								</div>
-								<div class="w3-row" id="placesFilters" style="display: none" data-template="q:placesFiltersSection">
+								</fieldset>
+								<fieldset
+									class="w3-row"
+									id="placesFilters"
+									style="border: none; display: none"
+									disabled="disabled"
+									data-template="q:placesFiltersSection"
+								>
 									<div class="w3-padding">
 										<label>Places Filters</label>
 										<div data-template="q:includePlacesRangeIndexesFilters" />
@@ -1060,7 +1092,7 @@
 											data-template-position="2"
 										/>
 									</div>
-								</div>
+								</fieldset>
 								<img
 									id="loadingform"
 									src="resources/images/giphy.gif"
@@ -1069,15 +1101,9 @@
 								/>
 							</div>
 						</div>
-					</div>
+					</fieldset>
 				</fieldset>
-				<fieldset
-					id="fields"
-					class="w3-container w3-hide"
-					style="border: none"
-					data-template="q:searchTypeFieldset"
-					data-template-expected-type="fields"
-				>
+				<fieldset id="fields" class="w3-container w3-hide" style="border: none" data-template="q:fieldsSection">
 					<div class="w3-padding">
 						<p>
 							Here you can differentiate your search by looking at the text of constructed strings from specific
