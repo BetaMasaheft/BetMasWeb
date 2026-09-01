@@ -2378,77 +2378,187 @@ declare %private function q:lucene2xml($node as item(), $mode as xs:string) {
 			$node
 };
 
-(: functions generating serch fields for the for form with an associated operator :)
-declare function q:fieldinputTemplate($name, $parm) {
+(:~
+ : Shared row for the "#fields" field-scoped search inputs - was
+ : hardcoded to always show "AND" selected and never echoed a submitted
+ : search string, so a reload of e.g. ?title-field=foo&title-operator-field=OR
+ : silently reset both to their defaults.
+ :
+ : @param $value the field's submitted search string, if any
+ : @param $operator the field's submitted operator ("AND"/"OR"); anything but "OR" is treated as the "AND" default
+ :)
+declare function q:fieldinputTemplate(
+	$name as xs:string,
+	$parm as xs:string,
+	$value as xs:string*,
+	$operator as xs:string*
+) as element() {
 	<div class="w3-row">
 		<label class="w3-col" style="width:10%">{ $name }</label>
 		<br />
 		<select class="w3-select w3-col" name="{ $parm }-operator-field" style="width:10%">
-			<option selected="selected" value="AND">AND</option>
-			<option value="OR">OR</option>
+			<option value="AND">
+				{
+					if ($operator = "OR") then (
+					) else
+						attribute selected { "selected" }
+				}AND</option>
+			<option value="OR">
+				{
+					if ($operator = "OR") then
+						attribute selected { "selected" }
+					else (
+					)
+				}OR</option>
 		</select>
 		<input
 			class="w3-input w3-col "
 			name="{ $parm }-field"
 			placeholder="type here the text you want to search into tei:{ $parm }"
-			style="width:80%" />
+			style="width:80%"
+			value="{ $value }" />
 	</div>
 };
 
-declare function q:fieldInputSignature($node as node(), $model as map(*), $signature-field as xs:string*) {
-	q:fieldinputTemplate("Signature", "signature")
+declare function q:fieldInputSignature(
+	$node as node(),
+	$model as map(*),
+	$signature-field as xs:string*,
+	$signature-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Signature", "signature", $signature-field, $signature-operator-field)
 };
 
-declare function q:fieldInputDecoDesc($node as node(), $model as map(*), $decoDesc-field as xs:string*) {
-	q:fieldinputTemplate("Decorations", "decoDesc")
+declare function q:fieldInputDecoDesc(
+	$node as node(),
+	$model as map(*),
+	$decoDesc-field as xs:string*,
+	$decoDesc-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Decorations", "decoDesc", $decoDesc-field, $decoDesc-operator-field)
 };
 
-declare function q:fieldInputHandDesc($node as node(), $model as map(*), $handDesc-field as xs:string*) {
-	q:fieldinputTemplate("Palaeography", "handDesc")
+declare function q:fieldInputHandDesc(
+	$node as node(),
+	$model as map(*),
+	$handDesc-field as xs:string*,
+	$handDesc-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Palaeography", "handDesc", $handDesc-field, $handDesc-operator-field)
 };
 
-declare function q:fieldInputBinding($node as node(), $model as map(*), $binding-field as xs:string*) {
-	q:fieldinputTemplate("Binding", "binding")
+declare function q:fieldInputBinding(
+	$node as node(),
+	$model as map(*),
+	$binding-field as xs:string*,
+	$binding-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Binding", "binding", $binding-field, $binding-operator-field)
 };
 
-declare function q:fieldInputSupportDesc($node as node(), $model as map(*), $supportDesc-field as xs:string*) {
-	q:fieldinputTemplate("Support", "supportDesc")
+declare function q:fieldInputSupportDesc(
+	$node as node(),
+	$model as map(*),
+	$supportDesc-field as xs:string*,
+	$supportDesc-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Support", "supportDesc", $supportDesc-field, $supportDesc-operator-field)
 };
 
-declare function q:fieldInputMsContent($node as node(), $model as map(*), $msContent-field as xs:string*) {
-	q:fieldinputTemplate("Contents", "msContent")
+declare function q:fieldInputMsContent(
+	$node as node(),
+	$model as map(*),
+	$msContent-field as xs:string*,
+	$msContent-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Contents", "msContent", $msContent-field, $msContent-operator-field)
 };
 
-declare function q:fieldInputText($node as node(), $model as map(*), $text-field as xs:string*) {
-	q:fieldinputTemplate("Text / Transcription", "text")
+declare function q:fieldInputText(
+	$node as node(),
+	$model as map(*),
+	$text-field as xs:string*,
+	$text-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Text / Transcription", "text", $text-field, $text-operator-field)
 };
 
-declare function q:fieldInputColophon($node as node(), $model as map(*), $colophon-field as xs:string*) {
-	q:fieldinputTemplate("Colophon (as recorded in the catalogue record)", "colophon")
+declare function q:fieldInputColophon(
+	$node as node(),
+	$model as map(*),
+	$colophon-field as xs:string*,
+	$colophon-operator-field as xs:string*
+) {
+	q:fieldinputTemplate(
+		"Colophon (as recorded in the catalogue record)",
+		"colophon",
+		$colophon-field,
+		$colophon-operator-field
+	)
 };
 
-declare function q:fieldInputIncipit($node as node(), $model as map(*), $incipit-field as xs:string*) {
-	q:fieldinputTemplate("Incipit (as recorded in the catalogue record)", "incipit")
+declare function q:fieldInputIncipit(
+	$node as node(),
+	$model as map(*),
+	$incipit-field as xs:string*,
+	$incipit-operator-field as xs:string*
+) {
+	q:fieldinputTemplate(
+		"Incipit (as recorded in the catalogue record)",
+		"incipit",
+		$incipit-field,
+		$incipit-operator-field
+	)
 };
 
-declare function q:fieldInputExplicit($node as node(), $model as map(*), $explicit-field as xs:string*) {
-	q:fieldinputTemplate("Explicit (as recorded in the catalogue record)", "explicit")
+declare function q:fieldInputExplicit(
+	$node as node(),
+	$model as map(*),
+	$explicit-field as xs:string*,
+	$explicit-operator-field as xs:string*
+) {
+	q:fieldinputTemplate(
+		"Explicit (as recorded in the catalogue record)",
+		"explicit",
+		$explicit-field,
+		$explicit-operator-field
+	)
 };
 
-declare function q:fieldInputAdditions($node as node(), $model as map(*), $additions-field as xs:string*) {
-	q:fieldinputTemplate("Additions", "additions")
+declare function q:fieldInputAdditions(
+	$node as node(),
+	$model as map(*),
+	$additions-field as xs:string*,
+	$additions-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Additions", "additions", $additions-field, $additions-operator-field)
 };
 
-declare function q:fieldInputTitle($node as node(), $model as map(*), $titleStmt-field as xs:string*) {
-	q:fieldinputTemplate("Titles", "title")
+declare function q:fieldInputTitle(
+	$node as node(),
+	$model as map(*),
+	$title-field as xs:string*,
+	$title-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Titles", "title", $title-field, $title-operator-field)
 };
 
-declare function q:fieldInputPlace($node as node(), $model as map(*), $place-field as xs:string*) {
-	q:fieldinputTemplate("Place", "place")
+declare function q:fieldInputPlace(
+	$node as node(),
+	$model as map(*),
+	$place-field as xs:string*,
+	$place-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Place", "place", $place-field, $place-operator-field)
 };
 
-declare function q:fieldInputPerson($node as node(), $model as map(*), $person-field as xs:string*) {
-	q:fieldinputTemplate("Person / Group", "person")
+declare function q:fieldInputPerson(
+	$node as node(),
+	$model as map(*),
+	$person-field as xs:string*,
+	$person-operator-field as xs:string*
+) {
+	q:fieldinputTemplate("Person / Group", "person", $person-field, $person-operator-field)
 };
 
 declare %templates:wrap function q:charts($node as node()*, $model as map(*)) {
