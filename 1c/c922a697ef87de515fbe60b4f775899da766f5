@@ -1,0 +1,62 @@
+newSearch.html
+  s_38ac4e737ca8c4::t_e3f597fe14c709 936-943
+  s_38ac4e737ca8c4::t_73352a7a16789b 923-930
+  s_38ac4e737ca8c4::t_d87a80caef11f4 552,555-556
+  s_38ac4e737ca8c4::t_d388e20338e3ea 498-504,506-533
+  s_38ac4e737ca8c4::t_abaf606638551c 399-405
+  s_38ac4e737ca8c4::t_f57c33dbfa5957 1104
+  s_38ac4e737ca8c4::t_ac3c3c0341b921 1106
+  s_38ac4e737ca8c4::t_bdd5f446e0a67c 1056-1063
+  s_38ac4e737ca8c4::t_26a9fd8115c116 1095
+test/cypress/e2e/newSearch-searchTypeReveal.cy.js
+  s_38ac4e737ca8c4::t_d54f17ee0c7e85 3,8-13,36
+modules/queries.xqm
+  s_38ac4e737ca8c4::t_ac3c3c0341b921 227,351,382,387-388,437-439,4090,4092,4105-4107,4139,4155-4165,4167,4172-4174,4179-4181,4198-4200,4205-4207,4224-4226,4244-4246
+  s_38ac4e737ca8c4::t_23375aa0da7d7d 4064-4072,4075,4077
+  s_38ac4e737ca8c4::t_a87817f8ab9b92 476
+  s_38ac4e737ca8c4::t_64dbd217c51ec4 370-381,383-384,386
+  s_38ac4e737ca8c4::t_bb5046521b8cbf 334-341,343-344
+  s_38ac4e737ca8c4::t_75e674ad7d30da 348,350,352
+  s_38ac4e737ca8c4::t_27e967360deeb6 210-213
+  s_38ac4e737ca8c4::t_772e5f56cceb8e 366-368,389-396
+  s_38ac4e737ca8c4::t_db527dcd9650a0 225,440-443,450
+  s_38ac4e737ca8c4::t_1512af52de4498 4124-4134
+  s_38ac4e737ca8c4::t_ea58bc600f159b 4091
+  s_38ac4e737ca8c4::t_3413d06759d407 4144-4150,4152-4154,4168-4169
+  s_38ac4e737ca8c4::t_2aab285029ab52 178,188-209,214-219
+  s_38ac4e737ca8c4::t_d54b79c68643df 228-236,240-243,245
+  s_38ac4e737ca8c4::t_40bb540e5872cd 220-224,226
+resources/js/selectForm.js
+  s_38ac4e737ca8c4::t_3f6082af3cea5e 67-73,75-76
+  s_38ac4e737ca8c4::t_cd8749dbe276f2 60-66,78-81,84-88,90,95,99,102
+  s_38ac4e737ca8c4::t_26aff8762d11ea 122-129
+  s_38ac4e737ca8c4::t_aa0447d92827a2 54-56
+test/xqs/ts-queries-filterspanel.xqm
+  s_38ac4e737ca8c4::t_ac3c3c0341b921 32-44,59,68,77-78,81-83,85,140-144,171-172,175-176
+  s_38ac4e737ca8c4::t_068ff6a9ab5f6f 58,60-61,63,73
+  s_38ac4e737ca8c4::t_4b5b932b9eadec 173-174
+  s_38ac4e737ca8c4::t_faa9bfb4b390b9 79-80
+  s_38ac4e737ca8c4::t_aa42b031295992 139,145,147-149,152-154,158,161-170
+  s_38ac4e737ca8c4::t_fe41b41b4cdc40 146
+test/cypress/e2e/newSearch-resubmission.cy.js
+  s_38ac4e737ca8c4::t_c941cdf92041fc 1-15,17-51
+  s_38ac4e737ca8c4::t_e23e67312f3a66 16
+test/cypress/e2e/newSearch-fieldsReveal.cy.js
+  s_38ac4e737ca8c4::t_d6a7c77579eec0 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1cc922a697ef87de515fbe60b4f775899da766f5",
+  "prompts": {},
+  "sessions": {
+    "s_38ac4e737ca8c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6622c5-8ff3-4195-aad8-c75e5bdf0e79",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
