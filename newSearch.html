@@ -412,14 +412,78 @@
 												Repositories.</label
 											>
 											<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="mss" /> Manuscripts<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="work" /> Works<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="nar" /> Narratives<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="pers" /> Persons<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="place" /> Places<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="ins" /> Repositories<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="eth" /> Ethnic Groups<br />
-											<input class="w3-check" type="checkbox" name="work-types" value="studies" /> Studies<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="mss"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Manuscripts<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="work"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Works<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="nar"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Narratives<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="pers"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Persons<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="place"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Places<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="ins"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Repositories<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="eth"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Ethnic Groups<br />
+											<input
+												class="w3-check"
+												type="checkbox"
+												name="work-types"
+												value="studies"
+												data-template="q:checkboxEcho"
+												data-template-name="work-types"
+											/>
+											Studies<br />
 										</div>
 									</div>
 								</div>
@@ -438,6 +502,9 @@
 												name="dateRange"
 												placeholder="from"
 												value="0001"
+												data-template="q:rangeInput"
+												data-template-name="dateRange"
+												data-template-position="1"
 											/>
 											<input
 												id="dateTo"
@@ -446,6 +513,9 @@
 												name="dateRange"
 												placeholder="to"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="dateRange"
+												data-template-position="2"
 											/>
 										</div>
 									</div>
@@ -472,15 +542,52 @@
 										<div class="w3-container">
 											<label>Tick to restrict to manuscripts</label>
 											<br />
-											<input type="checkbox" class="w3-check" name="images" value="all" /> with available images here or
-											linked <br />
-											<input type="checkbox" class="w3-check" name="images" value="bm" /> with available images here
-											(IIIF manifests from other institutions included) <br />
-											<input type="checkbox" class="w3-check" name="images" value="iiif" /> with available images from
-											IIIF manifests from other institutions <br />
-											<input type="checkbox" class="w3-check" name="images" value="bmonly" /> with available images here
+											<input
+												type="checkbox"
+												class="w3-check"
+												name="images"
+												value="all"
+												data-template="q:checkboxEcho"
+												data-template-name="images"
+											/>
+											with available images here or linked <br />
+											<input
+												type="checkbox"
+												class="w3-check"
+												name="images"
+												value="bm"
+												data-template="q:checkboxEcho"
+												data-template-name="images"
+											/>
+											with available images here (IIIF manifests from other institutions included) <br />
+											<input
+												type="checkbox"
+												class="w3-check"
+												name="images"
+												value="iiif"
+												data-template="q:checkboxEcho"
+												data-template-name="images"
+											/>
+											with available images from IIIF manifests from other institutions <br />
+											<input
+												type="checkbox"
+												class="w3-check"
+												name="images"
+												value="bmonly"
+												data-template="q:checkboxEcho"
+												data-template-name="images"
+											/>
+											with available images here
 											<br />
-											<input type="checkbox" class="w3-check" name="images" value="ext" /> with available images linked
+											<input
+												type="checkbox"
+												class="w3-check"
+												name="images"
+												value="ext"
+												data-template="q:checkboxEcho"
+												data-template-name="images"
+											/>
+											with available images linked
 										</div>
 										<div class="w3-container">
 											<label>Height (mm)</label>
@@ -492,6 +599,9 @@
 												name="height"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="height"
+												data-template-position="1"
 											/>
 											<input
 												id="heightMax"
@@ -500,6 +610,9 @@
 												name="height"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="height"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -512,6 +625,9 @@
 												name="width"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="width"
+												data-template-position="1"
 											/>
 											<input
 												id="widthMax"
@@ -520,6 +636,9 @@
 												name="width"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="width"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -532,6 +651,9 @@
 												name="depth"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="depth"
+												data-template-position="1"
 											/>
 											<input
 												id="depthMax"
@@ -540,12 +662,23 @@
 												name="depth"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="depth"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
 											<label>Columns per page</label>
 											<br />
-											<input id="NumberOfcolumns" type="number" class="w3-input w3-border" name="columnsNum" />
+											<input
+												id="NumberOfcolumns"
+												type="number"
+												class="w3-input w3-border"
+												name="columnsNum"
+												data-template="q:rangeInput"
+												data-template-name="columnsNum"
+												data-template-position="1"
+											/>
 										</div>
 									</div>
 									<div class="w3-padding">
@@ -559,6 +692,9 @@
 												name="tmargin"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="tmargin"
+												data-template-position="1"
 											/>
 											<input
 												id="tmarginMax"
@@ -567,6 +703,9 @@
 												name="tmargin"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="tmargin"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -579,6 +718,9 @@
 												name="bmargin"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="bmargin"
+												data-template-position="1"
 											/>
 											<input
 												id="bmarginMax"
@@ -587,6 +729,9 @@
 												name="bmargin"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="bmargin"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -599,6 +744,9 @@
 												name="rmargin"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="rmargin"
+												data-template-position="1"
 											/>
 											<input
 												id="rmarginMax"
@@ -607,6 +755,9 @@
 												name="rmargin"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="rmargin"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -619,6 +770,9 @@
 												name="lmargin"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="lmargin"
+												data-template-position="1"
 											/>
 											<input
 												id="lmarginMax"
@@ -627,6 +781,9 @@
 												name="lmargin"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="lmargin"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-container">
@@ -639,6 +796,9 @@
 												name="intercolumn"
 												placeholder="min"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="intercolumn"
+												data-template-position="1"
 											/>
 											<input
 												id="intercolumnMax"
@@ -647,6 +807,9 @@
 												name="intercolumn"
 												placeholder="max"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="intercolumn"
+												data-template-position="2"
 											/>
 										</div>
 									</div>
@@ -660,6 +823,9 @@
 											name="qn"
 											placeholder="min"
 											value="1"
+											data-template="q:rangeInput"
+											data-template-name="qn"
+											data-template-position="1"
 										/>
 										<input
 											id="quiresMax"
@@ -668,27 +834,61 @@
 											name="qn"
 											placeholder="max"
 											value="100"
+											data-template="q:rangeInput"
+											data-template-name="qn"
+											data-template-position="2"
 										/>
 									</div>
 									<div class="w3-padding">
 										<label>Quires composition (how big the quires are)</label>
 										<br />
-										<input id="quiresComp" type="number" class="w3-input w3-border" name="qcn" />
+										<input
+											id="quiresComp"
+											type="number"
+											class="w3-input w3-border"
+											name="qcn"
+											data-template="q:rangeInput"
+											data-template-name="qcn"
+											data-template-position="1"
+										/>
 									</div>
 									<div class="w3-padding">
 										<label>Number of leaves. Here you can filter manuscript according to their extent.</label>
 										<br />
-										<input id="folia" type="number" class="w3-input w3-border" name="folia" />
+										<input
+											id="folia"
+											type="number"
+											class="w3-input w3-border"
+											name="folia"
+											data-template="q:rangeInput"
+											data-template-name="folia"
+											data-template-position="1"
+										/>
 									</div>
 									<div class="w3-padding">
 										<label>Number of written lines</label>
 										<br />
-										<input id="writtenLines" type="number" class="w3-input w3-border" name="wL" />
+										<input
+											id="writtenLines"
+											type="number"
+											class="w3-input w3-border"
+											name="wL"
+											data-template="q:rangeInput"
+											data-template-name="wL"
+											data-template-position="1"
+										/>
 									</div>
 									<div class="w3-padding">
 										<label>Minimum number of Codicological Units</label>
 										<br />
-										<input class="w3-input w3-border" type="number" name="numberOfParts" />
+										<input
+											class="w3-input w3-border"
+											type="number"
+											name="numberOfParts"
+											data-template="q:rangeInput"
+											data-template-name="numberOfParts"
+											data-template-position="1"
+										/>
 									</div>
 									<div class="w3-padding">
 										<label>With known person for specified role</label>
@@ -722,8 +922,24 @@
 											<div class="w3-padding">
 												<label>Gender</label>
 												<br />
-												<input type="checkbox" class="w3-check" name="gender" value="1" /> Male
-												<input type="checkbox" class="w3-check" name="gender" value="2" /> Female
+												<input
+													type="checkbox"
+													class="w3-check"
+													name="gender"
+													value="1"
+													data-template="q:checkboxEcho"
+													data-template-name="gender"
+												/>
+												Male
+												<input
+													type="checkbox"
+													class="w3-check"
+													name="gender"
+													value="2"
+													data-template="q:checkboxEcho"
+													data-template-name="gender"
+												/>
+												Female
 											</div>
 										</div>
 										<div data-template="q:includePersonsRangeIndexesFilters" />
@@ -737,6 +953,9 @@
 												name="birthRange"
 												placeholder="from"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="birthRange"
+												data-template-position="1"
 											/>
 											<input
 												id="birthTo"
@@ -745,6 +964,9 @@
 												name="birthRange"
 												placeholder="to"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="birthRange"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-padding">
@@ -757,6 +979,9 @@
 												name="deathRange"
 												placeholder="from"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="deathRange"
+												data-template-position="1"
 											/>
 											<input
 												id="deathTo"
@@ -765,6 +990,9 @@
 												name="deathRange"
 												placeholder="to"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="deathRange"
+												data-template-position="2"
 											/>
 										</div>
 										<div class="w3-padding">
@@ -777,6 +1005,9 @@
 												name="floruitRange"
 												placeholder="from"
 												value="0"
+												data-template="q:rangeInput"
+												data-template-name="floruitRange"
+												data-template-position="1"
 											/>
 											<input
 												id="floruitTo"
@@ -785,6 +1016,9 @@
 												name="floruitRange"
 												placeholder="to"
 												value="2000"
+												data-template="q:rangeInput"
+												data-template-name="floruitRange"
+												data-template-position="2"
 											/>
 										</div>
 									</div>
@@ -805,6 +1039,9 @@
 											name="anyDateRange"
 											placeholder="from"
 											value="0"
+											data-template="q:rangeInput"
+											data-template-name="anyDateRange"
+											data-template-position="1"
 										/>
 										<input
 											id="anyDateTo"
@@ -813,6 +1050,9 @@
 											name="anyDateRange"
 											placeholder="to"
 											value="2000"
+											data-template="q:rangeInput"
+											data-template-name="anyDateRange"
+											data-template-position="2"
 										/>
 									</div>
 								</div>

@@ -280,6 +280,73 @@ declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as el
 	}
 };
 
+(:~
+ : Echoes one end of a min/max input pair sharing the same submitted
+ : parameter name (e.g. dateFrom/dateTo both name="dateRange") - or a
+ : plain single-value input, when $position is 1 and there's only ever
+ : one submitted value. The "#filters" panel's own plain number inputs
+ : (dateRange/height/width/depth/margins/qn/birthRange/deathRange/
+ : floruitRange/anyDateRange/columnsNum/qcn/folia/wL/numberOfParts) all
+ : previously carried a hardcoded default and never echoed what was
+ : actually submitted on reload. Falls back to $node's own existing
+ : @value (the markup's original hardcoded default) rather than a
+ : separate data-template attribute, so the default only has to be
+ : written once, in the markup itself.
+ :
+ : @param $name the shared request parameter name (data-template-name)
+ : @param $position which submitted value to use, 1-based (data-template-position)
+ : @return $node with @value set to the submitted value, or unchanged when nothing was submitted at that position
+ :)
+declare function q:rangeInput(
+	$node as node(),
+	$model as map(*),
+	$name as xs:string,
+	$position as xs:integer
+) as element() {
+	q:rangeInput-impl($node, request:get-parameter($name, ()), $position)
+};
+
+(:~
+ : Pure rendering logic behind q:rangeInput, split out so it's directly
+ : unit-testable without a live request (request:get-parameter isn't
+ : bound outside a real dispatched HTTP request, so the entry point
+ : above can't itself be called from an XQSuite test).
+ :)
+declare function q:rangeInput-impl($node as node(), $submitted as xs:string*, $position as xs:integer) as element() {
+	if (count($submitted) >= $position) then
+		element {node-name($node)} { $node/@* except $node/@value, attribute value { $submitted[$position] } }
+	else
+		$node
+};
+
+(:~
+ : Echoes a checkbox's own @checked state from the request - the
+ : checkbox's existing @value attribute IS the submitted value to look
+ : for (e.g. work-types' "mss" checkbox has value="mss"), so no separate
+ : expected-value param is needed, only the shared field name.
+ :
+ : @param $name the request parameter name (data-template-name)
+ : @return $node with @checked set when its own @value was submitted
+ :)
+declare function q:checkboxEcho($node as node(), $model as map(*), $name as xs:string) as element() {
+	q:checkboxEcho-impl($node, request:get-parameter($name, ()))
+};
+
+(:~
+ : Pure rendering logic behind q:checkboxEcho - see q:rangeInput-impl's
+ : doc comment for why this split exists.
+ :)
+declare function q:checkboxEcho-impl($node as node(), $submitted as xs:string*) as element() {
+	let $own-value := string($node/@value)
+	return element {node-name($node)} {
+		$node/@* except $node/@checked,
+		if ($own-value = $submitted) then
+			attribute checked { "checked" }
+		else (
+		)
+	}
+};
+
 declare function q:textquerymode($node as node(), $model as map(*)) {
 	let $textquerymodeparam := request:get-parameter("mode", ())
 	return <select class="w3-select" name="mode" style="padding:0px 0px;">
