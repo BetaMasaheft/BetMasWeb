@@ -1084,8 +1084,22 @@ declare %private function q:images($r) {
 declare function q:parameters2arguments($params) {
 	(: let $test := util:log('info', string-join($params, '
     ')) :)
+	(:
+	 : "work-types" must be processed (and therefore emitted into the
+	 : concatenated predicate string) before any other parameter -
+	 : whatever order request:get-parameter-names() happens to return
+	 : $params in otherwise ("author" sorts ahead of "work-types",
+	 : reliably reproducing #120). Root-caused outside the app: eXist's
+	 : optimizer throws "cannot convert xs:boolean('true') to a node
+	 : set" whenever a descendant::...eq... content-matching predicate
+	 : (e.g. author's) is the *first* predicate in the chain, regardless
+	 : of what follows it - reordering the exact same predicates with
+	 : work-types' own [@type=...][not(ends-with(...))] pair first
+	 : always avoided the crash in testing.
+	 :)
+	let $ordered-params := ($params[. = "work-types"], $params[not(. = "work-types")])
 	let $args :=
-		for $p in $params
+		for $p in $ordered-params
 		(: let $t := util:log('info', $p) :)
 		let $r := q:parrequest($p)
 		(: let $t2 := util:log('info', $r) :)
