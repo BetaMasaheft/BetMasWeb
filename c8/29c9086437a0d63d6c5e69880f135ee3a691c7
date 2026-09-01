@@ -1,0 +1,22 @@
+simpleSearch.html
+  s_38ac4e737ca8c4::t_ce83e09d2c7bdc 8
+test/cypress/e2e/simpleSearch.cy.js
+  s_38ac4e737ca8c4::t_22972535d815c9 12-15
+  s_38ac4e737ca8c4::t_cf8df1773f6a46 1-11,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "c829c9086437a0d63d6c5e69880f135ee3a691c7",
+  "prompts": {},
+  "sessions": {
+    "s_38ac4e737ca8c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6622c5-8ff3-4195-aad8-c75e5bdf0e79",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
