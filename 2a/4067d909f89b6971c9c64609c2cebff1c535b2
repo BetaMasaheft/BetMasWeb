@@ -1,0 +1,36 @@
+newSearch.html
+  s_38ac4e737ca8c4::t_f8c819781fb412 415-486,505-507,516-518,545-580,582-590,602-604,613-615,628-630,639-641,654-656,665-667,673-681,695-697,706-708,721-723,732-734,747-749,758-760,773-775,784-786,799-801,810-812,826-828,837-839,845-853,858-866,871-879,884-891,925-942,956-958,967-969,982-984,993-995,1008-1010,1019-1021,1042-1044,1053-1055
+test/xqs/ts-queries-plainfields.xqm
+  s_38ac4e737ca8c4::t_d4c58f67c06aa7 34-36,42,47,52,57,62
+  s_38ac4e737ca8c4::t_6fef977076c3da 1-7,12-19,21-23,26-28,31-33,41,43-46,48-51,53-56,58,64
+  s_38ac4e737ca8c4::t_b298818d31e7e5 20,24-25,30,37
+  s_38ac4e737ca8c4::t_762a0fae73336b 8-11,29,38-40,59-61,63
+test/cypress/e2e/newSearch-plainFieldsEcho.cy.js
+  s_38ac4e737ca8c4::t_8f3c94c942ba64 1-16,18-44
+  s_38ac4e737ca8c4::t_d4c58f67c06aa7 17
+modules/queries.xqm
+  s_38ac4e737ca8c4::t_9dcc203366c3b6 307-314,332-338,343
+  s_38ac4e737ca8c4::t_d4c58f67c06aa7 317,341
+  s_38ac4e737ca8c4::t_2f7e77585eb70f 291-294,298,304,306,315-316,318-319
+  s_38ac4e737ca8c4::t_282e7cf5e66acb 339
+  s_38ac4e737ca8c4::t_eed2a822496391 283-290,295-297,299-303,305,320-331,340,342,344-349
+test/xqs/test-runner.xq
+  s_38ac4e737ca8c4::t_80e9e7981c87d7 48
+  s_38ac4e737ca8c4::t_fae2185023bf33 89-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2a4067d909f89b6971c9c64609c2cebff1c535b2",
+  "prompts": {},
+  "sessions": {
+    "s_38ac4e737ca8c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6622c5-8ff3-4195-aad8-c75e5bdf0e79",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
