@@ -16,9 +16,10 @@ declare variable $expandnorm:mm-unit := "mm";
  :)
 declare function expandnorm:normalize-tei($tei as element(t:TEI)) as element(t:TEI) {
 	let $normalized := expandnorm:normalize-node(expandnorm:strip-computed($tei))
-	return typeswitch ($normalized)
+	let $withParts := expandnorm:inject-ms-parts-count($normalized)
+	return typeswitch ($withParts)
 		case element(t:TEI) return
-			$normalized
+			$withParts
 
 		default return
 			error((), "expandnorm:normalize-tei: expected TEI root")
@@ -55,6 +56,8 @@ declare function expandnorm:strip-computed-node($node as node()) as node()? {
 					for $child in $node/node()
 					return expandnorm:strip-computed-node($child)
 				}
+		case element(t:msPartsCount) return
+			()
 		case element() return
 			element {node-name($node)} {
 				$node/@*,
@@ -161,17 +164,13 @@ declare function expandnorm:computed-layout($src as element(t:layout)) as elemen
 	) else
 		let $writtenLines := expandnorm:normalize-written-lines(string($src/@writtenLines))
 		return if ($writtenLines) then
-			<layout
-				xmlns="http://www.tei-c.org/ns/1.0"
-				subtype="{ $expandnorm:computed-subtype }"
-				type="catalogue"
-				writtenLines="{ $writtenLines }"
-			>
+			<layout xmlns="http://www.tei-c.org/ns/1.0" subtype="{ $expandnorm:computed-subtype }" type="catalogue">
 				{
 					if ($src/@columns) then
 						attribute columns { string($src/@columns) }
 					else (
-					)
+					),
+					element writtenLines { attribute quantity { $writtenLines } }
 				}
 			</layout>
 		else (
@@ -309,4 +308,43 @@ declare function expandnorm:normalize-written-lines($value as xs:string) as xs:s
 
 declare function expandnorm:is-unparseable($text as xs:string) as xs:boolean {
 	matches(normalize-space($text), "^\s*ca\.", "i")
+};
+
+(:~
+ : Materialize codicological unit count for indexed range filters (@quantity).
+ : @see https://github.com/BetaMasaheft/expanded/issues/19
+ :)
+declare function expandnorm:inject-ms-parts-count($tei as element(t:TEI)) as element(t:TEI) {
+	let $count := count($tei//t:msPart)
+	return if ($count eq 0) then
+		$tei
+	else
+		expandnorm:inject-ms-parts-node($tei, $count, false())
+};
+
+declare %private function expandnorm:inject-ms-parts-node(
+	$node as node(),
+	$count as xs:integer,
+	$done as xs:boolean
+) as node() {
+	typeswitch ($node)
+		case element(t:msDesc) return
+			if ($done) then
+				$node
+			else
+				element {node-name($node)} {
+					$node/@*,
+					for $child in $node/node()
+					return expandnorm:inject-ms-parts-node($child, $count, true()),
+					element {fn:QName("http://www.tei-c.org/ns/1.0", "msPartsCount")} { attribute quantity { $count } }
+				}
+		case element() return
+			element {node-name($node)} {
+				$node/@*,
+				for $child in $node/node()
+				return expandnorm:inject-ms-parts-node($child, $count, $done)
+			}
+
+		default return
+			$node
 };

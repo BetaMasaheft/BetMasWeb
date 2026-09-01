@@ -29,7 +29,7 @@ declare %test:assertXPath("$result ge 100") function tsformbounds:max-written-li
  :)
 declare %test:assertTrue function tsformbounds:max-written-lines-matches-corpus() {
 	let $computed := collection($config:data-rootMS)//t:layout[@subtype =
-		"computed"]/@writtenLines[. castable as xs:integer]
+		"computed"]/t:writtenLines/@quantity[. castable as xs:integer]
 	return if (exists($computed)) then
 		q:max-written-lines() = max($computed)
 	else

@@ -39,7 +39,7 @@ declare %test:assertEquals("") function tscrange:height-default-is-no-filter() {
 };
 
 declare
-	%test:assertEquals("[descendant::t:layout[@subtype eq 'computed'][@writtenLines ge 3][@writtenLines le 17]]")
+	%test:assertEquals("[descendant::t:layout[@subtype eq 'computed']/t:writtenLines[@quantity ge 3][@quantity le 17]]")
 function tscrange:written-lines-predicate() {
 	q:computed-written-lines-filter("3,17")
 };
@@ -50,4 +50,14 @@ declare
 	)
 function tscrange:margin-top-predicate() {
 	q:computed-margin-filter("5,20", "top")
+};
+
+declare %test:assertEquals("[descendant::t:msPartsCount[@quantity ge 3]]") function tscrange:ms-parts-count-predicate(
+
+) {
+	q:ms-parts-count-filter("3")
+};
+
+declare %test:assertEquals("") function tscrange:ms-parts-count-empty-is-no-filter() {
+	string(q:ms-parts-count-filter(""))
 };

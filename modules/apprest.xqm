@@ -986,9 +986,7 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 	) else (
 	)
 
-	let $nOfP := if (empty($numberOfP) or $numberOfP = "") then (
-	) else
-		"[count(descendant::t:msPart) ge " || $numberOfP || "]"
+	let $nOfP := q:ms-parts-count-filter($numberOfP)
 	let $opl := if (empty($PorigPlace) or $PorigPlace = "") then (
 	) else
 		apprest:ListQueryParam-rest($PorigPlace, "t:origPlace/t:placeName/@ref", "any", "search")

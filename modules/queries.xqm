@@ -840,7 +840,8 @@ declare function q:max-folia() as xs:integer {
  : @return the corpus's real written-lines candidates, empty if none are castable
  :)
 declare %private function q:max-written-lines-candidates() as xs:integer* {
-	for $v in distinct-values(collection($config:data-rootMS)//t:layout[@subtype = $q:computed-subtype]/@writtenLines)
+	for $v in
+		distinct-values(collection($config:data-rootMS)//t:layout[@subtype = $q:computed-subtype]/t:writtenLines/@quantity)
 	where $v castable as xs:integer
 	return xs:integer($v)
 };
@@ -969,11 +970,25 @@ declare function q:computed-depth-filter($range as xs:string?) as xs:string? {
 };
 
 declare function q:computed-written-lines-filter($range as xs:string?) as xs:string? {
-	q:computed-range-filter($range, q:computed-layout-path(), "@writtenLines", "1," || string(q:max-written-lines()))
+	q:computed-range-filter(
+		$range,
+		"descendant::t:layout[@subtype eq '" || $q:computed-subtype || "']/t:writtenLines",
+		"@quantity",
+		"1," || string(q:max-written-lines())
+	)
 };
 
 declare function q:computed-margin-filter($range as xs:string?, $dimType as xs:string) as xs:string? {
 	q:computed-range-filter($range, q:computed-margin-dim-path($dimType), "@quantity", "1,100")
+};
+
+(:~
+ : Expand-materialized msPartsCount element filter (replaces live msPart count).
+ :)
+declare function q:ms-parts-count-filter($min as xs:string?) as xs:string? {
+	if (empty($min) or $min = "") then (
+	) else
+		"[descendant::t:msPartsCount[@quantity ge " || $min || "]]"
 };
 
 declare %private function q:par-folia($Pfolia) {
@@ -1084,7 +1099,7 @@ names are those of the indexes where the filter is built directly from there, ot
 				case "anyDateRange" return
 					q:par-date-range("date", string-join($r, ","))
 				case "numberOfParts" return
-					"[count(descendant::t:msPart) ge " || $r || "]"
+					q:ms-parts-count-filter(string($r))
 				case "origPlace" return
 					q:ListQueryParam-rest($r, "t:origPlace/t:placeName/@ref", "any", "search")
 				case "height" return

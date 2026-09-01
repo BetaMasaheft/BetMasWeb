@@ -3282,9 +3282,7 @@ function app:query(
 		"[" || string-join($eachworktype, " or ") || "]"
 	else (
 	)
-	let $nOfP := if (empty($numberOfParts) or $numberOfParts = "") then (
-	) else
-		"[count(descendant::t:msPart) ge " || $numberOfParts || "]"
+	let $nOfP := q:ms-parts-count-filter($numberOfParts)
 
 	let $allfilters := concat(
 		$IDpart,

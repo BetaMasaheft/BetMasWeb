@@ -39,8 +39,8 @@ declare %private function charts:layout-written-lines($layout as element(t:layou
 		$layout/following-sibling::t:layout[@subtype = $charts:computed-subtype],
 		$layout/preceding-sibling::t:layout[@subtype = $charts:computed-subtype]
 	)[1]
-	return if ($computed/@writtenLines) then
-		string($computed/@writtenLines)
+	return if ($computed/t:writtenLines/@quantity) then
+		string($computed/t:writtenLines/@quantity)
 	else if ($layout/@writtenLines) then
 		if (contains($layout/@writtenLines, " ")) then
 			string(

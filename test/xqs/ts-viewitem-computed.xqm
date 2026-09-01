@@ -27,7 +27,7 @@ declare variable $tsvicomputed:tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" t
 						</supportDesc>
 						<layoutDesc>
 							<layout columns="2" writtenLines="17 18" />
-							<layout columns="2" subtype="computed" type="catalogue" writtenLines="18" />
+							<layout columns="2" subtype="computed" type="catalogue"><writtenLines quantity="18" /></layout>
 						</layoutDesc>
 					</objectDesc>
 				</physDesc>
