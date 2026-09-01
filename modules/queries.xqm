@@ -941,6 +941,17 @@ declare function q:computed-margin-dim-path($dimType as xs:string) as xs:string 
 		"']"
 };
 
+(:~
+ : Reject empty or non-numeric range bounds before predicate concatenation.
+ :)
+declare %private function q:range-bounds-valid($min as xs:string, $max as xs:string) as xs:boolean {
+	$min != "" and $max != "" and $min castable as xs:double and $max castable as xs:double
+};
+
+declare %private function q:min-bound-valid($min as xs:string) as xs:boolean {
+	$min != "" and $min castable as xs:integer
+};
+
 declare %private function q:computed-range-filter(
 	$range as xs:string?,
 	$pathPrefix as xs:string,
@@ -951,7 +962,10 @@ declare %private function q:computed-range-filter(
 	) else
 		let $min := substring-before($range, ",")
 		let $max := substring-after($range, ",")
-		return q:range-predicate($pathPrefix, $target, (), $min, $max)
+		return if (q:range-bounds-valid($min, $max)) then
+			q:range-predicate($pathPrefix, $target, (), $min, $max)
+		else (
+		)
 };
 
 (:~
@@ -983,10 +997,31 @@ declare function q:computed-margin-filter($range as xs:string?, $dimType as xs:s
 };
 
 (:~
+ : Range filter on computed layout @columns (cataloguer @columns copied to computed sibling).
+ :)
+declare function q:computed-columns-filter($range as xs:string?) as xs:string? {
+	if (empty($range) or $range = "" or $range = "1,20") then (
+	) else
+		let $min := substring-before($range, ",")
+		let $max := substring-after($range, ",")
+		return if (q:range-bounds-valid($min, $max)) then
+			q:range-predicate(q:computed-layout-path(), "@columns", ("[matches(@columns,'^\d+$')]"), $min, $max)
+		else (
+		)
+};
+
+(:~
+ : Discrete column counts from facet/list REST params (not slider ranges).
+ :)
+declare function q:computed-columns-list-filter($values as xs:string*) as xs:string? {
+	q:ListQueryParam-rest($values, "t:layout[@subtype eq '" || $q:computed-subtype || "']/@columns", "any", "list")
+};
+
+(:~
  : Expand-materialized msPartsCount element filter (replaces live msPart count).
  :)
 declare function q:ms-parts-count-filter($min as xs:string?) as xs:string? {
-	if (empty($min) or $min = "") then (
+	if (empty($min) or $min = "" or not(q:min-bound-valid(string($min)))) then (
 	) else
 		"[descendant::t:msPartsCount[@quantity ge " || $min || "]]"
 };
@@ -1216,7 +1251,10 @@ names are those of the indexes where the filter is built directly from there, ot
 				case "donor" return
 					q:ListQueryParam-rest($r, "t:persName[@role='donor']/@ref", "any", "list")
 				case "columnsNum" return
-					q:ListQueryParam-rest($r, "t:layout/@columns", "any", "list")
+					if (contains(string-join($r, ","), ",")) then
+						q:computed-columns-filter(string-join($r, ","))
+					else
+						q:computed-columns-list-filter($r)
 				case "repositorytext" return
 					q:ListQueryParam-rest($r, "t:repository", "any", "list")
 				(: parameters not provided in filter search :)

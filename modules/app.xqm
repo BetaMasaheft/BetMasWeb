@@ -3225,12 +3225,9 @@ function app:query(
 	 : xs:string('2') with xs:integer('1')") on every value, guard or
 	 : not - found live-testing, not hypothetical.
 	 :)
-	let $columnsNum := app:range-filter(
-		"columnsNum",
-		q:computed-layout-path(),
-		"xs:integer(@columns)",
-		"[matches(@columns,'^\d+$')]",
-		"1,20"
+	let $columnsNum := if (contains($app:params, "columnsNum")) then
+		q:computed-columns-filter(string(request:get-parameter("columnsNum", ())))
+	else (
 	)
 	let $marginTop := q:computed-margin-filter(request:get-parameter("tmargin", ()), "top")
 	let $marginBot := q:computed-margin-filter(request:get-parameter("bmargin", ()), "bottom")

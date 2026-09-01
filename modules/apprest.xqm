@@ -998,6 +998,7 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 	let $marginR := q:computed-margin-filter($Prmargin, "right")
 	let $marginL := q:computed-margin-filter($Plmargin, "left")
 	let $marginIntercolumn := q:computed-margin-filter($Pintercolumn, "intercolumn")
+	let $columnsNum := q:computed-columns-filter($PcolumnsNum)
 	let $support := if (empty($PobjectType) or $PobjectType = "") then (
 	) else
 		apprest:ListQueryParam-rest($PobjectType, "t:objectDesc/@form", "any", "search")
@@ -1133,6 +1134,7 @@ declare %templates:default("start", 1) %templates:default("per-page", 20) functi
 		$marginL,
 		$marginR,
 		$marginIntercolumn,
+		$columnsNum,
 		$restorationss,
 		$bindingtype
 	)
