@@ -153,3 +153,18 @@ declare %test:assertTrue function tsfilterspanel:blank-strings-do-not-count-as-a
 	let $out := q:includeGeneralRangeIndexesFilters(<div />, map {}, "", "  ", ())
 	return empty($out/*)
 };
+
+declare %test:assertTrue function tsfilterspanel:sectionReveal-strips-style-when-active() {
+	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, true())
+	return empty($out/@style)
+};
+
+declare %test:assertEquals("display: none") function tsfilterspanel:sectionReveal-keeps-style-when-inactive() {
+	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, false())
+	return string($out/@style)
+};
+
+declare %test:assertEquals("manuscriptsFilters") function tsfilterspanel:sectionReveal-preserves-other-attributes() {
+	let $out := q:sectionReveal(<div id="manuscriptsFilters" style="display: none" />, map {}, true())
+	return string($out/@id)
+};

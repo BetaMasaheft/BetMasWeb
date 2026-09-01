@@ -186,20 +186,22 @@ declare function q:searchTypeFieldset($node as node(), $model as map(*), $expect
 };
 
 (:~
- : Every request parameter name the "#filters" advanced-search panel's
- : own fields can submit, across all five sections (general/manuscripts/
- : works/persons/places) - the single source of truth behind
- : q:filtersPanelFieldset's own reveal-on-load check below. Keep in sync
- : with newSearch.html's "#filters" fieldset and the q:includeXXX section
- : guards further down this module.
+ : Request parameter names for the "#filters" panel's own top-level
+ : fields (outside any of the four per-collection sections below) - the
+ : item-type checkboxes and the "General filters" block.
  :)
-declare %private variable $q:filters-panel-params := (
-	"work-types",
+declare %private variable $q:general-filter-params := ("work-types", "ident", "termkey", "changewho", "dateRange");
+
+(:~
+ : Request parameter names "#manuscriptsFilters" can submit. Keep in
+ : sync with newSearch.html's own markup and the q:includeXXX section
+ : guards further down this module. "author" also appears in
+ : $q:works-filter-params - a pre-existing collision between
+ : q:MssPersRoles' "author" production-role and q:WorkAuthors' own
+ : "author" param, not introduced here.
+ :)
+declare %private variable $q:manuscripts-filter-params := (
 	"images",
-	"ident",
-	"termkey",
-	"changewho",
-	"dateRange",
 	"height",
 	"width",
 	"depth",
@@ -240,44 +242,104 @@ declare %private variable $q:filters-panel-params := (
 	"bequeather",
 	"author",
 	"donor",
-	"persrole",
-	"divtype",
-	"divsubtype",
-	"witnesstext",
-	"persontype",
-	"occtype",
-	"faithtype",
-	"gender",
-	"birthRange",
-	"deathRange",
-	"floruitRange",
-	"regiontext",
-	"settlementtext",
-	"countrytext",
-	"placetype",
-	"tabot",
-	"anyDateRange"
+	"persrole"
 );
 
 (:~
- : Reveals the "#advanced" advanced-search panel server-side when any of
- : its own fields (across all five sections) has a submitted value -
- : same @style-stripping shape as app:persFiltersSection (modules/app.xqm),
- : deliberately keyed on the inline `style` attribute rather than a
- : "w3-hide" class: selectForm.js's "+" click handler toggles this exact
- : element via genuine jQuery `.toggle("slow")`, which only ever writes
- : an inline `style.display` - it cannot override a CSS class rule
- : declared `!important` (w3.css's `.w3-hide` is), so a class-based
- : default here would silently break that live click.
+ : Request parameter names "#worksFilters" can submit.
  :)
-declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as element() {
+declare %private variable $q:works-filter-params := ("divtype", "divsubtype", "witnesstext", "author");
+
+(:~
+ : Request parameter names "#persFilters" can submit.
+ :)
+declare %private variable $q:persons-filter-params := (
+	"gender", "birthRange", "deathRange", "floruitRange", "persontype", "occtype", "faithtype"
+);
+
+(:~
+ : Request parameter names "#placesFilters" can submit.
+ :)
+declare %private variable $q:places-filter-params := (
+	"regiontext", "settlementtext", "countrytext", "placetype", "tabot", "anyDateRange"
+);
+
+(:~
+ : Every request parameter name the "#filters" advanced-search panel's
+ : own fields can submit, across all five sections (general + the four
+ : per-collection ones) - the single source of truth behind
+ : q:filtersPanelFieldset's own reveal-on-load check below.
+ :)
+declare %private variable $q:filters-panel-params := (
+	$q:general-filter-params,
+	$q:manuscripts-filter-params,
+	$q:works-filter-params,
+	$q:persons-filter-params,
+	$q:places-filter-params
+);
+
+(:~
+ : Shared @style-reveal shape behind q:filtersPanelFieldset and the four
+ : q:xxxFiltersSection functions below - split out as pure rendering
+ : logic (given $active directly) so it's unit-testable without a live
+ : request, same reasoning as q:rangeInput-impl. Deliberately keyed on
+ : the inline `style` attribute rather than a "w3-hide" class: both
+ : selectForm.js's "+" click handler and initCollectionFilter()'s
+ : `.show()`/`.hide()` toggle these elements via genuine jQuery, which
+ : only ever writes an inline `style.display` - it cannot override a CSS
+ : class rule declared `!important` (w3.css's `.w3-hide` is), so a
+ : class-based default here would silently break those live handlers.
+ :
+ : @param $active whether this section/panel has a real filter value to restore
+ :)
+declare function q:sectionReveal($node as node(), $model as map(*), $active as xs:boolean) as element() {
 	element {node-name($node)} {
 		$node/@* except $node/@style,
-		if (q:any-active($q:filters-panel-params!request:get-parameter(., ()))) then (
+		if ($active) then (
 		) else
 			$node/@style,
 		$node/node()!templates:process(., $model)
 	}
+};
+
+(:~
+ : Reveals the "#advanced" advanced-search panel server-side when any of
+ : its own fields (across all five sections) has a submitted value.
+ :)
+declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:filters-panel-params!request:get-parameter(., ())))
+};
+
+(:~
+ : Reveals "#manuscriptsFilters" server-side when any of its own fields
+ : has a submitted value - deliberately ignores "#collectionfilter"'s
+ : own dropdown value (a client-only convenience with no persisted
+ : state, never itself submitted), same as app:worksFiltersSection's own
+ : precedent for as.html's equivalent dropdown.
+ :)
+declare function q:manuscriptsFiltersSection($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:manuscripts-filter-params!request:get-parameter(., ())))
+};
+
+(:~
+ : Reveals "#worksFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
+ :)
+declare function q:worksFiltersSection($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:works-filter-params!request:get-parameter(., ())))
+};
+
+(:~
+ : Reveals "#persFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
+ :)
+declare function q:persFiltersSection($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:persons-filter-params!request:get-parameter(., ())))
+};
+
+(:~
+ : Reveals "#placesFilters" server-side - see q:manuscriptsFiltersSection's doc comment.
+ :)
+declare function q:placesFiltersSection($node as node(), $model as map(*)) as element() {
+	q:sectionReveal($node, $model, q:any-active($q:places-filter-params!request:get-parameter(., ())))
 };
 
 (:~
