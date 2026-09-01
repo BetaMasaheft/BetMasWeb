@@ -8,6 +8,36 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "../../modules/expand.xqm";
 import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "../../modules/expand-normalize-dimensions.xqm";
 
+declare function tsexpnorm:wrap-msdesc($msDescBody as node()*) as element(t:TEI) {
+	<TEI xmlns="http://www.tei-c.org/ns/1.0" type="manuscript" xml:id="MSnormTEST">
+		<teiHeader><fileDesc><sourceDesc><msDesc>{ $msDescBody }</msDesc></sourceDesc></fileDesc></teiHeader>
+		<text><body><p /></body></text>
+	</TEI>
+};
+
+declare function tsexpnorm:normalize-tei($tei as element(t:TEI)) as element(t:TEI) {
+	expandnorm:normalize-tei($tei)
+};
+
+declare variable $tsexpnorm:two-parts := tsexpnorm:wrap-msdesc(
+	(
+		<msPart xmlns="http://www.tei-c.org/ns/1.0" xml:id="p1"><msIdentifier /></msPart>,
+		<msPart xmlns="http://www.tei-c.org/ns/1.0" xml:id="p2"><msIdentifier /></msPart>
+	)
+);
+
+declare %test:assertEquals("2") function tsexpnorm:ms-parts-count-injected() {
+	string(tsexpnorm:normalize-tei($tsexpnorm:two-parts)//t:msPartsCount/@quantity)
+};
+
+declare %test:assertEquals(0) function tsexpnorm:no-mspart-no-msPartsCount() {
+	count(tsexpnorm:normalize-tei(tsexpnorm:wrap-msdesc(()))//t:msPartsCount)
+};
+
+declare %test:assertEquals(1) function tsexpnorm:ms-parts-count-idempotent() {
+	count(expandnorm:normalize-tei(expandnorm:normalize-tei($tsexpnorm:two-parts))//t:msPartsCount)
+};
+
 declare function tsexpnorm:wrap($body as element()) as element(t:TEI) {
 	<TEI xmlns="http://www.tei-c.org/ns/1.0" type="manuscript" xml:id="MSnormTEST">
 		<teiHeader><fileDesc><titleStmt><title>normalize fixture</title></titleStmt></fileDesc></teiHeader>
@@ -111,7 +141,8 @@ declare variable $tsexpnorm:written-lines := tsexpnorm:wrap(
 
 declare %test:assertEquals("18") function tsexpnorm:written-lines-upper-bound() {
 	string(
-		tsexpnorm:normalize($tsexpnorm:written-lines//t:objectDesc/node())//t:layout[@subtype = "computed"]/@writtenLines
+		tsexpnorm:normalize($tsexpnorm:written-lines//t:objectDesc/node())//t:layout[@subtype =
+			"computed"]/t:writtenLines/@quantity
 	)
 };
 
@@ -254,7 +285,7 @@ declare variable $tsexpnorm:written-lines-single := tsexpnorm:wrap(
 declare %test:assertEquals("20") function tsexpnorm:written-lines-single-value() {
 	string(
 		tsexpnorm:normalize($tsexpnorm:written-lines-single//t:objectDesc/node())//t:layout[@subtype =
-			"computed"]/@writtenLines
+			"computed"]/t:writtenLines/@quantity
 	)
 };
 
@@ -265,7 +296,7 @@ declare variable $tsexpnorm:written-lines-trim := tsexpnorm:wrap(
 declare %test:assertEquals("27") function tsexpnorm:written-lines-trim-upper() {
 	string(
 		tsexpnorm:normalize($tsexpnorm:written-lines-trim//t:objectDesc/node())//t:layout[@subtype =
-			"computed"]/@writtenLines
+			"computed"]/t:writtenLines/@quantity
 	)
 };
 
