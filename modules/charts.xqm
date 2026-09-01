@@ -173,36 +173,59 @@ declare function charts:pieAttestations($itemid, $name) {
 	)
 };
 
-declare function charts:dateFilter($from, $to, $hits) {
-	$hits[descendant::t:origDate[(
-		if (contains(@notBefore, "-")) then (
-			substring-before(@notBefore, "-")
-		) else
-			@notBefore
-	)[. != ""][number(.) ge $from][number(.) le $to] or
-		(
-			if (contains(@notAfter, "-")) then (
-				substring-before(@notAfter, "-")
-			) else
-				@notAfter
-		)[. != ""][number(.) ge $from][number(.) le $to]]]
+(:~
+ : Every notBefore/notAfter year found on $hit's descendant::t:origDate
+ : elements, normalized the same way charts:dateFilter's bucket test
+ : compares them (a full date truncated at its first "-", numeric NaN
+ : for anything else). Computed once per hit and reused across all 13 of
+ : charts:chart's date buckets, instead of each bucket re-scanning every
+ : hit's subtree from scratch - that repeated scan measured ~13.6s for
+ : 170 hits before this change.
+ :
+ : @return the candidate years; NaN and blank bounds are already
+ : filtered out, since NaN never satisfies charts:dateFilter's range
+ : test either way
+ :)
+declare function charts:hit-years($hit as element()) as xs:double* {
+	for $origDate in $hit/descendant::t:origDate
+	for $bound in ($origDate/@notBefore, $origDate/@notAfter)
+	let $year := if (contains($bound, "-")) then
+		substring-before($bound, "-")
+	else
+		string($bound)
+	where $year != ""
+	return number($year)
+};
+
+(:~
+ : Whether any of $hit's origDate years (see charts:hit-years) falls
+ : within [$from, $to].
+ :
+ : @param $years-by-hit generate-id($hit) -> charts:hit-years($hit), built
+ : once per charts:chart call and shared across all 13 bucket tests
+ :)
+declare function charts:dateFilter($from, $to, $hits, $years-by-hit as map(*)) {
+	$hits[some $year in $years-by-hit(generate-id(.)) satisfies ($year ge $from and $year le $to)]
 };
 
 declare function charts:chart($hits) {
-	let $mssAks := charts:dateFilter(0300, 0700, $hits)
-	let $mssPaks1 := charts:dateFilter(1200, 1433, $hits)
-	let $mssPaks2 := charts:dateFilter(1434, 1632, $hits)
-	let $mssGon := charts:dateFilter(1632, 1769, $hits)
-	let $mssZaMe := charts:dateFilter(1769, 1855, $hits)
-	let $mssMoPe := charts:dateFilter(1855, 1974, $hits)
+	let $years-by-hit := map:merge($hits!map:entry(generate-id(.), charts:hit-years(.)))
+	let $taglias-by-hit := map:merge($hits!map:entry(generate-id(.), charts:hit-taglias(.)))
 
-	let $mss1-299 := charts:dateFilter(0001, 0299, $hits)
-	let $mss300-599 := charts:dateFilter(0300, 0599, $hits)
-	let $mss600-899 := charts:dateFilter(0600, 0899, $hits)
-	let $mss900-1199 := charts:dateFilter(0900, 1199, $hits)
-	let $mss1200-1499 := charts:dateFilter(1200, 1499, $hits)
-	let $mss1500-1799 := charts:dateFilter(1500, 1799, $hits)
-	let $mss1800-2099 := charts:dateFilter(1800, 2099, $hits)
+	let $mssAks := charts:dateFilter(0300, 0700, $hits, $years-by-hit)
+	let $mssPaks1 := charts:dateFilter(1200, 1433, $hits, $years-by-hit)
+	let $mssPaks2 := charts:dateFilter(1434, 1632, $hits, $years-by-hit)
+	let $mssGon := charts:dateFilter(1632, 1769, $hits, $years-by-hit)
+	let $mssZaMe := charts:dateFilter(1769, 1855, $hits, $years-by-hit)
+	let $mssMoPe := charts:dateFilter(1855, 1974, $hits, $years-by-hit)
+
+	let $mss1-299 := charts:dateFilter(0001, 0299, $hits, $years-by-hit)
+	let $mss300-599 := charts:dateFilter(0300, 0599, $hits, $years-by-hit)
+	let $mss600-899 := charts:dateFilter(0600, 0899, $hits, $years-by-hit)
+	let $mss900-1199 := charts:dateFilter(0900, 1199, $hits, $years-by-hit)
+	let $mss1200-1499 := charts:dateFilter(1200, 1499, $hits, $years-by-hit)
+	let $mss1500-1799 := charts:dateFilter(1500, 1799, $hits, $years-by-hit)
+	let $mss1800-2099 := charts:dateFilter(1800, 2099, $hits, $years-by-hit)
 
 	let $mssNotDated := $hits[not(descendant::t:origDate)]
 
@@ -373,60 +396,60 @@ declare function charts:chart($hits) {
 					let $from := number(substring-before($GT, "-"))
 					let $to := number(substring-after($GT, "-"))
 					let $percAks := if ($countAks ge 1) then (
-						charts:tagliasupport($mssAks, $countAks, $from, $to)
+						charts:tagliasupport($mssAks, $countAks, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percPaks1 := if ($countPaks1 ge 1) then (
-						charts:tagliasupport($mssPaks1, $countPaks1, $from, $to)
+						charts:tagliasupport($mssPaks1, $countPaks1, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percPaks2 := if ($countPaks2 ge 1) then (
-						charts:tagliasupport($mssPaks2, $countPaks2, $from, $to)
+						charts:tagliasupport($mssPaks2, $countPaks2, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percGon := if ($countGon ge 1) then (
-						charts:tagliasupport($mssGon, $countGon, $from, $to)
+						charts:tagliasupport($mssGon, $countGon, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percZaMe := if ($countZaMe ge 1) then (
-						charts:tagliasupport($mssZaMe, $countZaMe, $from, $to)
+						charts:tagliasupport($mssZaMe, $countZaMe, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percMoPe := if ($countMoPe ge 1) then (
-						charts:tagliasupport($mssMoPe, $countMoPe, $from, $to)
+						charts:tagliasupport($mssMoPe, $countMoPe, $from, $to, $taglias-by-hit)
 					) else
 						0
 
 					let $perc1-299 := if ($count1-299 ge 1) then (
-						charts:tagliasupport($mss1-299, $count1-299, $from, $to)
+						charts:tagliasupport($mss1-299, $count1-299, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc300-599 := if ($count300-599 ge 1) then (
-						charts:tagliasupport($mss300-599, $count300-599, $from, $to)
+						charts:tagliasupport($mss300-599, $count300-599, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc600-899 := if ($count600-899 ge 1) then (
-						charts:tagliasupport($mss600-899, $count600-899, $from, $to)
+						charts:tagliasupport($mss600-899, $count600-899, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc900-1199 := if ($count900-1199 ge 1) then (
-						charts:tagliasupport($mss900-1199, $count900-1199, $from, $to)
+						charts:tagliasupport($mss900-1199, $count900-1199, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc1200-1499 := if ($count1200-1499 ge 1) then (
-						charts:tagliasupport($mss1200-1499, $count1200-1499, $from, $to)
+						charts:tagliasupport($mss1200-1499, $count1200-1499, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc1500-1799 := if ($count1500-1799 ge 1) then (
-						charts:tagliasupport($mss1500-1799, $count1500-1799, $from, $to)
+						charts:tagliasupport($mss1500-1799, $count1500-1799, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $perc1800-2099 := if ($count1800-2099 ge 1) then (
-						charts:tagliasupport($mss1800-2099, $count1800-2099, $from, $to)
+						charts:tagliasupport($mss1800-2099, $count1800-2099, $from, $to, $taglias-by-hit)
 					) else
 						0
 					let $percNotDated := if ($countNotDated ge 1) then (
-						charts:tagliasupport($mssNotDated, $countNotDated, $from, $to)
+						charts:tagliasupport($mssNotDated, $countNotDated, $from, $to, $taglias-by-hit)
 					) else
 						0
 					return '["' ||
@@ -1205,20 +1228,40 @@ chart.draw(data, google.charts.Bar.convertOptions(options));
 	)
 };
 
-declare function charts:tagliasupport($mssDate, $totcount, $from, $to) {
-	let $mssDateTaglias :=
-		for $ms in $mssDate//t:extent[descendant::t:dimensions[@type eq "outer"][t:height][t:width][t:depth]]
+(:~
+ : Every matching extent's height+width (mm) on $hit - "matching" being
+ : descendant::t:dimensions[@type eq "outer"][t:height][t:width][t:depth],
+ : the same predicate charts:tagliasupport used to re-apply on every one
+ : of its ~168 calls per results page (13 date buckets x up to 12 taglia
+ : groups). Computed once per hit and reused across all of them - that
+ : repeated rescan measured ~12.6s of a ~13.8s charts:chart call for 170
+ : hits.
+ :
+ : @return one value per matching extent (a hit with several counts
+ : several times, same as the original scan)
+ :)
+declare function charts:hit-taglias($hit as element()) as xs:double* {
+	for $extent in $hit//t:extent[descendant::t:dimensions[@type eq "outer"][t:height][t:width][t:depth]]
+	let $h := charts:outer-axis-mm($extent, "height")
+	let $w := charts:outer-axis-mm($extent, "width")
+	return number($h) + number($w)
+};
 
-		let $allwithar := $ms/t:dimensions[@type eq "outer"]
-		let $all := $allwithar[not(@xml:lang = "ar")]
-		let $h := charts:outer-axis-mm($ms, "height")
-		let $w := charts:outer-axis-mm($ms, "width")
-		let $realtaglia := number($h) + number($w)
-		return if ((number($realtaglia) ge $from) and (number($realtaglia) le $to)) then
-			1
-		else
-			0
-	let $mssDateThisTaglia := sum($mssDateTaglias)
+(:~
+ : Share of $mssDate's matching extents (see charts:hit-taglias) whose
+ : height+width falls within [$from, $to], out of $totcount.
+ :
+ : @param $taglias-by-hit generate-id($hit) -> charts:hit-taglias($hit),
+ : built once per charts:chart call and shared across every bucket/group
+ : pair
+ :)
+declare function charts:tagliasupport($mssDate, $totcount, $from, $to, $taglias-by-hit as map(*)) {
+	let $mssDateThisTaglia := sum(
+		for $ms in $mssDate
+		for $taglia in $taglias-by-hit(generate-id($ms))
+		where $taglia ge $from and $taglia le $to
+		return 1
+	)
 	let $div := ($mssDateThisTaglia div $totcount)
 	return format-number($div, "#.#")
 };
