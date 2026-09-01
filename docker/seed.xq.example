@@ -6,11 +6,9 @@ xquery version "3.1";
 
    BetaMasaheftAdmin must exist before this repo's own package installs:
    repo.xml declares <permissions user="BetaMasaheftAdmin" group="dba" .../>
-   for its own collection, and the base image (BETMAS_DATA_IMAGE) does not
-   create this account. overlay-packages.xq evals this seed from the build
-   secret then overlays BetMasService, parser, and BetMasWeb (CI overwrites
-   seed.xq from SEED_XQ). The real corpus is already provided by the base
-   image. :)
+   for its own collection. overlay-web.xq evals this seed from the build
+   secret then overlays BetMasWeb (CI overwrites seed.xq from SEED_XQ). The
+   platform stack and corpus come from BETMAS_APP_IMAGE (release-expanded). :)
 
 if (sm:user-exists("BetaMasaheftAdmin")) then () else
   sm:create-account("BetaMasaheftAdmin", "changeme", "dba")

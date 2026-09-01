@@ -3,6 +3,8 @@
 # Basic start-up and connection smoke tests
 # Adapted from https://github.com/eeditiones/jinks/blob/main/test/01-smoke.bats
 
+REST="http://127.0.0.1:8080/exist/rest/db"
+
 @test "container jvm responds from client" {
   run docker exec exist java -version
   [ "$status" -eq 0 ]
@@ -23,27 +25,15 @@
   [ "$result" == 'Server has started' ]
 }
 
-# Packages install at image build via docker/overlay-packages.xq (repo:*), not
-# at container boot. Verify deployed versions directly instead of inferring
-# from runtime autodeploy logs (exist-db/exist#5579 skip is invisible there).
-@test "BetMasService overlay deployed" {
-  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/BetMasService/expath-pkg.xml")/*:package/@version)')
-  [ "$result" = "0.1" ]
-}
-
-@test "parser overlay deployed" {
-  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/parser/expath-pkg.xml")/*:package/@version)')
-  [ "$result" = "0.5" ]
-}
-
+# Overlay runs at image build via docker/overlay-web.xq. Query the running
+# server over REST (docker exec client would fight the live broker lock).
 @test "BetMasWeb overlay deployed this build" {
-  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'string(doc("/db/apps/BetMasWeb/expath-pkg.xml")/*:package/@version)')
+  result=$(curl -fsSu admin: "${REST}/apps/BetMasWeb/expath-pkg.xml" | grep -o 'version="[^"]*"' | head -1 | cut -d'"' -f2)
   [ "$result" = "0.2.0" ]
 }
 
 @test "BetMasWeb overlay content canary present" {
-  result=$(docker exec exist java org.exist.start.Main client --no-gui -l -u admin -P "" --xpath 'contains(util:binary-to-string(util:binary-doc("/db/apps/BetMasWeb/modules/queries.xqm")), "q:ms-parts-count-filter")')
-  [ "$result" = "true" ]
+  curl -fsSu admin: "${REST}/apps/BetMasWeb/modules/queries.xqm" | grep -q 'q:ms-parts-count-filter'
 }
 
 @test "logs are error free" {
