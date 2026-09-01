@@ -1955,8 +1955,19 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
 		</div>
 };
 
-declare function q:sortingkey($input) {
-	string-join($input//text())
+(:~
+ : Sort key for as/newSearch's alphabetical option lists. Atomizes $input
+ : directly rather than stepping into //text() - most callers pass a node
+ : (whose atomized string-value is the same descendant-text concatenation
+ : //text() would join), but q:selectors' "rels" branch feeds it
+ : exptit:printTitleID()'s return value directly, which is a plain
+ : xs:string for a tombstoned/deleted record ("PRSxxxxx was permanently
+ : deleted") - //text() on an atomic value throws XPTY0004.
+ :
+ : @param $input a node or atomic value to derive a sort key from
+ :)
+declare function q:sortingkey($input as item()*) as xs:string {
+	string-join($input)
 		=> replace("ʾ", "")
 		=> replace("ʿ", "")
 		=> replace("\s", "")
