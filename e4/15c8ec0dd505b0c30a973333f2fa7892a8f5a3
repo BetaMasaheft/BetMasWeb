@@ -1,0 +1,53 @@
+test/xqs/ts-computed-range-filters.xqm
+  s_bfac4543151ff7::t_c072d9d616cf82 42
+  s_bfac4543151ff7::t_ee458ef15c6f76 54,56-61
+  s_bfac4543151ff7::t_840ae999262c2e 55
+  s_bfac4543151ff7::t_88be3ebe0a5478 62-63
+modules/apprest.xqm
+  s_bfac4543151ff7::t_b6a2ed040ce1ce 989
+modules/queries.xqm
+  s_bfac4543151ff7::t_098014fedba784 976
+  s_bfac4543151ff7::t_0e0693e6b4a9b4 991
+  s_bfac4543151ff7::t_82245358496925 1102
+  s_bfac4543151ff7::t_3ec86ee2c98614 985,987-990,992-993
+  s_bfac4543151ff7::t_dac07283700356 843-844
+  s_bfac4543151ff7::t_43abae3710ffc3 973-975,977-978
+  s_bfac4543151ff7::t_8388b41c24bead 986
+test/xqs/ts-expand-normalize-dimensions.xqm
+  s_bfac4543151ff7::t_e0fdfce10eec49 30
+  s_bfac4543151ff7::t_7de186b89d9087 11-29,31-40,145,288,299
+  s_bfac4543151ff7::t_11263d0cae3504 144
+modules/charts.xqm
+  s_bfac4543151ff7::t_b7ef4b9992ed1f 42-43
+test/xqs/ts-queries-formbounds.xqm
+  s_bfac4543151ff7::t_93a0a3bab8d35b 32
+test/xqs/ts-viewitem-computed.xqm
+  s_bfac4543151ff7::t_a88e8e2d64f7fa 30
+modules/expand-normalize-dimensions.xqm
+  s_bfac4543151ff7::t_a99d90af03ea3c 19-20,22
+  s_bfac4543151ff7::t_01228db2583b5d 172
+  s_bfac4543151ff7::t_8e915ef26647b2 314
+  s_bfac4543151ff7::t_8d0346785c133e 339-341
+  s_bfac4543151ff7::t_1a1698b9bd81b9 59-60
+  s_bfac4543151ff7::t_605ccd28467970 173
+  s_bfac4543151ff7::t_49fa3c328a305a 312-313,315-338,342-350
+  s_bfac4543151ff7::t_42cae6a927ffa2 167
+modules/app.xqm
+  s_bfac4543151ff7::t_5a32e618bd8026 3285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e415c8ec0dd505b0c30a973333f2fa7892a8f5a3",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
