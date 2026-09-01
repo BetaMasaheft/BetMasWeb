@@ -1,0 +1,26 @@
+test/xqs/test-runner.xq
+  s_38ac4e737ca8c4::t_9e4f9427604687 95-96
+  s_38ac4e737ca8c4::t_792846d2ec8ecf 51
+restviews/ids.xqm
+  s_38ac4e737ca8c4::t_ba879429b7bb5f 16-91,109
+test/xqs/ts-listids-cache.xqm
+  s_38ac4e737ca8c4::t_1026bb54acf1f5 1-19,21,23-24,30-33
+  s_38ac4e737ca8c4::t_3e8fc2ccc9ca08 20,25-29
+  s_38ac4e737ca8c4::t_57444dd5a997e1 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8a8bf08bc1a61856bd21020b5b89e70f15d152e0",
+  "prompts": {},
+  "sessions": {
+    "s_38ac4e737ca8c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6622c5-8ff3-4195-aad8-c75e5bdf0e79",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
