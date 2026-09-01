@@ -42,6 +42,13 @@ import module namespace tspersrole = "https://www.betamasaheft.uni-hamburg.de/Be
 import module namespace tsmssfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-msfilters" at "ts-app-msfilters.xqm";
 import module namespace tscrange = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-computed-range-filters" at "ts-computed-range-filters.xqm";
 import module namespace tswpfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-worksplaces-filters" at "ts-app-worksplaces-filters.xqm";
+import module namespace tsfieldinput = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-fieldinput" at "ts-queries-fieldinput.xqm";
+import module namespace tssortingkey = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-sortingkey" at "ts-queries-sortingkey.xqm";
+import module namespace tsfilterspanel = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-filterspanel" at "ts-queries-filterspanel.xqm";
+import module namespace tsplainfields = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-plainfields" at "ts-queries-plainfields.xqm";
+import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-datefilter" at "ts-charts-datefilter.xqm";
+import module namespace tstaglia = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-tagliasupport" at "ts-charts-tagliasupport.xqm";
+import module namespace tslistids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-listids-cache" at "ts-listids-cache.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -79,6 +86,13 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-app-persrole.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-msfilters.xqm")),
 		inspect:module-functions(xs:anyURI("ts-computed-range-filters.xqm")),
-		inspect:module-functions(xs:anyURI("ts-app-worksplaces-filters.xqm"))
+		inspect:module-functions(xs:anyURI("ts-app-worksplaces-filters.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-fieldinput.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-sortingkey.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-filterspanel.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-plainfields.xqm")),
+		inspect:module-functions(xs:anyURI("ts-charts-datefilter.xqm")),
+		inspect:module-functions(xs:anyURI("ts-charts-tagliasupport.xqm")),
+		inspect:module-functions(xs:anyURI("ts-listids-cache.xqm"))
 	)
 )
