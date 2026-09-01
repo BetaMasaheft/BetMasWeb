@@ -208,6 +208,87 @@ declare function charts:dateFilter($from, $to, $hits, $years-by-hit as map(*)) {
 	$hits[some $year in $years-by-hit(generate-id(.)) satisfies ($year ge $from and $year le $to)]
 };
 
+(:~
+ : Shared shape behind charts:chart's 6 support-function chart blocks
+ : (sp/spat/TM/BM/OT/MM) - each was ~75-80 duplicated lines: 14
+ : per-bucket support-fn calls aggregated into a Google Charts JSON
+ : table, plus an almost-identical ColumnChart <script> + wrapper
+ : <div>. Only the support function, this family's own per-bucket
+ : labels, $values, count, title/axis text, and target div id varied.
+ :
+ : @param $buckets the 14 date-bucket node-sets (Aks/Paks1/Paks2/Gon/ZaMe/MoPe/1-299/300-599/600-899/900-1199/1200-1499/1500-1799/1800-2099/NotDated, in that order)
+ : @param $labels this family's own label text per bucket, same order as $buckets - not unified across families (e.g. the sp block's own "Post-aksumite 2" wording is kept verbatim here rather than forced to match the other 5 blocks' "Post-aksumite II")
+ : @param $support-fn ($mss, $rangeName, $values) -> a Google Charts row string, e.g. charts:spsupport#3
+ : @param $table-title the JSON table's own first column header
+ : @param $chart-title-prefix chart title text before the item count (" manuscripts with this type of data..." is common to all 6 and appended here)
+ : @param $vaxis-title the vertical-axis title
+ : @param $div-id the target <div>'s id, matched by the <script>'s getElementById call
+ : @param $empty-message shown instead of a chart when $count is 0
+ :)
+declare %private function charts:support-column-chart(
+	$buckets as array(*),
+	$labels as xs:string*,
+	$values as xs:string*,
+	$count as xs:integer,
+	$support-fn as function (item()*, xs:string, xs:string*) as xs:string?,
+	$table-title as xs:string,
+	$chart-title-prefix as xs:string,
+	$vaxis-title as xs:string,
+	$div-id as xs:string,
+	$empty-message as xs:string
+) as element()* {
+	if ($count = 0) then
+		<div class="w3-half w3-panel w3-red w3-padding"><p>{ $empty-message }</p></div>
+	else
+		let $series :=
+			for $i in 1 to array:size($buckets)
+			return $support-fn($buckets($i), $labels[$i], $values)
+		let $headings :=
+			for $value in $values
+			return ',"' || $value || '"'
+		let $table := '[["' || $table-title || '" ' || string-join($headings) || "]," || string-join($series, ", ") || "]"
+		return (
+			<script type="text/javascript">
+				{
+					'
+google.charts.load("current", {packages:["corechart"]});
+google.charts.setOnLoadCallback(drawChart);
+function drawChart() {
+var data = google.visualization.arrayToDataTable(
+' ||
+						$table ||
+						'
+);
+
+var view = new google.visualization.DataView(data);
+
+var options = { title: "' ||
+						$chart-title-prefix ||
+						$count ||
+						' manuscripts with this type of data in the current results.",
+                  isStacked: "percent",
+                  height: 300,
+                  legend: {position: "top", maxLines: 3},
+                  hAxis:{title:"Periods"},
+                  vAxis: {
+                    title:"' ||
+						$vaxis-title ||
+						'",
+                    minValue: 0,
+                    ticks: [0, .25, .5, .75, 1]
+                  }
+                };
+var chart = new google.visualization.ColumnChart(document.getElementById("' ||
+						$div-id ||
+						'"));
+chart.draw(view, options);
+}'
+				}
+			</script>,
+			<div class="w3-half" id="{ $div-id }" style="height: 500px;" />
+		)
+};
+
 declare function charts:chart($hits) {
 	let $years-by-hit := map:merge($hits!map:entry(generate-id(.), charts:hit-years(.)))
 	let $taglias-by-hit := map:merge($hits!map:entry(generate-id(.), charts:hit-taglias(.)))
@@ -279,6 +360,24 @@ declare function charts:chart($hits) {
 
 	let $rulingpattern := $hits//t:ab[@type eq "ruling"][@subtype eq "pattern"]
 	let $countRulPat := count($rulingpattern)
+
+	(: shared across all 6 charts:support-column-chart calls below - see its own docs :)
+	let $date-buckets := [
+		$mssAks,
+		$mssPaks1,
+		$mssPaks2,
+		$mssGon,
+		$mssZaMe,
+		$mssMoPe,
+		$mss1-299,
+		$mss300-599,
+		$mss600-899,
+		$mss900-1199,
+		$mss1200-1499,
+		$mss1500-1799,
+		$mss1800-2099,
+		$mssNotDated
+	]
 
 	return (
 		if ($numberQuiresIns ge 1) then (
@@ -551,484 +650,168 @@ declare function charts:chart($hits) {
 				<p>There are no outer dimensions for this selection of manuscripts.</p>
 			</div>
 		),
-		if ($countmswithSSta ge 1) then (
-			let $spAks := charts:spsupport($mssAks, "Aksumite", $spvalues)
-			let $spPaks1 := charts:spsupport($mssPaks1, "Post-aksumite I", $spvalues)
-			let $spPaks2 := charts:spsupport($mssPaks2, "Post-aksumite 2", $spvalues)
-			let $spGon := charts:spsupport($mssGon, "Gondarine", $spvalues)
-			let $spZaMe := charts:spsupport($mssZaMe, "Zamana Masāfǝnt", $spvalues)
-			let $spMoPe := charts:spsupport($mssMoPe, "Modern Period", $spvalues)
-
-			let $sp1-299 := charts:spsupport($mss1-299, "1-299", $spvalues)
-			let $sp300-599 := charts:spsupport($mss300-599, "300-599", $spvalues)
-			let $sp600-899 := charts:spsupport($mss600-899, "600-899", $spvalues)
-			let $sp900-1199 := charts:spsupport($mss900-1199, "900-1199", $spvalues)
-			let $sp1200-1499 := charts:spsupport($mss1200-1499, "1200-1499", $spvalues)
-			let $sp1500-1799 := charts:spsupport($mss1500-1799, "1500-1799", $spvalues)
-			let $sp1800-2099 := charts:spsupport($mss1800-2099, "1800-2099", $spvalues)
-			let $spNotDated := charts:spsupport($mssNotDated, "Not Dated", $spvalues)
-			let $SewingPatterns := (
-				$spAks,
-				$spPaks1,
-				$spPaks2,
-				$spGon,
-				$spZaMe,
-				$spMoPe,
-				$sp1-299,
-				$sp300-599,
-				$sp600-899,
-				$sp900-1199,
-				$sp1200-1499,
-				$sp1500-1799,
-				$sp1800-2099,
-				$spNotDated
-			)
-			let $headings :=
-				for $value in $spvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Sewing stations" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($SewingPatterns, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-    google.charts.load("current", {packages:["corechart"]});
-    google.charts.setOnLoadCallback(drawChart);
-    function drawChart() {
-    var data = google.visualization.arrayToDataTable(
-    ' ||
-							$bindingColumnChart ||
-							'
-    );
-
-    var view = new google.visualization.DataView(data);
-
-    var options = { title: "Number of sewing Stations by date range for ' ||
-							$countmswithSSta ||
-							' manuscripts with this type of data in the current results.",
-                      isStacked: "percent",
-                      height: 300,
-                      legend: {position: "top", maxLines: 3},
-                      hAxis:{title:"Periods"},
-                      vAxis: {
-                        title:"percentage of total with number of sewing stations",
-                        minValue: 0,
-                        ticks: [0, .25, .5, .75, 1]
-                      }
-                    };
-    var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
-    chart.draw(view, options);
-    }'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_values" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no sewing stations values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite 2",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$spvalues,
+			$countmswithSSta,
+			charts:spsupport#3,
+			"Sewing stations",
+			"Number of sewing Stations by date range for ",
+			"percentage of total with number of sewing stations",
+			"columnchart_values",
+			"There are no sewing stations values for this selection of manuscripts."
 		),
-		if ($countmswithSPat ge 1) then (
-			let $spatAks := charts:spatsupport($mssAks, "Aksumite", $spatvalues)
-			let $spatPaks1 := charts:spatsupport($mssPaks1, "Post-aksumite I", $spatvalues)
-			let $spatPaks2 := charts:spatsupport($mssPaks2, "Post-aksumite II", $spatvalues)
-			let $spatGon := charts:spatsupport($mssGon, "Gondarine", $spatvalues)
-			let $spatZaMe := charts:spatsupport($mssZaMe, "Zamana Masāfǝnt", $spatvalues)
-			let $spatMoPe := charts:spatsupport($mssMoPe, "Modern Period", $spatvalues)
-
-			let $spat1-299 := charts:spatsupport($mss1-299, "1-299", $spatvalues)
-			let $spat300-599 := charts:spatsupport($mss300-599, "300-599", $spatvalues)
-			let $spat600-899 := charts:spatsupport($mss600-899, "600-899", $spatvalues)
-			let $spat900-1199 := charts:spatsupport($mss900-1199, "900-1199", $spatvalues)
-			let $spat1200-1499 := charts:spatsupport($mss1200-1499, "1200-1499", $spatvalues)
-			let $spat1500-1799 := charts:spatsupport($mss1500-1799, "1500-1799", $spatvalues)
-			let $spat1800-2099 := charts:spatsupport($mss1800-2099, "1800-2099", $spatvalues)
-			let $spatNotDated := charts:spatsupport($mssNotDated, "Not Dated", $spatvalues)
-			let $SewingPatterns := (
-				$spatAks,
-				$spatPaks1,
-				$spatPaks2,
-				$spatGon,
-				$spatZaMe,
-				$spatMoPe,
-				$spat1-299,
-				$spat300-599,
-				$spat600-899,
-				$spat900-1199,
-				$spat1200-1499,
-				$spat1500-1799,
-				$spat1800-2099,
-				$spatNotDated
-			)
-			let $headings :=
-				for $value in $spatvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Sewing Patterns" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($SewingPatterns, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-  google.charts.load("current", {packages:["corechart"]});
-  google.charts.setOnLoadCallback(drawChart);
-  function drawChart() {
-  var data = google.visualization.arrayToDataTable(
-  ' ||
-							$bindingColumnChart ||
-							'
-  );
-
-  var view = new google.visualization.DataView(data);
-
-  var options = { title: "Sewing Patterns by date range for ' ||
-							$countmswithSPat ||
-							' manuscripts with this type of data in the current results.",
-                    isStacked: "percent",
-                    height: 300,
-                    legend: {position: "top", maxLines: 3},
-                    hAxis:{title: "Periods"},
-                      vAxis: {
-                        title: "percentage of the total using sewing pattern",
-                      minValue: 0,
-                      ticks: [0, .25, .5, .75, 1]
-                    }
-                  };
-  var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_SPvalues"));
-  chart.draw(view, options);
-  }'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_SPvalues" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no sewing pattern values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite II",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$spatvalues,
+			$countmswithSPat,
+			charts:spatsupport#3,
+			"Sewing Patterns",
+			"Sewing Patterns by date range for ",
+			"percentage of the total using sewing pattern",
+			"columnchart_SPvalues",
+			"There are no sewing pattern values for this selection of manuscripts."
 		),
-		if ($countmswithThreadMat ge 1) then (
-			let $TMAks := charts:TMsupport($mssAks, "Aksumite", $TMvalues)
-			let $TMPaks1 := charts:TMsupport($mssPaks1, "Post-aksumite I", $TMvalues)
-			let $TMPaks2 := charts:TMsupport($mssPaks2, "Post-aksumite II", $TMvalues)
-			let $TMGon := charts:TMsupport($mssGon, "Gondarine", $TMvalues)
-			let $TMZaMe := charts:TMsupport($mssZaMe, "Zamana Masāfǝnt", $TMvalues)
-			let $TMMoPe := charts:TMsupport($mssMoPe, "Modern Period", $TMvalues)
-
-			let $TM1-299 := charts:TMsupport($mss1-299, "1-299", $TMvalues)
-			let $TM300-599 := charts:TMsupport($mss300-599, "300-599", $TMvalues)
-			let $TM600-899 := charts:TMsupport($mss600-899, "600-899", $TMvalues)
-			let $TM900-1199 := charts:TMsupport($mss900-1199, "900-1199", $TMvalues)
-			let $TM1200-1499 := charts:TMsupport($mss1200-1499, "1200-1499", $TMvalues)
-			let $TM1500-1799 := charts:TMsupport($mss1500-1799, "1500-1799", $TMvalues)
-			let $TM1800-2099 := charts:TMsupport($mss1800-2099, "1800-2099", $TMvalues)
-			let $TMNotDated := charts:TMsupport($mssNotDated, "Not Dated", $TMvalues)
-			let $ThreadMaterials := (
-				$TMAks,
-				$TMPaks1,
-				$TMPaks2,
-				$TMGon,
-				$TMZaMe,
-				$TMMoPe,
-				$TM1-299,
-				$TM300-599,
-				$TM600-899,
-				$TM900-1199,
-				$TM1200-1499,
-				$TM1500-1799,
-				$TM1800-2099,
-				$TMNotDated
-			)
-			let $headings :=
-				for $value in $TMvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Thread Materials" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($ThreadMaterials, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-google.charts.load("current", {packages:["corechart"]});
-google.charts.setOnLoadCallback(drawChart);
-function drawChart() {
-var data = google.visualization.arrayToDataTable(
-' ||
-							$bindingColumnChart ||
-							'
-);
-
-var view = new google.visualization.DataView(data);
-
-var options = { title: "Thread Materials used by date range for ' ||
-							$countmswithThreadMat ||
-							' manuscripts with this type of data in the current results.",
-                  isStacked: "percent",
-                  height: 300,
-                  legend: {position: "top", maxLines: 3},
-                  hAxis:{title: "Periods"},
-                      vAxis: {
-                     title: "percentage of the total using thread material",
-                    minValue: 0,
-                    ticks: [0, .25, .5, .75, 1]
-                  }
-                };
-var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_Threadvalues"));
-chart.draw(view, options);
-}'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_Threadvalues" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no thread material values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite II",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$TMvalues,
+			$countmswithThreadMat,
+			charts:TMsupport#3,
+			"Thread Materials",
+			"Thread Materials used by date range for ",
+			"percentage of the total using thread material",
+			"columnchart_Threadvalues",
+			"There are no thread material values for this selection of manuscripts."
 		),
-		if ($countmswithbindingMat ge 1) then (
-			let $BMAks := charts:BMsupport($mssAks, "Aksumite", $BMvalues)
-			let $BMPaks1 := charts:BMsupport($mssPaks1, "Post-aksumite I", $BMvalues)
-			let $BMPaks2 := charts:BMsupport($mssPaks2, "Post-aksumite II", $BMvalues)
-			let $BMGon := charts:BMsupport($mssGon, "Gondarine", $BMvalues)
-			let $BMZaMe := charts:BMsupport($mssZaMe, "Zamana Masāfǝnt", $BMvalues)
-			let $BMMoPe := charts:BMsupport($mssMoPe, "Modern Period", $BMvalues)
-			let $BM1-299 := charts:BMsupport($mss1-299, "1-299", $BMvalues)
-			let $BM300-599 := charts:BMsupport($mss300-599, "300-599", $BMvalues)
-			let $BM600-899 := charts:BMsupport($mss600-899, "600-899", $BMvalues)
-			let $BM900-1199 := charts:BMsupport($mss900-1199, "900-1199", $BMvalues)
-			let $BM1200-1499 := charts:BMsupport($mss1200-1499, "1200-1499", $BMvalues)
-			let $BM1500-1799 := charts:BMsupport($mss1500-1799, "1500-1799", $BMvalues)
-			let $BM1800-2099 := charts:BMsupport($mss1800-2099, "1800-2099", $BMvalues)
-			let $BMNotDated := charts:BMsupport($mssNotDated, "Not Dated", $BMvalues)
-			let $BindingMaterials := (
-				$BMAks,
-				$BMPaks1,
-				$BMPaks2,
-				$BMGon,
-				$BMZaMe,
-				$BMMoPe,
-				$BM1-299,
-				$BM300-599,
-				$BM600-899,
-				$BM900-1199,
-				$BM1200-1499,
-				$BM1500-1799,
-				$BM1800-2099,
-				$BMNotDated
-			)
-			let $headings :=
-				for $value in $BMvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Thread Materials" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($BindingMaterials, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-google.charts.load("current", {packages:["corechart"]});
-google.charts.setOnLoadCallback(drawChart);
-function drawChart() {
-var data = google.visualization.arrayToDataTable(
-' ||
-							$bindingColumnChart ||
-							'
-);
-
-var view = new google.visualization.DataView(data);
-
-var options = { title: "Binding Materials used by date range  for ' ||
-							$countmswithbindingMat ||
-							' manuscripts with this type of data in the current results.",
-                  isStacked: "percent",
-                  height: 300,
-                  legend: {position: "top", maxLines: 3},
-                  hAxis:{title:"Periods"},
-                      vAxis: {
-                        title: "percentage of the total using binding material",
-                   minValue: 0,
-                    ticks: [0, .25, .5, .75, 1]
-                  }
-                };
-var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_BMvalues"));
-chart.draw(view, options);
-}'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_BMvalues" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no binding material values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite II",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$BMvalues,
+			$countmswithbindingMat,
+			charts:BMsupport#3,
+			(: was "Thread Materials" - a copy-paste leftover from the TM block above, wrong for a Binding Materials chart :)
+			"Binding Materials",
+			"Binding Materials used by date range  for ",
+			"percentage of the total using binding material",
+			"columnchart_BMvalues",
+			"There are no binding material values for this selection of manuscripts."
 		),
-		if ($countmsObjTyp ge 1) then (
-			let $OTAks := charts:OTsupport($mssAks, "Aksumite", $OTvalues)
-			let $OTPaks1 := charts:OTsupport($mssPaks1, "Post-aksumite I", $OTvalues)
-			let $OTPaks2 := charts:OTsupport($mssPaks2, "Post-aksumite II", $OTvalues)
-			let $OTGon := charts:OTsupport($mssGon, "Gondarine", $OTvalues)
-			let $OTZaMe := charts:OTsupport($mssZaMe, "Zamana Masāfǝnt", $OTvalues)
-			let $OTMoPe := charts:OTsupport($mssMoPe, "Modern Period", $OTvalues)
-			let $OT1-299 := charts:OTsupport($mss1-299, "1-299", $OTvalues)
-			let $OT300-599 := charts:OTsupport($mss300-599, "300-599", $OTvalues)
-			let $OT600-899 := charts:OTsupport($mss600-899, "600-899", $OTvalues)
-			let $OT900-1199 := charts:OTsupport($mss900-1199, "900-1199", $OTvalues)
-			let $OT1200-1499 := charts:OTsupport($mss1200-1499, "1200-1499", $OTvalues)
-			let $OT1500-1799 := charts:OTsupport($mss1500-1799, "1500-1799", $OTvalues)
-			let $OT1800-2099 := charts:OTsupport($mss1800-2099, "1800-2099", $OTvalues)
-			let $OTNotDated := charts:OTsupport($mssNotDated, "Not Dated", $OTvalues)
-			let $supports := (
-				$OTAks,
-				$OTPaks1,
-				$OTPaks2,
-				$OTGon,
-				$OTZaMe,
-				$OTMoPe,
-				$OT1-299,
-				$OT300-599,
-				$OT600-899,
-				$OT900-1199,
-				$OT1200-1499,
-				$OT1500-1799,
-				$OT1800-2099,
-				$OTNotDated
-			)
-			let $headings :=
-				for $value in $OTvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Form of support" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($supports, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-google.charts.load("current", {packages:["corechart"]});
-google.charts.setOnLoadCallback(drawChart);
-function drawChart() {
-var data = google.visualization.arrayToDataTable(
-' ||
-							$bindingColumnChart ||
-							'
-);
-
-var view = new google.visualization.DataView(data);
-
-var options = { title: "Form of support used by date range for ' ||
-							$countmsObjTyp ||
-							' manuscripts with this type of data in the current results.",
-                  isStacked: "percent",
-                  height: 300,
-                  legend: {position: "top", maxLines: 3},
-                  hAxis:{title: "Periods"},
-                      vAxis: {
-                        title: "percentage of the total with specific form of support",
-                 
-                    minValue: 0,
-                    ticks: [0, .25, .5, .75, 1]
-                  }
-                };
-var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_OTvalues"));
-chart.draw(view, options);
-}'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_OTvalues" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no object form values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite II",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$OTvalues,
+			$countmsObjTyp,
+			charts:OTsupport#3,
+			"Form of support",
+			"Form of support used by date range for ",
+			"percentage of the total with specific form of support",
+			"columnchart_OTvalues",
+			"There are no object form values for this selection of manuscripts."
 		),
-		if ($countmswithMainMat ge 1) then (
-			let $MMAks := charts:MMsupport($mssAks, "Aksumite", $MMvalues)
-			let $MMPaks1 := charts:MMsupport($mssPaks1, "Post-aksumite I", $MMvalues)
-			let $MMPaks2 := charts:MMsupport($mssPaks2, "Post-aksumite II", $MMvalues)
-			let $MMGon := charts:MMsupport($mssGon, "Gondarine", $MMvalues)
-			let $MMZaMe := charts:MMsupport($mssZaMe, "Zamana Masāfǝnt", $MMvalues)
-			let $MMMoPe := charts:MMsupport($mssMoPe, "Modern Period", $MMvalues)
-			let $MM1-299 := charts:MMsupport($mss1-299, "1-299", $MMvalues)
-			let $MM300-599 := charts:MMsupport($mss300-599, "300-599", $MMvalues)
-			let $MM600-899 := charts:MMsupport($mss600-899, "600-899", $MMvalues)
-			let $MM900-1199 := charts:MMsupport($mss900-1199, "900-1199", $MMvalues)
-			let $MM1200-1499 := charts:MMsupport($mss1200-1499, "1200-1499", $MMvalues)
-			let $MM1500-1799 := charts:MMsupport($mss1500-1799, "1500-1799", $MMvalues)
-			let $MM1800-2099 := charts:MMsupport($mss1800-2099, "1800-2099", $MMvalues)
-			let $MMNotDated := charts:MMsupport($mssNotDated, "Not Dated", $MMvalues)
-			let $MainMaterials := (
-				$MMAks,
-				$MMPaks1,
-				$MMPaks2,
-				$MMGon,
-				$MMZaMe,
-				$MMMoPe,
-				$MM1-299,
-				$MM300-599,
-				$MM600-899,
-				$MM900-1199,
-				$MM1200-1499,
-				$MM1500-1799,
-				$MM1800-2099,
-				$MMNotDated
-			)
-			let $headings :=
-				for $value in $MMvalues
-				return ',"' || $value || '"'
-			let $bindingColumnChart := '[["Material" ' ||
-				string-join($headings) ||
-				"]," ||
-				string-join($MainMaterials, ", ") ||
-				"]"
-			return (
-				<script type="text/javascript">
-					{
-						'
-google.charts.load("current", {packages:["corechart"]});
-google.charts.setOnLoadCallback(drawChart);
-function drawChart() {
-var data = google.visualization.arrayToDataTable(
-' ||
-							$bindingColumnChart ||
-							'
-);
-
-var view = new google.visualization.DataView(data);
-
-var options = { title: "Support Materials used by date range  for ' ||
-							$countmswithMainMat ||
-							' manuscripts with this type of data in the current results.",
-                  isStacked: "percent",
-                  height: 300,
-                  legend: {position: "top", maxLines: 3},
-                  hAxis:{title: "Periods"},
-                      vAxis: {
-                        title:"percentage of the total using support material",
-                 
-                    minValue: 0,
-                    ticks: [0, .25, .5, .75, 1]
-                  }
-                };
-var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_MMvalues"));
-chart.draw(view, options);
-}'
-					}
-				</script>,
-				<div class="w3-half" id="columnchart_MMvalues" style="height: 500px;" />
-			)
-		) else (
-			<div class="w3-half w3-panel w3-red w3-padding">
-				<p>There are no support material values for this selection of manuscripts.</p>
-			</div>
+		charts:support-column-chart(
+			$date-buckets,
+			(
+				"Aksumite",
+				"Post-aksumite I",
+				"Post-aksumite II",
+				"Gondarine",
+				"Zamana Masāfǝnt",
+				"Modern Period",
+				"1-299",
+				"300-599",
+				"600-899",
+				"900-1199",
+				"1200-1499",
+				"1500-1799",
+				"1800-2099",
+				"Not Dated"
+			),
+			$MMvalues,
+			$countmswithMainMat,
+			charts:MMsupport#3,
+			"Material",
+			"Support Materials used by date range  for ",
+			"percentage of the total using support material",
+			"columnchart_MMvalues",
+			"There are no support material values for this selection of manuscripts."
 		),
 		if ($countRulPat ge 1) then (
 			let $patterns :=
@@ -1266,88 +1049,95 @@ declare function charts:tagliasupport($mssDate, $totcount, $from, $to, $taglias-
 	return format-number($div, "#.#")
 };
 
-declare function charts:spsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:decoNote[@type eq "SewingStations"]
+(:~
+ : Shared shape behind spsupport/spatsupport/TMsupport/BMsupport/
+ : MMsupport/OTsupport: what fraction of $mss's matching elements have
+ : each of $values, as a Google Charts row string. Each of the 6
+ : wrappers below differed only in $selector (which elements count as
+ : "this period's data") and $match (how a candidate value is tested
+ : against them) - was ~14 duplicated lines per wrapper (84 total).
+ :
+ : @param $selector $mss -> the elements to count against
+ : @param $match ($selector's result, one candidate value) -> the subset matching that value
+ :)
+declare %private function charts:support(
+	$mss,
+	$rangeName,
+	$values,
+	$selector as function (item()*) as node()*,
+	$match as function (node()*, xs:string) as node()*
+) {
+	let $mssthisperiod := $selector($mss)
 	return if (count($mssthisperiod) = 0) then (
 	) else
 		let $total := count($mssthisperiod)
 		let $columns :=
 			for $value in $values
-			let $countms := count($mssthisperiod[. = $value])
+			let $countms := count($match($mssthisperiod, $value))
 			let $div := ($countms div $total)
 			let $perc := format-number($div, "#.#")
 			return "," || $perc
 		return '["' || $rangeName || '"' || string-join($columns) || "]"
+};
+
+declare function charts:spsupport($mss, $rangeName, $values) {
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:decoNote[@type eq "SewingStations"] },
+		function ($set, $value) { $set[. = $value] }
+	)
 };
 
 declare function charts:spatsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:decoNote[t:term[contains(@key, "pattern")]]
-	return if (count($mssthisperiod) = 0) then (
-	) else
-		let $total := count($mssthisperiod)
-		let $columns :=
-			for $value in $values
-			let $countms := count($mssthisperiod/t:term[@key eq $value])
-			let $div := ($countms div $total)
-			let $perc := format-number($div, "#.#")
-			return "," || $perc
-		return '["' || $rangeName || '"' || string-join($columns) || "]"
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:decoNote[t:term[contains(@key, "pattern")]] },
+		function ($set, $value) { $set/t:term[@key eq $value] }
+	)
 };
 
 declare function charts:TMsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:decoNote[t:term[ends-with(@key, "Thread") or contains(@key, "tannedSkin")]]
-	return if (count($mssthisperiod) = 0) then (
-	) else
-		let $total := count($mssthisperiod)
-		let $columns :=
-			for $value in $values
-			let $countms := count($mssthisperiod/t:term[@key eq $value])
-			let $div := ($countms div $total)
-			let $perc := format-number($div, "#.#")
-			return "," || $perc
-		return '["' || $rangeName || '"' || string-join($columns) || "]"
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:decoNote[t:term[ends-with(@key, "Thread") or contains(@key, "tannedSkin")]] },
+		function ($set, $value) { $set/t:term[@key eq $value] }
+	)
 };
 
 declare function charts:BMsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:decoNote[parent::t:binding][t:material]
-	return if (count($mssthisperiod) = 0) then (
-	) else
-		let $total := count($mssthisperiod)
-		let $columns :=
-			for $value in $values
-			let $countms := count($mssthisperiod/t:material[@key eq $value])
-			let $div := ($countms div $total)
-			let $perc := format-number($div, "#.#")
-			return "," || $perc
-		return '["' || $rangeName || '"' || string-join($columns) || "]"
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:decoNote[parent::t:binding][t:material] },
+		function ($set, $value) { $set/t:material[@key eq $value] }
+	)
 };
 
 declare function charts:MMsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:support[t:material]
-	return if (count($mssthisperiod) = 0) then (
-	) else
-		let $total := count($mssthisperiod)
-		let $columns :=
-			for $value in $values
-			let $countms := count($mssthisperiod/t:material[@key eq $value])
-			let $div := ($countms div $total)
-			let $perc := format-number($div, "#.#")
-			return "," || $perc
-		return '["' || $rangeName || '"' || string-join($columns) || "]"
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:support[t:material] },
+		function ($set, $value) { $set/t:material[@key eq $value] }
+	)
 };
 
 declare function charts:OTsupport($mss, $rangeName, $values) {
-	let $mssthisperiod := $mss//t:objectDesc
-	return if (count($mssthisperiod) eq 0) then (
-	) else
-		let $total := count($mssthisperiod)
-		let $columns :=
-			for $value in $values
-			let $countms := count($mssthisperiod[@form eq $value])
-			let $div := ($countms div $total)
-			let $perc := format-number($div, "#.#")
-			return "," || $perc
-		return '["' || $rangeName || '"' || string-join($columns) || "]"
+	charts:support(
+		$mss,
+		$rangeName,
+		$values,
+		function ($m) { $m//t:objectDesc },
+		function ($set, $value) { $set[@form eq $value] }
+	)
 };
 
 declare function charts:RulingSupport($DatedMSS, $rangeName, $values, $formulaZone) {
