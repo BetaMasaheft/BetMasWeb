@@ -44,6 +44,7 @@ import module namespace tscrange = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tswpfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-worksplaces-filters" at "ts-app-worksplaces-filters.xqm";
 import module namespace tsfieldinput = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-fieldinput" at "ts-queries-fieldinput.xqm";
 import module namespace tssortingkey = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-sortingkey" at "ts-queries-sortingkey.xqm";
+import module namespace tsfilterspanel = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-filterspanel" at "ts-queries-filterspanel.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -83,6 +84,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-computed-range-filters.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-worksplaces-filters.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-fieldinput.xqm")),
-		inspect:module-functions(xs:anyURI("ts-queries-sortingkey.xqm"))
+		inspect:module-functions(xs:anyURI("ts-queries-sortingkey.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-filterspanel.xqm"))
 	)
 )

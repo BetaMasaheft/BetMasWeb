@@ -8,6 +8,7 @@ declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 
 import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
 import module namespace cache = "http://exist-db.org/xquery/cache";
+import module namespace lib = "http://exist-db.org/xquery/html-templating/lib";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
@@ -180,6 +181,101 @@ declare function q:searchTypeFieldset($node as node(), $model as map(*), $expect
 			attribute class { normalize-space(replace($class, "w3-hide", "")) }
 		else
 			$node/@class,
+		$node/node()!templates:process(., $model)
+	}
+};
+
+(:~
+ : Every request parameter name the "#filters" advanced-search panel's
+ : own fields can submit, across all five sections (general/manuscripts/
+ : works/persons/places) - the single source of truth behind
+ : q:filtersPanelFieldset's own reveal-on-load check below. Keep in sync
+ : with newSearch.html's "#filters" fieldset and the q:includeXXX section
+ : guards further down this module.
+ :)
+declare %private variable $q:filters-panel-params := (
+	"work-types",
+	"images",
+	"ident",
+	"termkey",
+	"changewho",
+	"dateRange",
+	"height",
+	"width",
+	"depth",
+	"columnsNum",
+	"tmargin",
+	"bmargin",
+	"rmargin",
+	"lmargin",
+	"intercolumn",
+	"qn",
+	"qcn",
+	"folia",
+	"wL",
+	"numberOfParts",
+	"script",
+	"bindingtype",
+	"custEventsubtype",
+	"colophon-subtype",
+	"incipit-subtype",
+	"explicit-subtype",
+	"itemtype",
+	"desctype",
+	"materialkey",
+	"decoNtype",
+	"repositorytext",
+	"form",
+	"writtenLines",
+	"collectiontext",
+	"translator",
+	"sponsor",
+	"scribe",
+	"presentCustodian",
+	"patron",
+	"owner",
+	"other",
+	"mainCollector",
+	"illustrator",
+	"bequeather",
+	"author",
+	"donor",
+	"persrole",
+	"divtype",
+	"divsubtype",
+	"witnesstext",
+	"persontype",
+	"occtype",
+	"faithtype",
+	"gender",
+	"birthRange",
+	"deathRange",
+	"floruitRange",
+	"regiontext",
+	"settlementtext",
+	"countrytext",
+	"placetype",
+	"tabot",
+	"anyDateRange"
+);
+
+(:~
+ : Reveals the "#advanced" advanced-search panel server-side when any of
+ : its own fields (across all five sections) has a submitted value -
+ : same @style-stripping shape as app:persFiltersSection (modules/app.xqm),
+ : deliberately keyed on the inline `style` attribute rather than a
+ : "w3-hide" class: selectForm.js's "+" click handler toggles this exact
+ : element via genuine jQuery `.toggle("slow")`, which only ever writes
+ : an inline `style.display` - it cannot override a CSS class rule
+ : declared `!important` (w3.css's `.w3-hide` is), so a class-based
+ : default here would silently break that live click.
+ :)
+declare function q:filtersPanelFieldset($node as node(), $model as map(*)) as element() {
+	element {node-name($node)} {
+		$node/@* except $node/@style,
+		if (q:any-active($q:filters-panel-params!request:get-parameter(., ()))) then (
+		) else
+			$node/@style,
 		$node/node()!templates:process(., $model)
 	}
 };
@@ -3751,6 +3847,224 @@ declare function q:formatOption($rangeindexname, $key, $count) {
 			} ({ $count[2] })</option>
 	else
 		<option value="{ $key }">{ $key } ({ $count[2] })</option>
+};
+
+(:~
+ : Shared shape behind every "server-render this newSearch.html advanced
+ : filter section when it has state to restore" function - mirrors
+ : app:include-facet-form (modules/app.xqm) exactly, for the same reason:
+ : each of these sections wraps a corpus-scanning lookup (a `q:datalist`
+ : range-index facet list, or a full `$q:col//` scan for
+ : q:MssPersRoles/q:WorkAuthors/q:tabot), and rendering it unconditionally
+ : on every newSearch.html load - active filter or not - would tax every
+ : request for a section most requests never touch. Renders nothing at
+ : all when inactive, not the fragment hidden via CSS.
+ :
+ : A live "+"-then-open-this-section click with no prior state still
+ : works: filters.js's callformpart() AJAX-fetches $formfile directly
+ : (routed through templating, unlike the old filters.html.txt fragment
+ : it replaces) exactly when the section's root id isn't already in the
+ : DOM, the same fallback as.html already relies on.
+ :
+ : @param $formfile the form fragment's path, e.g. "forms/formTabot.html"
+ : @param $active whether this section has a real filter value to restore
+ : @return the form fragment when $active, otherwise nothing
+ :)
+declare %private function q:include-facet-form(
+	$node as node(),
+	$model as map(*),
+	$formfile as xs:string,
+	$anchor-id as xs:string,
+	$active as xs:boolean
+) as element() {
+	if ($active) then
+		lib:include($node, $model, $formfile)
+	else
+		(:
+		 : an empty, id-carrying placeholder rather than nothing at all -
+		 : loadFacetFragment() (resources/js/filters.js) needs a stable
+		 : anchor to test for presence against and to append a live-fetched
+		 : fragment into, and $formfile's own root always carries this same
+		 : id when it *is* included, so an empty div with it costs nothing
+		 : query-wise but keeps the anchor point consistent either way
+		 :)
+		<div id="{ $anchor-id }" />
+};
+
+(:~
+ : True if any of $values has a real (non-blank) submitted value - the
+ : shared activity check behind every q:includeXXX section guard below.
+ :)
+declare %private function q:any-active($values as xs:string*) as xs:boolean {
+	exists($values[normalize-space(.) != ""])
+};
+
+declare function q:includeGeneralRangeIndexesFilters(
+	$node as node(),
+	$model as map(*),
+	$ident as xs:string*,
+	$termkey as xs:string*,
+	$changewho as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formGeneralRangeIndexes.html",
+		"generalRangeIndexes",
+		q:any-active(($ident, $termkey, $changewho))
+	)
+};
+
+declare function q:includeMssRangeIndexesFilters(
+	$node as node(),
+	$model as map(*),
+	$script as xs:string*,
+	$bindingtype as xs:string*,
+	$custEventsubtype as xs:string*,
+	$colophon-subtype as xs:string*,
+	$incipit-subtype as xs:string*,
+	$explicit-subtype as xs:string*,
+	$itemtype as xs:string*,
+	$desctype as xs:string*,
+	$materialkey as xs:string*,
+	$decoNtype as xs:string*,
+	$repositorytext as xs:string*,
+	$form as xs:string*,
+	$writtenLines as xs:string*,
+	$collectiontext as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formMssRangeIndexes.html",
+		"mssRangeIndexes",
+		q:any-active(
+			(
+				$script,
+				$bindingtype,
+				$custEventsubtype,
+				$colophon-subtype,
+				$incipit-subtype,
+				$explicit-subtype,
+				$itemtype,
+				$desctype,
+				$materialkey,
+				$decoNtype,
+				$repositorytext,
+				$form,
+				$writtenLines,
+				$collectiontext
+			)
+		)
+	)
+};
+
+(:~
+ : One explicit param per role name - the same 12 labels q:MssPersRoles'
+ : own switch knows how to name - rather than a request:get-parameter
+ : loop, so this stays a plain, directly-callable/testable function like
+ : every other q:includeXXX guard (auto-bound by the templating engine in
+ : production the same way either way).
+ :)
+declare function q:includeMssPersRoles(
+	$node as node(),
+	$model as map(*),
+	$translator as xs:string*,
+	$sponsor as xs:string*,
+	$scribe as xs:string*,
+	$presentCustodian as xs:string*,
+	$patron as xs:string*,
+	$owner as xs:string*,
+	$other as xs:string*,
+	$mainCollector as xs:string*,
+	$illustrator as xs:string*,
+	$bequeather as xs:string*,
+	$author as xs:string*,
+	$donor as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formMssPersRoles.html",
+		"mssPersRoles",
+		q:any-active(
+			(
+				$translator,
+				$sponsor,
+				$scribe,
+				$presentCustodian,
+				$patron,
+				$owner,
+				$other,
+				$mainCollector,
+				$illustrator,
+				$bequeather,
+				$author,
+				$donor
+			)
+		)
+	)
+};
+
+declare function q:includeRoles($node as node(), $model as map(*), $persrole as xs:string*) as element() {
+	q:include-facet-form($node, $model, "forms/formRoles.html", "rolesLookup", q:any-active($persrole))
+};
+
+declare function q:includeWorksRangeIndexesFilters(
+	$node as node(),
+	$model as map(*),
+	$divtype as xs:string*,
+	$divsubtype as xs:string*,
+	$witnesstext as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formWorksRangeIndexes.html",
+		"worksRangeIndexes",
+		q:any-active(($divtype, $divsubtype, $witnesstext))
+	)
+};
+
+declare function q:includeWorkAuthors($node as node(), $model as map(*), $author as xs:string*) as element() {
+	q:include-facet-form($node, $model, "forms/formWorkAuthors.html", "workAuthors", q:any-active($author))
+};
+
+declare function q:includePersonsRangeIndexesFilters(
+	$node as node(),
+	$model as map(*),
+	$persontype as xs:string*,
+	$occtype as xs:string*,
+	$faithtype as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formPersonsRangeIndexes.html",
+		"personsRangeIndexes",
+		q:any-active(($persontype, $occtype, $faithtype))
+	)
+};
+
+declare function q:includePlacesRangeIndexesFilters(
+	$node as node(),
+	$model as map(*),
+	$regiontext as xs:string*,
+	$settlementtext as xs:string*,
+	$countrytext as xs:string*,
+	$placetype as xs:string*
+) as element() {
+	q:include-facet-form(
+		$node,
+		$model,
+		"forms/formPlacesRangeIndexes.html",
+		"placesRangeIndexes",
+		q:any-active(($regiontext, $settlementtext, $countrytext, $placetype))
+	)
+};
+
+declare function q:includeTabot($node as node(), $model as map(*), $tabot as xs:string*) as element() {
+	q:include-facet-form($node, $model, "forms/formTabot.html", "tabotLookup", q:any-active($tabot))
 };
 
 declare function q:generalRangeIndexesFilters($node as node(), $model as map(*)) {
