@@ -162,6 +162,28 @@ declare function q:querytype($node as node(), $model as map(*)) {
 	</select>
 };
 
+(:~
+ : Reveals a searchType-conditional fieldset ("w3-hide" by default) whose
+ : content selectForm.js otherwise only shows via `#SType`'s `change`
+ : handler - which never fires on a plain page load from a pre-selected
+ : `option`, so a reload of e.g. `?searchType=xpath` left `#xpath` hidden
+ : even though the dropdown itself already showed "Xpath" selected.
+ :
+ : @param $expected-type the searchType value this fieldset belongs to (data-template-expected-type)
+ : @return $node with "w3-hide" stripped from its class when searchType matches
+ :)
+declare function q:searchTypeFieldset($node as node(), $model as map(*), $expected-type as xs:string) as element() {
+	element {node-name($node)} {
+		$node/@* except $node/@class,
+		let $class := string($node/@class)
+		return if (request:get-parameter("searchType", ()) = $expected-type) then
+			attribute class { normalize-space(replace($class, "w3-hide", "")) }
+		else
+			$node/@class,
+		$node/node()!templates:process(., $model)
+	}
+};
+
 declare function q:textquerymode($node as node(), $model as map(*)) {
 	let $textquerymodeparam := request:get-parameter("mode", ())
 	return <select class="w3-select" name="mode" style="padding:0px 0px;">
