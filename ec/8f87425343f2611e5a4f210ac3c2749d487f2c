@@ -1,0 +1,22 @@
+test/cypress/e2e/newSearch-numberInputs.cy.js
+  s_aba685fd5b856b::t_ababb2ba2703a6 1-7,10-27
+  s_aba685fd5b856b::t_186efaae2b9507 8-9
+resources/js/filters.js
+  s_aba685fd5b856b::t_64e488e95790e8 15-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "ec8f87425343f2611e5a4f210ac3c2749d487f2c",
+  "prompts": {},
+  "sessions": {
+    "s_aba685fd5b856b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "03dede71-08a4-4ec0-a5d7-0b8eb78b09fe",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}

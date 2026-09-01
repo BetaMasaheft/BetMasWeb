@@ -1,0 +1,26 @@
+modules/queries.xqm
+  s_aba685fd5b856b::t_804d5d9da2e98c 237-238,240,255-263,275,278-323,327-329,334-336,341-343,346,348-394,4232,4234
+  s_aba685fd5b856b::t_85ba0bdf710e20 4233
+  s_aba685fd5b856b::t_4c032988aa13aa 425,434,445,451,459,466,473,480,4231,4235-4236
+test/xqs/ts-queries-filterspanel.xqm
+  s_aba685fd5b856b::t_d5e1a37b6e5083 171-192
+test/cypress/e2e/newSearch-collectionSections.cy.js
+  s_aba685fd5b856b::t_fc97d13f4f0089 33-37,39,45-48
+  s_aba685fd5b856b::t_18e2ba4204b786 49-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d7eeaaeb5b2e8f2bfc8d4e1f6e271216117a0c94",
+  "prompts": {},
+  "sessions": {
+    "s_aba685fd5b856b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "03dede71-08a4-4ec0-a5d7-0b8eb78b09fe",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
