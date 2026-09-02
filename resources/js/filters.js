@@ -12,27 +12,12 @@ $("#tooglesearchfield").click(function () {
 });
 
 $(document).ready(function () {
-	// as.html always includes folia/writtenLines' own markup now, whether
-	// or not their section is currently active, so the widgets need a
-	// single, unconditional init
-	// here rather than each fragment's own inline <script> - inlined that
-	// close to the top of the page, ahead of bootstrap-slider's own
-	// <script> (loaded later, in the page wrapper), it would run before
-	// $.fn.bootstrapSlider even exists.
-	$("#folia").bootstrapSlider({});
-	$("#writtenLines").bootstrapSlider({});
-	$("#quires").bootstrapSlider({});
-	$("#quiresComp").bootstrapSlider({});
-	$("#dates").bootstrapSlider({});
-	$("#heightslider").bootstrapSlider({});
-	$("#widthslider").bootstrapSlider({});
-	$("#depthslider").bootstrapSlider({});
-	$("#NumberOfcolumns").bootstrapSlider({});
-	$("#tMslider").bootstrapSlider({});
-	$("#bMslider").bootstrapSlider({});
-	$("#rMslider").bootstrapSlider({});
-	$("#lMslider").bootstrapSlider({});
-	$("#lntercolumnslider").bootstrapSlider({});
+	// as.html marks slider widgets with data-slider-min; newSearch.html
+	// reuses some of the same ids as plain type="number" boxes. Init only
+	// where the markup asks for a slider.
+	$("[data-slider-min]").each(function () {
+		$(this).bootstrapSlider({});
+	});
 });
 
 $("#collectionfilter").on("change", function () {

@@ -168,6 +168,28 @@ declare %test:assertTrue function tsfilterspanel:sectionReveal-without-config-fa
 	let $out := q:sectionReveal(tsfilterspanel:fieldset(), map {}, true())
 	return $out/@data-template = "q:manuscriptsFiltersSection"
 };
+
+declare %test:assertTrue function tsfilterspanel:manuscripts-filter-param-names-includes-all-form-m-indexes() {
+	let $expected := doc("/db/apps/BetMasWeb/paramargs.xml")/indexes/rangeindex[@form = "m"]/@name/string()
+	let $actual := q:manuscripts-filter-param-names()
+	return every $name in $expected satisfies $name = $actual
+};
+
+declare %test:assertTrue function tsfilterspanel:manuscripts-section-active-on-script-param() {
+	q:manuscripts-section-active-impl(map {"script": "geez"}, ())
+};
+
+declare %test:assertTrue function tsfilterspanel:manuscripts-section-inactive-on-bare-author() {
+	not(q:manuscripts-section-active-impl(map {"author": "PRS12345"}, ()))
+};
+
+declare %test:assertTrue function tsfilterspanel:manuscripts-section-active-on-author-with-mss-work-type() {
+	q:manuscripts-section-active-impl(map {"author": "PRS12345"}, "mss")
+};
+
+declare %test:assertTrue function tsfilterspanel:mss-author-role-active-requires-mss-work-type() {
+	q:mss-author-role-active-impl("PRS12345", "mss") and not(q:mss-author-role-active-impl("PRS12345", ()))
+};
 (:
  : q:fieldsSection/q:generalFiltersSection read request:get-parameter
  : internally (via q:sectionReveal/q:any-active) - not directly callable
