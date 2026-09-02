@@ -1,0 +1,19 @@
+resources/css/style.css
+  s_ff150fbfb2d44d::t_d0cd2be4716f3e 914
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4b715e016d5af0f1a525b5c41c32370335992a7c",
+  "prompts": {},
+  "sessions": {
+    "s_ff150fbfb2d44d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9eae464-7ac4-4cfd-a029-96251f1158a2",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
