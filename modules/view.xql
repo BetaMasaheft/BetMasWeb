@@ -6,7 +6,6 @@ declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "xmldb:exist:///db/apps/BetMasWeb/modules/queries.xqm";
-import module namespace apidoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apidoc" at "xmldb:exist:///db/apps/BetMasWeb/modules/apidocumentation.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace new = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/new" at "xmldb:exist:///db/apps/BetMasWeb/modules/newEntry.xqm";
 import module namespace lists = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/lists" at "xmldb:exist:///db/apps/BetMasWeb/modules/resources.xqm";
