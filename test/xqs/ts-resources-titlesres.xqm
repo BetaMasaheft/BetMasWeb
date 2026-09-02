@@ -47,6 +47,30 @@ declare %private function tstitlesres:mss-fixture($msid as xs:string) as element
 };
 
 (:~
+ : Colophon carries @corresp to another msItem, but the renderer's
+ : colophon branch reads the ancestor msItem's work ref - batch must
+ : prefetch both shapes, not only the corresp-matched one.
+ :)
+declare %private function tstitlesres:mss-fixture-colophon-with-corresp($msid as xs:string) as element(t:TEI) {
+	<TEI xmlns="http://www.tei-c.org/ns/1.0" type="mss" xml:id="{ $msid }">
+		<teiHeader>
+			<fileDesc>
+				<sourceDesc><msDesc><msIdentifier><idno>{ $msid }-shelfmark</idno></msIdentifier></msDesc></sourceDesc>
+			</fileDesc>
+		</teiHeader>
+		<text>
+			<body>
+				<msItem xml:id="{ $msid }item1">
+					<title ref="{ $config:BMurl }{ $tstitlesres:real-id }" />
+					<colophon corresp="{ $msid }item2" xml:id="{ $msid }col1">placeholder</colophon>
+				</msItem>
+				<msItem xml:id="{ $msid }item2"><title ref="{ $config:BMurl }INSTESTtitlesresCorrespMiss77" /></msItem>
+			</body>
+		</text>
+	</TEI>
+};
+
+(:~
  : "work" itemtype fixture: a bare div, no msItem needed - its own
  : group-level $ms id is resolved directly.
  :)
@@ -87,6 +111,16 @@ declare %test:assertEquals("Annunciation, ") function tstitlesres:resolves-authf
  :)
 declare %test:assertEquals("Annunciation") function tstitlesres:resolves-workref-title-via-batch() {
 	let $fixture := tstitlesres:mss-fixture("MSTESTtitlesresWork77")
+	let $result := lists:titlesRes(<a />, tstitlesres:model($fixture//t:colophon), 1, 20)
+	return string(($result//*:div[*:span][contains(., "Refers to")]/*:span)[1])
+};
+
+(:~
+ : With @corresp on the colophon, the ancestor msItem's work ref still
+ : resolves (not the corresp-target msItem's ref).
+ :)
+declare %test:assertEquals("Annunciation") function tstitlesres:resolves-ancestor-workref-when-colophon-has-corresp() {
+	let $fixture := tstitlesres:mss-fixture-colophon-with-corresp("MSTESTtitlesresCorresp77")
 	let $result := lists:titlesRes(<a />, tstitlesres:model($fixture//t:colophon), 1, 20)
 	return string(($result//*:div[*:span][contains(., "Refers to")]/*:span)[1])
 };

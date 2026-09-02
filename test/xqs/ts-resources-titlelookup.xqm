@@ -158,3 +158,21 @@ declare
 function tsreslookup:resolve-batched-title-falls-back-when-neither-covers() {
 	lists:resolve-batched-title($tsreslookup:miss-id, map {}, map {})
 };
+
+(:~
+ : Deleted ids are excluded from the batch so resolve-batched-title
+ : falls through to printTitleID's deletion notice, not a stale live
+ : record title the batch would otherwise return.
+ :)
+declare variable $tsreslookup:deleted-id := "LIT1894Martyr";
+
+declare %test:assertEmpty function tsreslookup:batch-resolve-titles-omits-deleted-id() {
+	let $batch := lists:batch-resolve-titles(($tsreslookup:deleted-id), map {})
+	return map:get($batch, $tsreslookup:deleted-id)
+};
+
+declare
+	%test:assertEquals("LIT1894Martyr was permanently deleted")
+function tsreslookup:resolve-batched-title-renders-deleted-notice() {
+	lists:resolve-batched-title($tsreslookup:deleted-id, map {}, map {})
+};

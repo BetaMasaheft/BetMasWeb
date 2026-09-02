@@ -855,6 +855,21 @@ declare function lists:resolve-title($id, $titleMap as map(*)) {
 };
 
 (:~
+ : Strips $config:BMurl from ref/@key values for lists:batch-resolve-titles().
+ :
+ : @param $refs attribute values or other id-like strings
+ : @return bare ids suitable for batch resolution
+ :)
+declare %private function lists:refs-to-bare-ids($refs as xs:string*) as xs:string* {
+	$refs!(
+		if (starts-with(., $config:BMurl)) then
+			substring-after(., $config:BMurl)
+		else
+			string(.)
+	)
+};
+
+(:~
  : Batch-resolves many bare ids at once, at the same precedence
  : exptit:printTitleID() itself uses ahead of a live id() lookup
  : ($exptit:TUList, then $exptit:persNamesList), plus one batched
@@ -863,8 +878,10 @@ declare function lists:resolve-title($id, $titleMap as map(*)) {
  : fix q:facetDiv's per-facet-value N+1; reused for any caller resolving
  : many ids in one render pass (e.g. lists:decoRes's own authFile refs).
  :
- : Ids the batch itself can't resolve (e.g. a "#subid" fragment, or a
- : genuinely missing id) are simply absent from the returned map -
+ : Ids in $exptit:deleted are excluded so callers fall back to the
+ : per-item path, which renders deletion notices the way printTitleID()
+ : does. Ids the batch itself can't resolve (e.g. a "#subid" fragment, or
+ : a genuinely missing id) are simply absent from the returned map -
  : callers should fall back to lists:resolve-title/exptit:printTitle
  : per-item for those, same as a $titleMap miss.
  :
@@ -877,16 +894,19 @@ declare function lists:resolve-title($id, $titleMap as map(*)) {
  :)
 declare function lists:batch-resolve-titles($bareIds as xs:string*, $titleMap as map(*)) as map(*) {
 	let $unresolved := distinct-values($bareIds[empty(map:get($titleMap, .))])
-	(: $exptit:TUList/$exptit:persNamesList's @corresp = $unresolved predicate
+	(: printTitleID() checks $exptit:deleted before TUList/persNamesList/id();
+	deleted ids must not resolve a stale live record here. :)
+	let $batchable := $unresolved[not(. = $exptit:deleted//t:item)]
+	(: $exptit:TUList/$exptit:persNamesList's @corresp = $batchable predicate
 	compiles to one Lucene boolean-query clause per distinct value - callers
 	with a large enough $bareIds (lists:titlesRes's work/authFile refs, at
 	real corpus scale) can clear Lucene's own 1024-clause ceiling
 	(`TooManyClauses`) in one go. Chunk well under that, per call. :)
 	let $chunkSize := 500
-	let $chunkCount := xs:integer(ceiling(count($unresolved) div $chunkSize))
+	let $chunkCount := xs:integer(ceiling(count($batchable) div $chunkSize))
 	return map:merge(
 		for $chunkIndex in 1 to $chunkCount
-		return lists:batch-resolve-titles-chunk(subsequence($unresolved, ($chunkIndex - 1) * $chunkSize + 1, $chunkSize))
+		return lists:batch-resolve-titles-chunk(subsequence($batchable, ($chunkIndex - 1) * $chunkSize + 1, $chunkSize))
 	)
 };
 
@@ -995,22 +1015,19 @@ declare function lists:resolve-batched-title-maybe-prefixed($value, $titleMap as
  :)
 declare function lists:additionsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $hits := $model("hits")
+	let $repoRefs := config:distinct-values($hits/ancestor::t:TEI//t:repository/@ref)
+	let $contentRefs := config:distinct-values(
+		$hits/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
+	)
+	let $mainKeyRefs := config:distinct-values($hits/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key)
+	let $workRefs := config:distinct-values($hits//t:title/@ref)
+	let $persRefs := config:distinct-values($hits//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))])
+	let $placeRefs := config:distinct-values($hits//t:placeName/@ref[not(contains(., ".xml"))])
+	let $termRefs := config:distinct-values($hits//t:term/@key)
 	let $titleMap := lists:title-lookup-map()
 	let $batchTitles := lists:batch-resolve-titles(
-		(
-			$model("hits")/ancestor::t:TEI//t:repository/@ref,
-			$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))],
-			$model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key,
-			$model("hits")//t:title/@ref,
-			$model("hits")//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))],
-			$model("hits")//t:placeName/@ref[not(contains(., ".xml"))],
-			$model("hits")//t:term/@key
-		)!(
-			if (starts-with(., $config:BMurl)) then
-				substring-after(., $config:BMurl)
-			else
-				string(.)
-		),
+		lists:refs-to-bare-ids(($repoRefs, $contentRefs, $mainKeyRefs, $workRefs, $persRefs, $placeRefs, $termRefs)),
 		$titleMap
 	)
 	return <form action="" class="w3-container">
@@ -1036,7 +1053,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 				name="repo"
 			>
 				{
-					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
+					for $d in $repoRefs
 					let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
@@ -1044,7 +1061,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			</select>
 		</div>
 		{
-			if ($model("hits")/ancestor::t:TEI//t:msItem/t:title/@ref) then
+			if ($hits/ancestor::t:TEI//t:msItem/t:title/@ref) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select main content in the manuscripts</small>
 					<br />
@@ -1056,10 +1073,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="content"
 					>
 						{
-							for $d in
-								config:distinct-values(
-									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
-								)
+							for $d in $contentRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1070,7 +1084,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key) then
+			if ($hits/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select main keywords associated with the manuscripts</small>
 					<br />
@@ -1082,7 +1096,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="main-key"
 					>
 						{
-							for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key)
+							for $d in $mainKeyRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1093,7 +1107,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:q) then
+			if ($hits//t:q) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select the language of the additions you want to see</small>
 					<br />
@@ -1115,7 +1129,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:title) then
+			if ($hits//t:title) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more works referred to in the document or addition</small>
 					<br />
@@ -1127,7 +1141,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="target-work"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:title/@ref)
+							for $d in $workRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1138,7 +1152,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:seg) then
+			if ($hits//t:seg) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more interpretation segments</small>
 					<br />
@@ -1160,7 +1174,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:persName) then
+			if ($hits//t:persName) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more persons referred to in the document or addition</small>
 					<br />
@@ -1172,8 +1186,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="target-pers"
 					>
 						{
-							for $d in
-								config:distinct-values($model("hits")//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))])
+							for $d in $persRefs
 							order by replace(data($d), "^.*[0-9]", "")
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
@@ -1185,7 +1198,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:placeName) then
+			if ($hits//t:placeName) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more places referred to in the document or addition</small>
 					<br />
@@ -1197,7 +1210,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="target-place"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:placeName/@ref[not(contains(., ".xml"))])
+							for $d in $placeRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1208,7 +1221,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:term) then
+			if ($hits//t:term) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1222,7 +1235,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						name="target-keyword"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:term/@key)
+							for $d in $termRefs
 							order by $d
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
@@ -1264,20 +1277,15 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
  :)
 declare function lists:titlesform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $hits := $model("hits")
+	let $authFileRefs := config:distinct-values($hits//t:ref[@type eq "authFile"]/@corresp)
+	let $workRefs := config:distinct-values($hits//t:title/@ref)
+	let $persRefs := config:distinct-values($hits//t:persName/@ref)
+	let $placeRefs := config:distinct-values($hits//t:placeName/@ref)
+	let $termRefs := config:distinct-values($hits//t:term/@key)
 	let $titleMap := lists:title-lookup-map()
 	let $batchTitles := lists:batch-resolve-titles(
-		(
-			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
-			$model("hits")//t:title/@ref,
-			$model("hits")//t:persName/@ref,
-			$model("hits")//t:placeName/@ref,
-			$model("hits")//t:term/@key
-		)!(
-			if (starts-with(., $config:BMurl)) then
-				substring-after(., $config:BMurl)
-			else
-				string(.)
-		),
+		lists:refs-to-bare-ids(($authFileRefs, $workRefs, $persRefs, $placeRefs, $termRefs)),
 		$titleMap
 	)
 	return <form action="" class="w3-container">
@@ -1323,7 +1331,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			</select>
 		</div>
 		{
-			if ($model("hits")//t:ref[@type eq "authFile"]) then
+			if ($hits//t:ref[@type eq "authFile"]) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1337,7 +1345,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 						name="target-artTheme"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
+							for $d in $authFileRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1348,7 +1356,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:title) then
+			if ($hits//t:title) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1362,7 +1370,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 						name="target-work"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:title/@ref)
+							for $d in $workRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1373,7 +1381,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:persName) then
+			if ($hits//t:persName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1387,7 +1395,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 						name="target-pers"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:persName/@ref)
+							for $d in $persRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1398,7 +1406,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:placeName) then
+			if ($hits//t:placeName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1412,7 +1420,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 						name="target-place"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
+							for $d in $placeRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1423,7 +1431,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:term) then
+			if ($hits//t:term) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1437,7 +1445,7 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 						name="target-keyword"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:term/@key)
+							for $d in $termRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1476,22 +1484,19 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
  :)
 declare function lists:decorationsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $hits := $model("hits")
+	let $repoRefs := config:distinct-values($hits/ancestor::t:TEI//t:repository/@ref)
+	let $authFileRefs := config:distinct-values($hits//t:ref[@type eq "authFile"]/@corresp)
+	let $workRefs := config:distinct-values($hits//t:title/@ref)
+	let $persRefs := config:distinct-values($hits//t:persName/@ref)
+	let $placeRefs := config:distinct-values($hits//t:placeName/@ref)
+	let $contentRefs := config:distinct-values(
+		$hits/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
+	)
+	let $termRefs := config:distinct-values($hits//t:term/@key)
 	let $titleMap := lists:title-lookup-map()
 	let $batchTitles := lists:batch-resolve-titles(
-		(
-			$model("hits")/ancestor::t:TEI//t:repository/@ref,
-			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
-			$model("hits")//t:title/@ref,
-			$model("hits")//t:persName/@ref,
-			$model("hits")//t:placeName/@ref,
-			$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))],
-			$model("hits")//t:term/@key
-		)!(
-			if (starts-with(., $config:BMurl)) then
-				substring-after(., $config:BMurl)
-			else
-				string(.)
-		),
+		lists:refs-to-bare-ids(($repoRefs, $authFileRefs, $workRefs, $persRefs, $placeRefs, $contentRefs, $termRefs)),
 		$titleMap
 	)
 	return <form action="" class="w3-container">
@@ -1499,7 +1504,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			<small class="form-text text-muted">Select one or more type of decoration</small>
 			<br />
 			{
-				for $d in config:distinct-values($model("hits")/@type)
+				for $d in config:distinct-values($hits/@type)
 				order by $d
 				return (
 					<label class="checkbox">
@@ -1531,7 +1536,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 				name="repo"
 			>
 				{
-					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
+					for $d in $repoRefs
 					let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
@@ -1539,7 +1544,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			</select>
 		</div>
 		{
-			if ($model("hits")//t:ref[@type eq "authFile"]) then
+			if ($hits//t:ref[@type eq "authFile"]) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1553,7 +1558,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="target-artTheme"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
+							for $d in $authFileRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1564,7 +1569,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:title) then
+			if ($hits//t:title) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more works referred to in the decoration description</small>
 					<br />
@@ -1576,7 +1581,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="target-work"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:title/@ref)
+							for $d in $workRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1587,7 +1592,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:persName) then
+			if ($hits//t:persName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1601,7 +1606,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="target-pers"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:persName/@ref)
+							for $d in $persRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1612,7 +1617,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:placeName) then
+			if ($hits//t:placeName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1626,7 +1631,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="target-place"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
+							for $d in $placeRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1637,7 +1642,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/ancestor::t:TEI//t:msItem/t:title/@ref) then
+			if ($hits/ancestor::t:TEI//t:msItem/t:title/@ref) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select main content in the manuscripts</small>
 					<br />
@@ -1649,10 +1654,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="content"
 					>
 						{
-							for $d in
-								config:distinct-values(
-									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
-								)
+							for $d in $contentRefs
 							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
@@ -1663,7 +1665,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")//t:term) then
+			if ($hits//t:term) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1677,7 +1679,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						name="target-keyword"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:term/@key)
+							for $d in $termRefs
 							order by $d
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
@@ -1713,20 +1715,16 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
  :)
 declare function lists:calendarform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $hits := $model("hits")
+	let $context := $hits/parent::t:*[@xml:id][1]
+	let $authFileRefs := config:distinct-values($hits//t:ref[@type eq "authFile"]/@corresp)
+	let $workRefs := config:distinct-values($context//t:title/@ref)
+	let $persRefs := config:distinct-values($context//t:persName/@ref)
+	let $placeRefs := config:distinct-values($context//t:placeName/@ref)
+	let $termRefs := config:distinct-values($context//t:term/@key)
 	let $titleMap := lists:title-lookup-map()
 	let $batchTitles := lists:batch-resolve-titles(
-		(
-			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
-			$model("hits")/parent::t:*[@xml:id][1]//t:title/@ref,
-			$model("hits")/parent::t:*[@xml:id][1]//t:persName/@ref,
-			$model("hits")/parent::t:*[@xml:id][1]//t:placeName/@ref,
-			$model("hits")/parent::t:*[@xml:id][1]//t:term/@key
-		)!(
-			if (starts-with(., $config:BMurl)) then
-				substring-after(., $config:BMurl)
-			else
-				string(.)
-		),
+		lists:refs-to-bare-ids(($authFileRefs, $workRefs, $persRefs, $placeRefs, $termRefs)),
 		$titleMap
 	)
 	return <form action="" class="w3-container">
@@ -1759,7 +1757,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 			</select>
 		</div>
 		{
-			if ($model("hits")//t:ref[@type eq "authFile"]) then
+			if ($hits//t:ref[@type eq "authFile"]) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more Art Themes associated with the date</small>
 					<br />
@@ -1771,7 +1769,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 						name="target-artTheme"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
+							for $d in $authFileRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1782,7 +1780,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/parent::t:*[@xml:id][1]//t:title) then
+			if ($context//t:title) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more works referred to in the decoration description</small>
 					<br />
@@ -1794,7 +1792,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 						name="target-work"
 					>
 						{
-							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:title/@ref)
+							for $d in $workRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1805,7 +1803,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/parent::t:*[@xml:id][1]//t:persName) then
+			if ($context//t:persName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1819,7 +1817,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 						name="target-pers"
 					>
 						{
-							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:persName/@ref)
+							for $d in $persRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1830,7 +1828,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/parent::t:*[@xml:id][1]//t:placeName) then
+			if ($context//t:placeName) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1844,7 +1842,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 						name="target-place"
 					>
 						{
-							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:placeName/@ref)
+							for $d in $placeRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1855,7 +1853,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 			)
 		}
 		{
-			if ($model("hits")/parent::t:*[@xml:id][1]//t:term) then
+			if ($context//t:term) then
 				<div class="w3-container w3-margin">
 					<small
 						class="form-text text-muted"
@@ -1869,7 +1867,7 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 						name="target-keyword"
 					>
 						{
-							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:term/@key)
+							for $d in $termRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -1904,16 +1902,10 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
  :)
 declare function lists:bindingsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $hits := $model("hits")
+	let $termRefs := config:distinct-values($hits//t:term/@key)
 	let $titleMap := lists:title-lookup-map()
-	let $batchTitles := lists:batch-resolve-titles(
-		$model("hits")//t:term/@key!(
-			if (starts-with(., $config:BMurl)) then
-				substring-after(., $config:BMurl)
-			else
-				string(.)
-		),
-		$titleMap
-	)
+	let $batchTitles := lists:batch-resolve-titles(lists:refs-to-bare-ids($termRefs), $titleMap)
 	return <form action="" class="w3-container">
 		<div class="w3-container w3-margin">
 			<small class="form-text text-muted">Select one or more type of decoration</small>
@@ -1930,7 +1922,7 @@ declare function lists:bindingsform($node as node(), $model as map(*)) {
 			}
 		</div>
 		{
-			if ($model("hits")//t:term) then
+			if ($hits//t:term) then
 				<div class="w3-container w3-margin">
 					<small class="form-text text-muted">Select one or more features of the binding description</small>
 					<br />
@@ -1942,7 +1934,7 @@ declare function lists:bindingsform($node as node(), $model as map(*)) {
 						name="target-keyword"
 					>
 						{
-							for $d in config:distinct-values($model("hits")//t:term/@key)
+							for $d in $termRefs
 							return <option value="{ $d }">
 								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
 							</option>
@@ -2668,15 +2660,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 		return string($item/ancestor::t:TEI/@xml:id),
 		for $corresp in $shownItems//t:ref[@type eq "authFile"]/@corresp[starts-with(., $config:BMurl)]
 		return substring-after($corresp, $config:BMurl),
-		(: same two work-ref shapes the per-item rendering below actually
-		looks up (corresp-matched msItem, or the nearest ancestor
-		msItem) - not every msItem in each item's whole document. :)
+		(: both work-ref shapes the per-item rendering below may look up
+		(corresp-matched msItem and nearest ancestor msItem) - not every
+		msItem in each item's whole document. :)
 		for $item in $shownItems
-		let $corr := $item/@corresp
-		let $workRef := if (exists($corr)) then
-			($item/ancestor::t:TEI//t:msItem[@xml:id = $corr]/t:title/@ref)[1]
-		else
-			($item/ancestor::t:msItem/t:title/@ref)[1]
+		for $workRef in
+			(
+				($item/ancestor::t:TEI//t:msItem[@xml:id = $item/@corresp]/t:title/@ref)[1],
+				($item/ancestor::t:msItem/t:title/@ref)[1]
+			)
 		where exists($workRef) and starts-with($workRef, $config:BMurl)
 		return substring-after($workRef, $config:BMurl)
 	)
