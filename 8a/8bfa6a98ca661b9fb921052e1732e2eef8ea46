@@ -1,0 +1,34 @@
+test/xqs/ts-resources-titlelookup.xqm
+  s_85ef732d7fb6ce::t_711d481018ef44 161-178
+test/xqs/ts-resources-titlesres.xqm
+  s_85ef732d7fb6ce::t_ae6582c71d1e19 65
+  s_85ef732d7fb6ce::t_e5338b5efcdb54 119-127
+  s_85ef732d7fb6ce::t_aabb2cfd28c59b 50-64,66-72
+  s_85ef732d7fb6ce::t_9c70e80b0d9c65 49,118
+modules/resources.xqm
+  s_85ef732d7fb6ce::t_b01b8337ff29ee 858-871,881-884,1499,1727,2671
+  s_85ef732d7fb6ce::t_c24b6d045925bd 1487-1494
+  s_85ef732d7fb6ce::t_5d7b862b9d9eec 1280-1284
+  s_85ef732d7fb6ce::t_3098be03ba45ac 897-900,906,909
+  s_85ef732d7fb6ce::t_1861a42b5e16ea 1906
+  s_85ef732d7fb6ce::t_6bd7fac160faef 2663-2665,2667
+  s_85ef732d7fb6ce::t_59c3bdd9dfd308 1718-1722
+  s_85ef732d7fb6ce::t_1419898b2d7860 1018-1026
+  s_85ef732d7fb6ce::t_23c6948b8990a0 857,1027,1030,1056,1064,1076,1087,1099,1110,1132,1144,1155,1177,1189,1201,1213,1224,1238,1285,1288,1334,1348,1359,1373,1384,1398,1409,1423,1434,1448,1495-1496,1507,1539,1547,1561,1572,1584,1595,1609,1620,1634,1645,1657,1668,1682,1723-1724,1760,1772,1783,1795,1806,1820,1831,1845,1856,1870,1905,1908,1925,1937,2668-2670
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8a8bfa6a98ca661b9fb921052e1732e2eef8ea46",
+  "prompts": {},
+  "sessions": {
+    "s_85ef732d7fb6ce": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e05840bb-ffde-4087-8671-0434a7bcd298",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
