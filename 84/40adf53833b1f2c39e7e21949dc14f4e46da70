@@ -1,0 +1,35 @@
+modules/resources.xqm
+  s_ff150fbfb2d44d::t_95b28ce93ba83e 2670
+  s_ff150fbfb2d44d::t_c9b40a9246459a 2454-2476
+  s_ff150fbfb2d44d::t_dc1b4b98ec6418 2542-2545,2547-2548
+  s_ff150fbfb2d44d::t_2c7f2e616e7859 880-885,887,890-903
+  s_ff150fbfb2d44d::t_9dcf60342f90d2 976
+  s_ff150fbfb2d44d::t_438b032cf881c8 960-975,977-981
+  s_ff150fbfb2d44d::t_980cd3535e1f5b 2494-2500,2512-2513
+  s_ff150fbfb2d44d::t_2d081438ef1e4b 2501-2506,2508,2510-2511
+  s_ff150fbfb2d44d::t_8887b46f58417a 886,888-889
+  s_ff150fbfb2d44d::t_11a791408872c3 2507,2509
+  s_ff150fbfb2d44d::t_b7a74dcdc828ab 2514-2515,2549,2635-2637,2649-2657,2668-2669,2671-2676,2691-2703,2766-2774,2806-2814,2864-2872
+test/xqs/ts-resources-titlesres.xqm
+  s_ff150fbfb2d44d::t_3196be1feaa7c2 1-96,98-103
+  s_ff150fbfb2d44d::t_a4ee21d062ba5e 97
+test/xqs/test-runner.xq
+  s_ff150fbfb2d44d::t_1e9916f0820fc2 39
+  s_ff150fbfb2d44d::t_2fc9c8a8ea5262 85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8440adf53833b1f2c39e7e21949dc14f4e46da70",
+  "prompts": {},
+  "sessions": {
+    "s_ff150fbfb2d44d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9eae464-7ac4-4cfd-a029-96251f1158a2",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
