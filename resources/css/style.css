@@ -911,7 +911,7 @@ td ul.nodot {
 ul.nodot {
 	overflow: auto;
 	word-break: break-all;
-	max-height: 150px;
+	max-height: 500px;
 }
 
 .scrollwrap {
