@@ -366,7 +366,10 @@ declare function q:mss-author-role-active-impl($author as xs:string*, $work-type
 };
 
 declare %private function q:mss-author-role-active($values as map(*)) as xs:boolean {
-	q:mss-author-role-active-impl($values("author"), request:get-parameter("work-types", ()))
+	if (q:any-active($values("author"))) then
+		q:mss-author-role-active-impl($values("author"), request:get-parameter("work-types", ()))
+	else
+		false()
 };
 
 (:~
@@ -386,7 +389,11 @@ declare function q:manuscripts-section-active-impl($values as map(*), $work-type
 };
 
 declare %private function q:manuscripts-section-active($values as map(*)) as xs:boolean {
-	q:manuscripts-section-active-impl($values, request:get-parameter("work-types", ()))
+	let $work-types := if (q:any-active($values("author"))) then
+		request:get-parameter("work-types", ())
+	else (
+	)
+	return q:manuscripts-section-active-impl($values, $work-types)
 };
 
 declare %private function q:mss-pers-roles-active($values as map(*)) as xs:boolean {
