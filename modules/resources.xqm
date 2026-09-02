@@ -979,9 +979,40 @@ declare function lists:resolve-batched-title-maybe-prefixed($value, $titleMap as
 		exptit:printTitle($value)
 };
 
+(:~
+ : /additions' filter-picker form - see lists:titlesform's xqdoc for
+ : the shared N+1 this fixes. This one, and lists:decorationsform, were
+ : already using lists:resolve-title's per-request $titleMap (PR #97)
+ : rather than a raw exptit:printTitle() call - upgraded to the batch
+ : anyway for consistency and to shrink the remaining per-item
+ : cache-miss cost.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the current
+ : search's hits
+ : @return the form
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare function lists:additionsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
 	let $titleMap := lists:title-lookup-map()
+	let $batchTitles := lists:batch-resolve-titles(
+		(
+			$model("hits")/ancestor::t:TEI//t:repository/@ref,
+			$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))],
+			$model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key,
+			$model("hits")//t:title/@ref,
+			$model("hits")//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))],
+			$model("hits")//t:placeName/@ref[not(contains(., ".xml"))],
+			$model("hits")//t:term/@key
+		)!(
+			if (starts-with(., $config:BMurl)) then
+				substring-after(., $config:BMurl)
+			else
+				string(.)
+		),
+		$titleMap
+	)
 	return <form action="" class="w3-container">
 		<div id="additiontypes" />
 		<div class="w3-container w3-margin">
@@ -1006,7 +1037,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					let $title := lists:resolve-title($d, $titleMap)
+					let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
 				}
@@ -1029,7 +1060,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1052,7 +1083,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:textClass/t:keywords/t:term/@key)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1097,7 +1128,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1144,7 +1175,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 							for $d in
 								config:distinct-values($model("hits")//t:persName/@ref[not(contains(., ".xml"))][not(contains(., "#"))])
 							order by replace(data($d), "^.*[0-9]", "")
-							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1165,7 +1198,7 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref[not(contains(., ".xml"))])
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1191,7 +1224,9 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
 							order by $d
-							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1211,8 +1246,40 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 	</form>
 };
 
+(:~
+ : /titles' filter-picker form: art-theme, work, person, place and
+ : keyword dropdowns scoped to the current search's own hit set.
+ :
+ : Each dropdown used to resolve its option labels via a per-item
+ : exptit:printTitle() call - same N+1 shape as q:facetDiv/lists:decoRes/
+ : lists:titlesRes, over the same corpus-scale $model("hits"). One
+ : batch up front via lists:batch-resolve-titles(), shared across all
+ : five dropdowns, fixes all of them at once.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the current
+ : search's hits
+ : @return the form
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare function lists:titlesform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $titleMap := lists:title-lookup-map()
+	let $batchTitles := lists:batch-resolve-titles(
+		(
+			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
+			$model("hits")//t:title/@ref,
+			$model("hits")//t:persName/@ref,
+			$model("hits")//t:placeName/@ref,
+			$model("hits")//t:term/@key
+		)!(
+			if (starts-with(., $config:BMurl)) then
+				substring-after(., $config:BMurl)
+			else
+				string(.)
+		),
+		$titleMap
+	)
 	return <form action="" class="w3-container">
 		<div class="w3-container  w3-margin">
 			<small class="form-text text-muted">Search Text</small>
@@ -1271,7 +1338,9 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1294,7 +1363,9 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1317,7 +1388,9 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:persName/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1340,7 +1413,9 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1363,7 +1438,9 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1383,9 +1460,40 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 	</form>
 };
 
+(:~
+ : /decorations' filter-picker form - see lists:titlesform's xqdoc for
+ : the shared N+1 this fixes. This one was already using
+ : lists:resolve-title's per-request $titleMap (PR #97) rather than a
+ : raw exptit:printTitle() call, so it was never as slow as its three
+ : siblings - upgraded to the batch anyway for consistency and to
+ : shrink its own remaining per-item cache-miss cost.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the current
+ : search's hits
+ : @return the form
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare function lists:decorationsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
 	let $titleMap := lists:title-lookup-map()
+	let $batchTitles := lists:batch-resolve-titles(
+		(
+			$model("hits")/ancestor::t:TEI//t:repository/@ref,
+			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
+			$model("hits")//t:title/@ref,
+			$model("hits")//t:persName/@ref,
+			$model("hits")//t:placeName/@ref,
+			$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))],
+			$model("hits")//t:term/@key
+		)!(
+			if (starts-with(., $config:BMurl)) then
+				substring-after(., $config:BMurl)
+			else
+				string(.)
+		),
+		$titleMap
+	)
 	return <form action="" class="w3-container">
 		<div class="w3-container  w3-margin">
 			<small class="form-text text-muted">Select one or more type of decoration</small>
@@ -1424,7 +1532,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 			>
 				{
 					for $d in config:distinct-values($model("hits")/ancestor::t:TEI//t:repository/@ref)
-					let $title := lists:resolve-title($d, $titleMap)
+					let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 					order by $title
 					return <option value="{ $d }">{ $title }</option>
 				}
@@ -1446,7 +1554,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1469,7 +1577,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:title/@ref)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1494,7 +1602,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:persName/@ref)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1519,7 +1627,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:placeName/@ref)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1545,7 +1653,7 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 								config:distinct-values(
 									$model("hits")/ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref[not(contains(., "IHA"))]
 								)
-							let $title := lists:resolve-title($d, $titleMap)
+							let $title := lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles)
 							order by $title
 							return <option value="{ $d }">{ $title }</option>
 						}
@@ -1571,7 +1679,9 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
 							order by $d
-							return <option value="{ $d }">{ lists:resolve-title($d, $titleMap) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1591,8 +1701,34 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 	</form>
 };
 
+(:~
+ : The calendar-browse page's filter-picker form - see lists:titlesform's
+ : xqdoc for the shared N+1 this fixes.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the current
+ : search's hits
+ : @return the form
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare function lists:calendarform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $titleMap := lists:title-lookup-map()
+	let $batchTitles := lists:batch-resolve-titles(
+		(
+			$model("hits")//t:ref[@type eq "authFile"]/@corresp,
+			$model("hits")/parent::t:*[@xml:id][1]//t:title/@ref,
+			$model("hits")/parent::t:*[@xml:id][1]//t:persName/@ref,
+			$model("hits")/parent::t:*[@xml:id][1]//t:placeName/@ref,
+			$model("hits")/parent::t:*[@xml:id][1]//t:term/@key
+		)!(
+			if (starts-with(., $config:BMurl)) then
+				substring-after(., $config:BMurl)
+			else
+				string(.)
+		),
+		$titleMap
+	)
 	return <form action="" class="w3-container">
 		<div class="w3-container w3-margin">
 			<small class="form-text text-muted">Select a month</small>
@@ -1636,7 +1772,9 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:ref[@type eq "authFile"]/@corresp)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1657,7 +1795,9 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:title/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1680,7 +1820,9 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:persName/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1703,7 +1845,9 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:placeName/@ref)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1726,7 +1870,9 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")/parent::t:*[@xml:id][1]//t:term/@key)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
@@ -1746,8 +1892,28 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 	</form>
 };
 
+(:~
+ : The bindings-browse page's filter-picker form - see
+ : lists:titlesform's xqdoc for the shared N+1 this fixes.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the current
+ : search's hits
+ : @return the form
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare function lists:bindingsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
+	let $titleMap := lists:title-lookup-map()
+	let $batchTitles := lists:batch-resolve-titles(
+		$model("hits")//t:term/@key!(
+			if (starts-with(., $config:BMurl)) then
+				substring-after(., $config:BMurl)
+			else
+				string(.)
+		),
+		$titleMap
+	)
 	return <form action="" class="w3-container">
 		<div class="w3-container w3-margin">
 			<small class="form-text text-muted">Select one or more type of decoration</small>
@@ -1777,7 +1943,9 @@ declare function lists:bindingsform($node as node(), $model as map(*)) {
 					>
 						{
 							for $d in config:distinct-values($model("hits")//t:term/@key)
-							return <option value="{ $d }">{ exptit:printTitle($d) }</option>
+							return <option value="{ $d }">
+								{ lists:resolve-batched-title-maybe-prefixed($d, $titleMap, $batchTitles) }
+							</option>
 						}
 					</select>
 				</div>
