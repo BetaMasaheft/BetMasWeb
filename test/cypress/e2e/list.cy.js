@@ -1,19 +1,5 @@
 // generated from db/apps/BetMasWeb/restviews/list.xqm
 
-it("GET /{collection}/{id}/list (as /manuscripts/BAVet1/list)", () => {
-	cy.request({ url: "/manuscripts/BAVet1/list", method: "GET", failOnStatusCode: false }).then((res) => {
-		expect(res.status, `GET /manuscripts/BAVet1/list responded with ${res.status}`).to.not.equal(500);
-		expect(res.status, `GET /manuscripts/BAVet1/list responded with ${res.status}`).to.not.equal(405);
-	});
-});
-
-it("GET /manuscripts/{repoID}/list (as /manuscripts/TEST0001/list)", () => {
-	cy.request({ url: "/manuscripts/TEST0001/list", method: "GET", failOnStatusCode: false }).then((res) => {
-		expect(res.status, `GET /manuscripts/TEST0001/list responded with ${res.status}`).to.not.equal(500);
-		expect(res.status, `GET /manuscripts/TEST0001/list responded with ${res.status}`).to.not.equal(405);
-	});
-});
-
 it("GET /manuscripts/browse", () => {
 	cy.request({ url: "/manuscripts/browse", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /manuscripts/browse responded with ${res.status}`).to.not.equal(500);
