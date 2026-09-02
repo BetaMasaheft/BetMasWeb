@@ -854,6 +854,86 @@ declare function lists:resolve-title($id, $titleMap as map(*)) {
 		exptit:printTitle($id)
 };
 
+(:~
+ : Batch-resolves many bare ids at once, at the same precedence
+ : exptit:printTitleID() itself uses ahead of a live id() lookup
+ : ($exptit:TUList, then $exptit:persNamesList), plus one batched
+ : $exptit:col/id() call for the rest - avoids paying exptit:printTitle's
+ : per-item cost for every one of $bareIds individually. First used to
+ : fix q:facetDiv's per-facet-value N+1; reused for any caller resolving
+ : many ids in one render pass (e.g. lists:decoRes's own authFile refs).
+ :
+ : Ids the batch itself can't resolve (e.g. a "#subid" fragment, or a
+ : genuinely missing id) are simply absent from the returned map -
+ : callers should fall back to lists:resolve-title/exptit:printTitle
+ : per-item for those, same as a $titleMap miss.
+ :
+ : @param $bareIds candidate ids, unprefixed (no $config:BMurl)
+ : @param $titleMap a per-request lookup map from lists:title-lookup-map();
+ : ids it already covers are skipped, not re-resolved
+ : @return a map from bare id to resolved title, for every id the batch
+ : could resolve
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/3
+ :)
+declare function lists:batch-resolve-titles($bareIds as xs:string*, $titleMap as map(*)) as map(*) {
+	let $unresolved := distinct-values($bareIds[empty(map:get($titleMap, .))])
+	return if (empty($unresolved)) then
+		map {}
+	else
+		let $tuTitles := map:merge(
+			for $item in $exptit:TUList//t:item[@corresp = $unresolved]
+			return map:entry(string($item/@corresp), $item/node())
+		)
+		let $persNamesTitles := map:merge(
+			for $item in $exptit:persNamesList//t:item[@corresp = $unresolved]
+			return map:entry(string($item/@corresp), $item/node())
+		)
+		let $genericTitles := map:merge(
+			for $node in $exptit:col/id($unresolved)
+			let $title := ($node//t:title[@type = "full"]/text())[1]
+			where exists($title)
+			return map:entry($node/@xml:id, $title)
+		)
+		return map:merge(
+			for $id in $unresolved
+			let $resolved :=
+				let $tu := map:get($tuTitles, $id)
+				return if (exists($tu)) then
+					$tu
+				else
+					let $persNames := map:get($persNamesTitles, $id)
+					return if (exists($persNames)) then
+						$persNames
+					else
+						map:get($genericTitles, $id)
+			where exists($resolved)
+			return map:entry($id, $resolved)
+		)
+};
+
+(:~
+ : One id's resolution against $titleMap, then a lists:batch-resolve-titles()
+ : result, falling back to a per-item lookup only if neither covers it -
+ : the per-label logic q:facetDiv/lists:decoRes both need after building
+ : their own $batchTitles.
+ :
+ : @param $bareId the id to resolve, unprefixed (no $config:BMurl)
+ : @param $titleMap a per-request lookup map from lists:title-lookup-map()
+ : @param $batchTitles a map from lists:batch-resolve-titles()
+ : @return the resolved title
+ :)
+declare function lists:resolve-batched-title($bareId as xs:string, $titleMap as map(*), $batchTitles as map(*)) {
+	let $cached := map:get($titleMap, $bareId)
+	return if (exists($cached)) then
+		$cached
+	else
+		let $batched := map:get($batchTitles, $bareId)
+		return if (exists($batched)) then
+			$batched
+		else
+			lists:resolve-title($bareId, $titleMap)
+};
+
 declare function lists:additionsform($node as node(), $model as map(*)) {
 	let $auth := $lists:collection-rootA
 	let $titleMap := lists:title-lookup-map()
@@ -2097,6 +2177,25 @@ declare %templates:wrap function lists:calendarRes($node as node(), $model as ma
 	)
 };
 
+(:~
+ : Renders /decorations' results: decoNote hits grouped by @type (one
+ : "page" of types at a time), then by containing manuscript, each with
+ : its authFile ("art theme") links.
+ :
+ : Two per-item costs used to dominate this on an unfiltered page load
+ : (all 20 real @type values fit on one type-page, so every hit renders
+ : unconditionally): exptit:printTitle() once per authFile ref - the
+ : same N+1 shape q:facetDiv had, fixed the same way, via
+ : lists:batch-resolve-titles(); and a collection-wide id() lookup once
+ : per manuscript group for a document a decoration node in hand
+ : (root($d[1])) already reaches directly.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; $model("hits") are the decoNote hits
+ : @param $start the type-level pager's starting position
+ : @param $per-page how many distinct @type values to show per page
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare %templates:wrap %templates:default("start", 1) %templates:default("per-page", 20) function lists:decoRes(
 	$node as node(),
 	$model as map(*),
@@ -2110,6 +2209,22 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 		return $type
 	)
 	let $pagedTypes := subsequence($allTypes, $start, $per-page)
+	(: Per-type decoration slicing, hoisted so the authFile-title batch
+	below can be scoped to exactly what actually renders, not the whole
+	$model("hits"). Same request params the per-type loop already read
+	(unchanged behaviour), just read once instead of per type. :)
+	let $innerStart := xs:integer(request:get-parameter("start", "1"))
+	let $innerNum := xs:integer(request:get-parameter("num", "400"))
+	let $shownDecorations :=
+		for $decoration in $model("hits")[@type = $pagedTypes]
+		let $t := $decoration/@type
+		group by $type := $t
+		return subsequence($decoration, $innerStart, $innerNum)
+	let $titleMap := lists:title-lookup-map()
+	let $bareAuthFileIds :=
+		for $corresp in $shownDecorations//t:ref[@type eq "authFile"]/@corresp[starts-with(., $config:BMurl)]
+		return substring-after($corresp, $config:BMurl)
+	let $batchTitles := lists:batch-resolve-titles($bareAuthFileIds, $titleMap)
 	return (
 		lists:groupPager(count($allTypes), $start, $per-page),
 		for $decoration at $p in $model("hits")
@@ -2130,9 +2245,7 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 							<div>Showing up to 400 results; use filters to narrow down the search results</div>
 						else (
 						),
-						let $start := xs:integer(request:get-parameter("start", "1"))
-						let $num := xs:integer(request:get-parameter("num", "400"))
-						for $d in subsequence($decoration, $start, $num)
+						for $d in subsequence($decoration, $innerStart, $innerNum)
 						let $msid := $d/ancestor::t:TEI/@xml:id
 						(: group by containing ms :)
 						group by $ms := $msid
@@ -2142,7 +2255,12 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 								class="w3-button w3-block w3-red  w3-margin-bottom"
 								onclick="openAccordion('{ data($ms) }{ data($type) }')"
 							>
-								<span class="w3-left">{ $lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno }</span>
+								(: $d[1] is a decoration already known to belong to this
+								manuscript - its own document root is that manuscript's
+								document, no need for a collection-wide id() lookup. :)
+								<span
+									class="w3-left"
+								>{ root($d[1])//t:msIdentifier/t:idno }</span>
 								<span class="w3-badge w3-right">{ count($d) }</span>
 							</button>,
 							<div class="w3-container w3-hide" id="{ data($ms) }{ data($type) }">
@@ -2212,9 +2330,16 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 													else (
 													),
 													for $at in $sd//t:ref[@type eq "authFile"]
-													return <a href="{ string($at/@corresp) }">
-														{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
-													</a>
+													let $atCorresp := string($at/@corresp)
+													let $resolved := if (starts-with($atCorresp, $config:BMurl)) then
+														lists:resolve-batched-title(
+															substring-after($atCorresp, $config:BMurl),
+															$titleMap,
+															$batchTitles
+														)
+													else
+														exptit:printTitle($atCorresp)
+													return <a href="{ $atCorresp }">{ concat(string-join($resolved, " "), ", ") }</a>
 												}
 											</p>
 										</li>

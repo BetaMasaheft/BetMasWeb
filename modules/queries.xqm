@@ -2170,18 +2170,10 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : from inside a map:for-each closure and measured ~20x slower: eXist
  : appears to re-evaluate a closure's captured let-binding from scratch
  : on every invocation, turning an intended O(n) batch fetch into
- : O(n²). The fix here batches at the same precedence
- : exptit:printTitleID() itself uses, closure-free throughout: (1)
- : $titleMap, the same per-request persistent-cache lookup
- : lists:additionsform/lists:decorationsform already use; (2)
- : $exptit:TUList/$exptit:persNamesList, the two small override lists
- : printTitleID() checks ahead of a live id() lookup - skipping these
- : would silently show a value's own backing-record title instead of
- : its override; (3) one batched $exptit:col/id($bareIds) call. Each is
- : joined per label in the same flat FLWOR that builds $inputs, not
- : inside a function value invoked per item. Only a value none of the
- : four cover (e.g. a "#subid" fragment, or a genuinely missing id)
- : still pays a per-item exptit:printTitle() fallback. See BetMasWeb#3.
+ : O(n²). Fixed via lists:batch-resolve-titles()/lists:resolve-batched-title()
+ : (shared with lists:decoRes's own N+1, same shape) - one batch computed
+ : up front, joined per label in the same flat FLWOR that builds
+ : $inputs, no function value invoked per item.
  :
  : @param $f the facet dimension name
  : @param $facets a map of distinct value -> hit count for this dimension
@@ -2189,6 +2181,7 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : @param $titleMap a per-request lookup map from lists:title-lookup-map()
  : @return the facet's <div>, or a log line instead of markup past 1000
  : distinct values (unchanged pre-existing guard)
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/3
  :)
 declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 	let $facets := map:merge($facets)
@@ -2203,53 +2196,13 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 			>{ $facetTitle }</button>
 			<div class="w3-padding w3-hide" id="{ string($f) }-facet-list">
 				{
-					(: Batch-resolve every BMurl-prefixed id $titleMap doesn't already
-					cover, in one id() call - the same batching exptit:printTitle()'s
-					N individual calls would otherwise force one at a time. This is
-					the fix BetMasWeb#3 originally tried and reverted: it failed there
-					only because the batch result was consumed from inside a
-					map:for-each closure (see this function's own xqdoc above); read
-					here from a plain variable inside the same flat FLWOR that
-					produces $inputs, it's safe.
-
-					exptit:printTitleID() checks $exptit:TUList then
-					$exptit:persNamesList before ever falling back to a live id()
-					lookup - batched the same way, at the same precedence, so a
-					value with an override doesn't silently show its backing
-					record's own (different) title instead. Neither list is
-					corpus-scale, so batch-checking both costs one small XPath
-					lookup each, not another per-item loop. :)
 					let $needsBatch := not($f = ("changeWho", "languages", "keywords"))
 					let $bareIds := if ($needsBatch) then
 						for $label in map:keys($facets)[starts-with(., $config:BMurl)]
-						let $bareId := substring-after($label, $config:BMurl)
-						where empty(map:get($titleMap, $bareId))
-						return $bareId
+						return substring-after($label, $config:BMurl)
 					else (
 					)
-					(: eXist's range-index optimizer rewrites @corresp = $bareIds into
-					a range:eq() call requiring one-or-more keys - an empty $bareIds
-					throws XPTY0004 rather than just matching nothing, hence the guards. :)
-					let $tuTitles := if (empty($bareIds)) then
-						map {}
-					else
-						map:merge(
-							for $item in $exptit:TUList//t:item[@corresp = $bareIds]
-							return map:entry(string($item/@corresp), $item/node())
-						)
-					let $persNamesTitles := if (empty($bareIds)) then
-						map {}
-					else
-						map:merge(
-							for $item in $exptit:persNamesList//t:item[@corresp = $bareIds]
-							return map:entry(string($item/@corresp), $item/node())
-						)
-					let $batchTitles := map:merge(
-						for $node in $exptit:col/id($bareIds)
-						let $title := ($node//t:title[@type = "full"]/text())[1]
-						where exists($title)
-						return map:entry($node/@xml:id, $title)
-					)
+					let $batchTitles := lists:batch-resolve-titles($bareIds, $titleMap)
 					let $inputs :=
 						for $label in map:keys($facets)
 						let $count := $facets($label)
@@ -2270,29 +2223,7 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 									)[1]/t:catDesc/text()
 									return $taxname
 								else if (starts-with($label, $config:BMurl)) then
-									let $bareId := substring-after($label, $config:BMurl)
-									let $cached := map:get($titleMap, $bareId)
-									return if (exists($cached)) then
-										$cached
-									else
-										let $tu := map:get($tuTitles, $bareId)
-										return if (exists($tu)) then
-											$tu
-										else
-											let $persNames := map:get($persNamesTitles, $bareId)
-											return if (exists($persNames)) then
-												$persNames
-											else
-												let $batched := map:get($batchTitles, $bareId)
-												return if (exists($batched)) then
-													$batched
-												else
-													(: exptit:printTitleID(), unlike exptit:printTitle(), returns
-													the empty sequence rather than falling back to the raw id
-													when nothing resolves - go through lists:resolve-title (->
-													exptit:printTitle) here, not printTitleID directly, or a
-													genuinely unresolvable id renders blank instead of its id. :)
-													lists:resolve-title($bareId, $titleMap)
+									lists:resolve-batched-title(substring-after($label, $config:BMurl), $titleMap, $batchTitles)
 								else
 									$label
 							}
