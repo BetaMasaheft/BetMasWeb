@@ -877,7 +877,30 @@ declare function lists:resolve-title($id, $titleMap as map(*)) {
  :)
 declare function lists:batch-resolve-titles($bareIds as xs:string*, $titleMap as map(*)) as map(*) {
 	let $unresolved := distinct-values($bareIds[empty(map:get($titleMap, .))])
-	return if (empty($unresolved)) then
+	(: $exptit:TUList/$exptit:persNamesList's @corresp = $unresolved predicate
+	compiles to one Lucene boolean-query clause per distinct value - callers
+	with a large enough $bareIds (lists:titlesRes's work/authFile refs, at
+	real corpus scale) can clear Lucene's own 1024-clause ceiling
+	(`TooManyClauses`) in one go. Chunk well under that, per call. :)
+	let $chunkSize := 500
+	let $chunkCount := xs:integer(ceiling(count($unresolved) div $chunkSize))
+	return map:merge(
+		for $chunkIndex in 1 to $chunkCount
+		return lists:batch-resolve-titles-chunk(subsequence($unresolved, ($chunkIndex - 1) * $chunkSize + 1, $chunkSize))
+	)
+};
+
+(:~
+ : One chunk of lists:batch-resolve-titles()'s actual TUList/persNamesList/
+ : id() lookups - kept under Lucene's clause-count ceiling by the caller,
+ : not here.
+ :
+ : @param $unresolved distinct bare ids, already filtered against $titleMap
+ : @return a map from bare id to resolved title, for every id this chunk
+ : could resolve
+ :)
+declare %private function lists:batch-resolve-titles-chunk($unresolved as xs:string*) as map(*) {
+	if (empty($unresolved)) then
 		map {}
 	else
 		let $tuTitles := map:merge(
@@ -932,6 +955,28 @@ declare function lists:resolve-batched-title($bareId as xs:string, $titleMap as 
 			$batched
 		else
 			lists:resolve-title($bareId, $titleMap)
+};
+
+(:~
+ : lists:resolve-batched-title() for a value that might not be
+ : BMurl-prefixed at all (a raw exptit:printTitle() call site, unlike
+ : q:facetDiv/lists:decoRes's own labels/refs, which are always
+ : BMurl-prefixed when id-like) - strips the prefix and looks up
+ : $titleMap/$batchTitles only when it's actually there, otherwise
+ : defers to exptit:printTitle() unchanged.
+ :
+ : @param $value what a per-item exptit:printTitle() call site already
+ : had - a bare string, a BMurl-prefixed one, or anything else
+ : exptit:printTitle() itself accepts
+ : @param $titleMap a per-request lookup map from lists:title-lookup-map()
+ : @param $batchTitles a map from lists:batch-resolve-titles()
+ : @return the resolved title
+ :)
+declare function lists:resolve-batched-title-maybe-prefixed($value, $titleMap as map(*), $batchTitles as map(*)) {
+	if (starts-with($value, $config:BMurl)) then
+		lists:resolve-batched-title(substring-after($value, $config:BMurl), $titleMap, $batchTitles)
+	else
+		exptit:printTitle($value)
 };
 
 declare function lists:additionsform($node as node(), $model as map(*)) {
@@ -2406,6 +2451,29 @@ declare function lists:typeGroupsMap($hits) as map(*) {
 	)
 };
 
+(:~
+ : Renders /titles' results: hits grouped by tag (one "page" of tags at
+ : a time), then by containing manuscript (or work/person/place for a
+ : non-"mss" group), each with its work/authFile references.
+ :
+ : exptit:printTitle()/exptit:printTitleID() once per manuscript group,
+ : work ref and authFile ref used to be an N+1 - same shape and fix as
+ : q:facetDiv/lists:decoRes: one batch up front via
+ : lists:batch-resolve-titles(), covering the two real work-ref shapes
+ : the per-item rendering below actually looks up (a corresp-matched
+ : msItem, or the nearest ancestor msItem), not every msItem in a
+ : shown item's whole document. The "mss" itemtype's manuscript-group
+ : idno lookup became root() on a node already in hand, no batching
+ : needed at all.
+ :
+ : @param $node the wrapper node
+ : @param $model the template model; either $model("typeGroups") (a
+ : pre-built map) or $model("hits") (grouped here via
+ : lists:typeGroupsMap())
+ : @param $start the tag-level pager's starting position
+ : @param $per-page how many distinct tags to show per page
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/125
+ :)
 declare %templates:wrap %templates:default("start", 1) %templates:default("per-page", 20) function lists:titlesRes(
 	$node as node(),
 	$model as map(*),
@@ -2423,7 +2491,28 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 		return $tag
 	)
 	let $pagedTags := subsequence($sortedTags, $start, $per-page)
-
+	let $shownItems :=
+		for $tag in $pagedTags
+		return $groupsMap($tag)
+	let $titleMap := lists:title-lookup-map()
+	let $bareIds := (
+		for $item in $shownItems
+		return string($item/ancestor::t:TEI/@xml:id),
+		for $corresp in $shownItems//t:ref[@type eq "authFile"]/@corresp[starts-with(., $config:BMurl)]
+		return substring-after($corresp, $config:BMurl),
+		(: same two work-ref shapes the per-item rendering below actually
+		looks up (corresp-matched msItem, or the nearest ancestor
+		msItem) - not every msItem in each item's whole document. :)
+		for $item in $shownItems
+		let $corr := $item/@corresp
+		let $workRef := if (exists($corr)) then
+			($item/ancestor::t:TEI//t:msItem[@xml:id = $corr]/t:title/@ref)[1]
+		else
+			($item/ancestor::t:msItem/t:title/@ref)[1]
+		where exists($workRef) and starts-with($workRef, $config:BMurl)
+		return substring-after($workRef, $config:BMurl)
+	)
+	let $batchTitles := lists:batch-resolve-titles($bareIds, $titleMap)
 	return (
 		lists:groupPager(count($sortedTags), $start, $per-page),
 		for $i in $pagedTags
@@ -2450,9 +2539,14 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 								<span class="w3-left">
 									{
 										if ($itemtype eq "mss") then
-											$lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno
+											(: $d[1] already belongs to this manuscript - its own
+											document root is that manuscript's document, no need
+											for a collection-wide id() lookup. :)
+											root($d[1])//t:msIdentifier/t:idno
 										else
-											try { exptit:printTitleID($ms) } catch * { util:log("WARNING", $ms) }
+											try { lists:resolve-batched-title($ms, $titleMap, $batchTitles) } catch * {
+												util:log("WARNING", $ms)
+											}
 									}
 								</span>
 								<span class="w3-badge w3-right">{ count($d) }</span>
@@ -2538,7 +2632,9 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 															</div>
 															<div class="w3-third">Refers to {
 																	if ($sd/name() = "div" and $itemtype eq "work") then
-																		<span>{ exptit:printTitle($ms) }</span>
+																		<span>
+																			{ lists:resolve-batched-title-maybe-prefixed($ms, $titleMap, $batchTitles) }
+																		</span>
 																	else if ($sd/name() = "div" and $itemtype eq "mss") then (
 																		let $corr := $sd/@corresp
 																		let $msitem := if (exists($corr)) then
@@ -2550,7 +2646,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 																		else (
 																		)
 																		return if (exists($work)) then
-																			<span>{ exptit:printTitle(string($work[1])) }</span>
+																			<span>
+																				{
+																					lists:resolve-batched-title-maybe-prefixed(
+																						string($work[1]),
+																						$titleMap,
+																						$batchTitles
+																					)
+																				}
+																			</span>
 																		else
 																			<span class="w3-text-grey">[no work reference]</span>
 																	) else if (
@@ -2561,7 +2665,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 																	) then (
 																		let $msitem := $sd/ancestor::t:msItem
 																		let $work := $msitem/t:title/@ref
-																		return <span>{ exptit:printTitle(string($work[1])) }</span>
+																		return <span>
+																			{
+																				lists:resolve-batched-title-maybe-prefixed(
+																					string($work[1]),
+																					$titleMap,
+																					$batchTitles
+																				)
+																			}
+																		</span>
 																	) else
 																		"unable to retrieve reference"
 																}
@@ -2576,7 +2688,19 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 																	),
 																	for $at in $sd//t:ref[@type eq "authFile"]
 																	return <a href="{ string($at/@corresp) }">
-																		{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+																		{
+																			concat(
+																				string-join(
+																					lists:resolve-batched-title-maybe-prefixed(
+																						$at/@corresp,
+																						$titleMap,
+																						$batchTitles
+																					),
+																					" "
+																				),
+																				", "
+																			)
+																		}
 																	</a>
 																}
 															</div>
@@ -2639,7 +2763,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 																let $work := $msitem/t:title/@ref
 																return (
 																	<a href="{ string($work[1]) }">
-																		<span>{ exptit:printTitle(string($work[1])) }</span>
+																		<span>
+																			{
+																				lists:resolve-batched-title-maybe-prefixed(
+																					string($work[1]),
+																					$titleMap,
+																					$batchTitles
+																				)
+																			}
+																		</span>
 																	</a>,
 																	<br />,
 																	<div class="w3-bar w3-gray w3-small">
@@ -2671,7 +2803,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 																let $work := $msitem/t:title/@ref
 																return (
 																	<a href="{ string($work[1]) }">
-																		<span>{ exptit:printTitle(string($work[1])) }</span>
+																		<span>
+																			{
+																				lists:resolve-batched-title-maybe-prefixed(
+																					string($work[1]),
+																					$titleMap,
+																					$batchTitles
+																				)
+																			}
+																		</span>
 																	</a>,
 																	<br />,
 																	<div class="w3-bar w3-gray w3-small">
@@ -2721,7 +2861,15 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 															),
 															for $at in $sd//t:ref[@type eq "authFile"]
 															return <a href="{ string($at/@corresp) }">
-																{ concat(string-join(exptit:printTitle($at/@corresp), " "), ", ") }
+																{
+																	concat(
+																		string-join(
+																			lists:resolve-batched-title-maybe-prefixed($at/@corresp, $titleMap, $batchTitles),
+																			" "
+																		),
+																		", "
+																	)
+																}
 															</a>
 														}
 													</div>
