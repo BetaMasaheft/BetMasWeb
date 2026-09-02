@@ -2170,15 +2170,18 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : from inside a map:for-each closure and measured ~20x slower: eXist
  : appears to re-evaluate a closure's captured let-binding from scratch
  : on every invocation, turning an intended O(n) batch fetch into
- : O(n²). The fix here is two layers, both closure-free: (1) $titleMap,
- : the same per-request persistent-cache lookup
- : lists:additionsform/lists:decorationsform already use, for values
- : the cache already covers; (2) for the rest, one batched
- : $exptit:col/id($bareIds) call up front building $batchTitles, joined
- : per label in the same flat FLWOR that builds $inputs - not inside a
- : function value invoked per item. Only a value neither covers (e.g. a
- : "#subid" fragment, or a genuinely missing id) still pays a per-item
- : exptit:printTitleID() fallback. See BetMasWeb#3.
+ : O(n²). The fix here batches at the same precedence
+ : exptit:printTitleID() itself uses, closure-free throughout: (1)
+ : $titleMap, the same per-request persistent-cache lookup
+ : lists:additionsform/lists:decorationsform already use; (2)
+ : $exptit:TUList/$exptit:persNamesList, the two small override lists
+ : printTitleID() checks ahead of a live id() lookup - skipping these
+ : would silently show a value's own backing-record title instead of
+ : its override; (3) one batched $exptit:col/id($bareIds) call. Each is
+ : joined per label in the same flat FLWOR that builds $inputs, not
+ : inside a function value invoked per item. Only a value none of the
+ : four cover (e.g. a "#subid" fragment, or a genuinely missing id)
+ : still pays a per-item exptit:printTitle() fallback. See BetMasWeb#3.
  :
  : @param $f the facet dimension name
  : @param $facets a map of distinct value -> hit count for this dimension
@@ -2207,12 +2210,40 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 					only because the batch result was consumed from inside a
 					map:for-each closure (see this function's own xqdoc above); read
 					here from a plain variable inside the same flat FLWOR that
-					produces $inputs, it's safe. :)
-					let $bareIds :=
+					produces $inputs, it's safe.
+
+					exptit:printTitleID() checks $exptit:TUList then
+					$exptit:persNamesList before ever falling back to a live id()
+					lookup - batched the same way, at the same precedence, so a
+					value with an override doesn't silently show its backing
+					record's own (different) title instead. Neither list is
+					corpus-scale, so batch-checking both costs one small XPath
+					lookup each, not another per-item loop. :)
+					let $needsBatch := not($f = ("changeWho", "languages", "keywords"))
+					let $bareIds := if ($needsBatch) then
 						for $label in map:keys($facets)[starts-with(., $config:BMurl)]
 						let $bareId := substring-after($label, $config:BMurl)
 						where empty(map:get($titleMap, $bareId))
 						return $bareId
+					else (
+					)
+					(: eXist's range-index optimizer rewrites @corresp = $bareIds into
+					a range:eq() call requiring one-or-more keys - an empty $bareIds
+					throws XPTY0004 rather than just matching nothing, hence the guards. :)
+					let $tuTitles := if (empty($bareIds)) then
+						map {}
+					else
+						map:merge(
+							for $item in $exptit:TUList//t:item[@corresp = $bareIds]
+							return map:entry(string($item/@corresp), $item/node())
+						)
+					let $persNamesTitles := if (empty($bareIds)) then
+						map {}
+					else
+						map:merge(
+							for $item in $exptit:persNamesList//t:item[@corresp = $bareIds]
+							return map:entry(string($item/@corresp), $item/node())
+						)
 					let $batchTitles := map:merge(
 						for $node in $exptit:col/id($bareIds)
 						let $title := ($node//t:title[@type = "full"]/text())[1]
@@ -2244,11 +2275,24 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 									return if (exists($cached)) then
 										$cached
 									else
-										let $batched := map:get($batchTitles, $bareId)
-										return if (exists($batched)) then
-											$batched
+										let $tu := map:get($tuTitles, $bareId)
+										return if (exists($tu)) then
+											$tu
 										else
-											lists:resolve-title($bareId, $titleMap)
+											let $persNames := map:get($persNamesTitles, $bareId)
+											return if (exists($persNames)) then
+												$persNames
+											else
+												let $batched := map:get($batchTitles, $bareId)
+												return if (exists($batched)) then
+													$batched
+												else
+													(: exptit:printTitleID(), unlike exptit:printTitle(), returns
+													the empty sequence rather than falling back to the raw id
+													when nothing resolves - go through lists:resolve-title (->
+													exptit:printTitle) here, not printTitleID directly, or a
+													genuinely unresolvable id renders blank instead of its id. :)
+													lists:resolve-title($bareId, $titleMap)
 								else
 									$label
 							}
