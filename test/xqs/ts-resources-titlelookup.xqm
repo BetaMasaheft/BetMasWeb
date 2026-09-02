@@ -107,3 +107,72 @@ function tsreslookup:resolve-title-prefers-map-hit() {
 declare %test:assertEquals("INSTESTresourceLookupMiss77") function tsreslookup:resolve-title-falls-back-on-map-miss() {
 	lists:resolve-title($tsreslookup:miss-id, map {})
 };
+
+(:~
+ : batch-resolve-titles skips ids the titleMap already covers - proven
+ : with a distinctive titleMap-only title no batch id() lookup against
+ : this fixture (no backing record at all) could otherwise produce.
+ :)
+declare %test:assertTrue function tsreslookup:batch-resolve-titles-skips-already-cached-id() {
+	let $titleMap := map {$tsreslookup:cache-id: $tsreslookup:cache-title}
+	let $batch := lists:batch-resolve-titles(($tsreslookup:cache-id), $titleMap)
+	return empty(map:get($batch, $tsreslookup:cache-id))
+};
+
+(:~
+ : A real, uncached corpus id resolves via the batch id() lookup.
+ :)
+declare
+	%test:assertEquals("Paris, Bibliothèque nationale de France, BnF Éthiopien 32")
+function tsreslookup:batch-resolve-titles-resolves-uncached-real-id() {
+	let $batch := lists:batch-resolve-titles(("BNFet32"), map {})
+	return map:get($batch, "BNFet32")
+};
+
+(:~
+ : An id the batch itself can't resolve is simply absent, not an
+ : empty-string entry or an error.
+ :)
+declare %test:assertEmpty function tsreslookup:batch-resolve-titles-omits-unresolvable-id() {
+	let $batch := lists:batch-resolve-titles(($tsreslookup:miss-id), map {})
+	return map:get($batch, $tsreslookup:miss-id)
+};
+
+(:~
+ : resolve-batched-title prefers a $titleMap hit over $batchTitles, even
+ : when both cover the same id - $titleMap is the authoritative,
+ : persistent cache; $batchTitles is only a same-request convenience.
+ :)
+declare %test:assertEquals("titleMap wins") function tsreslookup:resolve-batched-title-prefers-titlemap-over-batch() {
+	let $titleMap := map {"sharedId77": "titleMap wins"}
+	let $batchTitles := map {"sharedId77": "batchTitles should lose"}
+	return lists:resolve-batched-title("sharedId77", $titleMap, $batchTitles)
+};
+
+(:~
+ : Neither $titleMap nor $batchTitles covering an id falls back to the
+ : existing per-item lookup, same as lists:resolve-title alone.
+ :)
+declare
+	%test:assertEquals("INSTESTresourceLookupMiss77")
+function tsreslookup:resolve-batched-title-falls-back-when-neither-covers() {
+	lists:resolve-batched-title($tsreslookup:miss-id, map {}, map {})
+};
+
+(:~
+ : Deleted ids are excluded from the batch so resolve-batched-title
+ : falls through to printTitleID's deletion notice, not a stale live
+ : record title the batch would otherwise return.
+ :)
+declare variable $tsreslookup:deleted-id := "LIT1894Martyr";
+
+declare %test:assertEmpty function tsreslookup:batch-resolve-titles-omits-deleted-id() {
+	let $batch := lists:batch-resolve-titles(($tsreslookup:deleted-id), map {})
+	return map:get($batch, $tsreslookup:deleted-id)
+};
+
+declare
+	%test:assertEquals("LIT1894Martyr was permanently deleted")
+function tsreslookup:resolve-batched-title-renders-deleted-notice() {
+	lists:resolve-batched-title($tsreslookup:deleted-id, map {}, map {})
+};
