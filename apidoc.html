@@ -1270,7 +1270,41 @@
 				linked to our records.
 			</p>
 			<a class="w3-button w3-red page-scroll" role="button" href="#apidoctoc">Return to table of contents</a>
-			<div data-template="apidoc:iiif" />
+			<div id="APIpatternsIIIF" class="APIexamplestable">
+				<div class="w3-row lead">
+					<div class="w3-container">Pattern</div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/collections</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/collection/{institutionid}</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/witnesses/{workID}</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/{id}/manifest</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/{id}/sequence/normal</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/{id}/range/{rangeId}</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/iiif/{id}/canvas/p{n}</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/{sha}/api/iiif/{id}/manifest</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/{sha}/api/iiif/{id}/sequence/normal</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/{sha}/api/iiif/{id}/canvas/p{n}</pre></div>
+				</div>
+			</div>
 		</div>
 		<div class="w3-container">
 			<h2 id="shine">GET SHINE API</h2>
@@ -1279,14 +1313,52 @@
 				<a href="https://rise.mpiwg-berlin.mpg.de/pages/doc_for_resource_providers#tabs">(SHINE documentation)</a>.
 			</p>
 			<a class="w3-button w3-red page-scroll" role="button" href="#apidoctoc">Return to table of contents</a>
-			<div data-template="apidoc:shine" />
+			<div id="APIpatternsSHINE" class="APIexamplestable">
+				<div class="w3-row lead">
+					<div class="w3-container">Pattern</div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/collections</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/collections/{uuid}/resources</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/resources/{uuid}/metadata</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/resources/{uuid}/sections</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/sections/{uuid}/content_units</pre></div>
+				</div>
+			</div>
 		</div>
 
 		<div class="w3-container">
 			<h2 id="jsonapi">GET JSON-API</h2>
 			<p>How to navigate the JSON API.</p>
 			<a class="w3-button w3-red page-scroll" role="button" href="#apidoctoc">Return to table of contents</a>
-			<div data-template="apidoc:shine" />
+			<div id="APIpatternsJSONAPI" class="APIexamplestable">
+				<div class="w3-row lead">
+					<div class="w3-container">Pattern</div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/collections</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/collections/{uuid}/resources</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/resources/{uuid}/metadata</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/resources/{uuid}/sections</pre></div>
+				</div>
+				<div class="w3-row">
+					<div class="w3-container"><pre>/api/sections/{uuid}/content_units</pre></div>
+				</div>
+			</div>
 		</div>
 		<script type="text/javascript" src="resources/js/APIexamples.js" />
 	</div>
