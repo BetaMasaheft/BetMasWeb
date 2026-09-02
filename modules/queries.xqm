@@ -11,6 +11,7 @@ import module namespace cache = "http://exist-db.org/xquery/cache";
 import module namespace lib = "http://exist-db.org/xquery/html-templating/lib";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
+import module namespace lists = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/lists" at "xmldb:exist:///db/apps/BetMasWeb/modules/resources.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
@@ -2074,6 +2075,7 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
 		let $works := $q:facets[parent::xconf:facet[contains(@if, "work")]]
 		let $places := $q:facets[parent::xconf:facet[contains(@if, "place")]]
 		let $persons := $q:facets[parent::xconf:facet[contains(@if, "pers")]]
+		let $titleMap := lists:title-lookup-map()
 		return <form action="" class="w3-container w3-center" id="facetsSearch">
 			<div class="w3-row w3-left-align">
 				<button
@@ -2096,12 +2098,12 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
 					)
 				}
 			</div>
-			{ q:facetGroup($itemtype, "Resource type", $subsequence) }
-			{ q:facetGroup($general, "General", $subsequence) }
-			{ q:facetGroup($mss, "Manuscripts", $subsequence) }
-			{ q:facetGroup($works, "Textual and Narrative Units", $subsequence) }
-			{ q:facetGroup($places, "Places and Repositories", $subsequence) }
-			{ q:facetGroup($persons, "Persons and Groups", $subsequence) }
+			{ q:facetGroup($itemtype, "Resource type", $subsequence, $titleMap) }
+			{ q:facetGroup($general, "General", $subsequence, $titleMap) }
+			{ q:facetGroup($mss, "Manuscripts", $subsequence, $titleMap) }
+			{ q:facetGroup($works, "Textual and Narrative Units", $subsequence, $titleMap) }
+			{ q:facetGroup($places, "Places and Repositories", $subsequence, $titleMap) }
+			{ q:facetGroup($persons, "Persons and Groups", $subsequence, $titleMap) }
 			<div class="w3-row w3-left-align">
 				<button
 					class="w3-button w3-block w3-left-align w3-red w3-tooltip"
@@ -2116,7 +2118,20 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
 		</form>
 };
 
-declare function q:facetGroup($group, $groupname, $subsequence) {
+(:~
+ : Renders one facet-category section (e.g. "Manuscripts",
+ : "Persons and Groups"), one q:facetDiv per facet dimension in
+ : $group.
+ :
+ : @param $group the facet dimension names in this category
+ : @param $groupname the category heading
+ : @param $subsequence the current search's hit sequence
+ : @param $titleMap a per-request lookup map from lists:title-lookup-map(),
+ : built once by the caller and threaded through to every q:facetDiv -
+ : see q:facetDiv for why
+ : @return the category's <div>
+ :)
+declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map(*)) {
 	<div>
 		<div class="w3-row w3-left-align w3-margin-top"><b>{ $groupname }</b></div>
 		{
@@ -2137,19 +2152,46 @@ declare function q:facetGroup($group, $groupname, $subsequence) {
 			else
 				ft:facets($subsequence, string($f), ())
 			order by $facetTitle
-			return q:facetDiv($f, $facets, $facetTitle)
+			return q:facetDiv($f, $facets, $facetTitle, $titleMap)
 		}
 	</div>
 };
 
-declare function q:facetDiv($f, $facets, $facetTitle) {
+(:~
+ : Renders one facet dimension's value list (e.g. every distinct
+ : "witness" or "repository" the current hits reference), one checkbox
+ : + resolved label + count per distinct value.
+ :
+ : Label resolution for id-like values (BMurl-prefixed) used to call
+ : exptit:printTitle() once per distinct value from inside a
+ : map:for-each closure - an N+1 that dominates broad newSearch.html
+ : result pages (witness alone can be 400+ distinct values). A first
+ : attempt at fixing this batched the id() lookup but kept consuming it
+ : from inside a map:for-each closure and measured ~20x slower: eXist
+ : appears to re-evaluate a closure's captured let-binding from scratch
+ : on every invocation, turning an intended O(n) batch fetch into
+ : O(n²). The fix here is two layers, both closure-free: (1) $titleMap,
+ : the same per-request persistent-cache lookup
+ : lists:additionsform/lists:decorationsform already use, for values
+ : the cache already covers; (2) for the rest, one batched
+ : $exptit:col/id($bareIds) call up front building $batchTitles, joined
+ : per label in the same flat FLWOR that builds $inputs - not inside a
+ : function value invoked per item. Only a value neither covers (e.g. a
+ : "#subid" fragment, or a genuinely missing id) still pays a per-item
+ : exptit:printTitleID() fallback. See BetMasWeb#3.
+ :
+ : @param $f the facet dimension name
+ : @param $facets a map of distinct value -> hit count for this dimension
+ : @param $facetTitle the dimension's display heading
+ : @param $titleMap a per-request lookup map from lists:title-lookup-map()
+ : @return the facet's <div>, or a log line instead of markup past 1000
+ : distinct values (unchanged pre-existing guard)
+ :)
+declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 	let $facets := map:merge($facets)
-	return (: if (map:size($facets) = 0) then
-             util:log("info", concat('Checking map size count in query function ', map:size($facets), ' facets'))
-         else :) if (map:size($facets) gt 1000) then (
+	return if (map:size($facets) gt 1000) then (
 		util:log("info", concat($facetTitle, " has ", map:size($facets), " facets"))
 	) else
-		(: (util:log("info", concat($facetTitle, " has ", map:size($facets), " facets"))) :)
 		<div class="w3-row w3-left-align">
 			<button
 				class="w3-button w3-block w3-left-align w3-gray"
@@ -2158,44 +2200,61 @@ declare function q:facetDiv($f, $facets, $facetTitle) {
 			>{ $facetTitle }</button>
 			<div class="w3-padding w3-hide" id="{ string($f) }-facet-list">
 				{
-					(: BetMasWeb#3: batching this via $exptit:col/id($bareIds) measured ~20x
-					slower than per-value exptit:printTitle() calls when the batch result was
-					captured by an inline function closure and invoked once per facet value -
-					root cause appears to be non-memoized closure capture (each call
-					re-evaluates the whole batch), not id() itself. Reverted - see issue. :)
-					let $inputs := map:for-each(
-						$facets,
-						function ($label, $count) {
-							<span>
-								<input
-									class="w3-check w3-margin-right"
-									name="{ string($f) }-facet"
-									type="checkbox"
-									value="{ $label }" />
-								{
-									if ($f = "changeWho") then
-										editors:editorKey(replace($label, "#", ""))
-									else if ($f = "languages") then
-										$q:languages//t:item[@xml:id eq $label]/text()
-									else if ($f = "keywords") then
-										let $cleanlabel := if (starts-with($label, $config:BMurl)) then
-											substring-after($label, $config:BMurl)
-										else
-											$label
-										let $taxname := (
-											id($cleanlabel, $q:tax)/self::t:category | $q:tax//t:category[t:catDesc eq $cleanlabel]
-										)[1]/t:catDesc/text()
-										return $taxname
-									else if (starts-with($label, $config:BMurl)) then
-										exptit:printTitle($label)
+					(: Batch-resolve every BMurl-prefixed id $titleMap doesn't already
+					cover, in one id() call - the same batching exptit:printTitle()'s
+					N individual calls would otherwise force one at a time. This is
+					the fix BetMasWeb#3 originally tried and reverted: it failed there
+					only because the batch result was consumed from inside a
+					map:for-each closure (see this function's own xqdoc above); read
+					here from a plain variable inside the same flat FLWOR that
+					produces $inputs, it's safe. :)
+					let $bareIds :=
+						for $label in map:keys($facets)[starts-with(., $config:BMurl)]
+						let $bareId := substring-after($label, $config:BMurl)
+						where empty(map:get($titleMap, $bareId))
+						return $bareId
+					let $batchTitles := map:merge(
+						for $node in $exptit:col/id($bareIds)
+						let $title := ($node//t:title[@type = "full"]/text())[1]
+						where exists($title)
+						return map:entry($node/@xml:id, $title)
+					)
+					let $inputs :=
+						for $label in map:keys($facets)
+						let $count := $facets($label)
+						return <span>
+							<input class="w3-check w3-margin-right" name="{ string($f) }-facet" type="checkbox" value="{ $label }" />
+							{
+								if ($f = "changeWho") then
+									editors:editorKey(replace($label, "#", ""))
+								else if ($f = "languages") then
+									$q:languages//t:item[@xml:id eq $label]/text()
+								else if ($f = "keywords") then
+									let $cleanlabel := if (starts-with($label, $config:BMurl)) then
+										substring-after($label, $config:BMurl)
 									else
 										$label
-								}
-								<span class="w3-badge w3-margin-left">{ $count }</span>
-								<br />
-							</span>
-						}
-					)
+									let $taxname := (
+										id($cleanlabel, $q:tax)/self::t:category | $q:tax//t:category[t:catDesc eq $cleanlabel]
+									)[1]/t:catDesc/text()
+									return $taxname
+								else if (starts-with($label, $config:BMurl)) then
+									let $bareId := substring-after($label, $config:BMurl)
+									let $cached := map:get($titleMap, $bareId)
+									return if (exists($cached)) then
+										$cached
+									else
+										let $batched := map:get($batchTitles, $bareId)
+										return if (exists($batched)) then
+											$batched
+										else
+											lists:resolve-title($bareId, $titleMap)
+								else
+									$label
+							}
+							<span class="w3-badge w3-margin-left">{ $count }</span>
+							<br />
+						</span>
 					return if ($f = "keywords") then (
 						for $input in $inputs
 						let $val := $input/*:input/@value
