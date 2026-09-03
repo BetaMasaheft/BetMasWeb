@@ -73,10 +73,20 @@ declare %private function tsfacetdiv:remove-persnames-entry($id as xs:string) {
 	)
 };
 
+declare %private function tsfacetdiv:remove-nocatdesc-category() {
+	let $existing := doc("/db/apps/lists/canonicaltaxonomy.xml")//t:category[t:category/@xml:id eq
+		$tsfacetdiv:tax-nocatdesc-id]
+	return if ($existing) then
+		update delete $existing
+	else (
+	)
+};
+
 declare %private function tsfacetdiv:cleanup() {
 	tsfacetdiv:remove-title-cache-entry($tsfacetdiv:cache-id),
 	tsfacetdiv:remove-tulist-entry($tsfacetdiv:tulist-id),
-	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id)
+	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id),
+	tsfacetdiv:remove-nocatdesc-category()
 };
 
 declare %test:setUp function tsfacetdiv:setUp() {
@@ -191,4 +201,136 @@ function tsfacetdiv:persnameslist-entry-takes-precedence-over-live-node-title() 
 	let $facets := map {$config:BMurl || $tsfacetdiv:persnames-id: 1}
 	let $div := q:facetDiv("repository", $facets, "Repository", $titleMap)
 	return string($div//*:div[contains(@id, "facet-list")]/text()[normalize-space(.) != ""][1])
+};
+
+(: Real, stable canonicaltaxonomy.xml entries - verified live before picking
+them. "Royal" is sourced app-wide as a bare t:term/@key value; "AT1034Tempietto"
+is sourced as a BMurl-prefixed t:ref[@type='authFile']/@corresp value
+(collection.xconf's "keywords" facet dimension combines both shapes) - see
+queries.xqm's q:facetDiv keywords branch. :)
+declare variable $tsfacetdiv:tax-barekey-id := "Royal";
+
+declare variable $tsfacetdiv:tax-barekey-label := "Royal inscription";
+
+declare variable $tsfacetdiv:tax-barekey-group := "Types of Inscriptions";
+
+declare variable $tsfacetdiv:tax-corresp-id := "AT1034Tempietto";
+
+declare variable $tsfacetdiv:tax-corresp-label := "Tempietto";
+
+declare variable $tsfacetdiv:tax-corresp-group := "Art Themes";
+
+(: A synthetic category, inserted/removed per-test - real canonicaltaxonomy.xml
+has no @xml:id category lacking t:catDesc today, so this shape has to be
+manufactured to test it at all. Regression coverage for q:tax-lookup-map()
+indexing by @xml:id regardless of whether a category has a catDesc. :)
+declare variable $tsfacetdiv:tax-nocatdesc-id := "TESTNoCatDesc77";
+
+declare variable $tsfacetdiv:tax-nocatdesc-group := "TestGroupNoCatDesc77";
+
+(:~
+ : A bare, un-prefixed keyword value (the t:term/@key shape) resolves its
+ : display label from the taxonomy's own catDesc text.
+ :
+ : @return the rendered facet label text
+ :)
+declare %test:assertEquals("Royal inscription") function tsfacetdiv:keywords-barekey-resolves-catdesc-label() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	return string(
+		$div//*:input[@value = $tsfacetdiv:tax-barekey-id]/following-sibling::text()[normalize-space(.) != ""][1]
+	)
+};
+
+(:~
+ : A bare keyword value groups under its real taxonomy section heading.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-barekey-groups-under-real-heading() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-barekey-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-barekey-id])
+};
+
+(:~
+ : A BMurl-prefixed keyword value (the t:ref/@corresp shape) resolves its
+ : display label from the same taxonomy lookup, stripped of the prefix
+ : first.
+ :
+ : @return the rendered facet label text
+ :)
+declare %test:assertEquals("Tempietto") function tsfacetdiv:keywords-bmurl-corresp-resolves-catdesc-label() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	return string(
+		$div//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id]/following-sibling::text()[normalize-space(.) !=
+			""][1]
+	)
+};
+
+(:~
+ : A BMurl-prefixed keyword value groups under its real taxonomy section
+ : heading, not the empty "" heading a raw (unstripped) value match falls
+ : back to.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-bmurl-corresp-groups-under-real-heading() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-corresp-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id])
+};
+
+(:~
+ : Two distinct keyword values, one of each shape, resolve and group
+ : independently in the same call - the shared per-call taxonomy lookup
+ : must not collapse or cross-contaminate them.
+ :
+ : @return the count of correctly-grouped checkboxes found (2 if both
+ : resolved independently)
+ :)
+declare %test:assertEquals(2) function tsfacetdiv:keywords-mixed-shapes-both-resolve-independently() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1, $config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $bareGroupId := "keywords-" || replace($tsfacetdiv:tax-barekey-group, " ", "") || "-facet-sublist"
+	let $correspGroupId := "keywords-" || replace($tsfacetdiv:tax-corresp-group, " ", "") || "-facet-sublist"
+	return count(
+		(
+			$div//*:div[@id = $bareGroupId]//*:input[@value = $tsfacetdiv:tax-barekey-id],
+			$div//*:div[@id = $correspGroupId]//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id]
+		)
+	)
+};
+
+(:~
+ : A keyword value resolving by @xml:id to a category with no t:catDesc
+ : (a shape not present in the real corpus today, but not ruled out by
+ : the schema either) still groups under its real taxonomy section
+ : heading - q:tax-lookup-map() must index by @xml:id regardless of
+ : whether the category has a catDesc, matching id($x, $q:tax)'s own
+ : guarantee on the code path this replaced.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-id-only-category-still-groups() {
+	let $_insert := update insert <category xmlns="http://www.tei-c.org/ns/1.0">
+		<desc>{ $tsfacetdiv:tax-nocatdesc-group }</desc>
+		<category xml:id="{ $tsfacetdiv:tax-nocatdesc-id }" />
+	</category> into doc("/db/apps/lists/canonicaltaxonomy.xml")//t:taxonomy
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-nocatdesc-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-nocatdesc-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-nocatdesc-id])
 };
