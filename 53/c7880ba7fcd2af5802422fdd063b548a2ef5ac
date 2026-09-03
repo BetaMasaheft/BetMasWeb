@@ -1,0 +1,25 @@
+test/xqs/ts-queries-facetdiv.xqm
+  s_fbe6e76bb79e87::t_a9cfd919fc2e8c 76,79-84,88-89
+  s_fbe6e76bb79e87::t_a5c85f6337fb40 314-327,331-336
+  s_fbe6e76bb79e87::t_1846817eca0ea8 77-78,328-330
+  s_fbe6e76bb79e87::t_11c2469f89ab77 223-230
+modules/queries.xqm
+  s_fbe6e76bb79e87::t_2a698d08c05d12 2231-2232,2242-2248
+  s_fbe6e76bb79e87::t_ce04dac8ad42b1 2253,2255-2258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "53c7880ba7fcd2af5802422fdd063b548a2ef5ac",
+  "prompts": {},
+  "sessions": {
+    "s_fbe6e76bb79e87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f9bffe-ad89-40c8-940e-e833941450a4",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
