@@ -73,10 +73,20 @@ declare %private function tsfacetdiv:remove-persnames-entry($id as xs:string) {
 	)
 };
 
+declare %private function tsfacetdiv:remove-nocatdesc-category() {
+	let $existing := doc("/db/apps/lists/canonicaltaxonomy.xml")//t:category[t:category/@xml:id eq
+		$tsfacetdiv:tax-nocatdesc-id]
+	return if ($existing) then
+		update delete $existing
+	else (
+	)
+};
+
 declare %private function tsfacetdiv:cleanup() {
 	tsfacetdiv:remove-title-cache-entry($tsfacetdiv:cache-id),
 	tsfacetdiv:remove-tulist-entry($tsfacetdiv:tulist-id),
-	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id)
+	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id),
+	tsfacetdiv:remove-nocatdesc-category()
 };
 
 declare %test:setUp function tsfacetdiv:setUp() {
@@ -210,6 +220,14 @@ declare variable $tsfacetdiv:tax-corresp-label := "Tempietto";
 
 declare variable $tsfacetdiv:tax-corresp-group := "Art Themes";
 
+(: A synthetic category, inserted/removed per-test - real canonicaltaxonomy.xml
+has no @xml:id category lacking t:catDesc today, so this shape has to be
+manufactured to test it at all. Regression coverage for q:tax-lookup-map()
+indexing by @xml:id regardless of whether a category has a catDesc. :)
+declare variable $tsfacetdiv:tax-nocatdesc-id := "TESTNoCatDesc77";
+
+declare variable $tsfacetdiv:tax-nocatdesc-group := "TestGroupNoCatDesc77";
+
 (:~
  : A bare, un-prefixed keyword value (the t:term/@key shape) resolves its
  : display label from the taxonomy's own catDesc text.
@@ -292,4 +310,27 @@ declare %test:assertEquals(2) function tsfacetdiv:keywords-mixed-shapes-both-res
 			$div//*:div[@id = $correspGroupId]//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id]
 		)
 	)
+};
+
+(:~
+ : A keyword value resolving by @xml:id to a category with no t:catDesc
+ : (a shape not present in the real corpus today, but not ruled out by
+ : the schema either) still groups under its real taxonomy section
+ : heading - q:tax-lookup-map() must index by @xml:id regardless of
+ : whether the category has a catDesc, matching id($x, $q:tax)'s own
+ : guarantee on the code path this replaced.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-id-only-category-still-groups() {
+	let $_insert := update insert <category xmlns="http://www.tei-c.org/ns/1.0">
+		<desc>{ $tsfacetdiv:tax-nocatdesc-group }</desc>
+		<category xml:id="{ $tsfacetdiv:tax-nocatdesc-id }" />
+	</category> into doc("/db/apps/lists/canonicaltaxonomy.xml")//t:taxonomy
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-nocatdesc-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-nocatdesc-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-nocatdesc-id])
 };

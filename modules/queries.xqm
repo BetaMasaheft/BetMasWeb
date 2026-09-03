@@ -2228,9 +2228,8 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
 };
 
 (:~
- : Builds a one-shot lookup map over $q:tax's leaf categories (the ones
- : carrying a t:catDesc, the only ones ever referenced by a keyword facet
- : value), keyed by both @xml:id and catDesc text - the two shapes a
+ : Builds a one-shot lookup map over every $q:tax category, keyed by
+ : both @xml:id and catDesc text (whichever it has) - the two shapes a
  : keyword facet value can arrive in (a bare t:term/@key id, or a
  : BMurl-prefixed t:ref/@corresp value stripped to its bare id).
  :
@@ -2240,13 +2239,23 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : once for the label and once for the section grouping) - a real N+1 on
  : broad result pages with many distinct keywords.
  :
+ : Indexes by whichever of @xml:id/catDesc a category actually has,
+ : not just catDesc-bearing ones - id($x, $q:tax) on the old code path
+ : matched any category with a matching @xml:id regardless of catDesc,
+ : and grouping only ever needed the category's own *parent* to carry
+ : t:desc, so a catDesc-less category with an id must still resolve
+ : here or its keyword silently loses its section grouping.
+ :
  : @return a map from category @xml:id/catDesc text to its t:category node
  :)
 declare %private function q:tax-lookup-map() as map(*) {
 	map:merge(
-		for $category in $q:tax//t:category[t:catDesc]
+		for $category in $q:tax//t:category
 		return (
-			map:entry(string($category/t:catDesc[1]), $category),
+			if ($category/t:catDesc) then
+				map:entry(string($category/t:catDesc[1]), $category)
+			else (
+			),
 			if ($category/@xml:id) then
 				map:entry(string($category/@xml:id), $category)
 			else (
