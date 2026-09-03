@@ -1221,7 +1221,7 @@ declare %private function q:max-folia-candidates() as xs:integer* {
 declare function q:max-folia() as xs:integer {
 	let $ensureCache := cache:create(
 		$q:CORPUS-STATS-CACHE,
-		map {"type": "lru", "size": 10, "ttl": $q:CORPUS-STATS-CACHE-TTL}
+		map {"maximumSize": 10, "expireAfterWrite": $q:CORPUS-STATS-CACHE-TTL}
 	)
 	let $cached := cache:get($q:CORPUS-STATS-CACHE, "max-folia")
 	return if (exists($cached)) then
@@ -1265,7 +1265,7 @@ declare %private function q:max-written-lines-candidates() as xs:integer* {
 declare function q:max-written-lines() as xs:integer {
 	let $ensureCache := cache:create(
 		$q:CORPUS-STATS-CACHE,
-		map {"type": "lru", "size": 10, "ttl": $q:CORPUS-STATS-CACHE-TTL}
+		map {"maximumSize": 10, "expireAfterWrite": $q:CORPUS-STATS-CACHE-TTL}
 	)
 	let $cached := cache:get($q:CORPUS-STATS-CACHE, "max-written-lines")
 	return if (exists($cached)) then

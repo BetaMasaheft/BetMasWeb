@@ -80,7 +80,7 @@ declare %private function listIds:body() as element(div)* {
  : @return the cached (or freshly computed and cached) institution divs
  :)
 declare function listIds:cached-body() as element(div)* {
-	let $ensureCache := cache:create($listIds:CACHE, map {"type": "lru", "size": 1, "ttl": $listIds:CACHE-TTL})
+	let $ensureCache := cache:create($listIds:CACHE, map {"maximumSize": 1, "expireAfterWrite": $listIds:CACHE-TTL})
 	let $cached := cache:get($listIds:CACHE, "body")
 	return if (exists($cached)) then
 		$cached

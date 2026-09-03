@@ -30,7 +30,7 @@ declare function iiifut:get-first-canvas($manifestUrl as xs:string) as xs:string
 	let $key := normalize-space($manifestUrl)
 	let $ensureCache := cache:create(
 		$iiifut:CANVAS-CACHE,
-		map {"type": "lru", "size": 500, "ttl": $iiifut:CANVAS-CACHE-TTL}
+		map {"maximumSize": 500, "expireAfterWrite": $iiifut:CANVAS-CACHE-TTL}
 	)
 	let $cached := cache:get($iiifut:CANVAS-CACHE, $key)
 	return if (exists($cached)) then
