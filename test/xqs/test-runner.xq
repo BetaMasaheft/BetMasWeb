@@ -52,6 +52,7 @@ import module namespace tsplainfields = "https://www.betamasaheft.uni-hamburg.de
 import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-datefilter" at "ts-charts-datefilter.xqm";
 import module namespace tstaglia = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-tagliasupport" at "ts-charts-tagliasupport.xqm";
 import module namespace tslistids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-listids-cache" at "ts-listids-cache.xqm";
+import module namespace tswikicache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-wikitable-cache" at "ts-wikitable-cache.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -99,6 +100,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-queries-plainfields.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-datefilter.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-tagliasupport.xqm")),
-		inspect:module-functions(xs:anyURI("ts-listids-cache.xqm"))
+		inspect:module-functions(xs:anyURI("ts-listids-cache.xqm")),
+		inspect:module-functions(xs:anyURI("ts-wikitable-cache.xqm"))
 	)
 )
