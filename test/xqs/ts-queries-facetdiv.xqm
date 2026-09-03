@@ -192,3 +192,104 @@ function tsfacetdiv:persnameslist-entry-takes-precedence-over-live-node-title() 
 	let $div := q:facetDiv("repository", $facets, "Repository", $titleMap)
 	return string($div//*:div[contains(@id, "facet-list")]/text()[normalize-space(.) != ""][1])
 };
+
+(: Real, stable canonicaltaxonomy.xml entries - verified live before picking
+them. "Royal" is sourced app-wide as a bare t:term/@key value; "AT1034Tempietto"
+is sourced as a BMurl-prefixed t:ref[@type='authFile']/@corresp value
+(collection.xconf's "keywords" facet dimension combines both shapes) - see
+queries.xqm's q:facetDiv keywords branch. :)
+declare variable $tsfacetdiv:tax-barekey-id := "Royal";
+
+declare variable $tsfacetdiv:tax-barekey-label := "Royal inscription";
+
+declare variable $tsfacetdiv:tax-barekey-group := "Types of Inscriptions";
+
+declare variable $tsfacetdiv:tax-corresp-id := "AT1034Tempietto";
+
+declare variable $tsfacetdiv:tax-corresp-label := "Tempietto";
+
+declare variable $tsfacetdiv:tax-corresp-group := "Art Themes";
+
+(:~
+ : A bare, un-prefixed keyword value (the t:term/@key shape) resolves its
+ : display label from the taxonomy's own catDesc text.
+ :
+ : @return the rendered facet label text
+ :)
+declare %test:assertEquals("Royal inscription") function tsfacetdiv:keywords-barekey-resolves-catdesc-label() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	return string(
+		$div//*:input[@value = $tsfacetdiv:tax-barekey-id]/following-sibling::text()[normalize-space(.) != ""][1]
+	)
+};
+
+(:~
+ : A bare keyword value groups under its real taxonomy section heading.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-barekey-groups-under-real-heading() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-barekey-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-barekey-id])
+};
+
+(:~
+ : A BMurl-prefixed keyword value (the t:ref/@corresp shape) resolves its
+ : display label from the same taxonomy lookup, stripped of the prefix
+ : first.
+ :
+ : @return the rendered facet label text
+ :)
+declare %test:assertEquals("Tempietto") function tsfacetdiv:keywords-bmurl-corresp-resolves-catdesc-label() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	return string(
+		$div//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id]/following-sibling::text()[normalize-space(.) !=
+			""][1]
+	)
+};
+
+(:~
+ : A BMurl-prefixed keyword value groups under its real taxonomy section
+ : heading, not the empty "" heading a raw (unstripped) value match falls
+ : back to.
+ :
+ : @return true() if the value's checkbox renders inside its real
+ : taxonomy-section sublist
+ :)
+declare %test:assertTrue function tsfacetdiv:keywords-bmurl-corresp-groups-under-real-heading() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-corresp-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id])
+};
+
+(:~
+ : Two distinct keyword values, one of each shape, resolve and group
+ : independently in the same call - the shared per-call taxonomy lookup
+ : must not collapse or cross-contaminate them.
+ :
+ : @return the count of correctly-grouped checkboxes found (2 if both
+ : resolved independently)
+ :)
+declare %test:assertEquals(2) function tsfacetdiv:keywords-mixed-shapes-both-resolve-independently() {
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-barekey-id: 1, $config:BMurl || $tsfacetdiv:tax-corresp-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
+	let $bareGroupId := "keywords-" || replace($tsfacetdiv:tax-barekey-group, " ", "") || "-facet-sublist"
+	let $correspGroupId := "keywords-" || replace($tsfacetdiv:tax-corresp-group, " ", "") || "-facet-sublist"
+	return count(
+		(
+			$div//*:div[@id = $bareGroupId]//*:input[@value = $tsfacetdiv:tax-barekey-id],
+			$div//*:div[@id = $correspGroupId]//*:input[@value = $config:BMurl || $tsfacetdiv:tax-corresp-id]
+		)
+	)
+};

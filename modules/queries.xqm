@@ -2228,6 +2228,34 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
 };
 
 (:~
+ : Builds a one-shot lookup map over $q:tax's leaf categories (the ones
+ : carrying a t:catDesc, the only ones ever referenced by a keyword facet
+ : value), keyed by both @xml:id and catDesc text - the two shapes a
+ : keyword facet value can arrive in (a bare t:term/@key id, or a
+ : BMurl-prefixed t:ref/@corresp value stripped to its bare id).
+ :
+ : Replaces q:facetDiv's keywords branch running its own
+ : id($x, $q:tax)/self::t:category | $q:tax//t:category[t:catDesc eq $x]
+ : scan over the whole taxonomy tree once per distinct facet value (twice,
+ : once for the label and once for the section grouping) - a real N+1 on
+ : broad result pages with many distinct keywords.
+ :
+ : @return a map from category @xml:id/catDesc text to its t:category node
+ :)
+declare %private function q:tax-lookup-map() as map(*) {
+	map:merge(
+		for $category in $q:tax//t:category[t:catDesc]
+		return (
+			map:entry(string($category/t:catDesc[1]), $category),
+			if ($category/@xml:id) then
+				map:entry(string($category/@xml:id), $category)
+			else (
+			)
+		)
+	)
+};
+
+(:~
  : Renders one facet dimension's value list (e.g. every distinct
  : "witness" or "repository" the current hits reference), one checkbox
  : + resolved label + count per distinct value.
@@ -2244,6 +2272,14 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : (shared with lists:decoRes's own N+1, same shape) - one batch computed
  : up front, joined per label in the same flat FLWOR that builds
  : $inputs, no function value invoked per item.
+ :
+ : The "keywords" dimension has its own, separate taxonomy lookup
+ : (q:tax-lookup-map()) instead of the title batch above - same shape of
+ : fix, different backing data. Fixes a real, pre-existing grouping bug
+ : along the way: the section-grouping step used to look up the *raw*
+ : (possibly BMurl-prefixed) facet value instead of its already-stripped
+ : $cleanval, so every BMurl-prefixed keyword silently grouped under an
+ : empty "" section heading.
  :
  : @param $f the facet dimension name
  : @param $facets a map of distinct value -> hit count for this dimension
@@ -2273,6 +2309,10 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 					else (
 					)
 					let $batchTitles := lists:batch-resolve-titles($bareIds, $titleMap)
+					let $taxByKey := if ($f = "keywords") then
+						q:tax-lookup-map()
+					else
+						map {}
 					let $inputs :=
 						for $label in map:keys($facets)
 						let $count := $facets($label)
@@ -2288,10 +2328,7 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 										substring-after($label, $config:BMurl)
 									else
 										$label
-									let $taxname := (
-										id($cleanlabel, $q:tax)/self::t:category | $q:tax//t:category[t:catDesc eq $cleanlabel]
-									)[1]/t:catDesc/text()
-									return $taxname
+									return $taxByKey($cleanlabel)/t:catDesc[1]/text()
 								else if (starts-with($label, $config:BMurl)) then
 									lists:resolve-batched-title(substring-after($label, $config:BMurl), $titleMap, $batchTitles)
 								else
@@ -2307,7 +2344,7 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 							substring-after($val, $config:BMurl)
 						else
 							$val
-						let $kk := ($q:tax//t:category[t:catDesc eq $val] | $q:tax//t:category[@xml:id eq $val])
+						let $kk := $taxByKey($cleanval)
 						let $taxonomy := string-join($kk/parent::t:category[t:desc][1]/t:desc[1]/text())
 						group by $taxonomy
 						order by $taxonomy
