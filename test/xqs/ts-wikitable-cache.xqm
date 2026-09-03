@@ -47,6 +47,24 @@ declare %test:assertEquals(0) function tswikicache:negative-result-is-cached-too
 };
 
 (:~
+ : A fetcher raising wiki:fetch-failed (the real live fetcher's own
+ : failure signal - network error or non-200) must not be cached the
+ : same way a confirmed "no claim" result is - a transient failure
+ : should not permanently hide a VIAF id that actually exists. Proven
+ : by a second call, same id, with a fetcher that would succeed: it
+ : must actually run, not be short-circuited by a stale negative-cache
+ : entry from the first call's failure.
+ :)
+declare %test:assertEquals("recovered-after-transient-failure") function tswikicache:fetch-failure-is-not-cached() {
+	let $id := "QTEST-transient-" || util:uuid()
+	let $firstAttempt := wiki:viaf-lookup-cached(
+		$id,
+		function ($q) { fn:error(xs:QName("wiki:fetch-failed"), "simulated transient failure") }
+	)
+	return wiki:viaf-lookup-cached($id, function ($q) { "recovered-after-transient-failure" })
+};
+
+(:~
  : wiki:wikitable's own markup, given a resolvable VIAF id - primed
  : straight into the cache (not via the injectable wrapper it calls
  : internally) so this exercises wiki:wikitable itself end to end

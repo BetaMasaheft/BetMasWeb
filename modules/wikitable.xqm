@@ -24,8 +24,14 @@ declare variable $wiki:VIAF-CACHE-TTL := 604800;
  : so the wrapper itself can be tested with a stub fetcher, no network
  : involved.
  :
+ : Raises wiki:fetch-failed on any transport/response failure (network
+ : error, non-200) rather than folding it into "no claim" - the caller
+ : must not cache a transient failure as a confirmed negative result.
+ :
  : @param $Qitem a Wikidata Q-item id (e.g. "Q123456")
- : @return the VIAF id if the entity has one, empty sequence otherwise
+ : @return the VIAF id if the entity has one, empty sequence if the
+ : entity genuinely has no P214 claim
+ : @error wiki:fetch-failed the request errored or returned a non-200 status
  :)
 declare %private function wiki:fetch-viaf-id($Qitem as xs:string) as xs:string? {
 	let $api-url := concat("https://www.wikidata.org/wiki/Special:EntityData/", $Qitem, ".json")
@@ -36,21 +42,15 @@ declare %private function wiki:fetch-viaf-id($Qitem as xs:string) as xs:string? 
 		return http:send-request($request)
 	} catch * { () }
 
-	let $json := if ($response[1]/@status = "200") then (
-		util:base64-decode(string-join($response))
-	) else (
-	)
-
-	let $json-doc := if ($json) then
-		parse-json($json)
-	else (
-	)
-	let $claims := $json-doc?entities?($Qitem)?claims?P214
-	return if (exists($claims)) then
-		let $firstClaim := $claims?1
-		return $firstClaim?mainsnak?datavalue?value
-	else (
-	)
+	return if (empty($response) or not($response[1]/@status = "200")) then
+		fn:error(xs:QName("wiki:fetch-failed"), "Wikidata lookup failed for " || $Qitem)
+	else
+		let $json-doc := parse-json(util:base64-decode(string-join($response)))
+		let $claims := $json-doc?entities?($Qitem)?claims?P214
+		return if (exists($claims)) then
+			$claims?1?mainsnak?datavalue?value
+		else (
+		)
 };
 
 (:~
@@ -59,31 +59,43 @@ declare %private function wiki:fetch-viaf-id($Qitem as xs:string) as xs:string? 
  : wrapper is testable without a live network call - production code
  : always passes wiki:fetch-viaf-id#1.
  :
+ : A $fetch failure (wiki:fetch-viaf-id raises wiki:fetch-failed) is
+ : never cached - only a confirmed "no claim" result (an empty sequence
+ : returned normally) becomes a negative-cache entry. Caching a
+ : transient failure the same way a real absence is cached would hide
+ : a VIAF id that actually exists for the rest of the cache's lifetime.
+ :
  : @param $Qitem a Wikidata Q-item id
  : @param $fetch the live-lookup function to call on a cache miss
- : @return the cached or freshly-fetched VIAF id, empty sequence if none
+ : @return the cached or freshly-fetched VIAF id, empty sequence if
+ : none or if the fetch failed
  :)
 declare function wiki:viaf-lookup-cached(
 	$Qitem as xs:string,
 	$fetch as function (xs:string) as xs:string?
 ) as xs:string? {
-	let $ensureCache := cache:create($wiki:VIAF-CACHE, map {"type": "lru", "size": 2000, "ttl": $wiki:VIAF-CACHE-TTL})
+	let $ensureCache := cache:create(
+		$wiki:VIAF-CACHE,
+		map {"maximumSize": 2000, "expireAfterWrite": $wiki:VIAF-CACHE-TTL}
+	)
 	let $cached := cache:get($wiki:VIAF-CACHE, $Qitem)
 	return if (exists($cached)) then
 		if ($cached eq "") then (
 		) else
 			$cached
 	else
-		let $fresh := $fetch($Qitem)
-		let $store := cache:put(
-			$wiki:VIAF-CACHE,
-			$Qitem,
-			if (exists($fresh)) then
-				$fresh
-			else
-				""
-		)
-		return $fresh
+		try {
+			let $fresh := $fetch($Qitem)
+			let $store := cache:put(
+				$wiki:VIAF-CACHE,
+				$Qitem,
+				if (exists($fresh)) then
+					$fresh
+				else
+					""
+			)
+			return $fresh
+		} catch wiki:fetch-failed { () }
 };
 
 declare function wiki:wikitable($Qitem as xs:string) as element() {
