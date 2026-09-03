@@ -1,0 +1,19 @@
+facet.html
+  s_fbe6e76bb79e87::t_119983f7a6ff31 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "3a75fc233962370693e5e90cdbfcfdd8612af26b",
+  "prompts": {},
+  "sessions": {
+    "s_fbe6e76bb79e87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f9bffe-ad89-40c8-940e-e833941450a4",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
