@@ -147,8 +147,7 @@ else if (ends-with($exist:resource, ".pdf")) then
 			<forward url="{ $exist:controller }/modules/view.xql" />
 		</error-handler>
 	</dispatch>
-else if ((: :$exist:path = '/as.html' or : :) $exist:path = "/search.html"(: :or $exist:path = '/facet.html'
-                                or $exist:path = '/sparql.html' or $exist:path = '/xpath.html': :) ) then
+else if ($exist:path = "/search.html") then
 	<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
 		<redirect absolute="yes" url="{ $config:appUrl }/simpleSearch.html" />
 	</dispatch>
