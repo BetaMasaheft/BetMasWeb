@@ -142,7 +142,7 @@ declare function charts:pieAttestations($itemid, $name) {
 		for $att in $attestations
 		let $groupkey := normalize-space(string-join($att/text(), " "))
 		group by $gk := $groupkey
-		return '["' || $gk || '", ' || count($att) || "]"
+		return '["' || charts:js-string-escape($gk) || '", ' || count($att) || "]"
 
 	let $table := '[["form","total"],' || string-join($forms, ", ") || "]"
 
@@ -209,6 +209,32 @@ declare function charts:dateFilter($from, $to, $hits, $years-by-hit as map(*)) {
 };
 
 (:~
+ : Escapes a string for safe embedding inside a single- or double-quoted
+ : JavaScript string literal built by string concatenation (the pattern
+ : every chart-building function in this module uses). Corpus free-text
+ : fields (e.g. `t:decoNote` content) routinely carry embedded
+ : newlines/indentation from the source TEI's mixed content, which breaks
+ : the literal outright rather than just mis-rendering - so whitespace,
+ : including the U+2028/U+2029 line/paragraph separators (illegal
+ : unescaped in a JS string literal same as \n, but not covered by
+ : normalize-space's XML whitespace definition), is collapsed rather
+ : than merely escaped. Also neutralizes `</script` so a value can't
+ : terminate the enclosing `<script>` element early.
+ :
+ : @param $value the raw string to embed; the empty sequence returns ""
+ : @return a string safe to concatenate directly inside a JS string literal
+ :)
+declare function charts:js-string-escape($value as xs:string?) as xs:string {
+	let $lineSeparatorPattern := "[" || codepoints-to-string((8232, 8233)) || "]"
+	let $withoutLineSeparators := replace(($value, "")[1], $lineSeparatorPattern, " ")
+	let $normalized := normalize-space($withoutLineSeparators)
+	let $backslashesEscaped := replace($normalized, "\\", "\\\\")
+	let $singleQuotesEscaped := replace($backslashesEscaped, "'", "\\'")
+	let $quotesEscaped := replace($singleQuotesEscaped, '"', '\\"')
+	return replace($quotesEscaped, "</(script)", "<\\/$1", "i")
+};
+
+(:~
  : Shared shape behind charts:chart's 6 support-function chart blocks
  : (sp/spat/TM/BM/OT/MM) - each was ~75-80 duplicated lines: 14
  : per-bucket support-fn calls aggregated into a Google Charts JSON
@@ -245,7 +271,7 @@ declare %private function charts:support-column-chart(
 			return $support-fn($buckets($i), $labels[$i], $values)
 		let $headings :=
 			for $value in $values
-			return ',"' || $value || '"'
+			return ',"' || charts:js-string-escape($value) || '"'
 		let $table := '[["' || $table-title || '" ' || string-join($headings) || "]," || string-join($series, ", ") || "]"
 		return (
 			<script type="text/javascript">
@@ -453,7 +479,17 @@ declare function charts:chart($hits) {
 					let $h := charts:outer-axis-mm($d, "height")
 					let $w := charts:outer-axis-mm($d, "width")
 					let $dep := charts:outer-axis-mm($d, "depth")
-					return '["' || $SM || '",' || $w || "," || $h || ',"' || $title || '",' || $dep || "]"
+					return '["' ||
+						charts:js-string-escape($SM) ||
+						'",' ||
+						$w ||
+						"," ||
+						$h ||
+						',"' ||
+						charts:js-string-escape($title) ||
+						'",' ||
+						$dep ||
+						"]"
 
 				let $dimensionsTable := '[["shelf mark","width","height","title","depth"],' || string-join($dims, ", ") || "]"
 
@@ -908,7 +944,7 @@ declare function charts:chart($hits) {
 					)
 					let $headings :=
 						for $value in $RPZvalues
-						return ',"' || $value || '"'
+						return ',"' || charts:js-string-escape($value) || '"'
 					let $RPZColumnChart := '[["Ruling Pattern ' ||
 						$formulaZoneName ||
 						'" ' ||
@@ -964,7 +1000,17 @@ chart.draw(data, google.charts.Bar.convertOptions(options));
 				let $h := charts:outer-axis-mm($d, "height")
 				let $w := charts:outer-axis-mm($d, "width")
 				let $writtenlines := charts:layout-written-lines($d)
-				return '["' || $SM || '",' || $w || "," || $h || ',"' || $title || '", ' || $writtenlines || "]"
+				return '["' ||
+					charts:js-string-escape($SM) ||
+					'",' ||
+					$w ||
+					"," ||
+					$h ||
+					',"' ||
+					charts:js-string-escape($title) ||
+					'", ' ||
+					$writtenlines ||
+					"]"
 
 			let $dimensionsTable := '[["shelf mark","width","height","title","written lines"],
     ' ||

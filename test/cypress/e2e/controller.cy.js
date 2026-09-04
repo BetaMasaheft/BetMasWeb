@@ -164,8 +164,15 @@ it("GET /studies", () => {
 // view.xql). Asserting </html> catches that class of bug: the raw source
 // files are XML fragments with no <html>/<head>, only the fully templated
 // page has one.
+//
+// `timeout: 45000` below (here and on the other known-slower routes further
+// down) used to read `responseTimeout: 45000` - not a real cy.request()
+// option (Cypress's own key is `timeout`, see cypress.d.ts's
+// RequestOptions/Timeoutable), so every one of these calls was silently
+// still bound by Cypress's 30s default the whole time.
+// @see https://github.com/BetaMasaheft/BetMasWeb/issues/144
 it("GET /decorations", () => {
-	cy.request({ url: "/decorations", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
+	cy.request({ url: "/decorations", method: "GET", failOnStatusCode: false, timeout: 45000 }).then((res) => {
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /decorations responded with ${res.status}`).to.not.equal(405);
 		expect(res.body, "response should be a fully templated page").to.include("</html>");
@@ -173,7 +180,7 @@ it("GET /decorations", () => {
 });
 
 it("GET /titles", () => {
-	cy.request({ url: "/titles", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
+	cy.request({ url: "/titles", method: "GET", failOnStatusCode: false, timeout: 45000 }).then((res) => {
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /titles responded with ${res.status}`).to.not.equal(405);
 		expect(res.body, "response should be a fully templated page").to.include("</html>");
@@ -188,7 +195,7 @@ it("GET /titles?limit-mss={id} does not error (regression #45)", () => {
 		url: "/titles?limit-mss=BAVet1&typeval=all",
 		method: "GET",
 		failOnStatusCode: false,
-		responseTimeout: 45000,
+		timeout: 45000,
 	}).then((res) => {
 		expect(res.status, `GET /titles?limit-mss=BAVet1 responded with ${res.status}`).to.eq(200);
 		expect(res.body, "response should not contain an XPTY0004 error").to.not.include("XPTY0004");
@@ -206,7 +213,7 @@ it("GET /titles?limit-work={id} does not silently drop or error on a multi-manus
 		url: "/titles?limit-work=LIT1560Gospel&typeval=all",
 		method: "GET",
 		failOnStatusCode: false,
-		responseTimeout: 45000,
+		timeout: 45000,
 	}).then((res) => {
 		expect(res.status, `GET /titles?limit-work=LIT1560Gospel responded with ${res.status}`).to.eq(200);
 		expect(res.body, "response should not contain an XPTY0004 error").to.not.include("XPTY0004");
@@ -223,7 +230,7 @@ it("GET /paratexts", () => {
 });
 
 it("GET /calendar", () => {
-	cy.request({ url: "/calendar", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
+	cy.request({ url: "/calendar", method: "GET", failOnStatusCode: false, timeout: 45000 }).then((res) => {
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /calendar responded with ${res.status}`).to.not.equal(405);
 		expect(res.body, "response should be a fully templated page").to.include("</html>");
@@ -231,7 +238,7 @@ it("GET /calendar", () => {
 });
 
 it("GET /bindings", () => {
-	cy.request({ url: "/bindings", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
+	cy.request({ url: "/bindings", method: "GET", failOnStatusCode: false, timeout: 45000 }).then((res) => {
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /bindings responded with ${res.status}`).to.not.equal(405);
 		expect(res.body, "response should be a fully templated page").to.include("</html>");
@@ -263,7 +270,7 @@ it("GET /bibliography", () => {
 });
 
 it("GET /additions", () => {
-	cy.request({ url: "/additions", method: "GET", failOnStatusCode: false, responseTimeout: 45000 }).then((res) => {
+	cy.request({ url: "/additions", method: "GET", failOnStatusCode: false, timeout: 45000 }).then((res) => {
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(500);
 		expect(res.status, `GET /additions responded with ${res.status}`).to.not.equal(405);
 		expect(res.body, "response should be a fully templated page").to.include("</html>");
