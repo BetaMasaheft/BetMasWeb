@@ -209,6 +209,26 @@ declare function charts:dateFilter($from, $to, $hits, $years-by-hit as map(*)) {
 };
 
 (:~
+ : Escapes a string for safe embedding inside a single- or double-quoted
+ : JavaScript string literal built by string concatenation (the pattern
+ : every chart-building function in this module uses). Corpus free-text
+ : fields (e.g. `t:decoNote` content) routinely carry embedded
+ : newlines/indentation from the source TEI's mixed content, which breaks
+ : the literal outright rather than just mis-rendering - so whitespace is
+ : collapsed, not merely escaped. Also neutralizes `</script` so a value
+ : can't terminate the enclosing `<script>` element early.
+ :
+ : @param $value the raw string to embed; the empty sequence returns ""
+ : @return a string safe to concatenate directly inside a JS string literal
+ :)
+declare function charts:js-string-escape($value as xs:string?) as xs:string {
+	let $normalized := normalize-space(($value, "")[1])
+	let $backslashesEscaped := replace($normalized, "\\", "\\\\")
+	let $quotesEscaped := replace($backslashesEscaped, '"', '\\"')
+	return replace($quotesEscaped, "(?i)</(script)", "<\\/$1")
+};
+
+(:~
  : Shared shape behind charts:chart's 6 support-function chart blocks
  : (sp/spat/TM/BM/OT/MM) - each was ~75-80 duplicated lines: 14
  : per-bucket support-fn calls aggregated into a Google Charts JSON
@@ -245,7 +265,7 @@ declare %private function charts:support-column-chart(
 			return $support-fn($buckets($i), $labels[$i], $values)
 		let $headings :=
 			for $value in $values
-			return ',"' || $value || '"'
+			return ',"' || charts:js-string-escape($value) || '"'
 		let $table := '[["' || $table-title || '" ' || string-join($headings) || "]," || string-join($series, ", ") || "]"
 		return (
 			<script type="text/javascript">
@@ -908,7 +928,7 @@ declare function charts:chart($hits) {
 					)
 					let $headings :=
 						for $value in $RPZvalues
-						return ',"' || $value || '"'
+						return ',"' || charts:js-string-escape($value) || '"'
 					let $RPZColumnChart := '[["Ruling Pattern ' ||
 						$formulaZoneName ||
 						'" ' ||

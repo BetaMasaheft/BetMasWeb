@@ -51,6 +51,7 @@ import module namespace tsfilterspanel = "https://www.betamasaheft.uni-hamburg.d
 import module namespace tsplainfields = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-plainfields" at "ts-queries-plainfields.xqm";
 import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-datefilter" at "ts-charts-datefilter.xqm";
 import module namespace tstaglia = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-tagliasupport" at "ts-charts-tagliasupport.xqm";
+import module namespace tsjsescape = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-jsstringescape" at "ts-charts-jsstringescape.xqm";
 import module namespace tslistids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-listids-cache" at "ts-listids-cache.xqm";
 import module namespace tswikicache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-wikitable-cache" at "ts-wikitable-cache.xqm";
 
