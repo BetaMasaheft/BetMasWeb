@@ -179,7 +179,11 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 			}
 		case element(t:encodingDesc) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
-				($node/@*, expand:tei2fulltei($node/node(), $bibliography)),
+				(
+					$node/@*,
+					(: Drop stale expand artefacts (pre-#90 assertion wrapped as source-url). :)
+					expand:tei2fulltei($node/node()[not(local-name() = "source-url")], $bibliography)
+				),
 				<p xmlns="http://www.tei-c.org/ns/1.0">Encoded according
                         to the <ref
 						target="https://betamasaheft.eu/Guidelines/"
@@ -651,22 +655,36 @@ declare function expand:rn($n) as xs:string {
 		"tei:" || $n/name() || "[" || $n/position() || "]"
 };
 
+(:~
+ : Normalise a citeStructure/@unit value to a single token (no whitespace).
+ : Expanded RNG forbids spaces; authoring multi-token div/@subtype and label
+ : prose are hyphen-joined. Empty input becomes "unit".
+ :
+ : @param $raw candidate unit string (subtype, label text, or element name)
+ : @return token safe for expanded citeStructure/@unit
+ :)
+declare function expand:citeUnit($raw as xs:string?) as xs:string {
+	let $n := normalize-space($raw)
+	return if ($n) then
+		replace($n, "\s+", "-")
+	else
+		"unit"
+};
+
 declare function expand:citeStructure($level) {
 	<citeStructure xmlns="http://www.tei-c.org/ns/1.0">
 		{
 			attribute unit {
-				if ($level/@subtype) then
-					string($level/@subtype)
-				else if ($level/t:label) then
-					string-join($level/t:label//text())
-				else if ($level/name() = "lb") then
-					"line break"
-				else if ($level/name() = "cb") then
-					"column break"
-				else if ($level/name() = "pb") then
-					"page break"
-				else
-					$level/name()
+				expand:citeUnit(
+					if ($level/@subtype) then
+						string($level/@subtype)
+					else if ($level/t:label) then
+						string-join($level/t:label//text())
+					else if (local-name($level) = ("lb", "cb", "pb")) then
+						local-name($level)
+					else
+						string($level/name())
+				)
 			}
 		}
 		{ attribute match { $level/name() } }
@@ -697,7 +715,7 @@ declare function expand:groupCS($cS) {
 	return <citeStructure
 		xmlns="http://www.tei-c.org/ns/1.0"
 		match="{ string((distinct-values($c/@match))[1]) }"
-		unit="{ $Unit }"
+		unit="{ expand:citeUnit($Unit) }"
 		use="{ string((distinct-values($c/@use))[1]) }"
 	>
 		{ expand:groupCS($c/t:citeStructure) }
