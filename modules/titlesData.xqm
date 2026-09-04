@@ -144,19 +144,30 @@ declare
 	%test:assertEquals("Exodus: Exodus 1")
 	%test:arg("id", "PRS5684JesusCh#n2")
 	%test:assertEquals("Jesus Christ: Krǝstos")
+	(: Deleted place with formerlyAlsoListedAs active=passive=self — must not recurse. :)
+	%test:arg("id", "LOC1464Ankoba")
+	%test:assertXPath("starts-with(normalize-space(string(.)), 'ʾAnkobar')")
 function titles:printTitleID($id as xs:string) {
 	if ($titles:deleted//t:item[. = $id]) then
 		let $del := $titles:deleted//t:item[. = $id]
 		let $formerly := $titles:collection-root//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
-		return if ($formerly) then
-			titles:printTitleID($formerly/@active) ||
+		(: Prefer a successor that is not $id — self-loops (e.g. LOC1464Ankoba)
+		   used to StackOverflow via titles:printTitleID($formerly/@active). :)
+		let $active := string(($formerly[@active ne $id]/@active)[1])
+		return if ($active) then
+			titles:printTitleID($active) ||
 				" [now " ||
-				string($formerly/@active) ||
+				$active ||
 				", formerly also listed as " ||
 				$id ||
 				", which was requested here but has been deleted on " ||
 				string($del/@change) ||
 				"]"
+		else if (exists($formerly)) then
+			titles:printTitleMainID($id) ||
+				" [deleted on " ||
+				string($del/@change) ||
+				"; formerlyAlsoListedAs is self-referential or empty]"
 		else
 			$id || " was permanently deleted"
 	else if (starts-with($id, "sdc:")) then
