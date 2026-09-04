@@ -1,0 +1,26 @@
+test/xqs/test-runner.xq
+  s_bfac4543151ff7::t_c97eb4c92cb36f 33
+  s_bfac4543151ff7::t_bdbbcc8cf91847 81
+test/xqs/ts-expand-citeunit.xqm
+  s_bfac4543151ff7::t_a9a5b04467a00c 1-65
+modules/expand.xqm
+  s_bfac4543151ff7::t_eed19bd0496cea 182-186
+  s_bfac4543151ff7::t_2009da20347ab4 658-673,678-687
+  s_bfac4543151ff7::t_e3e314adabb3b2 718
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5cb1e716fc4dd1bf5f5db9d587cd8996baa58fc2",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
