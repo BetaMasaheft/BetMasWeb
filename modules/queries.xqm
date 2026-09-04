@@ -87,6 +87,38 @@ declare variable $q:tax := doc("/db/apps/lists/canonicaltaxonomy.xml");
 
 declare variable $q:range-lookup3 := function-lookup(xs:QName("range:index-keys-for-field"), 3);
 
+(:~
+ : Raw (key, frequency, distinct-doc-count, position) tuples for a range
+ : field. Goes through util:eval-with-context rather than calling
+ : $q:range-lookup3 directly: range:index-keys-for-field scopes its
+ : lookup to the *evaluating* query's own default collection, not the
+ : collection actually bound via `$q:col/...`, so a direct call from any
+ : module under /db/apps/BetMasWeb (a sibling of /db/apps/expanded, not
+ : an ancestor) silently returns nothing on a real deployed request even
+ : though the identical call works as an ad-hoc REST eval.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/124
+ : @param $rangeindexname the range index field name
+ : @param $max maximum number of keys to retrieve
+ : @return one <k> element per key, with @key/@freq/@docs/@pos attributes
+ :)
+declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max as xs:integer) as element(k)* {
+	let $query :=
+	'
+		declare namespace range = "http://exist-db.org/xquery/range";
+		declare variable $field external;
+		declare variable $max external;
+		let $col := collection("/db/apps/expanded")
+		let $lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3)
+		return $col/$lookup($field, function ($key, $count) { <k key="{$key}" freq="{$count[1]}" docs="{$count[2]}" pos="{$count[3]}"/> }, $max)
+	'
+	let $ctx := <static-context>
+		<default-context>{ $q:col }</default-context>
+		<variable name="field">{ $rangeindexname }</variable>
+		<variable name="max">{ $max }</variable>
+	</static-context>
+	return util:eval-with-context($query, $ctx, false())
+};
+
 declare variable $q:range-lookup := (
 	function-lookup(xs:QName("range:index-keys-for-field"), 4), function-lookup(xs:QName("range:index-keys-for-field"), 3)
 )[1];
@@ -4148,12 +4180,13 @@ declare function q:rangeindexlabel($nodeName) {
 };
 
 declare function q:rangeindexlookup($rangeindexname) {
-	$q:col/$q:range-lookup3(
+	(: this tries to take all, keeping the total number of keys high :)
+	for $k in q:rangeindexRawKeys($rangeindexname, 10000)
+	return q:sortedoptions(
 		$rangeindexname,
-		function ($key, $count) { q:sortedoptions($rangeindexname, $key, $count) },
-		10000
+		string($k/@key),
+		(xs:integer($k/@freq), xs:integer($k/@docs), xs:integer($k/@pos))
 	)
-(: this tries to take all, keeping the total number of keys high :)
 };
 
 declare function q:sortedoptions($rangeindexname, $key, $count) {
@@ -4415,7 +4448,7 @@ declare function q:MssRangeIndexesFilters($node as node(), $model as map(*)) {
 };
 
 declare function q:MssPersRoles($node as node(), $model as map(*)) {
-	let $roles := $q:col/$q:range-lookup3("persrole", function ($key, $count) { $key }, 1000)
+	let $roles := q:rangeindexRawKeys("persrole", 1000)/string(@key)
 	for $role in $roles
 	let $elements := $q:col//t:persName[@role eq $role][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := distinct-values($elements/@ref)

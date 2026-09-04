@@ -49,6 +49,7 @@ import module namespace tswpfilters = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace tsfieldinput = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-fieldinput" at "ts-queries-fieldinput.xqm";
 import module namespace tssortingkey = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-sortingkey" at "ts-queries-sortingkey.xqm";
 import module namespace tsfacetdiv = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-facetdiv" at "ts-queries-facetdiv.xqm";
+import module namespace tsrangeidx = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-rangeindex" at "ts-queries-rangeindex.xqm";
 import module namespace tsfilterspanel = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-filterspanel" at "ts-queries-filterspanel.xqm";
 import module namespace tsplainfields = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-plainfields" at "ts-queries-plainfields.xqm";
 import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-datefilter" at "ts-charts-datefilter.xqm";
@@ -101,6 +102,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-queries-fieldinput.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-sortingkey.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-facetdiv.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-rangeindex.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-filterspanel.xqm")),
 		inspect:module-functions(xs:anyURI("ts-queries-plainfields.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-datefilter.xqm")),
