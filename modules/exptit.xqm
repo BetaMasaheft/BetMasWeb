@@ -14,6 +14,7 @@ declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
 declare namespace feed = "http://www.w3.org/2005/Atom";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
 
 declare variable $exptit:col := collection($config:data-root);
 
@@ -132,15 +133,23 @@ function exptit:printTitleID($id as xs:string) {
 	return if ($exptit:deleted//t:item[. = $id]) then
 		let $del := $exptit:deleted//t:item[. = $id]
 		let $formerly := $exptit:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
-		return if ($formerly) then
-			exptit:printTitleID($formerly/@active) ||
+		(: Prefer a successor that is not $id — self-loops (e.g. LOC1464Ankoba)
+		   used to StackOverflow via exptit:printTitleID($formerly/@active). :)
+		let $active := titles:distinctSuccessor($formerly, $id)
+		return if ($active) then
+			exptit:printTitleID($active) ||
 				" [now " ||
-				string($formerly/@active) ||
+				$active ||
 				", formerly also listed as " ||
 				$id ||
 				", which was requested here but has been deleted on " ||
 				string($del/@change) ||
 				"]"
+		else if (exists($formerly)) then
+			string($exptit:col/id($id)//t:title[@type = "full"]/text()) ||
+				" [deleted on " ||
+				string($del/@change) ||
+				"; formerlyAlsoListedAs is self-referential or empty]"
 		else
 			$id || " was permanently deleted"
 	else if (starts-with($id, "sdc:")) then

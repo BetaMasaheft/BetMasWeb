@@ -105,6 +105,63 @@ declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as x
 		)
 };
 
+(:~
+ : Picks a self-loop-safe successor id from a set of candidate
+ : betmas:formerlyAlsoListedAs relations. Comparison normalizes whitespace
+ : on both sides, so an incidental leading/trailing space in authored
+ : @active doesn't defeat the self-loop guard shared by titles:printTitleID
+ : and exptit:printTitleID.
+ :
+ : @param $formerly candidate betmas:formerlyAlsoListedAs relation elements
+ : @param $id the identifier being resolved
+ : @return a distinct successor id, or the empty sequence if none
+ :)
+declare function titles:distinctSuccessor($formerly as element()*, $id as xs:string) as xs:string? {
+	let $candidate := ($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]
+	return if ($candidate) then
+		$candidate
+	else (
+	)
+};
+
+declare %test:assertEmpty function titles:distinctSuccessor-no-candidates-is-empty() {
+	titles:distinctSuccessor((), "LOC1464Ankoba")
+};
+
+declare %test:assertEmpty function titles:distinctSuccessor-self-loop-is-filtered() {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active="LOC1464Ankoba"
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
+(:~
+ : A self-loop whose @active differs from $id only by incidental
+ : whitespace must still be filtered out (not mistaken for a distinct
+ : successor).
+ :)
+declare %test:assertEmpty function titles:distinctSuccessor-whitespace-padded-self-loop-is-filtered() {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active=" LOC1464Ankoba "
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
+declare %test:assertEquals("LOC9999Whitespace") function titles:distinctSuccessor-trims-whitespace-from-real-successor(
+
+) {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active=" LOC9999Whitespace "
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
 (: this is now a switch function, deciding if to go ahead with simple print title or subtitles :)
 (:~
  : Resolves a betmas identifier to its printable title, as a plain
@@ -150,7 +207,7 @@ function titles:printTitleID($id as xs:string) {
 		let $formerly := $titles:collection-root//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
 		(: Prefer a successor that is not $id — self-loops (e.g. LOC1464Ankoba)
 		   used to StackOverflow via titles:printTitleID($formerly/@active). :)
-		let $active := string(($formerly[@active ne $id]/@active)[1])
+		let $active := titles:distinctSuccessor($formerly, $id)
 		return if ($active) then
 			titles:printTitleID($active) ||
 				" [now " ||

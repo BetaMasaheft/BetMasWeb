@@ -83,3 +83,18 @@ declare
 function tsprinttitle:betmas-prefixed-unresolvable-id-falls-back-to-original() {
 	string(exptit:printTitle("betmas:" || $tsprinttitle:missing-id))
 };
+
+(:~
+ : Deleted place with formerlyAlsoListedAs active=passive=self must not
+ : recurse (StackOverflow), mirroring titles:printTitleID's guard.
+ :)
+declare %test:assertTrue function tsprinttitle:printTitleID-self-formerly-no-recurse() {
+	let $t := exptit:printTitleID("LOC1464Ankoba")
+	return (
+		contains($t, "deleted") or
+			contains($t, "formerlyAlsoListedAs") or
+			contains($t, "permanently deleted") or
+			starts-with(normalize-space($t), "ʾAnkobar") or
+			starts-with($t, "No item:")
+	)
+};
