@@ -303,20 +303,25 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 				(
 					expand:tei2fulltei($node/node(), $bibliography),
-					<calendarDesc xmlns="http://www.tei-c.org/ns/1.0">
-						<calendar xml:id="world"><p>ʿĀmata ʿālam/ʿĀmata ʾəm-fəṭrat (Era of the World)</p></calendar>
-						<calendar xml:id="ethiopian">
-							<p> ʿĀmata śəggāwe (Era of the Incarnation –
+					(: Inject calendarDesc once — multiple profileDesc siblings
+					   would otherwise repeat the same xml:ids (world, …). :)
+					if (empty($node/preceding-sibling::t:profileDesc)) then
+						<calendarDesc xmlns="http://www.tei-c.org/ns/1.0">
+							<calendar xml:id="world"><p>ʿĀmata ʿālam/ʿĀmata ʾəm-fəṭrat (Era of the World)</p></calendar>
+							<calendar xml:id="ethiopian">
+								<p> ʿĀmata śəggāwe (Era of the Incarnation –
                                     Ethiopian)</p>
-						</calendar>
-						<calendar xml:id="grace"><p>ʿĀmata məḥrat (Era of Grace)</p></calendar>
-						<calendar xml:id="diocletian"><p>ʿĀmata samāʿtāt (Era of Martyrs (Diocletian))</p></calendar>
-						<calendar xml:id="alexander"><p> Era of Alexander</p></calendar>
-						<calendar xml:id="evangelists"><p>Evangelists' years</p></calendar>
-						<calendar xml:id="islamic"><p>Hiǧrī (Islamic)</p></calendar>
-						<calendar xml:id="hijri"><p>Hiǧrī (Islamic) in IslHornAfr</p></calendar>
-						<calendar xml:id="julian"><p>Julian</p></calendar>
-					</calendarDesc>
+							</calendar>
+							<calendar xml:id="grace"><p>ʿĀmata məḥrat (Era of Grace)</p></calendar>
+							<calendar xml:id="diocletian"><p>ʿĀmata samāʿtāt (Era of Martyrs (Diocletian))</p></calendar>
+							<calendar xml:id="alexander"><p> Era of Alexander</p></calendar>
+							<calendar xml:id="evangelists"><p>Evangelists' years</p></calendar>
+							<calendar xml:id="islamic"><p>Hiǧrī (Islamic)</p></calendar>
+							<calendar xml:id="hijri"><p>Hiǧrī (Islamic) in IslHornAfr</p></calendar>
+							<calendar xml:id="julian"><p>Julian</p></calendar>
+						</calendarDesc>
+					else (
+					)
 				)
 			}
 		case element(t:title) return
@@ -795,7 +800,13 @@ declare function expand:refel($node, $bibliography) {
 			else (
 			),
 			if ($node/@ref and not($node/text())) then
-				expand:teiTitle(string($node/@ref))
+				(: repository content is macro.xtext (text|g only) — unwrap
+				   expand:asTeiTitle's <seg> fallback to plain text. :)
+				let $title := expand:teiTitle(string($node/@ref))
+				return if (local-name($node) = "repository" and $title instance of element()) then
+					string($title)
+				else
+					$title
 			else (
 			),
 			(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
@@ -873,8 +884,14 @@ declare function expand:attributes($node, $bibliography) {
 
 declare function expand:reflike($attribute) {
 	attribute {name($attribute)} {
-		if (string-length($attribute/data()) le 3) then
-			concat("#", $attribute/data())
+		let $v := string($attribute)
+		return (: Short values used to get a leading "#" — but fragments that
+			   already start with "#" (e.g. "#p2", length 3) became "##p2". :) if (
+			starts-with($v, "#") or starts-with($v, "http")
+		) then
+			$v
+		else if (string-length($v) le 3) then
+			concat("#", $v)
 		else
 			expand:id($attribute)
 	}
