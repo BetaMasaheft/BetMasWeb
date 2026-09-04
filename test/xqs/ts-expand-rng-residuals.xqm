@@ -23,6 +23,19 @@ declare %test:assertEquals("#p2") function tsexpandrng:reflike-prefixes-bare-sho
 };
 
 (:~
+ : ecrm-prefixed identifiers use CIDOC-CRM's underscore-separated property
+ : names (e.g. "P129_is_about"). The matchPattern was alnum-only, so
+ : fn:replace's default global substitution matched each underscore-
+ : separated run separately and re-prefixed it, mangling the URI.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
+declare
+	%test:assertEquals("http://erlangen-crm.org/current/P129_is_about")
+function tsexpandrng:ecrm-id-keeps-underscored-property-name() {
+	string(expand:id("ecrm:P129_is_about"))
+};
+
+(:~
  : Unresolved repository @ref → plain text under repository (xtext), not seg.
  :)
 declare %test:assertFalse function tsexpandrng:repository-no-item-is-not-seg() {

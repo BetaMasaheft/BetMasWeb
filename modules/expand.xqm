@@ -55,7 +55,7 @@ declare variable $expand:listPrefixDef := <listPrefixDef xmlns="http://www.tei-c
 	<prefixDef ident="eo" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/objtyp/lod/$1" />
 	<prefixDef ident="ew" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/writing/lod/$1" />
 	<prefixDef ident="ic" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://iconclass.org/$1" />
-	<prefixDef ident="ecrm" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://erlangen-crm.org/current/$1" />
+	<prefixDef ident="ecrm" matchPattern="([a-zA-Z0-9_]+)" replacementPattern="http://erlangen-crm.org/current/$1" />
 	<prefixDef ident="foaf" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://xmlns.com/foaf/0.1/$1" />
 </listPrefixDef>;
 
