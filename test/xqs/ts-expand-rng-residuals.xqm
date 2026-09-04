@@ -65,3 +65,63 @@ declare %test:assertEquals(1) function tsexpandrng:calendar-world-id-once() {
 	let $out := expand:tei2fulltei($tei, ())
 	return count($out//t:calendar[@xml:id = "world"])
 };
+
+(:~
+ : Unresolved settlement/region/country @ref → plain text (xtext), not
+ : seg, same as repository.
+ :)
+declare %test:assertFalse function tsexpandrng:settlement-no-item-is-not-seg() {
+	let $node := <settlement xmlns="http://www.tei-c.org/ns/1.0" ref="ZZZNOTAPLACE9999" />
+	let $out := expand:refel($node, ())
+	return exists($out/t:seg)
+};
+
+declare %test:assertFalse function tsexpandrng:region-no-item-is-not-seg() {
+	let $node := <region xmlns="http://www.tei-c.org/ns/1.0" ref="ZZZNOTAPLACE9999" />
+	let $out := expand:refel($node, ())
+	return exists($out/t:seg)
+};
+
+declare %test:assertFalse function tsexpandrng:country-no-item-is-not-seg() {
+	let $node := <country xmlns="http://www.tei-c.org/ns/1.0" ref="ZZZNOTAPLACE9999" />
+	let $out := expand:refel($node, ())
+	return exists($out/t:seg)
+};
+
+(:~
+ : titles:printTitleID's self-loop deletion notice must be wrapped in a
+ : TEI seg (not leaked as plain title/placeName text) even though the
+ : underlying record's title still resolves.
+ : @see modules/titlesData.xqm titles:printTitleID
+ :)
+declare %test:assertEquals("seg") function tsexpandrng:self-loop-deletion-notice-is-seg() {
+	let $out := expand:teiTitle("LOC1464Ankoba")
+	return local-name($out)
+};
+
+declare %test:assertEquals("LOC1464Ankoba") function tsexpandrng:self-loop-deletion-notice-seg-has-corresp() {
+	let $out := expand:teiTitle("LOC1464Ankoba")
+	return string($out/@corresp)
+};
+
+(:~
+ : @who/@resp values starting with "#" must pass through unchanged, same
+ : fix as expand:reflike's ##p2 guard.
+ :)
+declare %test:assertEquals("#p2") function tsexpandrng:wholike-keeps-hash-fragment() {
+	string(expand:wholike(attribute who { "#p2" }))
+};
+
+declare %test:assertEquals("https://betamasaheft.eu/GS") function tsexpandrng:wholike-resolves-plain-value() {
+	string(expand:wholike(attribute who { "GS" }))
+};
+
+(:~
+ : A longer "#"-prefixed ref (not the short ##p2 case) still resolves via
+ : expand:id(), same as before the ##p2 guard was added.
+ :)
+declare
+	%test:assertEquals("https://betamasaheft.eu/#someLongFragmentId")
+function tsexpandrng:reflike-resolves-long-hash-fragment() {
+	string(expand:reflike(attribute corresp { "#someLongFragmentId" }))
+};

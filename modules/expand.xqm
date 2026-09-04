@@ -181,8 +181,21 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 				(
 					$node/@*,
-					(: Drop stale expand artefacts (pre-#90 assertion wrapped as source-url). :)
-					expand:tei2fulltei($node/node()[not(local-name() = "source-url")], $bibliography)
+					(: Drop stale expand artefacts (pre-#90 assertion wrapped as source-url);
+					   log which file it was found in so a future legitimate source-url isn't
+					   silently discarded unnoticed. :)
+					let $stale := $node/node()[local-name() = "source-url"]
+					let $_ := if (exists($stale)) then
+						util:log(
+							"warn",
+							"expand:tei2fulltei: dropping " ||
+								count($stale) ||
+								" stale source-url element(s) in encodingDesc of " ||
+								string($node/ancestor::t:TEI/@xml:id)
+						)
+					else (
+					)
+					return expand:tei2fulltei($node/node()[not(local-name() = "source-url")], $bibliography)
 				),
 				<p xmlns="http://www.tei-c.org/ns/1.0">Encoded according
                         to the <ref
@@ -800,10 +813,13 @@ declare function expand:refel($node, $bibliography) {
 			else (
 			),
 			if ($node/@ref and not($node/text())) then
-				(: repository content is macro.xtext (text|g only) — unwrap
-				   expand:asTeiTitle's <seg> fallback to plain text. :)
+				(: repository/settlement/region/country content is macro.xtext
+				   (text|g only) — unwrap expand:asTeiTitle's <seg> fallback to
+				   plain text for these elements. :)
 				let $title := expand:teiTitle(string($node/@ref))
-				return if (local-name($node) = "repository" and $title instance of element()) then
+				return if (
+					local-name($node) = ("repository", "settlement", "region", "country") and $title instance of element()
+				) then
 					string($title)
 				else
 					$title
@@ -885,20 +901,31 @@ declare function expand:attributes($node, $bibliography) {
 declare function expand:reflike($attribute) {
 	attribute {name($attribute)} {
 		let $v := string($attribute)
-		return (: Short values used to get a leading "#" — but fragments that
-			   already start with "#" (e.g. "#p2", length 3) became "##p2". :) if (
-			starts-with($v, "#") or starts-with($v, "http")
-		) then
+		return if (starts-with($v, "http")) then
 			$v
 		else if (string-length($v) le 3) then
-			concat("#", $v)
+			(: Short values used to get a leading "#" — but fragments that
+			   already start with "#" (e.g. "#p2", length 3) became "##p2".
+			   Only short values are passed through unchanged; longer
+			   "#"-prefixed refs still resolve via expand:id() below, same
+			   as before this guard existed. :)
+			if (starts-with($v, "#")) then
+				$v
+			else
+				concat("#", $v)
 		else
 			expand:id($attribute)
 	}
 };
 
 declare function expand:wholike($attribute) {
-	attribute {name($attribute)} { expand:id($attribute/data()) }
+	attribute {name($attribute)} {
+		let $v := string($attribute)
+		return if (starts-with($v, "#") or starts-with($v, "http")) then
+			$v
+		else
+			expand:id($attribute)
+	}
 };
 
 declare function expand:syncBibliography($expanded as element()) {
@@ -1154,7 +1181,12 @@ declare function expand:asTeiTitle($value, $corresp as xs:string) {
 				starts-with($text, "no item yet") or
 				$text = "no id" or
 				$text = "?" or
-				starts-with($text, "More than 1 ")
+				starts-with($text, "More than 1 ") or
+				(: titles:printTitleID's self-loop deletion notice is the
+				   resolved title with an internal-jargon diagnostic suffix
+				   appended, not a pure placeholder — matched by suffix,
+				   unlike the prefix-only markers above. :)
+				contains($text, "; formerlyAlsoListedAs is self-referential or empty]")
 		)
 	return if ($isHtmlFallback or $isPlainFallback) then
 		<seg xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $corresp }">{ $text }</seg>
