@@ -101,6 +101,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-queries-plainfields.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-datefilter.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-tagliasupport.xqm")),
+		inspect:module-functions(xs:anyURI("ts-charts-jsstringescape.xqm")),
 		inspect:module-functions(xs:anyURI("ts-listids-cache.xqm")),
 		inspect:module-functions(xs:anyURI("ts-wikitable-cache.xqm"))
 	)

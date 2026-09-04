@@ -45,6 +45,22 @@ declare %test:assertEquals('say \"hi\"') function tsjsescape:double-quote-is-esc
 	charts:js-string-escape('say "hi"')
 };
 
+declare %test:assertEquals("it\'s here") function tsjsescape:single-quote-is-escaped() {
+	charts:js-string-escape("it's here")
+};
+
+declare %test:assertEquals("line one line two") function tsjsescape:unicode-line-separator-becomes-space() {
+	(:
+	 : U+2028 LINE SEPARATOR - illegal unescaped in a JS string literal same
+	 : as \n, but not covered by normalize-space's XML whitespace definition
+	 :)
+	charts:js-string-escape("line one" || codepoints-to-string(8232) || "line two")
+};
+
+declare %test:assertEquals("line one line two") function tsjsescape:unicode-paragraph-separator-becomes-space() {
+	charts:js-string-escape("line one" || codepoints-to-string(8233) || "line two")
+};
+
 declare %test:assertEquals("<\/script><script>alert(1)<\/script>") function tsjsescape:script-close-neutralized() {
 	charts:js-string-escape("</script><script>alert(1)</script>")
 };
