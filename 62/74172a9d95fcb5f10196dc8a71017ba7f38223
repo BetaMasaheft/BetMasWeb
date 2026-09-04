@@ -1,0 +1,26 @@
+test/xqs/ts-charts-jsstringescape.xqm
+  s_2383bbe59f7b8a::t_26e73d7aa4fd78 53-56
+  s_2383bbe59f7b8a::t_4f749be74fde97 48-52,57-63
+modules/charts.xqm
+  s_2383bbe59f7b8a::t_0b1d5332feddb6 145
+  s_2383bbe59f7b8a::t_82859fd6ab8e9f 217-222,228-230,232-233
+  s_2383bbe59f7b8a::t_26e73d7aa4fd78 482-492,1003-1013
+test/xqs/test-runner.xq
+  s_2383bbe59f7b8a::t_2e06e2754fe750 104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "6274172a9d95fcb5f10196dc8a71017ba7f38223",
+  "prompts": {},
+  "sessions": {
+    "s_2383bbe59f7b8a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4cb0ced1-8c4c-48d1-9339-c3396901af26",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
