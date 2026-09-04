@@ -30,6 +30,8 @@ import module namespace tszc = "https://www.betamasaheft.uni-hamburg.de/BetMasWe
 import module namespace tsexpandtax = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-taxonomy" at "ts-expand-taxonomy.xqm";
 import module namespace tsexpandtit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-titles" at "ts-expand-titles.xqm";
 import module namespace tsexpedids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-edition-ids" at "ts-expand-edition-ids.xqm";
+import module namespace tsexpcite = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-citeunit" at "ts-expand-citeunit.xqm";
+import module namespace tsexpandrng = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-rng-residuals" at "ts-expand-rng-residuals.xqm";
 import module namespace tsmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-restitem-maincontent" at "ts-restitem-maincontent.xqm";
 import module namespace tspermmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-permrestitem-maincontent" at "ts-permrestitem-maincontent.xqm";
 import module namespace tsformbounds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-formbounds" at "ts-queries-formbounds.xqm";
@@ -77,6 +79,8 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-edition-ids.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expand-citeunit.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expand-rng-residuals.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-normalize-dimensions.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-computed.xqm")),
 		inspect:module-functions(xs:anyURI("ts-restitem-maincontent.xqm")),

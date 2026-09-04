@@ -105,6 +105,63 @@ declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as x
 		)
 };
 
+(:~
+ : Picks a self-loop-safe successor id from a set of candidate
+ : betmas:formerlyAlsoListedAs relations. Comparison normalizes whitespace
+ : on both sides, so an incidental leading/trailing space in authored
+ : @active doesn't defeat the self-loop guard shared by titles:printTitleID
+ : and exptit:printTitleID.
+ :
+ : @param $formerly candidate betmas:formerlyAlsoListedAs relation elements
+ : @param $id the identifier being resolved
+ : @return a distinct successor id, or the empty sequence if none
+ :)
+declare function titles:distinctSuccessor($formerly as element()*, $id as xs:string) as xs:string? {
+	let $candidate := ($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]
+	return if ($candidate) then
+		$candidate
+	else (
+	)
+};
+
+declare %test:assertEmpty function titles:distinctSuccessor-no-candidates-is-empty() {
+	titles:distinctSuccessor((), "LOC1464Ankoba")
+};
+
+declare %test:assertEmpty function titles:distinctSuccessor-self-loop-is-filtered() {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active="LOC1464Ankoba"
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
+(:~
+ : A self-loop whose @active differs from $id only by incidental
+ : whitespace must still be filtered out (not mistaken for a distinct
+ : successor).
+ :)
+declare %test:assertEmpty function titles:distinctSuccessor-whitespace-padded-self-loop-is-filtered() {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active=" LOC1464Ankoba "
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
+declare %test:assertEquals("LOC9999Whitespace") function titles:distinctSuccessor-trims-whitespace-from-real-successor(
+
+) {
+	let $formerly := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active=" LOC9999Whitespace "
+		name="betmas:formerlyAlsoListedAs"
+		passive="LOC1464Ankoba" />
+	return titles:distinctSuccessor($formerly, "LOC1464Ankoba")
+};
+
 (: this is now a switch function, deciding if to go ahead with simple print title or subtitles :)
 (:~
  : Resolves a betmas identifier to its printable title, as a plain
@@ -148,15 +205,23 @@ function titles:printTitleID($id as xs:string) {
 	if ($titles:deleted//t:item[. = $id]) then
 		let $del := $titles:deleted//t:item[. = $id]
 		let $formerly := $titles:collection-root//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
-		return if ($formerly) then
-			titles:printTitleID($formerly/@active) ||
+		(: Prefer a successor that is not $id — self-loops (e.g. LOC1464Ankoba)
+		   used to StackOverflow via titles:printTitleID($formerly/@active). :)
+		let $active := titles:distinctSuccessor($formerly, $id)
+		return if ($active) then
+			titles:printTitleID($active) ||
 				" [now " ||
-				string($formerly/@active) ||
+				$active ||
 				", formerly also listed as " ||
 				$id ||
 				", which was requested here but has been deleted on " ||
 				string($del/@change) ||
 				"]"
+		else if (exists($formerly)) then
+			titles:printTitleMainID($id) ||
+				" [deleted on " ||
+				string($del/@change) ||
+				"; formerlyAlsoListedAs is self-referential or empty]"
 		else
 			$id || " was permanently deleted"
 	else if (starts-with($id, "sdc:")) then
@@ -205,6 +270,23 @@ function titles:printTitleID($id as xs:string) {
 		)
 	) (: if not, procede to main title printing :) else
 		titles:printTitleMainID($id)
+};
+
+(:~
+ : Deleted place with formerlyAlsoListedAs active=passive=self must not
+ : recurse (StackOverflow). Returns a deleted/self-loop notice or a main
+ : title string — assertTrue because the result is atomic (assertXPath
+ : with "." needs a node context).
+ :)
+declare %test:assertTrue function titles:printTitleID-self-formerly-no-recurse() {
+	let $t := titles:printTitleID("LOC1464Ankoba")
+	return (
+		contains($t, "deleted") or
+			contains($t, "formerlyAlsoListedAs") or
+			contains($t, "permanently deleted") or
+			starts-with(normalize-space($t), "ʾAnkobar") or
+			starts-with($t, "No item:")
+	)
 };
 
 declare function titles:printTitleMainID($id as xs:string, $c) {
