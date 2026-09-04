@@ -225,7 +225,7 @@ declare function charts:js-string-escape($value as xs:string?) as xs:string {
 	let $normalized := normalize-space(($value, "")[1])
 	let $backslashesEscaped := replace($normalized, "\\", "\\\\")
 	let $quotesEscaped := replace($backslashesEscaped, '"', '\\"')
-	return replace($quotesEscaped, "(?i)</(script)", "<\\/$1")
+	return replace($quotesEscaped, "</(script)", "<\\/$1", "i")
 };
 
 (:~
