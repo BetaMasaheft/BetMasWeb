@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        BETMAS_DATA_IMAGE: ${BETMAS_DATA_IMAGE:-ghcr.io/betamasaheft/betmas-data:latest}
+        BETMAS_APP_IMAGE: ${BETMAS_APP_IMAGE:-ghcr.io/betamasaheft/betamasaheft:release-expanded}
       secrets:
         - seed
     image: betmasweb-exist:local
