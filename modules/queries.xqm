@@ -101,17 +101,23 @@ declare variable $q:tax := doc("/db/apps/lists/canonicaltaxonomy.xml");
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/124
  : @param $rangeindexname the range index field name
  : @param $max maximum number of keys to retrieve
- : @return one <k> element per key, with @key/@freq/@docs/@pos attributes
+ : @return one map per key, with "key"/"freq"/"docs"/"pos" entries
  :)
-declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max as xs:integer) as element(k)* {
+declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max as xs:integer) as map(*)* {
 	let $query :=
 	'
 		declare namespace range = "http://exist-db.org/xquery/range";
 		declare variable $field as xs:string external;
 		declare variable $max as xs:integer external;
-		let $col := collection("' || $config:data-root || '")
+		let $col := collection("' ||
+		$config:data-root ||
+		'")
 		let $lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3)
-		return $col/$lookup($field, function ($key, $count) { <k key="{$key}" freq="{$count[1]}" docs="{$count[2]}" pos="{$count[3]}"/> }, $max)
+		return $col/$lookup(
+			$field,
+			function ($key, $count) { map { "key": $key, "freq": $count[1], "docs": $count[2], "pos": $count[3] } },
+			$max
+		)
 	'
 	let $ctx := <static-context>
 		<variable name="field">{ $rangeindexname }</variable>
@@ -4179,11 +4185,7 @@ declare function q:rangeindexlabel($nodeName) {
 declare function q:rangeindexlookup($rangeindexname) {
 	(: this tries to take all, keeping the total number of keys high :)
 	for $k in q:rangeindexRawKeys($rangeindexname, 10000)
-	return q:sortedoptions(
-		$rangeindexname,
-		string($k/@key),
-		(xs:integer($k/@freq), xs:integer($k/@docs), xs:integer($k/@pos))
-	)
+	return q:sortedoptions($rangeindexname, $k?key, ($k?freq, $k?docs, $k?pos))
 };
 
 declare function q:sortedoptions($rangeindexname, $key, $count) {
@@ -4445,7 +4447,7 @@ declare function q:MssRangeIndexesFilters($node as node(), $model as map(*)) {
 };
 
 declare function q:MssPersRoles($node as node(), $model as map(*)) {
-	let $roles := q:rangeindexRawKeys("persrole", 1000)/string(@key)
+	let $roles := q:rangeindexRawKeys("persrole", 1000)?key
 	for $role in $roles
 	let $elements := $q:col//t:persName[@role eq $role][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := distinct-values($elements/@ref)
