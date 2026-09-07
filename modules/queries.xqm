@@ -85,17 +85,19 @@ declare variable $q:languages := doc("/db/apps/lists/languages.xml");
 
 declare variable $q:tax := doc("/db/apps/lists/canonicaltaxonomy.xml");
 
-declare variable $q:range-lookup3 := function-lookup(xs:QName("range:index-keys-for-field"), 3);
-
 (:~
  : Raw (key, frequency, distinct-doc-count, position) tuples for a range
  : field. Goes through util:eval-with-context rather than calling
- : $q:range-lookup3 directly: range:index-keys-for-field scopes its
- : lookup to the *evaluating* query's own default collection, not the
- : collection actually bound via `$q:col/...`, so a direct call from any
- : module under /db/apps/BetMasWeb (a sibling of /db/apps/expanded, not
- : an ancestor) silently returns nothing on a real deployed request even
- : though the identical call works as an ad-hoc REST eval.
+ : range:index-keys-for-field directly against $q:col: that builtin
+ : scopes its lookup to the *evaluating* query's own default collection,
+ : not the collection actually bound via `$q:col/...`, so a direct call
+ : from any module under /db/apps/BetMasWeb (a sibling of
+ : /db/apps/expanded, not an ancestor) silently returns nothing on a
+ : real deployed request even though the identical call works as an
+ : ad-hoc REST eval. The ad-hoc query below opens its own collection and
+ : applies the lookup to it directly, so it works regardless of where
+ : the string itself is compiled; the <static-context> only needs to
+ : carry the two external variables, not a default context.
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/124
  : @param $rangeindexname the range index field name
  : @param $max maximum number of keys to retrieve
@@ -112,16 +114,11 @@ declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max
 		return $col/$lookup($field, function ($key, $count) { <k key="{$key}" freq="{$count[1]}" docs="{$count[2]}" pos="{$count[3]}"/> }, $max)
 	'
 	let $ctx := <static-context>
-		<default-context>{ $q:col }</default-context>
 		<variable name="field">{ $rangeindexname }</variable>
 		<variable name="max">{ $max }</variable>
 	</static-context>
 	return util:eval-with-context($query, $ctx, false())
 };
-
-declare variable $q:range-lookup := (
-	function-lookup(xs:QName("range:index-keys-for-field"), 4), function-lookup(xs:QName("range:index-keys-for-field"), 3)
-)[1];
 
 declare variable $q:util-index-lookup := (
 	function-lookup(xs:QName("util:index-keys"), 5), function-lookup(xs:QName("util:index-keys"), 4)
