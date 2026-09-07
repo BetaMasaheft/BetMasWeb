@@ -1,0 +1,19 @@
+test/xqs/ts-queries-rangeindex.xqm
+  s_ce86b8d09575a3::t_88802153b9e8ff 19,32-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4e55c603338192d44ec75f5564245e8f01f45cef",
+  "prompts": {},
+  "sessions": {
+    "s_ce86b8d09575a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d339e5d9-8461-44d7-a68d-a33ab420e469",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
