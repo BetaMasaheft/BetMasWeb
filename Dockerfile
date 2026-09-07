@@ -1,38 +1,34 @@
-# Local dev image: the published betmas-data base (eXist + registry deps +
-# the real corpus already installed and indexed) + BetMasService + parser
-# (still built from source - neither is a standalone registry-published repo
-# yet) + this package.
+# syntax=docker/dockerfile:1
+# Local/CI image: the published BetMas app image + this repo's own package.
+# `docker compose up --build` should serve without a cold package install.
+#
+# BetMasService, parser, and the expanded corpus are already in
+# BETMAS_APP_IMAGE (BetMas CI publishes release-expanded). This repo only
+# builds its own xar. Point BETMAS_APP_IMAGE at a local tag to test against
+# an unpublished base image.
 #
 #   docker compose up --build
 
-ARG BETMAS_DATA_IMAGE=ghcr.io/betamasaheft/betmas-data:latest
+ARG BETMAS_APP_IMAGE=ghcr.io/betamasaheft/betamasaheft:release-expanded
 ARG BUILDER_IMAGE=ghcr.io/eeditiones/builder:latest
 
-# ---- build xars from source ----
+# ---- build this repo's xar ----
 FROM ${BUILDER_IMAGE} AS build-stage
-
-ADD https://github.com/BetaMasaheft/BetMas.git /src/BetMas
-RUN ant -f /src/BetMas/db/apps/BetMasService/build.xml
-# Ge'ez morphological parser - queries.xqm imports it unconditionally, so
-# BetMasWeb won't even compile without it installed
-RUN ant -f /src/BetMas/db/apps/parser/build.xml
 
 WORKDIR /src/BetMasWeb
 COPY . .
-RUN ant
+RUN ant && mv build/*.xar build/BetMasWeb.xar
 
-# ---- eXist, with everything installed ----
-FROM ${BETMAS_DATA_IMAGE}
+# ---- the published app image + this repo's package ----
+FROM ${BETMAS_APP_IMAGE}
 
-# monex and functx are declared dependencies (expath-pkg.xml); betmas-data
-# already ships both, so nothing to fetch here.
+# Not autodeploy: exist-db/exist#5579 skips already-installed package names
+# even when the xar version is newer (enforceDeps=false). One client -F
+# evals the admin seed secret then overlays via repo:* (repo.xml permissions).
+COPY --from=build-stage /src/BetMasWeb/build/BetMasWeb.xar /exist/overlay/BetMasWeb.xar
+COPY docker/overlay-web.xq /exist/overlay/overlay-web.xq
+COPY expath-pkg.xml /exist/overlay/expath-pkg.xml
 
-# Install order matters: post-install.xq invokes BetMasService's
-# registerRESTXQ.xql. Numbered to make the order explicit.
-COPY --from=build-stage /src/BetMas/db/apps/BetMasService/build/*.xar /exist/autodeploy/01-BetMasService.xar
-COPY --from=build-stage /src/BetMas/db/apps/parser/build/*.xar /exist/autodeploy/02-parser.xar
-COPY --from=build-stage /src/BetMasWeb/build/*.xar /exist/autodeploy/03-BetMasWeb.xar
-
-# Autodeploys everything above and seeds the test admin account.
-# seed.xq (admin password) is a build secret, not baked into the image.
-RUN --mount=type=secret,id=seed,target=/run/secrets/seed.xq,required=true ["java", "org.exist.start.Main", "client", "--no-gui", "-l", "-u", "admin", "-P", "", "-F", "/run/secrets/seed.xq"]
+# seed.xq (admin password) is a build secret. CI writes it from SEED_XQ;
+# overlay-web.xq util:eval's it, then replaces BetMasWeb.
+RUN --mount=type=secret,id=seed,target=/run/secrets/seed.xq,required=true ["java", "org.exist.start.Main", "client", "--no-gui", "-l", "-u", "admin", "-P", "", "-F", "/exist/overlay/overlay-web.xq"]
