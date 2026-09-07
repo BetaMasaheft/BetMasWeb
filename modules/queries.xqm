@@ -98,6 +98,12 @@ declare variable $q:tax := doc("/db/apps/lists/canonicaltaxonomy.xml");
  : applies the lookup to it directly, so it works regardless of where
  : the string itself is compiled; the <static-context> only needs to
  : carry the two external variables, not a default context.
+ : The cache-flag argument to util:eval-with-context must stay false():
+ : with true(), external variable bindings from an earlier call leak
+ : into later ones (a subsequent call fails with "$field is not set"),
+ : confirmed by running this function repeatedly against a live
+ : instance - a real correctness bug in the cached path, not just a
+ : missed performance win.
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/124
  : @param $rangeindexname the range index field name
  : @param $max maximum number of keys to retrieve
