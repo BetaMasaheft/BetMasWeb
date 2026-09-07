@@ -27,7 +27,7 @@ import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
 import module namespace morpho = "http://betamasaheft.eu/parser/morpho" at "xmldb:exist:///db/apps/parser/modules/morphoparser.xqm";
 
-declare variable $q:col := collection("/db/apps/expanded");
+declare variable $q:col := collection($config:data-root);
 
 declare variable $q:computed-subtype := "computed";
 
@@ -85,11 +85,52 @@ declare variable $q:languages := doc("/db/apps/lists/languages.xml");
 
 declare variable $q:tax := doc("/db/apps/lists/canonicaltaxonomy.xml");
 
-declare variable $q:range-lookup3 := function-lookup(xs:QName("range:index-keys-for-field"), 3);
-
-declare variable $q:range-lookup := (
-	function-lookup(xs:QName("range:index-keys-for-field"), 4), function-lookup(xs:QName("range:index-keys-for-field"), 3)
-)[1];
+(:~
+ : Raw (key, frequency, distinct-doc-count, position) tuples for a range
+ : field. Goes through util:eval-with-context rather than calling
+ : range:index-keys-for-field directly against $q:col: that builtin
+ : scopes its lookup to the *evaluating* query's own default collection,
+ : not the collection actually bound via `$q:col/...`, so a direct call
+ : from any module under /db/apps/BetMasWeb (a sibling of
+ : /db/apps/expanded, not an ancestor) silently returns nothing on a
+ : real deployed request even though the identical call works as an
+ : ad-hoc REST eval. The ad-hoc query below opens its own collection and
+ : applies the lookup to it directly, so it works regardless of where
+ : the string itself is compiled; the <static-context> only needs to
+ : carry the two external variables, not a default context.
+ : The cache-flag argument to util:eval-with-context must stay false():
+ : with true(), external variable bindings from an earlier call leak
+ : into later ones (a subsequent call fails with "$field is not set"),
+ : confirmed by running this function repeatedly against a live
+ : instance - a real correctness bug in the cached path, not just a
+ : missed performance win.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/124
+ : @param $rangeindexname the range index field name
+ : @param $max maximum number of keys to retrieve
+ : @return one map per key, with "key"/"freq"/"docs"/"pos" entries
+ :)
+declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max as xs:integer) as map(*)* {
+	let $query :=
+	'
+		declare namespace range = "http://exist-db.org/xquery/range";
+		declare variable $field as xs:string external;
+		declare variable $max as xs:integer external;
+		let $col := collection("' ||
+		$config:data-root ||
+		'")
+		let $lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3)
+		return $col/$lookup(
+			$field,
+			function ($key, $count) { map { "key": $key, "freq": $count[1], "docs": $count[2], "pos": $count[3] } },
+			$max
+		)
+	'
+	let $ctx := <static-context>
+		<variable name="field">{ $rangeindexname }</variable>
+		<variable name="max">{ $max }</variable>
+	</static-context>
+	return util:eval-with-context($query, $ctx, false())
+};
 
 declare variable $q:util-index-lookup := (
 	function-lookup(xs:QName("util:index-keys"), 5), function-lookup(xs:QName("util:index-keys"), 4)
@@ -4148,12 +4189,9 @@ declare function q:rangeindexlabel($nodeName) {
 };
 
 declare function q:rangeindexlookup($rangeindexname) {
-	$q:col/$q:range-lookup3(
-		$rangeindexname,
-		function ($key, $count) { q:sortedoptions($rangeindexname, $key, $count) },
-		10000
-	)
-(: this tries to take all, keeping the total number of keys high :)
+	(: this tries to take all, keeping the total number of keys high :)
+	for $k in q:rangeindexRawKeys($rangeindexname, 10000)
+	return q:sortedoptions($rangeindexname, $k?key, ($k?freq, $k?docs, $k?pos))
 };
 
 declare function q:sortedoptions($rangeindexname, $key, $count) {
@@ -4415,7 +4453,7 @@ declare function q:MssRangeIndexesFilters($node as node(), $model as map(*)) {
 };
 
 declare function q:MssPersRoles($node as node(), $model as map(*)) {
-	let $roles := $q:col/$q:range-lookup3("persrole", function ($key, $count) { $key }, 1000)
+	let $roles := q:rangeindexRawKeys("persrole", 1000)?key
 	for $role in $roles
 	let $elements := $q:col//t:persName[@role eq $role][not(@ref eq "PRS00000")][not(@ref eq "PRS0000")]
 	let $keywords := distinct-values($elements/@ref)
