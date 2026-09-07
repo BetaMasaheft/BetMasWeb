@@ -27,7 +27,7 @@ import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
 import module namespace morpho = "http://betamasaheft.eu/parser/morpho" at "xmldb:exist:///db/apps/parser/modules/morphoparser.xqm";
 
-declare variable $q:col := collection("/db/apps/expanded");
+declare variable $q:col := collection($config:data-root);
 
 declare variable $q:computed-subtype := "computed";
 
@@ -107,9 +107,9 @@ declare %private function q:rangeindexRawKeys($rangeindexname as xs:string, $max
 	let $query :=
 	'
 		declare namespace range = "http://exist-db.org/xquery/range";
-		declare variable $field external;
-		declare variable $max external;
-		let $col := collection("/db/apps/expanded")
+		declare variable $field as xs:string external;
+		declare variable $max as xs:integer external;
+		let $col := collection("' || $config:data-root || '")
 		let $lookup := function-lookup(xs:QName("range:index-keys-for-field"), 3)
 		return $col/$lookup($field, function ($key, $count) { <k key="{$key}" freq="{$count[1]}" docs="{$count[2]}" pos="{$count[3]}"/> }, $max)
 	'
