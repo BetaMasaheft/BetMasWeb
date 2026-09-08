@@ -86,20 +86,27 @@ function tsexpandrng:relation-ecrm-clp46-ref-from-name() {
 };
 
 (:~
- : Injected listPrefixDef must allow "_" in the ecrm matchPattern, otherwise
- : expand:id and the encodingDesc documentation drift apart.
+ : $expand:listPrefixDef is what expand:id reads — ecrm must allow "_".
  :)
 declare %test:assertTrue function tsexpandrng:ecrm-prefixDef-matchPattern-allows-underscore() {
+	contains(string($expand:listPrefixDef//t:prefixDef[@ident = "ecrm"]/@matchPattern), "_")
+};
+
+(:~
+ : encodingDesc expand injects that same listPrefixDef (needs an encodingDesc
+ : in the input — bare teiHeader does not create one).
+ :)
+declare %test:assertTrue function tsexpandrng:ecrm-prefixDef-injected-into-encodingDesc() {
 	let $tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTecrmPdef">
 		<teiHeader>
 			<titleStmt><title>seed</title></titleStmt>
+			<encodingDesc><p>seed</p></encodingDesc>
 			<profileDesc><abstract><p>a</p></abstract></profileDesc>
 		</teiHeader>
 		<text><body><div><ab>x</ab></div></body></text>
 	</TEI>
 	let $out := expand:tei2fulltei($tei, ())
-	let $pat := string($out//t:prefixDef[@ident = "ecrm"]/@matchPattern)
-	return contains($pat, "_")
+	return contains(string($out//t:prefixDef[@ident = "ecrm"]/@matchPattern), "_")
 };
 
 (:~
