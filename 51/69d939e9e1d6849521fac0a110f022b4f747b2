@@ -1,0 +1,43 @@
+modules/gitsyncauth.xql
+  s_c6386934551189::t_7fd7da1014a0b0 24-25
+modules/gitsyncstudies.xql
+  s_c6386934551189::t_b45a777d9ee39c 23-25
+modules/gitsyncmss.xql
+  s_c6386934551189::t_0384e12d724ba7 23-25
+modules/gitsyncpersons.xql
+  s_c6386934551189::t_88d72f15d4e5b1 23-25
+modules/gitsyncinstitutions.xql
+  s_c6386934551189::t_758c60485b9163 23-25
+modules/gitsync.xqm
+  s_c6386934551189::t_0794140715dbc7 527,530-532
+  s_c6386934551189::t_d9743f88142655 537
+  s_c6386934551189::t_abde0fb2b8fe12 30
+  s_c6386934551189::t_2384fddf03e9eb 33
+  s_c6386934551189::t_3d6190c1178f82 31-32
+modules/gitsyncworks.xql
+  s_c6386934551189::t_d132849b2567d1 21-23
+modules/gitsynctraces.xql
+  s_c6386934551189::t_45d4baec6130c1 23-25
+modules/gitsyncnarratives.xql
+  s_c6386934551189::t_5acac62de7e570 23-25
+modules/gitsyncplaces.xql
+  s_c6386934551189::t_b9edf41589b364 23-25
+modules/gitsyncschema.xql
+  s_c6386934551189::t_f18dd12d1e9dba 22-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5169d939e9e1d6849521fac0a110f022b4f747b2",
+  "prompts": {},
+  "sessions": {
+    "s_c6386934551189": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2544e1a-238f-45ad-911a-c3b42042dd98",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": null
+    }
+  }
+}
