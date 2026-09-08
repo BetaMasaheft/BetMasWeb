@@ -1,0 +1,39 @@
+test/xqs/ts-expand-rng-residuals.xqm
+  s_c6386934551189::t_ee75dc749bd2be 215-250
+modules/batchExpand.xqm
+  s_c6386934551189::t_a82355e2b3a1f1 17-18
+  s_c6386934551189::t_141910008ce18b 72-77,79-80,84-90,93-94,96,99-105,108-109,116
+  s_c6386934551189::t_e29b737adb374d 115,118
+  s_c6386934551189::t_0eff4da4d3f15d 55
+  s_c6386934551189::t_eab6ff0a31334b 110-111
+modules/expand.xqm
+  s_c6386934551189::t_d307f6b4afd59a 109-116
+  s_c6386934551189::t_68c0f20ca1350e 117,119,714
+modules/gitsync.xqm
+  s_c6386934551189::t_38f5e899e14686 525-528
+  s_c6386934551189::t_d9743f88142655 529
+test/xqs/ts-batch-expand.xqm
+  s_c6386934551189::t_47a40029a5af1e 42-45,61-67
+  s_c6386934551189::t_609aad07494a89 88,160-193,196,199-206,209-217,219,222-225,227
+  s_c6386934551189::t_f0c73a2a840740 89-94,96-97
+  s_c6386934551189::t_db5b2625a0ad51 95
+  s_c6386934551189::t_32f2dc063a3e70 194-195,197-198,207-208,218,220-221,229
+  s_c6386934551189::t_c7cad40e62c426 46-52,68-76
+  s_c6386934551189::t_d515dfee1b93bf 98-101,226,228,230-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "827708a858bb188dd08f03d26f7b87eb116f8ead",
+  "prompts": {},
+  "sessions": {
+    "s_c6386934551189": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2544e1a-238f-45ad-911a-c3b42042dd98",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
