@@ -19,6 +19,7 @@ import module namespace tsdtsprev = "https://www.betamasaheft.uni-hamburg.de/Bet
 import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-mainrels" at "ts-item-mainrels.xqm";
 import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
 import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-place" at "ts-viewitem-place.xqm";
+import module namespace tsvireflink = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-reflink" at "ts-viewitem-reflink.xqm";
 import module namespace tsviauth = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-auth" at "ts-viewitem-auth.xqm";
 import module namespace tsvimss = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-manuscript" at "ts-viewitem-manuscript.xqm";
 import module namespace tsviwork = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-work" at "ts-viewitem-work.xqm";
@@ -32,6 +33,7 @@ import module namespace tsexpandtit = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace tsexpedids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-edition-ids" at "ts-expand-edition-ids.xqm";
 import module namespace tsexpcite = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-citeunit" at "ts-expand-citeunit.xqm";
 import module namespace tsexpandrng = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-rng-residuals" at "ts-expand-rng-residuals.xqm";
+import module namespace tsshareddedupe = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-shared-data-dedupe" at "ts-shared-data-dedupe.xqm";
 import module namespace tsmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-restitem-maincontent" at "ts-restitem-maincontent.xqm";
 import module namespace tspermmaincontent = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-permrestitem-maincontent" at "ts-permrestitem-maincontent.xqm";
 import module namespace tsformbounds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-formbounds" at "ts-queries-formbounds.xqm";
@@ -69,6 +71,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-item-mainrels.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-reflink.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-auth.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-manuscript.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-work.xqm")),
@@ -82,6 +85,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-expand-edition-ids.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-citeunit.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-rng-residuals.xqm")),
+		inspect:module-functions(xs:anyURI("ts-shared-data-dedupe.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-normalize-dimensions.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-computed.xqm")),
 		inspect:module-functions(xs:anyURI("ts-restitem-maincontent.xqm")),

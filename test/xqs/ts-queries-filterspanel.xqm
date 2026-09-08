@@ -170,7 +170,7 @@ declare %test:assertTrue function tsfilterspanel:sectionReveal-without-config-fa
 };
 
 declare %test:assertTrue function tsfilterspanel:manuscripts-filter-param-names-includes-all-form-m-indexes() {
-	let $expected := doc("/db/apps/BetMasWeb/paramargs.xml")/indexes/rangeindex[@form = "m"]/@name/string()
+	let $expected := doc($config:app-root || "/paramargs.xml")/indexes/rangeindex[@form = "m"]/@name/string()
 	let $actual := q:manuscripts-filter-param-names()
 	return every $name in $expected satisfies $name = $actual
 };

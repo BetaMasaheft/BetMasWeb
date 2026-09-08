@@ -39,6 +39,21 @@ declare %private function tsbatchexp:ensure-src() {
 	xmldb:store($tsbatchexp:src-col, $tsbatchexp:file, $tsbatchexp:tei)
 };
 
+declare variable $tsbatchexp:empty-src-col := "/db/apps/BetMasData/works/_batchExpandEmptyTest";
+
+declare variable $tsbatchexp:empty-out-col := "/db/apps/expanded/works/_batchExpandEmptyTest";
+
+(: Own collection pair (not the shared src/out-col above) so this test's
+   nested subcollections churn independently of the other fixtures sharing
+   one xqsuite request/transaction. :)
+declare variable $tsbatchexp:path-src-col := "/db/apps/BetMasData/works/_batchExpandPathTest";
+
+declare variable $tsbatchexp:path-out-col := "/db/apps/expanded/works/_batchExpandPathTest";
+
+(: Own collection (not the shared src-col above) so storing a second file
+   here can't affect tests asserting a one-file count on src-col. :)
+declare variable $tsbatchexp:freshness-src-col := "/db/apps/BetMasData/works/_batchExpandFreshnessTest";
+
 declare %private function tsbatchexp:cleanup() {
 	if (xmldb:collection-available($tsbatchexp:out-col)) then
 		try { xmldb:remove($tsbatchexp:out-col) } catch * { () }
@@ -46,6 +61,26 @@ declare %private function tsbatchexp:cleanup() {
 	),
 	if (xmldb:collection-available($tsbatchexp:src-col)) then
 		try { xmldb:remove($tsbatchexp:src-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:empty-out-col)) then
+		try { xmldb:remove($tsbatchexp:empty-out-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:empty-src-col)) then
+		try { xmldb:remove($tsbatchexp:empty-src-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:path-out-col)) then
+		try { xmldb:remove($tsbatchexp:path-out-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:path-src-col)) then
+		try { xmldb:remove($tsbatchexp:path-src-col) } catch * { () }
+	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:freshness-src-col)) then
+		try { xmldb:remove($tsbatchexp:freshness-src-col) } catch * { () }
 	else (
 	)
 };
@@ -56,6 +91,43 @@ declare %test:setUp function tsbatchexp:setUp() {
 
 declare %test:tearDown function tsbatchexp:tearDown() {
 	tsbatchexp:cleanup()
+};
+
+(:~
+ : Bare root (no trailing slash) and a nested subpath must both map.
+ :)
+declare %test:assertEquals("/db/apps/expanded") function tsbatchexp:expanded-mirror-maps-bare-root() {
+	batchExpand:expanded-mirror($batchExpand:data-root)
+};
+
+declare %test:assertEquals("/db/apps/expanded/works/1-1000") function tsbatchexp:expanded-mirror-maps-subpath() {
+	batchExpand:expanded-mirror($batchExpand:data-root || "/works/1-1000")
+};
+
+(:~
+ : expected-relative-paths must re-read $col on every call, not memoize -
+ : otherwise a file stored mid-batch would look stale and get pruned.
+ :)
+declare %test:assertEquals(2) function tsbatchexp:expected-relative-paths-sees-file-added-after-earlier-call() {
+	let $_mk := xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandFreshnessTest")
+	let $_seed := xmldb:store(
+		$tsbatchexp:freshness-src-col,
+		"FIRSTbatchExpand.xml",
+		<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="FIRSTbatchExpand">
+			<teiHeader><titleStmt><title>first</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+			<text><body><div type="edition"><ab>x</ab></div></body></text>
+		</TEI>
+	)
+	let $_first-call := batchExpand:expected-relative-paths($tsbatchexp:freshness-src-col)
+	let $_add := xmldb:store(
+		$tsbatchexp:freshness-src-col,
+		"SECONDbatchExpand.xml",
+		<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="SECONDbatchExpand">
+			<teiHeader><titleStmt><title>second</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+			<text><body><div type="edition"><ab>x</ab></div></body></text>
+		</TEI>
+	)
+	return count(batchExpand:expected-relative-paths($tsbatchexp:freshness-src-col))
 };
 
 (:~
@@ -92,6 +164,100 @@ declare %test:assertError("batchExpand:MISSING") function tsbatchexp:refuse-miss
 declare %test:assertTrue function tsbatchexp:stores-tei-document-at-expected-path() {
 	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
 	return doc-available($tsbatchexp:out-col || "/" || $tsbatchexp:file)
+};
+
+(:~
+ : After a successful collection expand, resources under the expanded mirror
+ : that are not in the BetMasData source set are removed (mirror sync).
+ :)
+declare %test:assertFalse function tsbatchexp:prunes-stale-mirror-resources() {
+	let $_seed := (
+		if (xmldb:collection-available($tsbatchexp:out-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/expanded/works", "_batchExpandTest"),
+		xmldb:store(
+			$tsbatchexp:out-col,
+			"ORPHANbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANbatchExpand">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
+	return doc-available($tsbatchexp:out-col || "/ORPHANbatchExpand.xml")
+};
+
+(:~
+ : An existing collection with zero TEI files right now must not be treated
+ : as "nothing is expected" and wipe its whole expanded mirror - that's
+ : indistinguishable from a full accidental wipe.
+ : @see https://github.com/BetaMasaheft/expanded/issues/11
+ :)
+declare %test:assertTrue function tsbatchexp:does-not-wipe-mirror-when-source-has-no-tei-yet() {
+	let $_seed := (
+		if (xmldb:collection-available($tsbatchexp:empty-src-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandEmptyTest"),
+		if (xmldb:collection-available($tsbatchexp:empty-out-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/expanded/works", "_batchExpandEmptyTest"),
+		xmldb:store(
+			$tsbatchexp:empty-out-col,
+			"SURVIVORbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="SURVIVORbatchExpand">
+				<teiHeader><titleStmt><title>survivor</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:empty-src-col)
+	return doc-available($tsbatchexp:empty-out-col || "/SURVIVORbatchExpand.xml")
+};
+
+(:~
+ : prune-mirror must key staleness off the path relative to the mirrored
+ : collection, not the bare filename - two same-named files in different
+ : subcollections must not shadow each other.
+ : @see https://github.com/BetaMasaheft/expanded/issues/11
+ :)
+declare %test:assertEquals(2) function tsbatchexp:prunes-by-relative-path-not-basename() {
+	let $subB := $tsbatchexp:path-src-col || "/subB"
+	let $orphanCol := $tsbatchexp:path-out-col || "/subA"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandPathTest"),
+		xmldb:create-collection($tsbatchexp:path-src-col, "subB"),
+		xmldb:store(
+			$subB,
+			"SAMESHAPE.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITsubBsameshape">
+				<teiHeader><titleStmt><title>subB</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandPathTest"),
+		xmldb:create-collection($tsbatchexp:path-out-col, "subA"),
+		xmldb:store(
+			$orphanCol,
+			"SAMESHAPE.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANsubAsameshape">
+				<teiHeader><titleStmt><title>subA orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:path-src-col)
+	return (
+		if (doc-available($tsbatchexp:path-out-col || "/subA/SAMESHAPE.xml")) then
+			0
+		else
+			1,
+		if (doc-available($tsbatchexp:path-out-col || "/subB/SAMESHAPE.xml")) then
+			1
+		else
+			0
+	)
+		=> sum()
 };
 
 (:~

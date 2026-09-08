@@ -22,7 +22,7 @@ declare variable $lists:collection-rootW := collection($config:data-rootW);
 
 declare variable $lists:collection-rootA := collection($config:data-rootA);
 
-declare variable $lists:cal := doc("/db/apps/BetMasWeb/calendars/ethiopian.xml");
+declare variable $lists:cal := doc($config:app-root || "/calendars/ethiopian.xml");
 
 (:~
  : Collects distinct bibliography pointer targets (t:ptr target) from a

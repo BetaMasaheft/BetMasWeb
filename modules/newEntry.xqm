@@ -13,6 +13,13 @@ import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app" at "xmldb:exist:///db/apps/BetMasWeb/modules/app.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 
+(:~
+ : Curated relation @name options for the new-entry form. Loaded from
+ : newEntryRelations.xml — intentional subset of the schema closed list;
+ : edit the XML, not inline HTML options.
+ :)
+declare variable $new:relationOptions := doc($config:app-root || "/newEntryRelations.xml")/relationOptions;
+
 (: this is a small form that points to the xquery generating the new file and prompting the editor to save it in the correct location :)
 declare function new:newentry($node as node()*, $model as map(*)) {
 	let $taxonomy := doc("/db/apps/lists/canonicaltaxonomy.xml")//t:taxonomy
@@ -157,31 +164,11 @@ declare function new:newentry($node as node()*, $model as map(*)) {
 						<label>Relations</label>
 						<br />
 						<select class="w3-select" id="relations" multiple="multiple" name="relations" style="height:400px">
-							<option value="saws:isCopierOf">saws:isCopierOf</option>
-							<option value="saws:hasOwned">saws:hasOwned</option>
-							<option value="betmas:wifeOf">betmas:wifeOf</option>
-							<option value="betmas:husbandOf">betmas:husbandOf</option>
-							<option value="lawd:hasAttestation">lawd:hasAttestation</option>
-							<option value="snap:AllianceWith">snap:AllianceWith</option>
-							<option value="betmas:ordainedBy">betmas:ordainedBy</option>
-							<option value="ecrm:P129i_is_subject_of">ecrm:P129i_is_subject_of</option>
-							<option value="rel:enemyOf">rel:enemyOf</option>
-							<option value="snap:SonOf">snap:SonOf</option>
-							<option value="snap:FatherOf">snap:FatherOf</option>
-							<option value="saws:isAttributedToAuthor">saws:isAttributedToAuthor</option>
-							<option value="saws:formsPartOf">saws:formsPartOf</option>
-							<option value="saws:isVersionInAnotherLanguageOf">saws:isVersionInAnotherLanguageOf</option>
-							<option value="ecrm:P129_is_about">ecrm:P129_is_about</option>
-							<option value="dcterms:creator">dcterms:creator</option>
-							<option value="saws:contains">saws:contains</option>
-							<option value="dcterms:hasPart">dcterms:hasPart</option>
-							<option value="ecrm:CLP46i_may_form_part_of">ecrm:CLP46i_may_form_part_of</option>
-							<option value="saws:isDifferentTo">saws:isDifferentTo</option>
-							<option value="saws:isShorterVersionOf">saws:isShorterVersionOf</option>
-							<option value="saws:isAncestorOf">saws:isAncestorOf</option>
-							<option value="saws:isRelatedTo">saws:isRelatedTo</option>
-							<option value="ecrm:P57_has_number_of_parts">ecrm:P57_has_number_of_parts</option>
-							<option value="saws:follows">saws:follows</option>
+							{
+								for $opt in $new:relationOptions/option
+								let $v := normalize-space($opt)
+								return <option value="{ $v }">{ $v }</option>
+							}
 						</select>
 						<br />
 						<small

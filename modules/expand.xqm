@@ -10,6 +10,7 @@ import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb" at "xmldb:exist:///db/apps/BetMasWeb/modules/generateFormattedBibliography.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");
@@ -22,42 +23,19 @@ declare variable $expand:canontax := doc("/db/apps/lists/canonicaltaxonomy.xml")
 
 declare variable $expand:fullTEIcol-path := "/db/apps/expanded";
 
-declare variable $expand:listPrefixDef := <listPrefixDef xmlns="http://www.tei-c.org/ns/1.0">
-	<prefixDef
-		ident="bm"
-		matchPattern="([a-zA-Z0-9]+)"
-		replacementPattern="https://www.zotero.org/groups/358366/ethiostudies/items/tag/bm:$1" />
-	<prefixDef ident="betmas" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://betamasaheft.eu/$1" />
-	<prefixDef
-		ident="ethiocal"
-		matchPattern="([a-zA-Z0-9]+)"
-		replacementPattern="https://raw.githubusercontent.com/BetaMasaheft/BetMas/master/BetMas/calendars/ethiopian.xml#$1" />
-	<prefixDef ident="pleiades" matchPattern="(\d{ 5 - 8 })" replacementPattern="https://pleiades.stoa.org/places/$1" />
-	<prefixDef ident="sdc" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://w3id.org/sdc/ontology#$1" />
-	<prefixDef ident="wd" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://www.wikidata.org/entity/$1" />
-	<prefixDef ident="snap" matchPattern="([a-zA-Z]+)" replacementPattern="http://data.snapdrgn.net/ontology/snap#$1" />
-	<prefixDef ident="saws" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/saws/ontology#$1" />
-	<prefixDef ident="skos" matchPattern="([a-za-zA-Z]+)" replacementPattern="http://www.w3.org/2004/02/skos/core#$1" />
-	<prefixDef ident="gn" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://www.geonames.org/ontology#$1" />
-	<prefixDef ident="dcterms" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/dc/terms/$1" />
-	<prefixDef ident="dc" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/dc/terms/$1" />
-	<prefixDef ident="lawd" matchPattern="([a-zA-Z]+)" replacementPattern="http://lawd.info/ontology/$1" />
-	<prefixDef
-		ident="syriaca"
-		matchPattern="([a-zA-Z\-]+)"
-		replacementPattern="http://syriaca.org/documentation/relations.html#$1" />
-	<prefixDef
-		ident="agrelon"
-		matchPattern="([a-zA-Z]+)"
-		replacementPattern="http://d-nb.info/standards/elementset/agrelon.owl#$1" />
-	<prefixDef ident="rel" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/vocab/relationship/$1" />
-	<prefixDef ident="em" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/material/lod/$1" />
-	<prefixDef ident="eo" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/objtyp/lod/$1" />
-	<prefixDef ident="ew" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/writing/lod/$1" />
-	<prefixDef ident="ic" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://iconclass.org/$1" />
-	<prefixDef ident="ecrm" matchPattern="([a-zA-Z0-9_]+)" replacementPattern="http://erlangen-crm.org/current/$1" />
-	<prefixDef ident="foaf" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://xmlns.com/foaf/0.1/$1" />
-</listPrefixDef>;
+(:~
+ : Shared CURIE prefixDefs from the lists package (same source as
+ : apprest / viewItem / exptit). Do not hardcode a twin here — it drifts
+ : (pleiades matchPattern already had).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
+ :)
+declare variable $expand:listPrefixDef := doc("/db/apps/lists/listPrefixDef.xml");
+
+(:~
+ : Calendars injected into the first profileDesc of expanded TEI.
+ : Loaded from calendars/calendarDesc.xml — do not hardcode a twin here.
+ :)
+declare variable $expand:calendarDesc := doc($config:app-root || "/calendars/calendarDesc.xml")/t:calendarDesc;
 
 (:~
  : Recursively creates new collections if necessary.
@@ -83,6 +61,37 @@ declare function expand:create-collections($uri as xs:string) {
 	)
 };
 
+(:~
+ : Safe placeholder for an unresolved expand:id CURIE. Callers write the
+ : result straight into a @ref/@resp/@sameAs attribute rendered unescaped
+ : as <a href>, so a prose diagnostic there breaks the link; this stays a
+ : well-formed, traceable URI instead. Logs the diagnosis for debugging.
+ : @param $prefix the CURIE prefix that failed to resolve
+ : @param $id the original CURIE/id that could not be resolved
+ : @param $reason short diagnosis, written to the log only
+ : @return an https://betamasaheft.eu/unresolved-prefix/ URI, never $id
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
+declare %private function expand:unresolved-id(
+	$prefix as xs:string,
+	$id as xs:string,
+	$reason as xs:string
+) as xs:string {
+	util:log("warn", "expand:id: " || $reason || " - " || $id),
+	$expand:BMurl || "unresolved-prefix/" || encode-for-uri($prefix) || "?id=" || encode-for-uri($id)
+};
+
+(:~
+ : Resolve a CURIE / bare id to a URI via $expand:listPrefixDef.
+ : Applies prefixDef matchPattern only as a whole-string match so
+ : fn:replace cannot re-prefix underscore-separated runs (the ecrm
+ : P129_is_about → …/P129_http://…/is_http://…/about failure mode).
+ : @param $id CURIE, absolute http(s) URI, or bare BetMas id
+ : @return resolved URI, or expand:unresolved-id's safe placeholder when the
+ : prefix/pattern misses
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
+ :)
 declare function expand:id($id) {
 	(: refactoring from post.xslt post:id :)
 	if (starts-with($id, "http")) then
@@ -91,11 +100,16 @@ declare function expand:id($id) {
 		$id
 	else if (contains($id, ":") and not(contains($id, "."))) then
 		let $prefix := substring-before($id, ":")
+		let $local := substring-after($id, ":")
 		let $pdef := $expand:listPrefixDef//t:prefixDef[@ident = $prefix]
 		return if ($pdef) then
-			replace(substring-after($id, ":"), $pdef/@matchPattern, $pdef/@replacementPattern)
+			let $pattern := "^" || string($pdef/@matchPattern) || "$"
+			return if (matches($local, $pattern)) then
+				replace($local, $pattern, string($pdef/@replacementPattern))
+			else
+				expand:unresolved-id($prefix, $id, "matchPattern does not match local part")
 		else
-			concat("no matching prefix ", $prefix, " found for ", $id)
+			expand:unresolved-id($prefix, $id, "prefix not found in listPrefixDef")
 	else
 		"https://betamasaheft.eu/" || $id
 };
@@ -319,20 +333,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					(: Inject calendarDesc once — multiple profileDesc siblings
 					   would otherwise repeat the same xml:ids (world, …). :)
 					if (empty($node/preceding-sibling::t:profileDesc)) then
-						<calendarDesc xmlns="http://www.tei-c.org/ns/1.0">
-							<calendar xml:id="world"><p>ʿĀmata ʿālam/ʿĀmata ʾəm-fəṭrat (Era of the World)</p></calendar>
-							<calendar xml:id="ethiopian">
-								<p> ʿĀmata śəggāwe (Era of the Incarnation –
-                                    Ethiopian)</p>
-							</calendar>
-							<calendar xml:id="grace"><p>ʿĀmata məḥrat (Era of Grace)</p></calendar>
-							<calendar xml:id="diocletian"><p>ʿĀmata samāʿtāt (Era of Martyrs (Diocletian))</p></calendar>
-							<calendar xml:id="alexander"><p> Era of Alexander</p></calendar>
-							<calendar xml:id="evangelists"><p>Evangelists' years</p></calendar>
-							<calendar xml:id="islamic"><p>Hiǧrī (Islamic)</p></calendar>
-							<calendar xml:id="hijri"><p>Hiǧrī (Islamic) in IslHornAfr</p></calendar>
-							<calendar xml:id="julian"><p>Julian</p></calendar>
-						</calendarDesc>
+						$expand:calendarDesc
 					else (
 					)
 				)
@@ -674,17 +675,23 @@ declare function expand:rn($n) as xs:string {
 };
 
 (:~
- : Normalise a citeStructure/@unit value to a single token (no whitespace).
- : Expanded RNG forbids spaces; authoring multi-token div/@subtype and label
- : prose are hyphen-joined. Empty input becomes "unit".
+ : Normalise a citeStructure/@unit value to a single RNG-safe token.
+ : Collapses whitespace to hyphens; NFKD-folds and strips combining marks
+ : (\p{M}) so the result matches expanded RNG (\p{L}|\p{N}|\p{P}|\p{S})+.
+ : Empty input becomes "unit".
  :
  : @param $raw candidate unit string (subtype, label text, or element name)
  : @return token safe for expanded citeStructure/@unit
  :)
 declare function expand:citeUnit($raw as xs:string?) as xs:string {
 	let $n := normalize-space($raw)
-	return if ($n) then
-		replace($n, "\s+", "-")
+	let $folded := if ($n) then
+		replace(normalize-unicode($n, "NFKD"), "\p{M}+", "")
+	else
+		""
+	let $token := replace($folded, "\s+", "-")
+	return if ($token) then
+		$token
 	else
 		"unit"
 };

@@ -20,6 +20,9 @@ xquery version "3.1";
  : @author Pietro Liuzzo
  : @version 1.2
  : slightly modified to serve only PERSONS repo for BetaMasaheft
+ :
+ : @deprecated see gitsync.xqm module docstring.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/98
  : added validation and specific report, changed to use 3.1 and to use parse-json instead of xqjson
  : @see https://exist-db.org/exist/apps/wiki/blogs/eXist/XQuery31
  :)

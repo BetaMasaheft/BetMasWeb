@@ -23,16 +23,106 @@ declare %test:assertEquals("#p2") function tsexpandrng:reflike-prefixes-bare-sho
 };
 
 (:~
- : ecrm-prefixed identifiers use CIDOC-CRM's underscore-separated property
- : names (e.g. "P129_is_about"). The matchPattern was alnum-only, so
- : fn:replace's default global substitution matched each underscore-
- : separated run separately and re-prefixed it, mangling the URI.
+ : ecrm relation @name → @ref. CIDOC-CRM local names use underscores
+ : (P129_is_about). Unanchored fn:replace with an alnum-only matchPattern
+ : re-prefixed each underscore-separated run, producing the residual
+ : shape still seen in a few stale expanded files after hybrid re-expand:
+ : …/P129_http://…/is_http://…/about
+ : Cover every ecrm value allowed by tei-betamesaheft-expanded.rng.
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
  :)
 declare
+	%test:arg("id", "ecrm:P129_is_about")
 	%test:assertEquals("http://erlangen-crm.org/current/P129_is_about")
-function tsexpandrng:ecrm-id-keeps-underscored-property-name() {
-	string(expand:id("ecrm:P129_is_about"))
+	%test:arg("id", "ecrm:P129i_is_subject_of")
+	%test:assertEquals("http://erlangen-crm.org/current/P129i_is_subject_of")
+	%test:arg("id", "ecrm:CLP46i_may_form_part_of")
+	%test:assertEquals("http://erlangen-crm.org/current/CLP46i_may_form_part_of")
+	%test:arg("id", "ecrm:CLP45_should_consist_of")
+	%test:assertEquals("http://erlangen-crm.org/current/CLP45_should_consist_of")
+	%test:arg("id", "ecrm:CLP45i_should_be_incorporated_in")
+	%test:assertEquals("http://erlangen-crm.org/current/CLP45i_should_be_incorporated_in")
+	%test:arg("id", "ecrm:CLP57_should_have_number_of_parts")
+	%test:assertEquals("http://erlangen-crm.org/current/CLP57_should_have_number_of_parts")
+	%test:arg("id", "ecrm:P57_has_number_of_parts")
+	%test:assertEquals("http://erlangen-crm.org/current/P57_has_number_of_parts")
+function tsexpandrng:ecrm-id-keeps-underscored-property-name($id as xs:string) {
+	string(expand:id($id))
+};
+
+(:~
+ : Regression: expand:id must never emit the segment-reprefix mangling
+ : shape residual in expanded (…/_http://…).
+ :)
+declare %test:assertFalse function tsexpandrng:ecrm-id-does-not-reprefix-segments() {
+	contains(string(expand:id("ecrm:CLP46i_may_form_part_of")), "_http://")
+};
+
+(:~
+ : relation expansion recomputes @ref from @name via expand:id.
+ :)
+declare
+	%test:assertEquals("http://erlangen-crm.org/current/P129_is_about")
+function tsexpandrng:relation-ecrm-ref-from-name() {
+	let $rel := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active="LIT0001Test"
+		name="ecrm:P129_is_about"
+		passive="PRS0001Test" />
+	let $out := expand:tei2fulltei($rel, ())
+	return string($out/@ref)
+};
+
+declare
+	%test:assertEquals("http://erlangen-crm.org/current/CLP46i_may_form_part_of")
+function tsexpandrng:relation-ecrm-clp46-ref-from-name() {
+	let $rel := <relation
+		xmlns="http://www.tei-c.org/ns/1.0"
+		active="LIT0001Test"
+		name="ecrm:CLP46i_may_form_part_of"
+		passive="LIT0002Test" />
+	let $out := expand:tei2fulltei($rel, ())
+	return string($out/@ref)
+};
+
+(:~
+ : $expand:listPrefixDef must be the lists package document (BetMasWeb#152),
+ : not a hardcoded twin that can drift (pleiades already had).
+ :)
+declare %test:assertTrue function tsexpandrng:listPrefixDef-is-lists-document() {
+	$expand:listPrefixDef is doc("/db/apps/lists/listPrefixDef.xml")
+};
+
+(:~
+ : Lists wins for pleiades matchPattern (expand's old copy had a broken
+ : "(\d{ 5 - 8 })" pattern).
+ :)
+declare %test:assertEquals("([a-zA-Z0-9]+)") function tsexpandrng:pleiades-matchPattern-matches-lists() {
+	string($expand:listPrefixDef//t:prefixDef[@ident = "pleiades"]/@matchPattern)
+};
+
+(:~
+ : $expand:listPrefixDef is what expand:id reads — ecrm must allow "_".
+ :)
+declare %test:assertTrue function tsexpandrng:ecrm-prefixDef-matchPattern-allows-underscore() {
+	contains(string($expand:listPrefixDef//t:prefixDef[@ident = "ecrm"]/@matchPattern), "_")
+};
+
+(:~
+ : encodingDesc expand injects that same listPrefixDef (needs an encodingDesc
+ : in the input — bare teiHeader does not create one).
+ :)
+declare %test:assertTrue function tsexpandrng:ecrm-prefixDef-injected-into-encodingDesc() {
+	let $tei := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTecrmPdef">
+		<teiHeader>
+			<titleStmt><title>seed</title></titleStmt>
+			<encodingDesc><p>seed</p></encodingDesc>
+			<profileDesc><abstract><p>a</p></abstract></profileDesc>
+		</teiHeader>
+		<text><body><div><ab>x</ab></div></body></text>
+	</TEI>
+	let $out := expand:tei2fulltei($tei, ())
+	return contains(string($out//t:prefixDef[@ident = "ecrm"]/@matchPattern), "_")
 };
 
 (:~
@@ -137,4 +227,52 @@ declare
 	%test:assertEquals("https://betamasaheft.eu/#someLongFragmentId")
 function tsexpandrng:reflike-resolves-long-hash-fragment() {
 	string(expand:reflike(attribute corresp { "#someLongFragmentId" }))
+};
+
+(:~
+ : Anchoring applies to every prefixDef, not just ecrm - realistic values
+ : for the others must still resolve, not fall into the diagnostic branch.
+ :)
+declare
+	%test:arg("id", "snap:Person")
+	%test:assertEquals("http://data.snapdrgn.net/ontology/snap#Person")
+	%test:arg("id", "saws:Diagram")
+	%test:assertEquals("http://purl.org/saws/ontology#Diagram")
+	%test:arg("id", "dcterms:creator")
+	%test:assertEquals("http://purl.org/dc/terms/creator")
+	%test:arg("id", "dc:source")
+	%test:assertEquals("http://purl.org/dc/terms/source")
+	%test:arg("id", "lawd:Person")
+	%test:assertEquals("http://lawd.info/ontology/Person")
+	%test:arg("id", "agrelon:isSiblingOf")
+	%test:assertEquals("http://d-nb.info/standards/elementset/agrelon.owl#isSiblingOf")
+	%test:arg("id", "rel:acquaintanceOf")
+	%test:assertEquals("http://purl.org/vocab/relationship/acquaintanceOf")
+function tsexpandrng:other-letter-only-prefixes-still-resolve($id as xs:string) {
+	string(expand:id($id))
+};
+
+(:~
+ : An unresolved CURIE (pattern mismatch or unknown prefix) must fall back
+ : to a well-formed URI, not the free-text diagnostic that used to get
+ : written straight into a @ref/@resp/@sameAs attribute and render as a
+ : broken <a href> (viewItem:relation).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
+declare %test:assertTrue function tsexpandrng:unresolved-curie-mismatched-pattern-is-safe-uri() {
+	let $out := string(expand:id("dcterms:creator2"))
+	return starts-with($out, "https://betamasaheft.eu/unresolved-prefix/") and not(contains($out, " "))
+};
+
+declare %test:assertTrue function tsexpandrng:unresolved-curie-unknown-prefix-is-safe-uri() {
+	let $out := string(expand:id("totallyUnknownPrefix:foo"))
+	return starts-with($out, "https://betamasaheft.eu/unresolved-prefix/") and not(contains($out, " "))
+};
+
+(:~
+ : The unresolved-prefix placeholder still round-trips the original id
+ : (percent-encoded) so a broken link is traceable back to its source CURIE.
+ :)
+declare %test:assertTrue function tsexpandrng:unresolved-curie-placeholder-encodes-original-id() {
+	contains(string(expand:id("dcterms:creator2")), encode-for-uri("dcterms:creator2"))
 };

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--~
+  Curated relation @name options for the new-entry form (newEntry.xqm).
+  Intentional subset of the schema closed list — edit here, not inline HTML.
+-->
+<relationOptions>
+	<option>saws:isCopierOf</option>
+	<option>saws:hasOwned</option>
+	<option>betmas:wifeOf</option>
+	<option>betmas:husbandOf</option>
+	<option>lawd:hasAttestation</option>
+	<option>snap:AllianceWith</option>
+	<option>betmas:ordainedBy</option>
+	<option>ecrm:P129i_is_subject_of</option>
+	<option>rel:enemyOf</option>
+	<option>snap:SonOf</option>
+	<option>snap:FatherOf</option>
+	<option>saws:isAttributedToAuthor</option>
+	<option>saws:formsPartOf</option>
+	<option>saws:isVersionInAnotherLanguageOf</option>
+	<option>ecrm:P129_is_about</option>
+	<option>dcterms:creator</option>
+	<option>saws:contains</option>
+	<option>dcterms:hasPart</option>
+	<option>ecrm:CLP46i_may_form_part_of</option>
+	<option>saws:isDifferentTo</option>
+	<option>saws:isShorterVersionOf</option>
+	<option>saws:isAncestorOf</option>
+	<option>saws:isRelatedTo</option>
+	<option>ecrm:P57_has_number_of_parts</option>
+	<option>saws:follows</option>
+</relationOptions>
