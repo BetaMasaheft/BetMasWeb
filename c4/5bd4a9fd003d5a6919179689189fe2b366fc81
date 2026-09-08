@@ -1,0 +1,52 @@
+modules/queries.xqm
+  s_bfac4543151ff7::t_11a2f6e462fe5c 139
+test/xqs/test-runner.xq
+  s_bfac4543151ff7::t_a6d17b703736de 35
+  s_bfac4543151ff7::t_c4c7c12b3abcab 86
+modules/newEntry.xqm
+  s_bfac4543151ff7::t_101ab24e74f2f5 168
+  s_bfac4543151ff7::t_db3068cfc3c5e0 169-171
+  s_bfac4543151ff7::t_35fa83454da088 16-20
+  s_bfac4543151ff7::t_dc98055c26257b 21-22
+  s_bfac4543151ff7::t_26b5c415d74054 167
+newEntryRelations.xml
+  s_bfac4543151ff7::t_338d08959a5d4a 1-32
+modules/resources.xqm
+  s_bfac4543151ff7::t_245a7420cdd89a 25
+test/xqs/ts-queries-filterspanel.xqm
+  s_bfac4543151ff7::t_4e5f4bd62e060c 173
+modules/config.xqm
+  s_bfac4543151ff7::t_86a39b719c5fdf 94-103,115
+  s_bfac4543151ff7::t_5342484cbca9e8 116-117
+calendars/calendarDesc.xml
+  s_bfac4543151ff7::t_059c53a8af19e8 1-18
+test/xqs/ts-shared-data-dedupe.xqm
+  s_bfac4543151ff7::t_a90f554d82b718 67
+  s_bfac4543151ff7::t_c50a72ac4e37a2 1-16,18-41,43-66,68-77
+  s_bfac4543151ff7::t_a8d3182588c5dd 42
+  s_bfac4543151ff7::t_d80465721ffa30 17
+modules/dts.xqm
+  s_bfac4543151ff7::t_befa9464280594 45,51-55,57,59,61
+modules/expand.xqm
+  s_bfac4543151ff7::t_699c6ccbf2f686 38-39
+  s_bfac4543151ff7::t_bd24148cf17ed4 35-37
+  s_bfac4543151ff7::t_81cfc1a510f502 324
+  s_bfac4543151ff7::t_7fd80fdaed19d6 13
+  s_bfac4543151ff7::t_4af18369ed051a 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "c45bd4a9fd003d5a6919179689189fe2b366fc81",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": null
+    }
+  }
+}
