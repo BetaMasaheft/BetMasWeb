@@ -27,6 +27,10 @@ module namespace gitsync = "http://syriaca.org/ns/gitsync";
  : calls expanded.xqm to expand xi:include elements and transform the file into a fully expanded entity to
  : store it in a separate collection where indexes with fields are provided and a lighter and faster set up
  : updated the collection creation
+ :
+ : @deprecated Scheduled for removal - imports a nonexistent BetMasService
+ : package and isn't wired into controller.xql. Don't build on it.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/98
  :)
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
@@ -520,17 +524,17 @@ declare function gitsync:updateBibl($collection-uri, $file-name) {
  : in the collection.
  : if it is a partial file, included by another one, which has been updated, is changed than the function will look for the TEI file and run the expand.xqm on that
  : the function is called on update and add
+ : @deprecated see module docstring.
  :)
 declare function gitsync:updateExpanded($collection-uri, $file-name) {
-	(: substring-after, not a delimiter-anchored replace: a bare-root
-	   $collection-uri has no trailing slash for "/BetMasData/" to match,
-	   which silently aliased $expanded-collection-uri back onto the live
-	   source collection. Same shape as batchExpand:expanded-mirror. :)
-	let $expanded-collection-uri := $config:data-root || substring-after($collection-uri, $config:bmdata-root)
+	(: Normalize to BetMasData-rooted first - every caller's $collection-uri
+	   is already expanded-rooted, so deriving $expanded-collection-uri
+	   before this collapsed every target to the bare expanded root. :)
 	let $collection-uri := if (contains($collection-uri, "expanded")) then
 		replace($collection-uri, "expanded", "BetMasData")
 	else
 		$collection-uri
+	let $expanded-collection-uri := $config:data-root || substring-after($collection-uri, $config:bmdata-root)
 	let $storedfilepath := $collection-uri || "/" || $file-name
 	let $storedTEI := doc($storedfilepath)
 	let $t1 := console:log($storedTEI)

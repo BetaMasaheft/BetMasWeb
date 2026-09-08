@@ -19,6 +19,8 @@ xquery version "3.1";
  :
  : slightly modified to serve only authority-files repo for BetaMasaheft, changed to use 3.1 and to use parse-json instead of xqjson in some cases
  :
+ : @deprecated see gitsync.xqm module docstring.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/98
  :)
 
 import module namespace gitsync = "http://syriaca.org/ns/gitsync" at "xmldb:exist:///db/apps/BetMasWeb/modules/gitsync.xqm";
