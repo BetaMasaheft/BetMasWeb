@@ -22,42 +22,13 @@ declare variable $expand:canontax := doc("/db/apps/lists/canonicaltaxonomy.xml")
 
 declare variable $expand:fullTEIcol-path := "/db/apps/expanded";
 
-declare variable $expand:listPrefixDef := <listPrefixDef xmlns="http://www.tei-c.org/ns/1.0">
-	<prefixDef
-		ident="bm"
-		matchPattern="([a-zA-Z0-9]+)"
-		replacementPattern="https://www.zotero.org/groups/358366/ethiostudies/items/tag/bm:$1" />
-	<prefixDef ident="betmas" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://betamasaheft.eu/$1" />
-	<prefixDef
-		ident="ethiocal"
-		matchPattern="([a-zA-Z0-9]+)"
-		replacementPattern="https://raw.githubusercontent.com/BetaMasaheft/BetMas/master/BetMas/calendars/ethiopian.xml#$1" />
-	<prefixDef ident="pleiades" matchPattern="(\d{ 5 - 8 })" replacementPattern="https://pleiades.stoa.org/places/$1" />
-	<prefixDef ident="sdc" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://w3id.org/sdc/ontology#$1" />
-	<prefixDef ident="wd" matchPattern="([a-zA-Z0-9]+)" replacementPattern="https://www.wikidata.org/entity/$1" />
-	<prefixDef ident="snap" matchPattern="([a-zA-Z]+)" replacementPattern="http://data.snapdrgn.net/ontology/snap#$1" />
-	<prefixDef ident="saws" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/saws/ontology#$1" />
-	<prefixDef ident="skos" matchPattern="([a-za-zA-Z]+)" replacementPattern="http://www.w3.org/2004/02/skos/core#$1" />
-	<prefixDef ident="gn" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://www.geonames.org/ontology#$1" />
-	<prefixDef ident="dcterms" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/dc/terms/$1" />
-	<prefixDef ident="dc" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/dc/terms/$1" />
-	<prefixDef ident="lawd" matchPattern="([a-zA-Z]+)" replacementPattern="http://lawd.info/ontology/$1" />
-	<prefixDef
-		ident="syriaca"
-		matchPattern="([a-zA-Z\-]+)"
-		replacementPattern="http://syriaca.org/documentation/relations.html#$1" />
-	<prefixDef
-		ident="agrelon"
-		matchPattern="([a-zA-Z]+)"
-		replacementPattern="http://d-nb.info/standards/elementset/agrelon.owl#$1" />
-	<prefixDef ident="rel" matchPattern="([a-zA-Z]+)" replacementPattern="http://purl.org/vocab/relationship/$1" />
-	<prefixDef ident="em" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/material/lod/$1" />
-	<prefixDef ident="eo" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/objtyp/lod/$1" />
-	<prefixDef ident="ew" matchPattern="(\d+)" replacementPattern="https://www.eagle-network.eu/voc/writing/lod/$1" />
-	<prefixDef ident="ic" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://iconclass.org/$1" />
-	<prefixDef ident="ecrm" matchPattern="([a-zA-Z0-9_]+)" replacementPattern="http://erlangen-crm.org/current/$1" />
-	<prefixDef ident="foaf" matchPattern="([a-zA-Z0-9]+)" replacementPattern="http://xmlns.com/foaf/0.1/$1" />
-</listPrefixDef>;
+(:~
+ : Shared CURIE prefixDefs from the lists package (same source as
+ : apprest / viewItem / exptit). Do not hardcode a twin here — it drifts
+ : (pleiades matchPattern already had).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
+ :)
+declare variable $expand:listPrefixDef := doc("/db/apps/lists/listPrefixDef.xml");
 
 (:~
  : Recursively creates new collections if necessary.
@@ -91,6 +62,7 @@ declare function expand:create-collections($uri as xs:string) {
  : @param $id CURIE, absolute http(s) URI, or bare BetMas id
  : @return resolved URI, or a diagnostic string when the prefix/pattern misses
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
  :)
 declare function expand:id($id) {
 	(: refactoring from post.xslt post:id :)

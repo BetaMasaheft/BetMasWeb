@@ -86,6 +86,22 @@ function tsexpandrng:relation-ecrm-clp46-ref-from-name() {
 };
 
 (:~
+ : $expand:listPrefixDef must be the lists package document (BetMasWeb#152),
+ : not a hardcoded twin that can drift (pleiades already had).
+ :)
+declare %test:assertTrue function tsexpandrng:listPrefixDef-is-lists-document() {
+	$expand:listPrefixDef is doc("/db/apps/lists/listPrefixDef.xml")
+};
+
+(:~
+ : Lists wins for pleiades matchPattern (expand's old copy had a broken
+ : "(\d{ 5 - 8 })" pattern).
+ :)
+declare %test:assertEquals("([a-zA-Z0-9]+)") function tsexpandrng:pleiades-matchPattern-matches-lists() {
+	string($expand:listPrefixDef//t:prefixDef[@ident = "pleiades"]/@matchPattern)
+};
+
+(:~
  : $expand:listPrefixDef is what expand:id reads — ecrm must allow "_".
  :)
 declare %test:assertTrue function tsexpandrng:ecrm-prefixDef-matchPattern-allows-underscore() {

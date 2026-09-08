@@ -55,7 +55,7 @@ declare variable $gitsync:deleted := doc("/db/apps/lists/deleted.xml");
 
 declare variable $gitsync:taxonomy := doc(concat($config:data-rootA, "/taxonomy.xml"));
 
-declare variable $gitsync:canotax := doc("db/apps/lists/canonicaltaxonomy.xml");
+declare variable $gitsync:canotax := doc("/db/apps/lists/canonicaltaxonomy.xml");
 
 declare variable $gitsync:data2rdf := "xmldb:exist:///db/apps/BetMasService/rdfxslt/data2rdf.xsl";
 
