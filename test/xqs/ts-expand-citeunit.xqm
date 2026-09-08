@@ -19,6 +19,8 @@ declare
 	%test:assertEquals("folio")
 	%test:arg("raw", "")
 	%test:assertEquals("unit")
+	%test:arg("raw", "Maṣ́agʷǝʿ")
+	%test:assertEquals("Masagwǝʿ")
 function tsexpcite:citeUnit-tokenises($raw as xs:string) {
 	expand:citeUnit($raw)
 };

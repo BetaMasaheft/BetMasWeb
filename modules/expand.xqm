@@ -674,17 +674,23 @@ declare function expand:rn($n) as xs:string {
 };
 
 (:~
- : Normalise a citeStructure/@unit value to a single token (no whitespace).
- : Expanded RNG forbids spaces; authoring multi-token div/@subtype and label
- : prose are hyphen-joined. Empty input becomes "unit".
+ : Normalise a citeStructure/@unit value to a single RNG-safe token.
+ : Collapses whitespace to hyphens; NFKD-folds and strips combining marks
+ : (\p{M}) so the result matches expanded RNG (\p{L}|\p{N}|\p{P}|\p{S})+.
+ : Empty input becomes "unit".
  :
  : @param $raw candidate unit string (subtype, label text, or element name)
  : @return token safe for expanded citeStructure/@unit
  :)
 declare function expand:citeUnit($raw as xs:string?) as xs:string {
 	let $n := normalize-space($raw)
-	return if ($n) then
-		replace($n, "\s+", "-")
+	let $folded := if ($n) then
+		replace(normalize-unicode($n, "NFKD"), "\p{M}+", "")
+	else
+		""
+	let $token := normalize-space(replace($folded, "\s+", "-"))
+	return if ($token) then
+		$token
 	else
 		"unit"
 };

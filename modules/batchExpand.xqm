@@ -26,11 +26,14 @@ declare %private function batchExpand:is-allowed-collection($col as xs:string) a
 };
 
 (:~
- : Expand every TEI under $collectionUri into /db/apps/expanded/...
- : Refuses empty / missing / out-of-tree collection (no silent full-corpus run).
+ : Expand every TEI under $collectionUri into /db/apps/expanded/... and prune
+ : the mirrored subtree so it contains no resources absent from BetMasData
+ : (mirror sync). Refuses empty / missing / out-of-tree collection (no silent
+ : full-corpus run). Prune runs only after a successful expand pass.
  :
  : @param $collectionUri e.g. /db/apps/BetMasData/works/1-1000
  : @return summary "expanded N file(s) in T seconds"
+ : @see https://github.com/BetaMasaheft/expanded/issues/11
  :)
 declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
 	let $col := normalize-space($collectionUri)
@@ -45,12 +48,65 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 		error(xs:QName("batchExpand:MISSING"), "collection not found: " || $col)
 	else
 		let $context := collection($col)//t:TEI
+		let $expected := distinct-values(
+			for $file in $context
+			return tokenize(base-uri($file), "/")[last()]
+		)
+		let $expanded-col := batchExpand:expanded-mirror($col)
 		let $t0 := util:system-time()
 		let $_ :=
 			for $file in $context
 			return batchExpand:expandOne($file)
+		let $pruned := batchExpand:prune-mirror($expanded-col, $expected)
+		let $_log := if ($pruned gt 0) then
+			util:log("INFO", "pruned " || $pruned || " stale resource(s) from " || $expanded-col)
+		else (
+		)
 		let $secs := (util:system-time() - $t0) div xs:dayTimeDuration("PT1S")
 		return "expanded " || count($context) || " file(s) in " || $secs || " seconds"
+};
+
+(:~
+ : Mirrored expanded collection URI for a BetMasData collection.
+ :)
+declare %private function batchExpand:expanded-mirror($data-col as xs:string) as xs:string {
+	replace($data-col, "/BetMasData/", "/expanded/")
+};
+
+(:~
+ : Remove resources under $expanded-col whose filename is not in $expected.
+ : Ignores eXist collection metadata. Returns count of removed resources.
+ :
+ : @param $expanded-col e.g. /db/apps/expanded/works/1-1000
+ : @param $expected source filenames that must remain
+ : @return number of resources removed
+ :)
+declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $expected as xs:string*) as xs:integer {
+	if (not(xmldb:collection-available($expanded-col))) then
+		0
+	else
+		let $removed :=
+			for $path in batchExpand:descendant-resources($expanded-col)
+			let $name := tokenize($path, "/")[last()]
+			let $parent := replace(substring($path, 1, string-length($path) - string-length($name)), "/$", "")
+			where not($name = ("__contents__.xml")) and not($name = $expected)
+			return try {
+				let $_ := xmldb:remove($parent, $name)
+				return 1
+			} catch * { util:log("warn", "prune failed for " || $path || ": " || $err:description), () }
+		return count($removed)
+};
+
+(:~
+ : Absolute URIs of all resources under $col (recursive).
+ :)
+declare %private function batchExpand:descendant-resources($col as xs:string) as xs:string* {
+	(
+		for $r in xmldb:get-child-resources($col)
+		return $col || "/" || $r,
+		for $c in xmldb:get-child-collections($col)
+		return batchExpand:descendant-resources($col || "/" || $c)
+	)
 };
 
 declare %private function batchExpand:expandOne($file as element(t:TEI)) {

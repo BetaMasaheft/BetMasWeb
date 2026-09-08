@@ -95,6 +95,28 @@ declare %test:assertTrue function tsbatchexp:stores-tei-document-at-expected-pat
 };
 
 (:~
+ : After a successful collection expand, resources under the expanded mirror
+ : that are not in the BetMasData source set are removed (mirror sync).
+ :)
+declare %test:assertFalse function tsbatchexp:prunes-stale-mirror-resources() {
+	let $_seed := (
+		if (xmldb:collection-available($tsbatchexp:out-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/expanded/works", "_batchExpandTest"),
+		xmldb:store(
+			$tsbatchexp:out-col,
+			"ORPHANbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANbatchExpand">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
+	return doc-available($tsbatchexp:out-col || "/ORPHANbatchExpand.xml")
+};
+
+(:~
  : The stored document keeps the source TEI's xml:id.
  :)
 declare %test:assertEquals("LITTESTbatchExpand") function tsbatchexp:stored-document-has-correct-tei-id() {
