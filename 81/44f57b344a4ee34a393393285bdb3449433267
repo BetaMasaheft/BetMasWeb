@@ -1,0 +1,28 @@
+test/xqs/ts-expand-citeunit.xqm
+  s_bfac4543151ff7::t_0f1342f0c5de3b 22
+  s_bfac4543151ff7::t_30c0253616b066 23
+modules/expand.xqm
+  s_bfac4543151ff7::t_c803598db908ee 677-680,687-693
+modules/batchExpand.xqm
+  s_bfac4543151ff7::t_8e5748767679ab 96-103
+  s_bfac4543151ff7::t_da0a86c25596c7 29-32,36,51-55,60-64,69-95,104-111
+test/xqs/ts-batch-expand.xqm
+  s_bfac4543151ff7::t_2cc5e9fb53ef06 98-118
+  s_bfac4543151ff7::t_0ff41b0855ea71 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "8144f57b344a4ee34a393393285bdb3449433267",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
