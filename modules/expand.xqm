@@ -83,6 +83,15 @@ declare function expand:create-collections($uri as xs:string) {
 	)
 };
 
+(:~
+ : Resolve a CURIE / bare id to a URI via $expand:listPrefixDef.
+ : Applies prefixDef matchPattern only as a whole-string match so
+ : fn:replace cannot re-prefix underscore-separated runs (the ecrm
+ : P129_is_about → …/P129_http://…/is_http://…/about failure mode).
+ : @param $id CURIE, absolute http(s) URI, or bare BetMas id
+ : @return resolved URI, or a diagnostic string when the prefix/pattern misses
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
 declare function expand:id($id) {
 	(: refactoring from post.xslt post:id :)
 	if (starts-with($id, "http")) then
@@ -91,9 +100,14 @@ declare function expand:id($id) {
 		$id
 	else if (contains($id, ":") and not(contains($id, "."))) then
 		let $prefix := substring-before($id, ":")
+		let $local := substring-after($id, ":")
 		let $pdef := $expand:listPrefixDef//t:prefixDef[@ident = $prefix]
 		return if ($pdef) then
-			replace(substring-after($id, ":"), $pdef/@matchPattern, $pdef/@replacementPattern)
+			let $pattern := "^" || string($pdef/@matchPattern) || "$"
+			return if (matches($local, $pattern)) then
+				replace($local, $pattern, string($pdef/@replacementPattern))
+			else
+				concat("no matching prefix pattern ", $prefix, " for ", $id)
 		else
 			concat("no matching prefix ", $prefix, " found for ", $id)
 	else
