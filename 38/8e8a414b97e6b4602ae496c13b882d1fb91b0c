@@ -1,0 +1,20 @@
+test/xqs/ts-expand-rng-residuals.xqm
+  s_bfac4543151ff7::t_e09ee23d910808 89,92-99
+  s_bfac4543151ff7::t_36358a9d0f629c 103,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "388e8a414b97e6b4602ae496c13b882d1fb91b0c",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
