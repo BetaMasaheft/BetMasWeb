@@ -522,7 +522,11 @@ declare function gitsync:updateBibl($collection-uri, $file-name) {
  : the function is called on update and add
  :)
 declare function gitsync:updateExpanded($collection-uri, $file-name) {
-	let $expanded-collection-uri := replace($collection-uri, "/BetMasData/", "/expanded/")
+	(: substring-after, not a delimiter-anchored replace: a bare-root
+	   $collection-uri has no trailing slash for "/BetMasData/" to match,
+	   which silently aliased $expanded-collection-uri back onto the live
+	   source collection. Same shape as batchExpand:expanded-mirror. :)
+	let $expanded-collection-uri := $config:data-root || substring-after($collection-uri, $config:bmdata-root)
 	let $collection-uri := if (contains($collection-uri, "expanded")) then
 		replace($collection-uri, "expanded", "BetMasData")
 	else

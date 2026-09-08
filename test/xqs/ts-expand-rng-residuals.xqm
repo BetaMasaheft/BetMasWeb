@@ -212,3 +212,39 @@ declare
 function tsexpandrng:reflike-resolves-long-hash-fragment() {
 	string(expand:reflike(attribute corresp { "#someLongFragmentId" }))
 };
+
+(:~
+ : Regression for every other letter-only-class prefixDef (expanded#11 code
+ : review, BetMasWeb#151): expand:id's whole-string anchoring was added to
+ : stop ecrm's re-prefixing bug, but it applies to every prefixDef. Realistic
+ : CURIE values for these vocabularies must still resolve cleanly, not fall
+ : into the "no matching prefix pattern" diagnostic branch.
+ :)
+declare
+	%test:arg("id", "snap:Person")
+	%test:assertEquals("http://data.snapdrgn.net/ontology/snap#Person")
+	%test:arg("id", "saws:Diagram")
+	%test:assertEquals("http://purl.org/saws/ontology#Diagram")
+	%test:arg("id", "dcterms:creator")
+	%test:assertEquals("http://purl.org/dc/terms/creator")
+	%test:arg("id", "dc:source")
+	%test:assertEquals("http://purl.org/dc/terms/source")
+	%test:arg("id", "lawd:Person")
+	%test:assertEquals("http://lawd.info/ontology/Person")
+	%test:arg("id", "agrelon:isSiblingOf")
+	%test:assertEquals("http://d-nb.info/standards/elementset/agrelon.owl#isSiblingOf")
+	%test:arg("id", "rel:acquaintanceOf")
+	%test:assertEquals("http://purl.org/vocab/relationship/acquaintanceOf")
+function tsexpandrng:other-letter-only-prefixes-still-resolve($id as xs:string) {
+	string(expand:id($id))
+};
+
+(:~
+ : A CURIE local part that a prefixDef's matchPattern cannot match (e.g. a
+ : digit under a letters-only class) must fail loudly via the diagnostic
+ : string, not silently - covered so a future widened/narrowed matchPattern
+ : is a deliberate, test-visible choice.
+ :)
+declare %test:assertTrue function tsexpandrng:unmatched-local-part-is-diagnostic-not-uri() {
+	starts-with(string(expand:id("dcterms:creator2")), "no matching prefix pattern")
+};

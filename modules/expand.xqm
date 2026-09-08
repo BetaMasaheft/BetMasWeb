@@ -106,8 +106,17 @@ declare function expand:id($id) {
 			let $pattern := "^" || string($pdef/@matchPattern) || "$"
 			return if (matches($local, $pattern)) then
 				replace($local, $pattern, string($pdef/@replacementPattern))
-			else
+			else (
+				util:log(
+					"warn",
+					"expand:id: " ||
+						$prefix ||
+						"'s matchPattern does not match local part in " ||
+						$id ||
+						" - emitting diagnostic text instead of a URI"
+				),
 				concat("no matching prefix pattern ", $prefix, " for ", $id)
+			)
 		else
 			concat("no matching prefix ", $prefix, " found for ", $id)
 	else
@@ -702,7 +711,7 @@ declare function expand:citeUnit($raw as xs:string?) as xs:string {
 		replace(normalize-unicode($n, "NFKD"), "\p{M}+", "")
 	else
 		""
-	let $token := normalize-space(replace($folded, "\s+", "-"))
+	let $token := replace($folded, "\s+", "-")
 	return if ($token) then
 		$token
 	else
