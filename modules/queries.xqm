@@ -136,7 +136,7 @@ declare variable $q:util-index-lookup := (
 	function-lookup(xs:QName("util:index-keys"), 5), function-lookup(xs:QName("util:index-keys"), 4)
 )[1];
 
-declare variable $q:paramargs := doc("/db/apps/BetMasWeb/paramargs.xml")/indexes;
+declare variable $q:paramargs := doc($config:app-root || "/paramargs.xml")/indexes;
 
 (:~
  : Functions with values which depend on the request parameters (to keep values as selected when the user runs a query.

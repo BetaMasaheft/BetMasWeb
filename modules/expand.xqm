@@ -10,6 +10,7 @@ import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb" at "xmldb:exist:///db/apps/BetMasWeb/modules/generateFormattedBibliography.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");
@@ -29,6 +30,12 @@ declare variable $expand:fullTEIcol-path := "/db/apps/expanded";
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
  :)
 declare variable $expand:listPrefixDef := doc("/db/apps/lists/listPrefixDef.xml");
+
+(:~
+ : Calendars injected into the first profileDesc of expanded TEI.
+ : Loaded from calendars/calendarDesc.xml — do not hardcode a twin here.
+ :)
+declare variable $expand:calendarDesc := doc($config:app-root || "/calendars/calendarDesc.xml")/t:calendarDesc;
 
 (:~
  : Recursively creates new collections if necessary.
@@ -314,20 +321,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					(: Inject calendarDesc once — multiple profileDesc siblings
 					   would otherwise repeat the same xml:ids (world, …). :)
 					if (empty($node/preceding-sibling::t:profileDesc)) then
-						<calendarDesc xmlns="http://www.tei-c.org/ns/1.0">
-							<calendar xml:id="world"><p>ʿĀmata ʿālam/ʿĀmata ʾəm-fəṭrat (Era of the World)</p></calendar>
-							<calendar xml:id="ethiopian">
-								<p> ʿĀmata śəggāwe (Era of the Incarnation –
-                                    Ethiopian)</p>
-							</calendar>
-							<calendar xml:id="grace"><p>ʿĀmata məḥrat (Era of Grace)</p></calendar>
-							<calendar xml:id="diocletian"><p>ʿĀmata samāʿtāt (Era of Martyrs (Diocletian))</p></calendar>
-							<calendar xml:id="alexander"><p> Era of Alexander</p></calendar>
-							<calendar xml:id="evangelists"><p>Evangelists' years</p></calendar>
-							<calendar xml:id="islamic"><p>Hiǧrī (Islamic)</p></calendar>
-							<calendar xml:id="hijri"><p>Hiǧrī (Islamic) in IslHornAfr</p></calendar>
-							<calendar xml:id="julian"><p>Julian</p></calendar>
-						</calendarDesc>
+						$expand:calendarDesc
 					else (
 					)
 				)

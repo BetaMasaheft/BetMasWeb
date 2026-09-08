@@ -91,6 +91,16 @@ declare function config:appBase() as xs:string {
 		request:get-context-path() || "/apps/BetMasWeb"
 };
 
+declare variable $config:app-root := let $rawPath := system:get-module-load-path()
+let $modulePath := (: strip the xmldb: part :) if (starts-with($rawPath, "xmldb:exist://")) then
+	if (starts-with($rawPath, "xmldb:exist://embedded-eXist-server")) then
+		substring($rawPath, 36)
+	else
+		substring($rawPath, 15)
+else
+	$rawPath
+return substring-before($modulePath, "/modules");
+
 (:~
  : Resolve an external service endpoint. A deployment relocates a service
  : by setting the corresponding environment variable on the eXist process
@@ -102,7 +112,9 @@ declare function config:appBase() as xs:string {
  :)
 declare function config:service-url($env-name as xs:string, $default as xs:string) as xs:string {
 	try {
-		(doc("/db/apps/BetMasWeb/services.xml")//service[@env eq $env-name][normalize-space(.) ne ""]/string(), $default)[1]
+		(
+			doc($config:app-root || "/services.xml")//service[@env eq $env-name][normalize-space(.) ne ""]/string(), $default
+		)[1]
 	} catch * { $default }
 };
 
@@ -134,16 +146,6 @@ declare variable $config:DOI := "10.25592/BetaMasaheft";
 declare variable $config:ADMIN := environment-variable("ExistAdmin");
 
 declare variable $config:ppw := environment-variable("ExistAdminPw");
-
-declare variable $config:app-root := let $rawPath := system:get-module-load-path()
-let $modulePath := (: strip the xmldb: part :) if (starts-with($rawPath, "xmldb:exist://")) then
-	if (starts-with($rawPath, "xmldb:exist://embedded-eXist-server")) then
-		substring($rawPath, 36)
-	else
-		substring($rawPath, 15)
-else
-	$rawPath
-return substring-before($modulePath, "/modules");
 
 declare variable $config:app-title := "Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea";
 

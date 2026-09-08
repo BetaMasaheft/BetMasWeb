@@ -42,51 +42,23 @@ import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
+import module namespace dtslib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtslib.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare option output:method "json";
 declare option output:indent "yes";
 
-declare variable $dts:context := map {
-	"@vocab": "https://www.w3.org/ns/hydra/core#",
-	"dc": "http://purl.org/dc/terms/",
-	"dts": "https://w3id.org/dts/api#",
-	"tei": "http://www.tei-c.org/ns/1.0",
-	"saws": "http://purl.org/saws/ontology#",
-	"crm": "http://www.cidoc-crm.org/cidoc-crm/",
-	"ecrm": "http://erlangen-crm.org/current/",
-	"fabio": "http://purl.org/spar/fabio",
-	"lawd": "http://lawd.info/ontology/",
-	"edm": "http://www.europeana.eu/schemas/edm/",
-	"svcs": "http://rdfs.org/sioc/services#",
-	"doap": "http://usefulinc.com/ns/doap#",
-	"foaf": "http://xmlns.com/foaf/0.1/",
-	"sc": "http://iiif.io/api/presentation/2#"
-};
-
-declare variable $dts:publisher := map {
-	"dc:publisher": ["Akademie der Wissenschaften in Hamburg", "Hiob-Ludolf-Zentrum für Äthiopistik"],
-	"dc:description":
-		[
-			map {
-				"@lang": "en",
-				"@value":
-					"The project Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea (Schriftkultur des christlichen Äthiopiens: eine multimediale Forschungsumgebung) is a long-term project funded within the framework of the Academies' Programme (coordinated by the Union of the German Academies of Sciences and Humanities) under survey of the Akademie der Wissenschaften in Hamburg. The funding will be provided for 25 years, from 2016–2040. The project is hosted by the Hiob Ludolf Centre for Ethiopian Studies at the University of Hamburg. It aims at creating a virtual research environment that shall manage complex data related to predominantly Christian manuscript tradition of the Ethiopian and Eritrean Highlands."
-			}
-		]
-};
-
-declare variable $dts:regexCol := "(https://betamasaheft.eu/)(textualunits|narrativeunits|transcriptions)?";
-
-(:
- : Leading ID group is mandatory (unlike the rest) so this can never match a
- : zero-length string - analyze-string() (dts:parseDTSid) forbids that
- : outright (err:FORX0003). Every real DTS reference starts with an ID
- : (see restviews/collatex.xqm's format docs), so this doesn't narrow what
- : the pattern is meant to accept.
+(:~
+ : JSON-LD @context, publisher block, and DTS id regexes — single source
+ : in dtslib (localdts / collatex already use that module). Do not twin here.
  :)
-declare variable $dts:regexID :=
-	"([a-zA-Z\d]+)(_(ED|TR)_([a-zA-Z0-9]+)?)?(\.)?(((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?(\-)?((\d+)(\w)?(\w)?((@)([\p{L}]+)(\[(\d+|last)\])?)?)?)";
+declare variable $dts:context := $dtslib:context;
+
+declare variable $dts:publisher := $dtslib:publisher;
+
+declare variable $dts:regexCol := $dtslib:regexCol;
+
+declare variable $dts:regexID := $dtslib:regexID;
 
 declare variable $dts:collection-rootMS := collection($config:data-rootMS);
 
