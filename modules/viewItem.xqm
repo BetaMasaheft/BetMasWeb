@@ -1660,14 +1660,25 @@ declare function viewItem:namedEntityPlace($entity) {
 	)
 };
 
-declare %private function viewItem:reflink($ref) {
+(:~
+ : Resolve a CURIE to a URI via $viewItem:prefixDef, or return $ref
+ : unchanged if unresolvable. Anchors matchPattern to the whole suffix so
+ : fn:replace can't re-prefix underscore-separated runs (the ecrm
+ : P129_is_about → …/P129_http://…/is_http://…/about failure mode).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
+declare function viewItem:reflink($ref) {
 	let $ref := viewItem:URI2ID($ref)
 	return if (contains($ref, ":")) then
 		let $prefix := substring-before($ref, ":")
 		let $suffix := substring-after($ref, ":")
 		let $prefixDef := $viewItem:prefixDef//t:prefixDef[@ident = $prefix]
 		return if (count($prefixDef) = 1) then
-			replace($suffix, $prefixDef/@matchPattern, $prefixDef/@replacementPattern)
+			let $pattern := "^" || string($prefixDef/@matchPattern) || "$"
+			return if (matches($suffix, $pattern)) then
+				replace($suffix, $pattern, string($prefixDef/@replacementPattern))
+			else
+				string($ref)
 		else
 			string($ref)
 	else
