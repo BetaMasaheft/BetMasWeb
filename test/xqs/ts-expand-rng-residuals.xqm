@@ -230,11 +230,8 @@ function tsexpandrng:reflike-resolves-long-hash-fragment() {
 };
 
 (:~
- : Regression for every other letter-only-class prefixDef (expanded#11 code
- : review, BetMasWeb#151): expand:id's whole-string anchoring was added to
- : stop ecrm's re-prefixing bug, but it applies to every prefixDef. Realistic
- : CURIE values for these vocabularies must still resolve cleanly, not fall
- : into the "no matching prefix pattern" diagnostic branch.
+ : Anchoring applies to every prefixDef, not just ecrm - realistic values
+ : for the others must still resolve, not fall into the diagnostic branch.
  :)
 declare
 	%test:arg("id", "snap:Person")
@@ -256,11 +253,26 @@ function tsexpandrng:other-letter-only-prefixes-still-resolve($id as xs:string) 
 };
 
 (:~
- : A CURIE local part that a prefixDef's matchPattern cannot match (e.g. a
- : digit under a letters-only class) must fail loudly via the diagnostic
- : string, not silently - covered so a future widened/narrowed matchPattern
- : is a deliberate, test-visible choice.
+ : An unresolved CURIE (pattern mismatch or unknown prefix) must fall back
+ : to a well-formed URI, not the free-text diagnostic that used to get
+ : written straight into a @ref/@resp/@sameAs attribute and render as a
+ : broken <a href> (viewItem:relation).
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
  :)
-declare %test:assertTrue function tsexpandrng:unmatched-local-part-is-diagnostic-not-uri() {
-	starts-with(string(expand:id("dcterms:creator2")), "no matching prefix pattern")
+declare %test:assertTrue function tsexpandrng:unresolved-curie-mismatched-pattern-is-safe-uri() {
+	let $out := string(expand:id("dcterms:creator2"))
+	return starts-with($out, "https://betamasaheft.eu/unresolved-prefix/") and not(contains($out, " "))
+};
+
+declare %test:assertTrue function tsexpandrng:unresolved-curie-unknown-prefix-is-safe-uri() {
+	let $out := string(expand:id("totallyUnknownPrefix:foo"))
+	return starts-with($out, "https://betamasaheft.eu/unresolved-prefix/") and not(contains($out, " "))
+};
+
+(:~
+ : The unresolved-prefix placeholder still round-trips the original id
+ : (percent-encoded) so a broken link is traceable back to its source CURIE.
+ :)
+declare %test:assertTrue function tsexpandrng:unresolved-curie-placeholder-encodes-original-id() {
+	contains(string(expand:id("dcterms:creator2")), encode-for-uri("dcterms:creator2"))
 };

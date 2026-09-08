@@ -62,12 +62,33 @@ declare function expand:create-collections($uri as xs:string) {
 };
 
 (:~
+ : Safe placeholder for an unresolved expand:id CURIE. Callers write the
+ : result straight into a @ref/@resp/@sameAs attribute rendered unescaped
+ : as <a href>, so a prose diagnostic there breaks the link; this stays a
+ : well-formed, traceable URI instead. Logs the diagnosis for debugging.
+ : @param $prefix the CURIE prefix that failed to resolve
+ : @param $id the original CURIE/id that could not be resolved
+ : @param $reason short diagnosis, written to the log only
+ : @return an https://betamasaheft.eu/unresolved-prefix/ URI, never $id
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
+ :)
+declare %private function expand:unresolved-id(
+	$prefix as xs:string,
+	$id as xs:string,
+	$reason as xs:string
+) as xs:string {
+	util:log("warn", "expand:id: " || $reason || " - " || $id),
+	$expand:BMurl || "unresolved-prefix/" || encode-for-uri($prefix) || "?id=" || encode-for-uri($id)
+};
+
+(:~
  : Resolve a CURIE / bare id to a URI via $expand:listPrefixDef.
  : Applies prefixDef matchPattern only as a whole-string match so
  : fn:replace cannot re-prefix underscore-separated runs (the ecrm
  : P129_is_about → …/P129_http://…/is_http://…/about failure mode).
  : @param $id CURIE, absolute http(s) URI, or bare BetMas id
- : @return resolved URI, or a diagnostic string when the prefix/pattern misses
+ : @return resolved URI, or expand:unresolved-id's safe placeholder when the
+ : prefix/pattern misses
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/127
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/152
  :)
@@ -85,19 +106,10 @@ declare function expand:id($id) {
 			let $pattern := "^" || string($pdef/@matchPattern) || "$"
 			return if (matches($local, $pattern)) then
 				replace($local, $pattern, string($pdef/@replacementPattern))
-			else (
-				util:log(
-					"warn",
-					"expand:id: " ||
-						$prefix ||
-						"'s matchPattern does not match local part in " ||
-						$id ||
-						" - emitting diagnostic text instead of a URI"
-				),
-				concat("no matching prefix pattern ", $prefix, " for ", $id)
-			)
+			else
+				expand:unresolved-id($prefix, $id, "matchPattern does not match local part")
 		else
-			concat("no matching prefix ", $prefix, " found for ", $id)
+			expand:unresolved-id($prefix, $id, "prefix not found in listPrefixDef")
 	else
 		"https://betamasaheft.eu/" || $id
 };

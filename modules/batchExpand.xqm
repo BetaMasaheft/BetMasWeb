@@ -14,8 +14,6 @@ import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas
 
 declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
-declare variable $batchExpand:expanded-root := "/db/apps/expanded";
-
 (:~
  : True if $col is the BetMasData root or a path strictly under it, with no
  : `..` / `.` segments (rejects prefix tricks and traversal).
@@ -50,16 +48,14 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 		error(xs:QName("batchExpand:MISSING"), "collection not found: " || $col)
 	else
 		let $context := collection($col)//t:TEI
-		let $expected := distinct-values(
-			for $file in $context
-			return substring-after(base-uri($file), $col || "/")
-		)
 		let $expanded-col := batchExpand:expanded-mirror($col)
 		let $t0 := util:system-time()
 		let $_ :=
 			for $file in $context
 			return batchExpand:expandOne($file)
-		let $pruned := batchExpand:prune-mirror($expanded-col, $expected)
+		(: Fresh, not a pre-loop snapshot - avoids pruning a file a
+		   concurrent writer stored here while this batch was expanding. :)
+		let $pruned := batchExpand:prune-mirror($expanded-col, batchExpand:expected-relative-paths($col))
 		let $_log := if ($pruned gt 0) then
 			util:log("INFO", "pruned " || $pruned || " stale resource(s) from " || $expanded-col)
 		else (
@@ -70,14 +66,28 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 
 (:~
  : Mirrored expanded collection URI for a BetMasData collection. Prefix
- : substitution (not a delimiter-anchored fn:replace) so the BetMasData
- : root itself - which has no trailing slash for "/BetMasData/" to match -
- : maps correctly instead of aliasing back onto the live source collection.
+ : substitution, not a delimiter-anchored replace: the bare root has no
+ : trailing slash for "/BetMasData/" to match, which used to alias back
+ : onto the live source. Reuses $expand:fullTEIcol-path so the two roots
+ : can't drift apart.
  : @param $data-col $batchExpand:data-root or a collection under it
  : @see https://github.com/BetaMasaheft/expanded/issues/11
  :)
 declare function batchExpand:expanded-mirror($data-col as xs:string) as xs:string {
-	$batchExpand:expanded-root || substring-after($data-col, $batchExpand:data-root)
+	$expand:fullTEIcol-path || substring-after($data-col, $batchExpand:data-root)
+};
+
+(:~
+ : TEI paths (relative to $col) currently present in $col. Not memoized -
+ : callers should call this right before using the result.
+ : @param $col a BetMasData collection
+ : @return distinct paths, relative to $col, of every t:TEI currently in it
+ :)
+declare function batchExpand:expected-relative-paths($col as xs:string) as xs:string* {
+	distinct-values(
+		for $file in collection($col)//t:TEI
+		return substring-after(base-uri($file), $col || "/")
+	)
 };
 
 (:~

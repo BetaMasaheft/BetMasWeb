@@ -50,6 +50,10 @@ declare variable $tsbatchexp:path-src-col := "/db/apps/BetMasData/works/_batchEx
 
 declare variable $tsbatchexp:path-out-col := "/db/apps/expanded/works/_batchExpandPathTest";
 
+(: Own collection (not the shared src-col above) so storing a second file
+   here can't affect tests asserting a one-file count on src-col. :)
+declare variable $tsbatchexp:freshness-src-col := "/db/apps/BetMasData/works/_batchExpandFreshnessTest";
+
 declare %private function tsbatchexp:cleanup() {
 	if (xmldb:collection-available($tsbatchexp:out-col)) then
 		try { xmldb:remove($tsbatchexp:out-col) } catch * { () }
@@ -74,6 +78,10 @@ declare %private function tsbatchexp:cleanup() {
 	if (xmldb:collection-available($tsbatchexp:path-src-col)) then
 		try { xmldb:remove($tsbatchexp:path-src-col) } catch * { () }
 	else (
+	),
+	if (xmldb:collection-available($tsbatchexp:freshness-src-col)) then
+		try { xmldb:remove($tsbatchexp:freshness-src-col) } catch * { () }
+	else (
 	)
 };
 
@@ -86,10 +94,7 @@ declare %test:tearDown function tsbatchexp:tearDown() {
 };
 
 (:~
- : Pure path mapping BetMasData -> expanded. Exercises both the bare-root
- : case (no trailing slash for fn:replace to anchor on - the shape that let
- : prune-mirror delete straight from the live source) and a nested subpath.
- : @see https://github.com/BetaMasaheft/expanded/issues/11
+ : Bare root (no trailing slash) and a nested subpath must both map.
  :)
 declare %test:assertEquals("/db/apps/expanded") function tsbatchexp:expanded-mirror-maps-bare-root() {
 	batchExpand:expanded-mirror($batchExpand:data-root)
@@ -97,6 +102,32 @@ declare %test:assertEquals("/db/apps/expanded") function tsbatchexp:expanded-mir
 
 declare %test:assertEquals("/db/apps/expanded/works/1-1000") function tsbatchexp:expanded-mirror-maps-subpath() {
 	batchExpand:expanded-mirror($batchExpand:data-root || "/works/1-1000")
+};
+
+(:~
+ : expected-relative-paths must re-read $col on every call, not memoize -
+ : otherwise a file stored mid-batch would look stale and get pruned.
+ :)
+declare %test:assertEquals(2) function tsbatchexp:expected-relative-paths-sees-file-added-after-earlier-call() {
+	let $_mk := xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandFreshnessTest")
+	let $_seed := xmldb:store(
+		$tsbatchexp:freshness-src-col,
+		"FIRSTbatchExpand.xml",
+		<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="FIRSTbatchExpand">
+			<teiHeader><titleStmt><title>first</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+			<text><body><div type="edition"><ab>x</ab></div></body></text>
+		</TEI>
+	)
+	let $_first-call := batchExpand:expected-relative-paths($tsbatchexp:freshness-src-col)
+	let $_add := xmldb:store(
+		$tsbatchexp:freshness-src-col,
+		"SECONDbatchExpand.xml",
+		<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="SECONDbatchExpand">
+			<teiHeader><titleStmt><title>second</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+			<text><body><div type="edition"><ab>x</ab></div></body></text>
+		</TEI>
+	)
+	return count(batchExpand:expected-relative-paths($tsbatchexp:freshness-src-col))
 };
 
 (:~
