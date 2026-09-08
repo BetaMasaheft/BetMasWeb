@@ -1,0 +1,24 @@
+test/xqs/ts-expand-rng-residuals.xqm
+  s_bfac4543151ff7::t_c9e5dd07ca9a25 88-103
+modules/expand.xqm
+  s_bfac4543151ff7::t_6910342d86552c 25-31
+  s_bfac4543151ff7::t_1dd5bd5300bae4 65
+modules/gitsync.xqm
+  s_bfac4543151ff7::t_06d9c05e686b84 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2afeec26aa307902844dbfb9b0bb551febb69b92",
+  "prompts": {},
+  "sessions": {
+    "s_bfac4543151ff7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "86f79926-bf74-4660-badb-9dd045efa2ca",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
