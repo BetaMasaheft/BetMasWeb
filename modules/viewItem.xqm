@@ -23,6 +23,7 @@ import module namespace templates = "http://exist-db.org/xquery/html-templating"
 
 declare option output:method "html5";
 declare option output:indent "yes";
+declare option output:encoding "utf-8";
 
 (: to preserve white spaces in mixed content the option in conf.xml preserve-white-space needs to be set to yes! :)
 
