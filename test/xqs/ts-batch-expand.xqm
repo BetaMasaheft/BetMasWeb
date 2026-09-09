@@ -67,51 +67,25 @@ declare variable $tsbatchexp:new-col-src := $tsbatchexp:new-col-parent-src || "/
 
 declare variable $tsbatchexp:new-col-out := $tsbatchexp:new-col-parent-out || "/new";
 
-declare %private function tsbatchexp:cleanup() {
-	if (xmldb:collection-available($tsbatchexp:out-col)) then
-		try { xmldb:remove($tsbatchexp:out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:src-col)) then
-		try { xmldb:remove($tsbatchexp:src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:empty-out-col)) then
-		try { xmldb:remove($tsbatchexp:empty-out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:empty-src-col)) then
-		try { xmldb:remove($tsbatchexp:empty-src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:path-out-col)) then
-		try { xmldb:remove($tsbatchexp:path-out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:path-src-col)) then
-		try { xmldb:remove($tsbatchexp:path-src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:freshness-src-col)) then
-		try { xmldb:remove($tsbatchexp:freshness-src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:new-parent-out)) then
-		try { xmldb:remove($tsbatchexp:new-parent-out) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:new-parent-src)) then
-		try { xmldb:remove($tsbatchexp:new-parent-src) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available("/db/apps/expanded/works/_batchExpandNewColTest")) then
-		try { xmldb:remove("/db/apps/expanded/works/_batchExpandNewColTest") } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available("/db/apps/BetMasData/works/_batchExpandNewColTest")) then
-		try { xmldb:remove("/db/apps/BetMasData/works/_batchExpandNewColTest") } catch * { () }
+declare %private function tsbatchexp:remove-if-exists($col as xs:string) {
+	if (xmldb:collection-available($col)) then
+		try { xmldb:remove($col) } catch * { () }
 	else (
 	)
+};
+
+declare %private function tsbatchexp:cleanup() {
+	tsbatchexp:remove-if-exists($tsbatchexp:out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:empty-out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:empty-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:path-out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:path-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:freshness-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-out),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-src),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-out),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-src)
 };
 
 declare %test:setUp function tsbatchexp:setUp() {
