@@ -91,6 +91,18 @@ declare function batchExpand:expected-relative-paths($col as xs:string) as xs:st
 };
 
 (:~
+ : True when $rel (path relative to a mirrored expanded collection) has a
+ : path segment exactly `new` - ID-reservation stubs live under
+ : `{corpus}/new/` and must survive parent-collection mirror prune.
+ : @param $rel path relative to an expanded mirror collection
+ : @return true if any path segment is the literal string "new"
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %private function batchExpand:is-new-reservation-path($rel as xs:string) as xs:boolean {
+	some $seg in tokenize($rel, "/") satisfies $seg = "new"
+};
+
+(:~
  : Remove resources under $expanded-col whose path (relative to
  : $expanded-col) is not in $expected. Ignores eXist collection metadata.
  : Refuses to prune when $expected is empty: a source collection that
@@ -98,12 +110,17 @@ declare function batchExpand:expected-relative-paths($col as xs:string) as xs:st
  : sync race, and pruning would otherwise wipe the entire mirrored
  : subtree - the same "no silent full-corpus" guarantee expandCollection
  : already gives the top-level empty/missing checks.
+ : Also refuses to prune when $expanded-col itself ends in `/new` (the
+ : reservation folder), and never deletes descendants whose relative path
+ : contains a `new` segment - those stubs are WIP id reservations, not
+ : orphan expand leftovers.
  :
  : @param $expanded-col e.g. /db/apps/expanded/works/1-1000
  : @param $expected source paths (relative to the BetMasData collection
  : that mirrors to $expanded-col) that must remain
  : @return number of resources removed
  : @see https://github.com/BetaMasaheft/expanded/issues/11
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
  :)
 declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $expected as xs:string*) as xs:integer {
 	if (empty($expected)) then (
@@ -114,7 +131,9 @@ declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $
 		0
 	) else if (not(xmldb:collection-available($expanded-col))) then
 		0
-	else
+	else if (tokenize($expanded-col, "/")[last()] = "new") then (
+		util:log("INFO", "batchExpand:prune-mirror: skipping reservation collection " || $expanded-col), 0
+	) else
 		let $expected-map := map:merge(
 			for $e in $expected
 			return map:entry($e, true())
@@ -123,7 +142,9 @@ declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $
 			for $path in batchExpand:descendant-resources($expanded-col)
 			let $name := tokenize($path, "/")[last()]
 			let $rel := substring-after($path, $expanded-col || "/")
-			where not($name = "__contents__.xml") and not(map:contains($expected-map, $rel))
+			where not($name = "__contents__.xml") and
+				not(map:contains($expected-map, $rel)) and
+				not(batchExpand:is-new-reservation-path($rel))
 			return try {
 				let $parent := replace(substring($path, 1, string-length($path) - string-length($name)), "/$", "")
 				let $_ := xmldb:remove($parent, $name)
