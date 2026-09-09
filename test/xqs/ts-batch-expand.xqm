@@ -214,6 +214,29 @@ declare %test:assertFalse function tsbatchexp:prunes-stale-mirror-resources() {
 };
 
 (:~
+ : A trailing slash on $collectionUri must not defeat prune-mirror's
+ : relative-path comparisons - normalize-space alone doesn't strip it, and
+ : the resulting double slash matches no real resource path.
+ :)
+declare %test:assertFalse function tsbatchexp:trailing-slash-does-not-defeat-prune() {
+	let $_seed := (
+		if (xmldb:collection-available($tsbatchexp:out-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/expanded/works", "_batchExpandTest"),
+		xmldb:store(
+			$tsbatchexp:out-col,
+			"ORPHANtrailingSlash.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANtrailingSlash">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col || "/")
+	return doc-available($tsbatchexp:out-col || "/ORPHANtrailingSlash.xml")
+};
+
+(:~
  : An existing collection with zero TEI files right now must not be treated
  : as "nothing is expected" and wipe its whole expanded mirror - that's
  : indistinguishable from a full accidental wipe.

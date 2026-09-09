@@ -36,7 +36,10 @@ declare %private function batchExpand:is-allowed-collection($col as xs:string) a
  : @see https://github.com/BetaMasaheft/expanded/issues/11
  :)
 declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
-	let $col := normalize-space($collectionUri)
+	(: Trailing slash(es) stripped: left in, they shift tokenize's last
+	   segment to "" and corrupt every downstream relative-path comparison
+	   in prune-mirror (a double slash matches no real resource path). :)
+	let $col := replace(normalize-space($collectionUri), "/+$", "")
 	return if ($col = "" or empty($collectionUri)) then
 		error(xs:QName("batchExpand:EMPTY"), "collection parameter is required")
 	else if (not(batchExpand:is-allowed-collection($col))) then
