@@ -96,6 +96,18 @@ declare %private function batchExpand:is-new-reservation-path($rel as xs:string)
 };
 
 (:~
+ : True when $col itself is an ID-reservation collection (last path segment
+ : is exactly `new`). Expanding such a collection mirrors to
+ : `/db/apps/expanded/.../new`; relative resource paths then have no `new`
+ : segment, so is-new-reservation-path cannot protect app-only WIP.
+ : @param $col absolute collection URI (BetMasData or expanded mirror)
+ : @return true if the collection is a reservation staging area
+ :)
+declare %private function batchExpand:is-new-reservation-collection($col as xs:string) as xs:boolean {
+	tokenize($col, "/")[last()] = "new"
+};
+
+(:~
  : Remove resources under $expanded-col whose path (relative to
  : $expanded-col) is not in $expected. Ignores eXist collection metadata.
  : Refuses to prune when $expected is empty: a source collection that
@@ -107,11 +119,12 @@ declare %private function batchExpand:is-new-reservation-path($rel as xs:string)
  : ID-reservation stub, not an orphan expand leftover - unless its
  : basename also appears elsewhere in $expected outside `new/`, which
  : means the id was promoted to a permanent path and the stale copy under
- : `new/` is a resolved leftover, safe to remove. $expanded-col itself
- : being a `new` collection (e.g. CI expanding a corpus's `new/` staging
- : area directly) is not special-cased: it prunes like any other
- : collection, since `new/` holds real, actively-expanded content, not
- : just reservation stubs.
+ : `new/` is a resolved leftover, safe to remove.
+ : When $expanded-col itself is a reservation collection (`…/new`), skip
+ : prune entirely: relative paths lack a `new` segment, and app-only WIP
+ : (create-new → expanded, not yet in BetMasData) must survive a dedicated
+ : `{corpus}/new` expand job. Overdue cleanup stays with assemble (git) and
+ : parent-expand promotion (live).
  :
  : @param $expanded-col e.g. /db/apps/expanded/works/1-1000
  : @param $expected source paths (relative to the BetMasData collection
@@ -129,7 +142,13 @@ declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $
 		0
 	) else if (not(xmldb:collection-available($expanded-col))) then
 		0
-	else
+	else if (batchExpand:is-new-reservation-collection($expanded-col)) then (
+		util:log(
+			"info",
+			"batchExpand:prune-mirror: skipping reservation collection " || $expanded-col || " - keep app-only WIP"
+		),
+		0
+	) else
 		let $expected-map := map:merge(
 			for $e in $expected
 			return map:entry($e, true())
