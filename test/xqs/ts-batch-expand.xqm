@@ -59,9 +59,13 @@ declare variable $tsbatchexp:new-parent-src := "/db/apps/BetMasData/works/_batch
 
 declare variable $tsbatchexp:new-parent-out := "/db/apps/expanded/works/_batchExpandNewParentTest";
 
-declare variable $tsbatchexp:new-col-src := "/db/apps/BetMasData/works/_batchExpandNewColTest/new";
+declare variable $tsbatchexp:new-col-parent-src := "/db/apps/BetMasData/works/_batchExpandNewColTest";
 
-declare variable $tsbatchexp:new-col-out := "/db/apps/expanded/works/_batchExpandNewColTest/new";
+declare variable $tsbatchexp:new-col-parent-out := "/db/apps/expanded/works/_batchExpandNewColTest";
+
+declare variable $tsbatchexp:new-col-src := $tsbatchexp:new-col-parent-src || "/new";
+
+declare variable $tsbatchexp:new-col-out := $tsbatchexp:new-col-parent-out || "/new";
 
 declare %private function tsbatchexp:cleanup() {
 	if (xmldb:collection-available($tsbatchexp:out-col)) then
@@ -352,15 +356,16 @@ declare %test:assertTrue function tsbatchexp:keeps-stubs-under-new-when-pruning-
 };
 
 (:~
- : When the mirrored collection itself is a `new` reservation folder, skip
- : prune entirely - bare relative paths have no `new` segment, so the
- : path-segment guard alone is not enough.
+ : `new/` is a real, actively-expanded corpus staging area (e.g. CI expands
+ : works/new directly), not just a reservation holder - when it's the
+ : collection being expanded, prune must run normally: a resource with no
+ : BetMasData source gets removed like any other orphan.
  : @see https://github.com/BetaMasaheft/expanded/issues/31
  :)
-declare %test:assertTrue function tsbatchexp:skips-prune-when-mirror-collection-is-new() {
+declare %test:assertTrue function tsbatchexp:prunes-normally-when-mirror-collection-is-new() {
 	let $_seed := (
 		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewColTest"),
-		xmldb:create-collection("/db/apps/BetMasData/works/_batchExpandNewColTest", "new"),
+		xmldb:create-collection($tsbatchexp:new-col-parent-src, "new"),
 		xmldb:store(
 			$tsbatchexp:new-col-src,
 			"RESERVEDbatchExpand.xml",
@@ -370,7 +375,7 @@ declare %test:assertTrue function tsbatchexp:skips-prune-when-mirror-collection-
 			</TEI>
 		),
 		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandNewColTest"),
-		xmldb:create-collection("/db/apps/expanded/works/_batchExpandNewColTest", "new"),
+		xmldb:create-collection($tsbatchexp:new-col-parent-out, "new"),
 		xmldb:store(
 			$tsbatchexp:new-col-out,
 			"ORPHANinNewbatchExpand.xml",
@@ -381,8 +386,51 @@ declare %test:assertTrue function tsbatchexp:skips-prune-when-mirror-collection-
 		)
 	)
 	let $_ := batchExpand:expandCollection($tsbatchexp:new-col-src)
-	return doc-available($tsbatchexp:new-col-out || "/ORPHANinNewbatchExpand.xml") and
+	return not(doc-available($tsbatchexp:new-col-out || "/ORPHANinNewbatchExpand.xml")) and
 		doc-available($tsbatchexp:new-col-out || "/RESERVEDbatchExpand.xml")
+};
+
+(:~
+ : Once a reservation stub's basename also appears elsewhere in $expected,
+ : outside `new/`, the id was promoted to a permanent path within the same
+ : batch - the stale copy left under `new/` is a resolved leftover, not a
+ : WIP stub, and must be pruned.
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %test:assertFalse function tsbatchexp:prunes-promoted-stub-once-real-file-exists-elsewhere() {
+	let $newOut := $tsbatchexp:new-parent-out || "/new"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewParentTest"),
+		xmldb:store(
+			$tsbatchexp:new-parent-src,
+			"PARENTbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="PARENTbatchExpand">
+				<teiHeader><titleStmt><title>parent</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		(: same basename now exists at a permanent (non-new) path: promoted :)
+		xmldb:store(
+			$tsbatchexp:new-parent-src,
+			"STUBbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="STUBbatchExpandPromoted">
+				<teiHeader><titleStmt><title>promoted</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandNewParentTest"),
+		xmldb:create-collection($tsbatchexp:new-parent-out, "new"),
+		xmldb:store(
+			$newOut,
+			"STUBbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="STUBbatchExpand">
+				<teiHeader><titleStmt><title>stub</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:new-parent-src)
+	return doc-available($newOut || "/STUBbatchExpand.xml")
 };
 
 (:~
