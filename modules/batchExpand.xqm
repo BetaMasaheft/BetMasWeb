@@ -15,17 +15,6 @@ import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas
 declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
 (:~
- : True if $col is the BetMasData root or a path strictly under it, with no
- : `..` / `.` segments (rejects prefix tricks and traversal).
- :)
-declare %private function batchExpand:is-allowed-collection($col as xs:string) as xs:boolean {
-	let $root := $batchExpand:data-root
-	let $under := $col = $root or starts-with($col, $root || "/")
-	let $segments := tokenize($col, "/")
-	return $under and empty($segments[. = ("..", ".")])
-};
-
-(:~
  : Expand every TEI under $collectionUri into /db/apps/expanded/... and prune
  : the mirrored subtree so it contains no resources absent from BetMasData
  : (mirror sync). Refuses empty / missing / out-of-tree collection (no silent
@@ -42,7 +31,7 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 	let $col := replace(normalize-space($collectionUri), "/+$", "")
 	return if ($col = "" or empty($collectionUri)) then
 		error(xs:QName("batchExpand:EMPTY"), "collection parameter is required")
-	else if (not(batchExpand:is-allowed-collection($col))) then
+	else if (not(expand:is-allowed-collection($col, $batchExpand:data-root))) then
 		error(
 			xs:QName("batchExpand:BAD_ROOT"),
 			"collection must be under " || $batchExpand:data-root || " without .. segments, got: " || $col
