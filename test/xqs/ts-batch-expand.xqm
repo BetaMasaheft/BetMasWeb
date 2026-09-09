@@ -330,13 +330,14 @@ declare %test:assertTrue function tsbatchexp:keeps-stubs-under-new-when-pruning-
 };
 
 (:~
- : `new/` is a real, actively-expanded corpus staging area (e.g. CI expands
- : works/new directly), not just a reservation holder - when it's the
- : collection being expanded, prune must run normally: a resource with no
- : BetMasData source gets removed like any other orphan.
+ : When CI expands a corpus `new/` collection directly, relative paths under
+ : the mirror have no `new` segment - so the parent-expand stub guard does
+ : not apply. App-only WIP (no BetMasData source yet) must still survive:
+ : skip prune entirely for reservation collections. Overdue cleanup is
+ : assemble's job (git) / parent-expand promotion (live).
  : @see https://github.com/BetaMasaheft/expanded/issues/31
  :)
-declare %test:assertTrue function tsbatchexp:prunes-normally-when-mirror-collection-is-new() {
+declare %test:assertTrue function tsbatchexp:keeps-app-only-wip-when-expanding-new-collection() {
 	let $_seed := (
 		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewColTest"),
 		xmldb:create-collection($tsbatchexp:new-col-parent-src, "new"),
@@ -352,15 +353,15 @@ declare %test:assertTrue function tsbatchexp:prunes-normally-when-mirror-collect
 		xmldb:create-collection($tsbatchexp:new-col-parent-out, "new"),
 		xmldb:store(
 			$tsbatchexp:new-col-out,
-			"ORPHANinNewbatchExpand.xml",
-			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANinNewbatchExpand">
-				<teiHeader><titleStmt><title>orphan in new</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+			"WIPinNewbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="WIPinNewbatchExpand">
+				<teiHeader><titleStmt><title>app-only wip</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
 				<text><body><div type="edition"><ab>x</ab></div></body></text>
 			</TEI>
 		)
 	)
 	let $_ := batchExpand:expandCollection($tsbatchexp:new-col-src)
-	return not(doc-available($tsbatchexp:new-col-out || "/ORPHANinNewbatchExpand.xml")) and
+	return doc-available($tsbatchexp:new-col-out || "/WIPinNewbatchExpand.xml") and
 		doc-available($tsbatchexp:new-col-out || "/RESERVEDbatchExpand.xml")
 };
 
