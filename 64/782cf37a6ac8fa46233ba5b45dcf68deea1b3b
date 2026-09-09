@@ -1,0 +1,22 @@
+modules/batchExpand.xqm
+  s_7daa5932aaa208::t_5fbe9cd679e98d 98-100,117-125,143,148-152,159
+test/xqs/ts-batch-expand.xqm
+  s_7daa5932aaa208::t_5fbe9cd679e98d 62,64-68,359-362,365,368,378,389,393-433
+  s_7daa5932aaa208::t_22affc00e04c13 434-435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "64782cf37a6ac8fa46233ba5b45dcf68deea1b3b",
+  "prompts": {},
+  "sessions": {
+    "s_7daa5932aaa208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6ef82e6b-7589-407f-8d05-c949a4f9be46",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
