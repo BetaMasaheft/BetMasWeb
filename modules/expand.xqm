@@ -1038,13 +1038,14 @@ declare function expand:file($filepath) {
 };
 
 (:~
- : True if $col is the expanded-collection root or a path strictly
- : under it, with no ".."/"." segments (rejects prefix tricks and
- : traversal). Mirrors batchExpand:is-allowed-collection's shape for
- : /db/apps/expanded instead of /db/apps/BetMasData.
+ : True if $col is $root or a path strictly under it, with no ".."/"."
+ : segments (rejects prefix tricks and traversal). Shared guard for any
+ : module that restricts a collection-URI parameter to one root tree.
+ : @param $col candidate collection URI
+ : @param $root the root collection $col must be under
+ : @return true if $col is safely within $root
  :)
-declare %private function expand:is-allowed-backfill-collection($col as xs:string) as xs:boolean {
-	let $root := $expand:fullTEIcol-path
+declare function expand:is-allowed-collection($col as xs:string, $root as xs:string) as xs:boolean {
 	let $under := $col = $root or starts-with($col, $root || "/")
 	let $segments := tokenize($col, "/")
 	return $under and empty($segments[. = ("..", ".")])
@@ -1066,7 +1067,7 @@ declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:s
 	let $col := normalize-space($collectionUri)
 	return if ($col = "" or empty($collectionUri)) then
 		error(xs:QName("expand:EMPTY"), "collection parameter is required")
-	else if (not(expand:is-allowed-backfill-collection($col))) then
+	else if (not(expand:is-allowed-collection($col, $expand:fullTEIcol-path))) then
 		error(
 			xs:QName("expand:BAD_ROOT"),
 			"collection must be under " || $expand:fullTEIcol-path || " without .. segments, got: " || $col

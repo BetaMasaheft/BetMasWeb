@@ -15,17 +15,6 @@ import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas
 declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
 (:~
- : True if $col is the BetMasData root or a path strictly under it, with no
- : `..` / `.` segments (rejects prefix tricks and traversal).
- :)
-declare %private function batchExpand:is-allowed-collection($col as xs:string) as xs:boolean {
-	let $root := $batchExpand:data-root
-	let $under := $col = $root or starts-with($col, $root || "/")
-	let $segments := tokenize($col, "/")
-	return $under and empty($segments[. = ("..", ".")])
-};
-
-(:~
  : Expand every TEI under $collectionUri into /db/apps/expanded/... and prune
  : the mirrored subtree so it contains no resources absent from BetMasData
  : (mirror sync). Refuses empty / missing / out-of-tree collection (no silent
@@ -36,10 +25,13 @@ declare %private function batchExpand:is-allowed-collection($col as xs:string) a
  : @see https://github.com/BetaMasaheft/expanded/issues/11
  :)
 declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
-	let $col := normalize-space($collectionUri)
+	(: Trailing slash(es) stripped: left in, they shift tokenize's last
+	   segment to "" and corrupt every downstream relative-path comparison
+	   in prune-mirror (a double slash matches no real resource path). :)
+	let $col := replace(normalize-space($collectionUri), "/+$", "")
 	return if ($col = "" or empty($collectionUri)) then
 		error(xs:QName("batchExpand:EMPTY"), "collection parameter is required")
-	else if (not(batchExpand:is-allowed-collection($col))) then
+	else if (not(expand:is-allowed-collection($col, $batchExpand:data-root))) then
 		error(
 			xs:QName("batchExpand:BAD_ROOT"),
 			"collection must be under " || $batchExpand:data-root || " without .. segments, got: " || $col
@@ -91,6 +83,19 @@ declare function batchExpand:expected-relative-paths($col as xs:string) as xs:st
 };
 
 (:~
+ : True when $rel (path relative to a mirrored expanded collection) has a
+ : path segment exactly `new`, at any depth - ID-reservation stubs written
+ : straight into the mirror (no BetMasData source yet) live under a `new/`
+ : subcollection and must survive prune until promoted to a permanent path.
+ : @param $rel path relative to an expanded mirror collection
+ : @return true if any path segment is the literal string "new"
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %private function batchExpand:is-new-reservation-path($rel as xs:string) as xs:boolean {
+	some $seg in tokenize($rel, "/") satisfies $seg = "new"
+};
+
+(:~
  : Remove resources under $expanded-col whose path (relative to
  : $expanded-col) is not in $expected. Ignores eXist collection metadata.
  : Refuses to prune when $expected is empty: a source collection that
@@ -98,12 +103,22 @@ declare function batchExpand:expected-relative-paths($col as xs:string) as xs:st
  : sync race, and pruning would otherwise wipe the entire mirrored
  : subtree - the same "no silent full-corpus" guarantee expandCollection
  : already gives the top-level empty/missing checks.
+ : A descendant whose relative path has a `new` segment is a WIP
+ : ID-reservation stub, not an orphan expand leftover - unless its
+ : basename also appears elsewhere in $expected outside `new/`, which
+ : means the id was promoted to a permanent path and the stale copy under
+ : `new/` is a resolved leftover, safe to remove. $expanded-col itself
+ : being a `new` collection (e.g. CI expanding a corpus's `new/` staging
+ : area directly) is not special-cased: it prunes like any other
+ : collection, since `new/` holds real, actively-expanded content, not
+ : just reservation stubs.
  :
  : @param $expanded-col e.g. /db/apps/expanded/works/1-1000
  : @param $expected source paths (relative to the BetMasData collection
  : that mirrors to $expanded-col) that must remain
  : @return number of resources removed
  : @see https://github.com/BetaMasaheft/expanded/issues/11
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
  :)
 declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $expected as xs:string*) as xs:integer {
 	if (empty($expected)) then (
@@ -119,11 +134,18 @@ declare %private function batchExpand:prune-mirror($expanded-col as xs:string, $
 			for $e in $expected
 			return map:entry($e, true())
 		)
+		let $promoted-basenames := map:merge(
+			for $e in $expected
+			where not(batchExpand:is-new-reservation-path($e))
+			return map:entry(tokenize($e, "/")[last()], true())
+		)
 		let $removed :=
 			for $path in batchExpand:descendant-resources($expanded-col)
 			let $name := tokenize($path, "/")[last()]
 			let $rel := substring-after($path, $expanded-col || "/")
-			where not($name = "__contents__.xml") and not(map:contains($expected-map, $rel))
+			where not($name = "__contents__.xml") and
+				not(map:contains($expected-map, $rel)) and
+				(not(batchExpand:is-new-reservation-path($rel)) or map:contains($promoted-basenames, $name))
 			return try {
 				let $parent := replace(substring($path, 1, string-length($path) - string-length($name)), "/$", "")
 				let $_ := xmldb:remove($parent, $name)

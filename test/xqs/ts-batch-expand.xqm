@@ -54,35 +54,38 @@ declare variable $tsbatchexp:path-out-col := "/db/apps/expanded/works/_batchExpa
    here can't affect tests asserting a one-file count on src-col. :)
 declare variable $tsbatchexp:freshness-src-col := "/db/apps/BetMasData/works/_batchExpandFreshnessTest";
 
-declare %private function tsbatchexp:cleanup() {
-	if (xmldb:collection-available($tsbatchexp:out-col)) then
-		try { xmldb:remove($tsbatchexp:out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:src-col)) then
-		try { xmldb:remove($tsbatchexp:src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:empty-out-col)) then
-		try { xmldb:remove($tsbatchexp:empty-out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:empty-src-col)) then
-		try { xmldb:remove($tsbatchexp:empty-src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:path-out-col)) then
-		try { xmldb:remove($tsbatchexp:path-out-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:path-src-col)) then
-		try { xmldb:remove($tsbatchexp:path-src-col) } catch * { () }
-	else (
-	),
-	if (xmldb:collection-available($tsbatchexp:freshness-src-col)) then
-		try { xmldb:remove($tsbatchexp:freshness-src-col) } catch * { () }
+(: Parent + nested new/ for ID-reservation stub prune guards. :)
+declare variable $tsbatchexp:new-parent-src := "/db/apps/BetMasData/works/_batchExpandNewParentTest";
+
+declare variable $tsbatchexp:new-parent-out := "/db/apps/expanded/works/_batchExpandNewParentTest";
+
+declare variable $tsbatchexp:new-col-parent-src := "/db/apps/BetMasData/works/_batchExpandNewColTest";
+
+declare variable $tsbatchexp:new-col-parent-out := "/db/apps/expanded/works/_batchExpandNewColTest";
+
+declare variable $tsbatchexp:new-col-src := $tsbatchexp:new-col-parent-src || "/new";
+
+declare variable $tsbatchexp:new-col-out := $tsbatchexp:new-col-parent-out || "/new";
+
+declare %private function tsbatchexp:remove-if-exists($col as xs:string) {
+	if (xmldb:collection-available($col)) then
+		try { xmldb:remove($col) } catch * { () }
 	else (
 	)
+};
+
+declare %private function tsbatchexp:cleanup() {
+	tsbatchexp:remove-if-exists($tsbatchexp:out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:empty-out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:empty-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:path-out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:path-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:freshness-src-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-out),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-src),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-out),
+	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-src)
 };
 
 declare %test:setUp function tsbatchexp:setUp() {
@@ -189,6 +192,29 @@ declare %test:assertFalse function tsbatchexp:prunes-stale-mirror-resources() {
 };
 
 (:~
+ : A trailing slash on $collectionUri must not defeat prune-mirror's
+ : relative-path comparisons - normalize-space alone doesn't strip it, and
+ : the resulting double slash matches no real resource path.
+ :)
+declare %test:assertFalse function tsbatchexp:trailing-slash-does-not-defeat-prune() {
+	let $_seed := (
+		if (xmldb:collection-available($tsbatchexp:out-col)) then (
+		) else
+			xmldb:create-collection("/db/apps/expanded/works", "_batchExpandTest"),
+		xmldb:store(
+			$tsbatchexp:out-col,
+			"ORPHANtrailingSlash.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANtrailingSlash">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:src-col || "/")
+	return doc-available($tsbatchexp:out-col || "/ORPHANtrailingSlash.xml")
+};
+
+(:~
  : An existing collection with zero TEI files right now must not be treated
  : as "nothing is expected" and wipe its whole expanded mirror - that's
  : indistinguishable from a full accidental wipe.
@@ -258,6 +284,127 @@ declare %test:assertEquals(2) function tsbatchexp:prunes-by-relative-path-not-ba
 			0
 	)
 		=> sum()
+};
+
+(:~
+ : ID-reservation stubs live under a path segment `new/` (mirroring
+ : BetMasData/{corpus}/new). Expanding a parent collection must not prune
+ : those stubs just because they are absent from that batch's expected set.
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %test:assertTrue function tsbatchexp:keeps-stubs-under-new-when-pruning-parent() {
+	let $newOut := $tsbatchexp:new-parent-out || "/new"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewParentTest"),
+		xmldb:store(
+			$tsbatchexp:new-parent-src,
+			"PARENTbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="PARENTbatchExpand">
+				<teiHeader><titleStmt><title>parent</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandNewParentTest"),
+		xmldb:create-collection($tsbatchexp:new-parent-out, "new"),
+		xmldb:store(
+			$newOut,
+			"STUBbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="STUBbatchExpand">
+				<teiHeader><titleStmt><title>stub</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		(: Still prune true orphans outside new/ :)
+		xmldb:store(
+			$tsbatchexp:new-parent-out,
+			"ORPHANbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANbatchExpandNewParent">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:new-parent-src)
+	return doc-available($newOut || "/STUBbatchExpand.xml") and
+		not(doc-available($tsbatchexp:new-parent-out || "/ORPHANbatchExpand.xml"))
+};
+
+(:~
+ : `new/` is a real, actively-expanded corpus staging area (e.g. CI expands
+ : works/new directly), not just a reservation holder - when it's the
+ : collection being expanded, prune must run normally: a resource with no
+ : BetMasData source gets removed like any other orphan.
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %test:assertTrue function tsbatchexp:prunes-normally-when-mirror-collection-is-new() {
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewColTest"),
+		xmldb:create-collection($tsbatchexp:new-col-parent-src, "new"),
+		xmldb:store(
+			$tsbatchexp:new-col-src,
+			"RESERVEDbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="RESERVEDbatchExpand">
+				<teiHeader><titleStmt><title>reserved</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandNewColTest"),
+		xmldb:create-collection($tsbatchexp:new-col-parent-out, "new"),
+		xmldb:store(
+			$tsbatchexp:new-col-out,
+			"ORPHANinNewbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANinNewbatchExpand">
+				<teiHeader><titleStmt><title>orphan in new</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:new-col-src)
+	return not(doc-available($tsbatchexp:new-col-out || "/ORPHANinNewbatchExpand.xml")) and
+		doc-available($tsbatchexp:new-col-out || "/RESERVEDbatchExpand.xml")
+};
+
+(:~
+ : Once a reservation stub's basename also appears elsewhere in $expected,
+ : outside `new/`, the id was promoted to a permanent path within the same
+ : batch - the stale copy left under `new/` is a resolved leftover, not a
+ : WIP stub, and must be pruned.
+ : @see https://github.com/BetaMasaheft/expanded/issues/31
+ :)
+declare %test:assertFalse function tsbatchexp:prunes-promoted-stub-once-real-file-exists-elsewhere() {
+	let $newOut := $tsbatchexp:new-parent-out || "/new"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandNewParentTest"),
+		xmldb:store(
+			$tsbatchexp:new-parent-src,
+			"PARENTbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="PARENTbatchExpand">
+				<teiHeader><titleStmt><title>parent</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		(: same basename now exists at a permanent (non-new) path: promoted :)
+		xmldb:store(
+			$tsbatchexp:new-parent-src,
+			"STUBbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="STUBbatchExpandPromoted">
+				<teiHeader><titleStmt><title>promoted</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandNewParentTest"),
+		xmldb:create-collection($tsbatchexp:new-parent-out, "new"),
+		xmldb:store(
+			$newOut,
+			"STUBbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="STUBbatchExpand">
+				<teiHeader><titleStmt><title>stub</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandCollection($tsbatchexp:new-parent-src)
+	return doc-available($newOut || "/STUBbatchExpand.xml")
 };
 
 (:~
