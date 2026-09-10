@@ -4308,7 +4308,7 @@ declare function viewItem:workSnippet($node as node(), $model as map(*)) {
 	return if ($incipit) then
 		<p class="w3-small">
 			<b>Incipit: </b>
-			{viewItem:TEI2HTML($incipit)}
+			{ viewItem:TEI2HTML($incipit) }
 		</p>
 	else if ($text and contains($text, "፡")) then
 		<p class="w3-small"><b>Snippet: </b>{ string-join(subsequence(tokenize($text, "፡"), 1, 8), "፡") } ...
