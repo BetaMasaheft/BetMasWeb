@@ -1,0 +1,14 @@
+modules/viewItem.xqm
+  h_ff0005bef58c9d 4309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9852d9aeeb520e48be04caf3c98cc639eb0a2aaa",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
