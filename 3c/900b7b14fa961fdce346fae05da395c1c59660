@@ -1,0 +1,19 @@
+modules/viewItem.xqm
+  s_3a5c25cada76d8::t_bd3607302f4188 4300-4310,4320-4324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3c900b7b14fa961fdce346fae05da395c1c59660",
+  "prompts": {},
+  "sessions": {
+    "s_3a5c25cada76d8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d319129c-e5b7-441b-93c5-a2d63ebb02b6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
