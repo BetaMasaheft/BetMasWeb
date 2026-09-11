@@ -135,3 +135,76 @@ function tsviwork:renders-attestations-button() {
 declare %test:assertXPath("contains($result, 'class=&quot;w3-hide&quot;')") function tsviwork:renders-resp-section() {
 	tsviwork:render(tsviwork:doc("LIT3508Epistle"))
 };
+
+(:~
+ : Synthetic work with a textpart incipit. Used to pin workSnippet's markup
+ : path without depending on a particular corpus id: Geʿez word spans for
+ : Alpheios/highlight.js, and no full textpart chrome (chapterText /
+ : titletemplate) inside the landing-page snippet.
+ :)
+declare %private function tsviwork:incipit-fixture() as element(t:TEI) {
+	<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="TESTIncipitSnippet">
+		<text>
+			<body>
+				<div type="edition">
+					<div subtype="incipit" type="textpart" xml:lang="gez"><ab xml:lang="gez">አብ፡ ወልድ፡</ab></div>
+				</div>
+			</body>
+		</text>
+	</TEI>
+};
+
+(:~
+ : Same shape with a choice/sic/corr pair - the snippet must keep markup
+ : rendering (corr visible, choice tooltip), not flatten both forms.
+ :)
+declare %private function tsviwork:incipit-choice-fixture() as element(t:TEI) {
+	<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="TESTIncipitChoice">
+		<text>
+			<body>
+				<div type="edition">
+					<div subtype="incipit" type="textpart">
+						<ab xml:lang="gez">ጽል<choice><sic>ማ</sic><corr>መ</corr></choice>ት፡</ab>
+					</div>
+				</div>
+			</body>
+		</text>
+	</TEI>
+};
+
+declare %private function tsviwork:render-snippet($item as element()) as xs:string {
+	string-join(
+		for $x in viewItem:workSnippet(<span />, map {"item": $item})
+		return serialize($x)
+	)
+};
+
+declare %test:assertTrue function tsviwork:incipit-fixture-is-textpart() {
+	exists(tsviwork:incipit-fixture()//t:div[@type = "textpart"][@subtype = "incipit"]/t:ab)
+};
+
+(:~
+ : Passing the whole textpart div through TEI2HTML hits viewItem:div's
+ : edition/textpart branch (chapterText, "section type", AllQuotations).
+ : The landing-page snippet must render ab content only.
+ :)
+declare %test:assertTrue function tsviwork:work-snippet-omits-textpart-chrome() {
+	let $html := tsviwork:render-snippet(tsviwork:incipit-fixture())
+	return contains($html, "Incipit") and
+		not(contains($html, "chapterText")) and
+		not(contains($html, "section type")) and
+		not(contains($html, "AllQuotations"))
+};
+
+(:~
+ : Geʿez text through TEI2HTML's tokenize-text path yields class="word"
+ : spans that highlight.js / Alpheios bind to.
+ :)
+declare %test:assertTrue function tsviwork:work-snippet-emits-word-spans() {
+	contains(tsviwork:render-snippet(tsviwork:incipit-fixture()), 'class="word"')
+};
+
+declare %test:assertTrue function tsviwork:work-snippet-keeps-choice-markup() {
+	let $html := tsviwork:render-snippet(tsviwork:incipit-choice-fixture())
+	return contains($html, "መ") and contains($html, "w3-tooltip") and not(contains($html, "chapterText"))
+};
