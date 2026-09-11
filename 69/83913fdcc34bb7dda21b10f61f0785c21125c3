@@ -1,0 +1,19 @@
+test/xqs/ts-viewitem-work.xqm
+  s_3a5c25cada76d8::t_5cf694d1fa0bac 138-210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6983913fdcc34bb7dda21b10f61f0785c21125c3",
+  "prompts": {},
+  "sessions": {
+    "s_3a5c25cada76d8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d319129c-e5b7-441b-93c5-a2d63ebb02b6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
