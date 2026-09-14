@@ -166,6 +166,9 @@ $("#toogleNavIndex").click(function () {
 $(".slider").css("width", "100%");
 
 $("time").each(function () {
+	if (typeof convertDate !== "function") {
+		return;
+	}
 	console.log($(this).attr("data-calendar"));
 	var date = convertDate(
 		$(this).attr("data-calendar"),
