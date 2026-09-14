@@ -196,11 +196,10 @@ function exptit:printTitleID($id as xs:string) {
 					$subtitlenorm
 				else
 					$tit/text()
-			) else (: format the title, add it to the list and pass again to this function, which will have something to match now :) (
+			) else (
+				(: Return composed title; id($id) misses LIT…#fragment forms. :)
 				let $subtitle := exptit:printSubtitle($node[1], $SUBid)
-				let $name := (exptit:printTitleID($mainID) || ": " || $subtitle)
-				(: let $addit := if (contains($id, 'LIT')) then exptit:updateTUList($name, $id) else () :)
-				return $exptit:col/id($id)//t:title[@type = "full"]/text()
+				return normalize-space(exptit:printTitleID($mainID) || ": " || $subtitle)
 			)
 		) (: if no node could be found with the main id, that has a problem :) else (
 			<span class="w3-tag w3-red">{ "No item: " || $mainID || ", could not check for " || $SUBid }</span>
