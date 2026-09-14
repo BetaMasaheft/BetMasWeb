@@ -98,3 +98,17 @@ declare %test:assertTrue function tsprinttitle:printTitleID-self-formerly-no-rec
 			starts-with($t, "No item:")
 	)
 };
+
+(:~
+ : A "#subtitle" fragment must return the composed main+subtitle string
+ : ($name), not an empty id() lookup of the full LIT…#fragment id.
+ : Witness: LIT2000Mazmur#Psalm151 on /decorations miniature work facets
+ : (BetMasWeb#157).
+ :)
+declare %test:assertTrue function tsprinttitle:printTitleID-hash-fragment-returns-composed-name() {
+	let $t := normalize-space(string(exptit:printTitleID("LIT2000Mazmur#Psalm151")))
+	return starts-with($t, "Psalms of David") and
+		contains($t, "Psalm151") and
+		not($t = "LIT2000Mazmur#Psalm151") and
+		string-length($t) gt 0
+};

@@ -2219,8 +2219,8 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 					</div>
 					<ul class="w3-ul w3-padding w3-hoverable">
 						{
-							let $start := xs:integer(request:get-parameter("start", "1"))
-							let $num := xs:integer(request:get-parameter("num", "100"))
+							let $start := lists:request-int("start", 1)
+							let $num := lists:request-int("num", 100)
 							for $a in subsequence($addition, $start, $num)
 
 							let $fileID := data($a/ancestor::t:TEI/@xml:id)
@@ -2383,6 +2383,19 @@ declare %templates:wrap function lists:calendarRes($node as node(), $model as ma
 };
 
 (:~
+ : Integer request parameter with a default. Returns $default when there
+ : is no HTTP request context (XQSuite direct calls) or the value is not
+ : a legal integer.
+ :
+ : @param $name request parameter name
+ : @param $default value when unset or unavailable
+ : @return the integer parameter or $default
+ :)
+declare %private function lists:request-int($name as xs:string, $default as xs:integer) as xs:integer {
+	try { xs:integer(request:get-parameter($name, string($default))) } catch * { $default }
+};
+
+(:~
  : Renders /decorations' results: decoNote hits grouped by @type (one
  : "page" of types at a time), then by containing manuscript, each with
  : its authFile ("art theme") links.
@@ -2418,8 +2431,8 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 	below can be scoped to exactly what actually renders, not the whole
 	$model("hits"). Same request params the per-type loop already read
 	(unchanged behaviour), just read once instead of per type. :)
-	let $innerStart := xs:integer(request:get-parameter("start", "1"))
-	let $innerNum := xs:integer(request:get-parameter("num", "400"))
+	let $innerStart := lists:request-int("start", 1)
+	let $innerNum := lists:request-int("num", 400)
 	let $shownDecorations :=
 		for $decoration in $model("hits")[@type = $pagedTypes]
 		let $t := $decoration/@type
@@ -2460,12 +2473,7 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 								class="w3-button w3-block w3-red  w3-margin-bottom"
 								onclick="openAccordion('{ data($ms) }{ data($type) }')"
 							>
-								(: $d[1] is a decoration already known to belong to this
-								manuscript - its own document root is that manuscript's
-								document, no need for a collection-wide id() lookup. :)
-								<span
-									class="w3-left"
-								>{ root($d[1])//t:msIdentifier/t:idno }</span>
+								<span class="w3-left">{ root($d[1])//t:msIdentifier/t:idno }</span>
 								<span class="w3-badge w3-right">{ count($d) }</span>
 							</button>,
 							<div class="w3-container w3-hide" id="{ data($ms) }{ data($type) }">
