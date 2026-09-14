@@ -266,17 +266,7 @@ declare function PermRestItem:ITEM(
 							config:template-apply-config()
 						)
 					}
-					{
-						if ($type = "corpus") then (
-						) else
-							item2:RestNav($this, $collection, $type)
-					}
 					<div class="w3-main alpheios-enabled" id="main">
-						{
-							if ($type = "corpus") then (
-							) else
-								attribute style { "margin-left:10%" }
-						}
 						{
 							(:
 							 : mainContent routed through templates:apply instead of

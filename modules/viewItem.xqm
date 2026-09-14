@@ -4297,6 +4297,17 @@ declare function viewItem:workExtent($node as node(), $model as map(*)) {
 	)
 };
 
+(:~
+ : Landing-page incipit/snippet for works. Incipits are almost always a
+ : textpart div; TEI2HTML on that element would take viewItem:div's full
+ : edition/textpart branch (chapterText, titletemplate, AllQuotations).
+ : Render the ab (or bare) content instead so choice/surplus markup and
+ : Geʿez word spans stay, without textpart chrome inside the snippet.
+ :
+ : @param $node unused template hook
+ : @param $model must contain "item" (the TEI)
+ : @return a small Incipit/Snippet paragraph, or empty
+ :)
 declare function viewItem:workSnippet($node as node(), $model as map(*)) {
 	let $item := $model("item")
 	let $edition := ($item//t:div[@type = "edition"][1])
@@ -4306,7 +4317,11 @@ declare function viewItem:workSnippet($node as node(), $model as map(*)) {
 	else (
 	)
 	return if ($incipit) then
-		<p class="w3-small"><b>Incipit: </b>{ viewItem:TEI2HTML($incipit) }</p>
+		let $content := if ($incipit/t:ab) then
+			$incipit/t:ab/node()
+		else
+			$incipit/node()
+		return <p class="w3-small"><b>Incipit: </b>{ viewItem:TEI2HTML($content) }</p>
 	else if ($text and contains($text, "፡")) then
 		<p class="w3-small"><b>Snippet: </b>{ string-join(subsequence(tokenize($text, "፡"), 1, 8), "፡") } ...
         </p>

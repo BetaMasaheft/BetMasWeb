@@ -139,7 +139,12 @@ declare function item2:witList($item) {
 };
 
 (:~
- : used by item2:restNav
+ : Witness / version list markup formerly shown in the left RestNav
+ : sidebar. RestNav is now a no-op; witList remains used elsewhere
+ : (e.g. queries). The right-column witness panel is #computedWitnesses
+ : via RestSeeAlso, not this function.
+ :
+ : @param $id item xml:id
  :)
 declare function item2:witnesses($id) {
 	let $item := ($apprest:collection-rootMS, $apprest:collection-rootW)//t:TEI/id($id)
@@ -887,7 +892,12 @@ declare function item2:AdminLocTable($adminLoc as element()*) {
 };
 
 (:~
- : called by item2:restNav, makes the boxes where the main relations are dispalied
+ : Relation boxes for persons in the right-hand item column
+ : (`div.allMainRel`), via item2:mainRels ← item2:RestSeeAlso.
+ : Not related to item2:RestNav (former left sidebar).
+ :
+ : @param $this TEI item document
+ : @param $collection collection name
  :)
 declare function item2:mainRelsPersons($this, $collection) {
 	let $document := $this
@@ -1616,6 +1626,15 @@ declare function item2:mainRelsTemplate($node as node(), $model as map(*)) {
 	item2:mainRels($model("this"), $model("collection"))
 };
 
+(:~
+ : Right-column main-relation panels (`div.allMainRel`) for an item page.
+ : Dispatched from item2:RestSeeAlso, not from item2:RestNav.
+ :
+ : @param $this TEI item document
+ : @param $collection collection name
+ : @return wrapper with the collection-specific relation boxes
+ : @see item2:RestSeeAlso
+ :)
 declare function item2:mainRels($this, $collection) {
 	<div class="allMainRel">
 		{
@@ -1641,24 +1660,23 @@ declare function item2:mainRels($this, $collection) {
 };
 
 (:~
- : returns the navigation bar with links to items and is called by the RESTXQ module items.xql
+ : Formerly emitted the left item sidebar (`#sidebar`) with witnesses for
+ : works. Call sites were removed so the page shell no longer reserves
+ : `margin-left` for it; kept as a no-op so any stray caller stays silent.
+ :
+ : The right-hand related/see-also column is item2:RestSeeAlso (including
+ : item2:mainRels / `div.allMainRel` and `#computedWitnesses`). That path
+ : is independent of this function and must stay intact.
+ :
+ : @param $this TEI item document
+ : @param $collection collection name
+ : @param $type REST view type (unused)
+ : @return empty sequence
+ : @see item2:RestSeeAlso
+ : @see item2:mainRels
  :)
 declare function item2:RestNav($this, $collection, $type) {
-	let $document := $this
-	let $id := string($this/@xml:id)
-	return if ($collection = "works") then
-		<div class="w3-sidebar w3-bar-block w3-card " id="sidebar" style="max-height:50vh;width:auto;z-index:auto;">
-			<button
-				class="w3-bar-item w3-button w3-hide-large"
-				onclick="w3_closeItemSB()"
-				type="button"
-			>
-                    Close Item Navigation
-                </button>
-			{ item2:witnesses($id) }
-		</div>
-	else (
-	)
+	()
 };
 
 (:~
@@ -2580,6 +2598,17 @@ declare function item2:RestSeeAlsoTemplate($node as node(), $model as map(*)) {
 	item2:RestSeeAlso($model("this"), $model("collection"))
 };
 
+(:~
+ : Right-hand item column: keyword see-also form (`#seeAlsoForm`) plus
+ : item2:mainRels (`div.allMainRel`) and related panels such as
+ : `#computedWitnesses` on works. Independent of item2:RestNav (former
+ : left sidebar).
+ :
+ : @param $this TEI item document
+ : @param $collection collection name
+ : @return the see-also / relations column markup
+ : @see item2:mainRels
+ :)
 declare function item2:RestSeeAlso($this, $collection) {
 	let $file := $this
 	let $id := string($this/@xml:id)
