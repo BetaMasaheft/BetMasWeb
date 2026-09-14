@@ -1,0 +1,35 @@
+test/xqs/ts-resources-decores.xqm
+  s_7980c66898794e::t_4d4b448e401e97 1-43,48-59
+  s_7980c66898794e::t_7603c861cbc94d 44-47
+test/xqs/ts-exptit-printtitle.xqm
+  s_7980c66898794e::t_bf6c5ee6dcfb7f 101-114
+modules/exptit.xqm
+  s_7980c66898794e::t_16bbf4ed180649 202
+  s_7980c66898794e::t_c6367d1d5018b1 199
+  s_7980c66898794e::t_02dc8e7c1cec72 200
+modules/resources.xqm
+  s_7980c66898794e::t_4fd48bf9fe3b32 2395
+  s_7980c66898794e::t_1d707ed3a12128 2222-2223
+  s_7980c66898794e::t_def8495cf24605 2386-2394,2396-2397,2434-2435
+  s_7980c66898794e::t_5ca12922b3e9fa 2385
+  s_7980c66898794e::t_a082fdc4caedb0 2476
+test/xqs/test-runner.xq
+  s_7980c66898794e::t_bc16e9699ec1de 44
+  s_7980c66898794e::t_e24c633fdefd47 99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d9ba2c0a8449649f4895c8e0b72331fb73e0c5c2",
+  "prompts": {},
+  "sessions": {
+    "s_7980c66898794e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6994e609-339f-42af-adbe-cb73adefdb86",
+        "model": "default"
+      },
+      "human_author": null
+    }
+  }
+}
