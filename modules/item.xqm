@@ -1641,24 +1641,17 @@ declare function item2:mainRels($this, $collection) {
 };
 
 (:~
- : returns the navigation bar with links to items and is called by the RESTXQ module items.xql
+ : Formerly emitted the left item sidebar (`#sidebar`) with witnesses for
+ : works. Call sites were removed so the page shell no longer reserves
+ : `margin-left` for it; kept as a no-op so any stray caller stays silent.
+ :
+ : @param $this TEI item document
+ : @param $collection collection name
+ : @param $type REST view type (unused)
+ : @return empty sequence
  :)
 declare function item2:RestNav($this, $collection, $type) {
-	let $document := $this
-	let $id := string($this/@xml:id)
-	return if ($collection = "works") then
-		<div class="w3-sidebar w3-bar-block w3-card " id="sidebar" style="max-height:50vh;width:auto;z-index:auto;">
-			<button
-				class="w3-bar-item w3-button w3-hide-large"
-				onclick="w3_closeItemSB()"
-				type="button"
-			>
-                    Close Item Navigation
-                </button>
-			{ item2:witnesses($id) }
-		</div>
-	else (
-	)
+	()
 };
 
 (:~
