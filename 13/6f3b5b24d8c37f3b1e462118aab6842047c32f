@@ -1,0 +1,23 @@
+modules/item.xqm
+  s_7980c66898794e::t_d69ee0b5de9260 142-147
+  s_7980c66898794e::t_35f4a79e4de975 895-900
+  s_7980c66898794e::t_f2e1de3949f1c3 1629-1637
+  s_7980c66898794e::t_3505b9984367a8 1667-1670,1675-1676
+  s_7980c66898794e::t_54373de32a4797 2601-2611
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "136f3b5b24d8c37f3b1e462118aab6842047c32f",
+  "prompts": {},
+  "sessions": {
+    "s_7980c66898794e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6994e609-339f-42af-adbe-cb73adefdb86",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
