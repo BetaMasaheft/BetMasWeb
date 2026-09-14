@@ -1,0 +1,19 @@
+modules/item.xqm
+  s_7980c66898794e::t_665477c51eac8d 1644-1651,1654
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6eead0514d0b7566f29f48f2bd1558fbb30e6ada",
+  "prompts": {},
+  "sessions": {
+    "s_7980c66898794e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6994e609-339f-42af-adbe-cb73adefdb86",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
