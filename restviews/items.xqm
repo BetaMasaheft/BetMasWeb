@@ -266,11 +266,7 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 								config:template-apply-config()
 							)
 						}
-						{
-							if ($type = "corpus") then (
-							) else
-								item2:RestNav($this, $collection, $type)
-						}
+						<!-- if ($type = "corpus") then () else item2:RestNav($this, $collection, $type) } -->
 						<div class="w3-main alpheios-enabled" id="main">
 							{
 								if ($type = "corpus") then (
