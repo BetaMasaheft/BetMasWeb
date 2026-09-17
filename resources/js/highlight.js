@@ -71,10 +71,20 @@ $(".word").each(function (wn) {
             Search " +
 						nostops.w +
 						" :<br/>\
-            <a href='#' data-type='new-search' data-q='" + nostops.w + "'>in Beta maṣāḥǝft</a><br/>\
-            <a href='#' data-type='morpho-search' data-q='" + nostops.w + "'>in the Gǝʿǝz Morphological Parser</a><br/>\
-            <a href='#' data-type='morpho-corpus-search' data-q='" + nostops.w + "'>in the TraCES annotations</a><br/>\
-            <a href='#' data-type='online-lexicon-search' data-q='" + nostops.w + "'>in the Online Lexicon</a><br/>\
+            <a href='/newSearch.html?query=" +
+						nostops.w +
+						"' target='_blank'>in Beta maṣāḥǝft</a><br/>\
+            <a href='/morpho?query=" +
+						nostops.w +
+						"' target='_blank'>in the Gǝʿǝz Morphological Parser</a><br/>\
+            <a href='/morpho/corpus?query=" +
+						nostops.w +
+						"&type=string' target='_blank'>in the TraCES annotations</a><br/>\
+            <a href='" +
+						url +
+						parm +
+						nostops.w +
+						"' target='_blank'>in the Online Lexicon</a><br/>\
             Double click on the word to load the results of the morphological parsing with Alpheios.\
             </span> </span>",
 				),
@@ -98,10 +108,20 @@ $(".word").each(function (wn) {
             Search " +
 						nostops.w +
 						" :<br/>\
-            <a href='#' data-type='new-search'>in Beta maṣāḥǝft</a><br/>\
-            <a href='#' data-type='morpho-search'>in the Gǝʿǝz Morphological Parser</a><br/>\
-            <a href='#' data-type='morpho-corpus-search'>in the TraCES annotations</a><br/>\
-            <a href='#' data-type='online-lexicon-search'>in the Online Lexicon</a><br/>\
+            <a href='/newSearch.html?query=" +
+						nostops.w +
+						"' target='_blank'>in Beta maṣāḥǝft</a><br/>\
+            <a href='/morpho?query=" +
+						nostops.w +
+						"' target='_blank'>in the Gǝʿǝz Morphological Parser</a><br/>\
+            <a href='/morpho/corpus?query=" +
+						nostops.w +
+						"&type=string' target='_blank'>in the TraCES annotations</a><br/>\
+            <a href='" +
+						url +
+						parm +
+						nostops.w +
+						"' target='_blank'>in the Online Lexicon</a><br/>\
             Double click on the word to load the results of the morphological parsing with Alpheios.\
             </span> </span>",
 				),
@@ -162,37 +182,4 @@ $(document).ready(function () {
 		//console.log(q)
 		$('span:contains("' + q + '")').toggleClass("queryTerm");
 	}
-});
-
-const CONSTANTS = {
-    tooltip_searches: {
-        "new-search": {
-            path: "/newSearch.html?query="
-        },
-        "morpho-search": {
-            path: "/morpho?query="
-        },
-        "morpho-corpus-search": {
-            path: "/morpho/corpus?type=string&query="
-        },
-        "online-lexicon-search": {
-            path: "/Dillmann/?mode=fuzzy&q="
-        }
-    }
-};
-
-document.addEventListener("click", event => {
-    event.preventDefault();
-    
-    let target = event.target;
-    
-    if (target.matches("div#text-Incipit span.word > span.alpheios-word.popup a")) {
-        let search_name = target.dataset.type;
-        let search_query_string = target.dataset.q;
-        let search_path = CONSTANTS.tooltip_searches[search_name].path;
-        
-        let search_url = new URL(BM_APP_URL + search_path + search_query_string);
-
-        window.open(search_url,'_blank');
-    }
 });
