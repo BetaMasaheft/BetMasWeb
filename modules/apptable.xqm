@@ -129,10 +129,10 @@ declare function apptable:clavisIds($doc as node()) {
 			<a href="https://www.traces.uni-hamburg.de/en/texts/clavis.html">
 				<em>Clavis Aethiopica</em>
 			</a>, an ongoing repertory of all known Ethiopic <a
-				href="https://betamasaheft.eu/Guidelines/?id=definitionWorks"
+				href="/Guidelines/?id=definitionWorks"
 			>Textual Units</a>. Use this to refer univocally to a specific text in your publications. Please note that this shares only the
     numeric part with the <a
-				href="https://betamasaheft.eu/Guidelines/?id=entities-id-structure"
+				href="/Guidelines/?id=entities-id-structure"
 			>Textual Unit Record Identifier</a>.</span>
 	</span>,
 	if ($doc//t:listBibl[@type eq "clavis"]) then (

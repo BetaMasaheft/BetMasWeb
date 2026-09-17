@@ -43,7 +43,7 @@ declare function new:newentry($node as node()*, $model as map(*)) {
 				<br />
 				<input class="w3-input" id="suffix" name="suffix" required="required" />
 				<small class="form-text text-muted">type here the { $option } new id <a
-						href="https://betamasaheft.eu/Guidelines/?id=entities-id-structure"
+						href="/Guidelines/?id=entities-id-structure"
 						target="_blank"
 					>(assigning IDs guidelines page)</a>. This must not start with a number and must not contain any spaces or special symbols or diacritics (including hyphens and underscores).</small>
 			</div>

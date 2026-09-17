@@ -76,17 +76,17 @@ declare function nav:barNew() {
 										href="https://www.betamasaheft.uni-hamburg.de"
 										target="_blank"
 									>Beta maṣāḥəft</a> institutional web page. Select <a
-										href="https://betamasaheft.eu/about.html"
+										href="/about.html"
 									>About</a> to meet the project team and our partners. Visit the
                     <a
-										href="https://betamasaheft.eu/Guidelines"
+										href="/Guidelines"
 									>
                         Guidelines</a> section to learn about our encoding principles. The section <a
-										href="https://betamasaheft.eu/lod.html"
+										href="/lod.html"
 									>Data</a> contains the Linked Open Data information, and <a
-										href="https://betamasaheft.eu/apidoc.html"
+										href="/apidoc.html"
 									>API</a> the Application Programming Interface documentation for those who want to exchange data with the Beta maṣāḥǝft project. The <a
-										href="https://betamasaheft.eu/pid.html"
+										href="/pid.html"
 									>Permalinks</a> section documents the versioning and referencing earlier versions of each record.</span>
 							</div>
 							<div class="w3-bar w3-card-4 w3-white" id="navexplanationintro">
@@ -216,7 +216,7 @@ declare function nav:barNew() {
                                 manuscripts.
                                 The encoding follows the TEI XML standards (check our
                                 <a
-										href="https://betamasaheft.eu/Guidelines/?id=manuscripts"
+										href="/Guidelines/?id=manuscripts"
 									>
                                 guidelines</a>).</span>
 							</div>
@@ -322,18 +322,18 @@ declare function nav:barNew() {
 								>We identify each unit of content in every manuscript. We consider any
                         text with an independent circulation a work, with its own identification number within
                         the <a
-										href="https://betamasaheft.eu/clavis-list.html"
+										href="/clavis-list.html"
 									>Clavis Aethiopica (CAe)</a>. Parts of texts (e.g. chapters)
                         without independent circulation (univocally identifiable by IDs assigned within the records) or recurrent
                         motifs as well as documentary additional texts
                         (identified as <a
-										href="https://betamasaheft.eu/narratives/list"
+										href="/narratives/list"
 									>Narrative Units</a>)
                         are not part of the CAe. You can also check the list of different <a
 										href="titles"
 									>types of
                         text titles</a> or various <a
-										href="https://betamasaheft.eu/indexeslist.html"
+										href="/indexeslist.html"
 									>Indexes</a>
                         available from the top menu.</span>
 							</div>
@@ -392,7 +392,7 @@ Clavis Apocryphorum Veteris Testamenti (CAVT), Clavis Apocryphorum Novi Testamen
 									>EthioChrisProcess - Christianization and religious interactions in Ethiopia (6th-13th century) : comparative approaches with Nubia and Egypt</a>, which aim to edit the corpus of administrative acts
 of the Christian kingdom of Ethiopia, for medieval and modern periods.
 See also <a
-										href="https://betamasaheft.eu/additions"
+										href="/additions"
 									>the list of documents contained in the additiones</a> in the manuscripts described by the Beta maṣāḥǝft project .
 </span>
 								<span
@@ -425,7 +425,7 @@ See also <a
 								>While encoding manuscripts, the project Beta maṣāḥǝft aims at creating an
                         exhaustive repertory of art themes and techniques present in Ethiopian
                         and Eritrean Christian tradition. See our <a
-										href="https://betamasaheft.eu/Guidelines/?id=decorationDescription"
+										href="/Guidelines/?id=decorationDescription"
 									>
                         encoding guidelines</a> for details.
 
@@ -507,7 +507,7 @@ the decorations filtered search and the general keyword search.</span>
                         Manual and Schema for Historical Geography</a> which allow us to distinguish
                         between places, locations, and names of places.
 See also <a
-										href="https://betamasaheft.eu/help.html"
+										href="/help.html"
 									>Help page</a> fore more guidance.
                        </span>
 							</div>
@@ -568,7 +568,7 @@ See also <a
                        project. The result will be a
                        comprehensive Prosopography of the Ethiopian and Eritrean tradition.
                        See also <a
-										href="https://betamasaheft.eu/help.html"
+										href="/help.html"
 									>Help page</a> for
                        more guidance.</span>
 							</div>
@@ -591,7 +591,7 @@ See also <a
 								>
                                   We encode persons according to our
                                   <a
-										href="https://betamasaheft.eu/Guidelines/?id=persons"
+										href="/Guidelines/?id=persons"
 									>Encoding Guidelines</a>.
                                   The initial list was
                                   inherited from the <a
