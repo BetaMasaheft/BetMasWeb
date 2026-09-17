@@ -89,7 +89,7 @@ declare function error:error($name as map(*)) {
 											<li>Ids are case sensitive.</li>
 											<li>Try browsing or using simple or advanced search.</li>
 											<li>You believe the ID should exist or has existed in the past? Check <a
-													href="https://betamasaheft.eu/deleted.html"
+													href="/deleted.html"
 												>this list for IDs that have been changed, moved or renamed</a>.</li>
 										</ul>
 									)
