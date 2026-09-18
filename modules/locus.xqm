@@ -21,7 +21,7 @@ import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $locus:Regex := "^\d+(r|v)?([a-z])?(\d+)?";
 
-declare variable $locus:RegexProt := "^[xvi]+";
+declare variable $locus:RegexProt := "^[xlcvi]+";
 
 (:
 funzione per collegare riferimenti in locus al testo
@@ -100,7 +100,7 @@ function locus:folio($folio as xs:string) as xs:integer {
 	else if (matches($folio, $locus:RegexProt)) then
 		let $strictRomanNumeralMatch :=
 		(: https://www.oreilly.com/library/view/regular-expressions-cookbook/9780596802837/ch06s09.html#:~:text=Roman%20numerals%20are%20written%20using,form%20a%20proper%20Roman%20numeral. :)
-		analyze-string($folio, "^(x[cl]|l?x*)(i[xv]|v?i*)")
+		analyze-string($folio, "^(x[cl]|l?x+)(ix|iv|v?i{1,3})|^(ix|iv|v?i+)")
 		(: the regex should match only VALID roman numerals, what will not be achieved is to match
 an ambiguous syntax as iv where v could be verso or part of a valid 4 in roman numerals.
 this vails also where iv(erso) is used, because it will match as 4 :) return locus:roman-arabic(
