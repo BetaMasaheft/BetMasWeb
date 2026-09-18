@@ -6,9 +6,9 @@
 	"devDependencies": {
 		"cypress": "^16.0.0",
 		"husky": "^9.1.7",
-		"lint-staged": "^17.5.0",
+		"lint-staged": "^17.5.1",
 		"prettier": "^3.9.6",
-		"prettier-plugin-xquery": "^1.6.2"
+		"prettier-plugin-xquery": "^1.6.4"
 	},
 	"scripts": {
 		"format:check": "prettier --check .",
