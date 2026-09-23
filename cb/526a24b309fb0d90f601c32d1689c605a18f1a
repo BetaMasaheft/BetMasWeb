@@ -1,0 +1,22 @@
+modules/locus.xqm
+  s_4dab3f3bc14cbd::t_afdca8ace6a9b6 89-125,145-166,173,175-176
+  s_4dab3f3bc14cbd::t_9d4d6ecca9d3f3 25-33
+  s_4dab3f3bc14cbd::t_e8e5be77dbff05 42-59,61,66-67
+  s_4dab3f3bc14cbd::t_4790df197821e4 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cb526a24b309fb0d90f601c32d1689c605a18f1a",
+  "prompts": {},
+  "sessions": {
+    "s_4dab3f3bc14cbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "974e5212-4149-4ccd-8fb9-f00b75f8ca8e",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
