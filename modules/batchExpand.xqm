@@ -57,6 +57,40 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 };
 
 (:~
+ : Expand TEI under $collectionUri that have no resource at the mirrored
+ : expanded URI. Creates new subcollections as needed (expanded#40). Does
+ : not re-expand existing twins and does not prune the mirror.
+ :
+ : @param $collectionUri e.g. /db/apps/BetMasData/manuscripts
+ : @return summary "expanded N file(s) in T seconds" (N may be 0)
+ : @see https://github.com/BetaMasaheft/expanded/issues/40
+ :)
+declare function batchExpand:expandUnmirrored($collectionUri as xs:string?) as xs:string {
+	let $col := replace(normalize-space($collectionUri), "/+$", "")
+	return if ($col = "" or empty($collectionUri)) then
+		error(xs:QName("batchExpand:EMPTY"), "collection parameter is required")
+	else if (not(expand:is-allowed-collection($col, $batchExpand:data-root))) then
+		error(
+			xs:QName("batchExpand:BAD_ROOT"),
+			"collection must be under " || $batchExpand:data-root || " without .. segments, got: " || $col
+		)
+	else if (not(xmldb:collection-available($col))) then
+		error(xs:QName("batchExpand:MISSING"), "collection not found: " || $col)
+	else
+		let $missing :=
+			for $file in collection($col)//t:TEI
+			return if (doc-available(replace(base-uri($file), "/BetMasData/", "/expanded/"))) then (
+			) else
+				$file
+		let $t0 := util:system-time()
+		let $_ :=
+			for $file in $missing
+			return batchExpand:expandOne($file)
+		let $secs := (util:system-time() - $t0) div xs:dayTimeDuration("PT1S")
+		return "expanded " || count($missing) || " file(s) in " || $secs || " seconds"
+};
+
+(:~
  : Mirrored expanded collection URI for a BetMasData collection. Prefix
  : substitution, not a delimiter-anchored replace: the bare root has no
  : trailing slash for "/BetMasData/" to match, which used to alias back
