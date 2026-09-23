@@ -13,6 +13,7 @@ declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace crossapp = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/crossapp" at "crossapp.xqm";
 import module namespace aka = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/aka" at "../modules/academics.xqm";
+import module namespace expandShards = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expandShards" at "../modules/expand-shards.xqm";
 import module namespace dts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dts" at "../modules/dts.xqm";
 import module namespace viewer = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/iiifviewer" at "../restviews/viewer.xqm";
 import module namespace restItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/restItem" at "../restviews/items.xqm";

@@ -67,6 +67,11 @@ declare variable $tsbatchexp:new-col-src := $tsbatchexp:new-col-parent-src || "/
 
 declare variable $tsbatchexp:new-col-out := $tsbatchexp:new-col-parent-out || "/new";
 
+(: New BetMasData dirs with no expanded twin (expanded#40). :)
+declare variable $tsbatchexp:gap-src-col := "/db/apps/BetMasData/works/_batchExpandGapTest";
+
+declare variable $tsbatchexp:gap-out-col := "/db/apps/expanded/works/_batchExpandGapTest";
+
 declare %private function tsbatchexp:remove-if-exists($col as xs:string) {
 	if (xmldb:collection-available($col)) then
 		try { xmldb:remove($col) } catch * { () }
@@ -85,7 +90,9 @@ declare %private function tsbatchexp:cleanup() {
 	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-out),
 	tsbatchexp:remove-if-exists($tsbatchexp:new-parent-src),
 	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-out),
-	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-src)
+	tsbatchexp:remove-if-exists($tsbatchexp:new-col-parent-src),
+	tsbatchexp:remove-if-exists($tsbatchexp:gap-out-col),
+	tsbatchexp:remove-if-exists($tsbatchexp:gap-src-col)
 };
 
 declare %test:setUp function tsbatchexp:setUp() {
@@ -431,4 +438,133 @@ declare %test:assertTrue function tsbatchexp:summary-reports-one-file-expanded()
 declare %test:assertEquals("rwxrwxr-x") function tsbatchexp:stored-file-has-expected-permissions() {
 	let $_ := batchExpand:expandCollection($tsbatchexp:src-col)
 	return string(sm:get-permissions(xs:anyURI($tsbatchexp:out-col || "/" || $tsbatchexp:file))/sm:permission/@mode)
+};
+
+(:~
+ : expanded#40: a source TEI in a subcollection that has no expanded twin
+ : must be stored there. Does not re-expand the whole parent mirror.
+ :)
+declare %test:assertTrue function tsbatchexp:unmirrored-stores-tei-in-new-subcollection() {
+	let $_wipe := (
+		tsbatchexp:remove-if-exists($tsbatchexp:gap-out-col), tsbatchexp:remove-if-exists($tsbatchexp:gap-src-col)
+	)
+	let $lib := $tsbatchexp:gap-src-col || "/newLib"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandGapTest"),
+		xmldb:create-collection($tsbatchexp:gap-src-col, "newLib"),
+		xmldb:store(
+			$lib,
+			"GAPbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="GAPbatchExpand">
+				<teiHeader><titleStmt><title>gap</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandUnmirrored($tsbatchexp:gap-src-col)
+	return doc-available($tsbatchexp:gap-out-col || "/newLib/GAPbatchExpand.xml")
+};
+
+(:~
+ : Already-mirrored files are left alone (no rewrite of existing expanded TEI).
+ :)
+declare %test:assertEquals("kept") function tsbatchexp:unmirrored-skips-already-mirrored-file() {
+	let $_expand := batchExpand:expandCollection($tsbatchexp:src-col)
+	let $_mark := (
+		let $doc := doc($tsbatchexp:out-col || "/" || $tsbatchexp:file)
+		return xmldb:store(
+			$tsbatchexp:out-col,
+			$tsbatchexp:file,
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTbatchExpand">
+				<teiHeader><titleStmt><title>kept</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandUnmirrored($tsbatchexp:src-col)
+	return string(doc($tsbatchexp:out-col || "/" || $tsbatchexp:file)/t:TEI/t:teiHeader/t:titleStmt/t:title)
+};
+
+(:~
+ : Summary counts only files that were missing from the mirror, not the
+ : already-expanded siblings in the same collection.
+ :)
+declare %test:assertTrue function tsbatchexp:unmirrored-summary-counts-only-missing() {
+	let $_wipe := (
+		tsbatchexp:remove-if-exists($tsbatchexp:gap-out-col), tsbatchexp:remove-if-exists($tsbatchexp:gap-src-col)
+	)
+	let $lib := $tsbatchexp:gap-src-col || "/newLib"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandGapTest"),
+		xmldb:store(
+			$tsbatchexp:gap-src-col,
+			"ALREADYbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ALREADYbatchExpand">
+				<teiHeader><titleStmt><title>already</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandGapTest"),
+		xmldb:create-collection($tsbatchexp:gap-src-col, "newLib"),
+		xmldb:store(
+			$lib,
+			"GAPbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="GAPbatchExpand">
+				<teiHeader><titleStmt><title>gap</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandGapTest"),
+		xmldb:store(
+			$tsbatchexp:gap-out-col,
+			"ALREADYbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ALREADYbatchExpand">
+				<teiHeader><titleStmt><title>already</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	return matches(batchExpand:expandUnmirrored($tsbatchexp:gap-src-col), "^expanded 1 file\(s\) in ")
+};
+
+(:~
+ : Gap-fill must not prune expanded resources absent from this batch
+ : (unlike expandCollection). An unrelated mirror file survives.
+ :)
+declare %test:assertTrue function tsbatchexp:unmirrored-does-not-prune-unrelated-mirror() {
+	let $_wipe := (
+		tsbatchexp:remove-if-exists($tsbatchexp:gap-out-col), tsbatchexp:remove-if-exists($tsbatchexp:gap-src-col)
+	)
+	let $lib := $tsbatchexp:gap-src-col || "/newLib"
+	let $_seed := (
+		xmldb:create-collection("/db/apps/BetMasData/works", "_batchExpandGapTest"),
+		xmldb:create-collection($tsbatchexp:gap-src-col, "newLib"),
+		xmldb:store(
+			$lib,
+			"GAPbatchExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="GAPbatchExpand">
+				<teiHeader><titleStmt><title>gap</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		),
+		xmldb:create-collection("/db/apps/expanded/works", "_batchExpandGapTest"),
+		xmldb:store(
+			$tsbatchexp:gap-out-col,
+			"ORPHANgapExpand.xml",
+			<TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="ORPHANgapExpand">
+				<teiHeader><titleStmt><title>orphan</title></titleStmt><encodingDesc><p>x</p></encodingDesc></teiHeader>
+				<text><body><div type="edition"><ab>x</ab></div></body></text>
+			</TEI>
+		)
+	)
+	let $_ := batchExpand:expandUnmirrored($tsbatchexp:gap-src-col)
+	return doc-available($tsbatchexp:gap-out-col || "/ORPHANgapExpand.xml")
+};
+
+declare %test:assertError("batchExpand:EMPTY") function tsbatchexp:unmirrored-refuse-empty-collection() {
+	batchExpand:expandUnmirrored("")
+};
+
+declare %test:assertError("batchExpand:BAD_ROOT") function tsbatchexp:unmirrored-refuse-outside-betmasdata() {
+	batchExpand:expandUnmirrored("/db/apps/lists")
 };

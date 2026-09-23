@@ -15,16 +15,13 @@ import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas
 declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
 (:~
- : Expand every TEI under $collectionUri into /db/apps/expanded/... and prune
- : the mirrored subtree so it contains no resources absent from BetMasData
- : (mirror sync). Refuses empty / missing / out-of-tree collection (no silent
- : full-corpus run). Prune runs only after a successful expand pass.
- :
+ : Trims $collectionUri and refuses empty, out-of-tree, or missing input
+ : (no silent full-corpus run). Shared preamble for expandCollection and
+ : expandUnmirrored.
  : @param $collectionUri e.g. /db/apps/BetMasData/works/1-1000
- : @return summary "expanded N file(s) in T seconds"
- : @see https://github.com/BetaMasaheft/expanded/issues/11
+ : @return $collectionUri, trimmed of a trailing slash
  :)
-declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
+declare %private function batchExpand:validated-collection($collectionUri as xs:string?) as xs:string {
 	(: Trailing slash(es) stripped: left in, they shift tokenize's last
 	   segment to "" and corrupt every downstream relative-path comparison
 	   in prune-mirror (a double slash matches no real resource path). :)
@@ -39,7 +36,22 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 	else if (not(xmldb:collection-available($col))) then
 		error(xs:QName("batchExpand:MISSING"), "collection not found: " || $col)
 	else
-		let $context := collection($col)//t:TEI
+		$col
+};
+
+(:~
+ : Expand every TEI under $collectionUri into /db/apps/expanded/... and prune
+ : the mirrored subtree so it contains no resources absent from BetMasData
+ : (mirror sync). Refuses empty / missing / out-of-tree collection (no silent
+ : full-corpus run). Prune runs only after a successful expand pass.
+ :
+ : @param $collectionUri e.g. /db/apps/BetMasData/works/1-1000
+ : @return summary "expanded N file(s) in T seconds"
+ : @see https://github.com/BetaMasaheft/expanded/issues/11
+ :)
+declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
+	let $col := batchExpand:validated-collection($collectionUri)
+	return let $context := collection($col)//t:TEI
 		let $expanded-col := batchExpand:expanded-mirror($col)
 		let $t0 := util:system-time()
 		let $_ :=
@@ -54,6 +66,30 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
 		)
 		let $secs := (util:system-time() - $t0) div xs:dayTimeDuration("PT1S")
 		return "expanded " || count($context) || " file(s) in " || $secs || " seconds"
+};
+
+(:~
+ : Expand TEI under $collectionUri that have no resource at the mirrored
+ : expanded URI. Creates new subcollections as needed (expanded#40). Does
+ : not re-expand existing twins and does not prune the mirror.
+ :
+ : @param $collectionUri e.g. /db/apps/BetMasData/manuscripts
+ : @return summary "expanded N file(s) in T seconds" (N may be 0)
+ : @see https://github.com/BetaMasaheft/expanded/issues/40
+ :)
+declare function batchExpand:expandUnmirrored($collectionUri as xs:string?) as xs:string {
+	let $col := batchExpand:validated-collection($collectionUri)
+	return let $missing :=
+			for $file in collection($col)//t:TEI
+			return if (doc-available(replace(base-uri($file), "/BetMasData/", "/expanded/"))) then (
+			) else
+				$file
+		let $t0 := util:system-time()
+		let $_ :=
+			for $file in $missing
+			return batchExpand:expandOne($file)
+		let $secs := (util:system-time() - $t0) div xs:dayTimeDuration("PT1S")
+		return "expanded " || count($missing) || " file(s) in " || $secs || " seconds"
 };
 
 (:~
