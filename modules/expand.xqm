@@ -1052,6 +1052,19 @@ declare function expand:is-allowed-collection($col as xs:string, $root as xs:str
 };
 
 (:~
+ : True for an authenticated, non-guest principal who is a DBA or a member
+ : of the Editors group. Shared authorization check for the write-side
+ : expand endpoints (expandShards:list, expandShards:deletions,
+ : makeExpand.xql).
+ : @return true if the current eXist principal may run a write-side expand op
+ :)
+declare function expand:caller-is-dba-or-editor() as xs:boolean {
+	let $user := sm:id()//sm:real/sm:username/string()
+	let $groups := sm:get-user-groups($user)
+	return sm:is-authenticated() and $user ne "guest" and (sm:is-dba($user) or $groups = "Editors")
+};
+
+(:~
  : One-time (or re-run as needed) migration: harvests the title
  : already present in each already-expanded document under
  : $collectionUri into the shared title cache, keyed by each

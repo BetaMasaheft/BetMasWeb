@@ -16,13 +16,12 @@ xquery version "3.1" encoding "UTF-8";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
 import module namespace batchExpand = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/batchExpand" at "batchExpand.xqm";
+import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand.xqm";
 
 declare option output:method "text";
 declare option output:media-type "text/plain";
 
-let $user := sm:id()//sm:real/sm:username/string()
-let $groups := sm:get-user-groups($user)
-let $allowed := sm:is-authenticated() and $user ne "guest" and (sm:is-dba($user) or $groups = "Editors")
+let $allowed := expand:caller-is-dba-or-editor()
 let $col := try { request:get-parameter("collection", ())[1] } catch * { () }
 let $mode := try { request:get-parameter("mode", "collection")[1] } catch * { "collection" }
 return if (not($allowed)) then

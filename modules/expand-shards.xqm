@@ -27,6 +27,7 @@ xquery version "3.1" encoding "UTF-8";
 module namespace expandShards = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expandShards";
 
 import module namespace roaster = "http://e-editiones.org/roaster";
+import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand.xqm";
 
 declare variable $expandShards:data-root := "/db/apps/BetMasData";
 
@@ -91,6 +92,13 @@ declare function expandShards:deletions($request as map(*)) as map(*) {
 	expandShards:deletions($request, expandShards:caller-allowed(), $expandShards:data-root, $expandShards:expanded-root)
 };
 
+(:~
+ : Same as the 1-arg deletions, with the auth decision and both collection
+ : roots passed in so tests can cover 403/404 against a fixture instead of
+ : the live BetMasData/expanded trees.
+ : @param $data-root $expandShards:data-root in production. Tests pass a fixture.
+ : @param $expanded-root $expandShards:expanded-root in production. Tests pass a fixture.
+ :)
 declare function expandShards:deletions(
 	$request as map(*),
 	$allowed as xs:boolean,
@@ -152,11 +160,13 @@ declare function expandShards:paths(
 	$data-root as xs:string
 ) as xs:string* {
 	let $root := replace(normalize-space($data-root), "/+$", "")
-	let $only := expandShards:relative($collection)
+	let $only := expandShards:relative($collection, $root)
 	return if (not(map:contains($expandShards:modes, $mode))) then
 		error(xs:QName("expandShards:BAD_MODE"), "Unknown mode: " || $mode || " (expected hybrid, l1, or matrix)")
 	else if ($only = "authority-files/new") then
 		error(xs:QName("expandShards:BAD_SHARD"), "Refusing sourceless orphan shard filter: authority-files/new")
+	else if ($only ne "" and not(expand:is-allowed-collection($root || "/" || $only, $root))) then
+		error(xs:QName("expandShards:BAD_SHARD"), "Refusing shard filter outside " || $root || ": " || $collection)
 	else if (not(xmldb:collection-available($root))) then
 		error(xs:QName("expandShards:MISSING"), "collection not found: " || $root)
 	else if ($only ne "") then
@@ -166,9 +176,7 @@ declare function expandShards:paths(
 };
 
 declare %private function expandShards:caller-allowed() as xs:boolean {
-	let $user := sm:id()//sm:real/sm:username/string()
-	let $groups := sm:get-user-groups($user)
-	return sm:is-authenticated() and $user ne "guest" and (sm:is-dba($user) or $groups = "Editors")
+	expand:caller-is-dba-or-editor()
 };
 
 declare %private function expandShards:problem($status as xs:integer, $message as xs:string) as map(*) {
@@ -200,12 +208,14 @@ declare %private function expandShards:mode-of($request as map(*)) as xs:string 
 };
 
 (:~
- : Path relative to BetMasData. Accepts a relative path, a leading ./,
- : a trailing slash, or an absolute /db/apps/BetMasData/... URI.
+ : Path relative to $data-root. Accepts a relative path, a leading ./,
+ : a trailing slash, or an absolute URI under $data-root.
+ : @param $data-root the root this call resolves $collection against
+ : (production BetMasData, or a test fixture)
  :)
-declare %private function expandShards:relative($collection as xs:string?) as xs:string {
+declare %private function expandShards:relative($collection as xs:string?, $data-root as xs:string) as xs:string {
 	let $raw := replace(replace(normalize-space(string($collection)), "^(\./|/)+", ""), "/+$", "")
-	let $prefix := substring-after($expandShards:data-root, "/") || "/"
+	let $prefix := substring-after($data-root, "/") || "/"
 	return if (starts-with($raw, $prefix)) then
 		substring-after($raw, $prefix)
 	else

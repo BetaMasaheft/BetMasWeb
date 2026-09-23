@@ -132,8 +132,22 @@ declare %test:assertTrue function tsexpshards:filter-emml-accepts-dot-slash-and-
 		not($shards = "manuscripts/EMML")
 };
 
-declare %test:assertEquals("corpora") function tsexpshards:filter-accepts-absolute-betmasdata-uri() {
-	tsexpshards:paths("hybrid", "/db/apps/BetMasData/corpora")
+(: Absolute URI accepted must be resolved against the $data-root actually
+   passed to this call (the fixture), not a hardcoded production path -
+   otherwise a caller using a non-default $data-root gets the wrong
+   relative path computed. :)
+declare %test:assertEquals("corpora") function tsexpshards:filter-accepts-absolute-uri-under-fixture-root() {
+	tsexpshards:paths("hybrid", $tsexpshards:root || "/corpora")
+};
+
+declare %test:assertError("expandShards:BAD_SHARD") function tsexpshards:paths-refuse-dotdot-traversal() {
+	tsexpshards:paths("hybrid", "../../etc")
+};
+
+declare %test:assertError("expandShards:BAD_SHARD") function tsexpshards:paths-refuse-dotdot-traversal-in-absolute-uri(
+
+) {
+	tsexpshards:paths("hybrid", $tsexpshards:root || "/../../etc")
 };
 
 declare %test:assertError("expandShards:BAD_MODE") function tsexpshards:paths-refuse-unknown-mode() {
