@@ -38,7 +38,8 @@ $("[id^=LoadPermanentIDs]").on("click", function () {
 			var githubversionlink = "https://github.com/BetaMasaheft/" + type + "/blob/" + sha + "/" + pathnorepo;
 			var githubRawversionlink =
 				"https://raw.githubusercontent.com/BetaMasaheft/" + type + "/" + sha + "/" + pathnorepo;
-			//            var betmasversion = '<tr><td>permalink to this version</td><td><a href="'+bmVersionLin+'">'+bmVersionLin+'</a></td></tr>'
+			var betmasversion =
+				'<tr><td>permalink to this version</td><td><a href="' + bmVersionLin + '">' + bmVersionLin + "</a></td></tr>";
 			var github =
 				'<tr><td>source file at this version</td><td><a href="' +
 				githubRawversionlink +
@@ -52,7 +53,7 @@ $("[id^=LoadPermanentIDs]").on("click", function () {
 				githubversionlink +
 				"</a></td></tr>";
 			version.append(versionname);
-			//            version.append(betmasversion)
+			version.append(betmasversion);
 			version.append(github);
 			version.append(githubversion);
 			pid.append(version);
