@@ -1,0 +1,27 @@
+test/xqs/ts-batch-expand.xqm
+  s_b4064a6f7d116c::t_d2fb92221fe12d 98-99
+  s_b4064a6f7d116c::t_764c2cec795bde 70-72
+  s_b4064a6f7d116c::t_40c599fba60d9f 575-669
+  s_b4064a6f7d116c::t_c33a007203df77 670-689
+modules/batchExpand.xqm
+  s_b4064a6f7d116c::t_6ee4379ecbccea 94-234
+  s_b4064a6f7d116c::t_214b730ef201e9 93
+modules/listExpandShards.xql
+  s_b4064a6f7d116c::t_35e2c29e099f67 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5fccb8145065507f6424cb1d255bb0709d30fc90",
+  "prompts": {},
+  "sessions": {
+    "s_b4064a6f7d116c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5632ac4-04a3-45c0-a637-65a985c63b37",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
