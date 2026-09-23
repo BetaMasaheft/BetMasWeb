@@ -1,0 +1,29 @@
+modules/expand-shards.xqm
+  s_b4064a6f7d116c::t_30b2950e10ba81 85,278-328,332
+  s_b4064a6f7d116c::t_f3c4fcfe929146 86-111
+  s_b4064a6f7d116c::t_651362e5596278 16-23
+  s_b4064a6f7d116c::t_7b9ff4d8b83da3 33-35
+  s_b4064a6f7d116c::t_e6915c97977856 329-331,333-339
+test/xqs/ts-expand-shards.xqm
+  s_b4064a6f7d116c::t_64497a61549b11 190-270
+  s_b4064a6f7d116c::t_d7fedd8eca7f01 67-69
+  s_b4064a6f7d116c::t_0e4da735a71785 16-19,271-274
+modules/routes.json
+  s_b4064a6f7d116c::t_bd6605375f1e4e 4749-4800
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "12bb3676dd5ce36fa2c3bda73c557a866a2cea22",
+  "prompts": {},
+  "sessions": {
+    "s_b4064a6f7d116c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5632ac4-04a3-45c0-a637-65a985c63b37",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
