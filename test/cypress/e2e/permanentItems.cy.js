@@ -48,6 +48,28 @@ it("GET /permanent/{sha}/{collection}/{id}/main (as /permanent/{sha}/manuscripts
 	});
 });
 
+// The cases above only cover the manuscripts/corpora collections - add the
+// works collection too, since that's the segment permanentID.js's
+// bmVersionLin actually emits for a work-type item.
+// Real commit touching 1001-2000/LIT1385Fekkar.xml in betamasaheft/Works.
+const workSha = "330a89d34e4088d2eaabb5b87101dbf054457166";
+
+it("GET /permanent/{sha}/{collection}/{id}/main (as /permanent/{sha}/works/LIT1385Fekkar/main)", () => {
+	cy.request({
+		url: `/permanent/${workSha}/works/LIT1385Fekkar/main`,
+		method: "GET",
+		failOnStatusCode: false,
+		timeout: 45000,
+	}).then((res) => {
+		expect(res.status, `GET /permanent/${workSha}/works/LIT1385Fekkar/main responded with ${res.status}`).to.not.equal(
+			500,
+		);
+		expect(res.status, `GET /permanent/${workSha}/works/LIT1385Fekkar/main responded with ${res.status}`).to.not.equal(
+			405,
+		);
+	});
+});
+
 it("GET /permanent/{sha}/{collection}/{id}/text (as /permanent/{sha}/manuscripts/BAVet1/text)", () => {
 	cy.request({ url: `/permanent/${sha}/manuscripts/BAVet1/text`, method: "GET", failOnStatusCode: false }).then(
 		(res) => {
