@@ -1,0 +1,31 @@
+test/xqs/ts-batch-expand.xqm
+  s_b4064a6f7d116c::t_405067d0e29a69 442-447,449-490,492-530,532-564
+  s_b4064a6f7d116c::t_07785025fbd3f6 448
+  s_b4064a6f7d116c::t_88343090973feb 531
+  s_b4064a6f7d116c::t_7f3216c6688f2d 70-74
+  s_b4064a6f7d116c::t_2c4b9c0b67b6f0 491
+  s_b4064a6f7d116c::t_5ea8b5bcd301d8 93-95
+  s_b4064a6f7d116c::t_0cb638d072135b 565-570
+modules/makeExpand.xql
+  s_b4064a6f7d116c::t_e7bdff0b7de85e 6,9-11,14,27,30-31
+modules/batchExpand.xqm
+  s_b4064a6f7d116c::t_5029a2822e34b0 82-85
+  s_b4064a6f7d116c::t_031ee25b398f23 60-81,86-92
+  s_b4064a6f7d116c::t_de97b5f58d5cb7 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b1e9b8866d782b01c0a5173312961dd355a43541",
+  "prompts": {},
+  "sessions": {
+    "s_b4064a6f7d116c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5632ac4-04a3-45c0-a637-65a985c63b37",
+        "model": "grok-4.6"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
