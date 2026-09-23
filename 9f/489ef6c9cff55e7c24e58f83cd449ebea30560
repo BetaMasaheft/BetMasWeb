@@ -1,0 +1,24 @@
+test/xqs/ts-dtslib-regexid.xqm
+  s_4dab3f3bc14cbd::t_fb248a2796d78a 41
+  s_4dab3f3bc14cbd::t_eb5e4662860a4d 1-40,42-43
+test/xqs/test-runner.xq
+  s_4dab3f3bc14cbd::t_e1a463f7643865 19
+  s_4dab3f3bc14cbd::t_8caeaa628573cf 73
+  s_4dab3f3bc14cbd::t_3dd0cc3df52952 106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9f489ef6c9cff55e7c24e58f83cd449ebea30560",
+  "prompts": {},
+  "sessions": {
+    "s_4dab3f3bc14cbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "974e5212-4149-4ccd-8fb9-f00b75f8ca8e",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
