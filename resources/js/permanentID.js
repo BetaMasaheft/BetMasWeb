@@ -34,7 +34,7 @@ $("[id^=LoadPermanentIDs]").on("click", function () {
 				" with the following message:  " +
 				commit.message +
 				"</th></tr>";
-			var bmVersionLin = "/permanent/" + sha + "/" + type.toLowerCase() + "/" + id + "/main";
+			var bmVersionLin = "https://betamasaheft.eu/permanent/" + sha + "/" + type.toLowerCase() + "/" + id + "/main";
 			var githubversionlink = "https://github.com/BetaMasaheft/" + type + "/blob/" + sha + "/" + pathnorepo;
 			var githubRawversionlink =
 				"https://raw.githubusercontent.com/BetaMasaheft/" + type + "/" + sha + "/" + pathnorepo;
