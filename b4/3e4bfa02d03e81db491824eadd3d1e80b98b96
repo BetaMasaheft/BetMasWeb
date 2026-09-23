@@ -1,0 +1,45 @@
+modules/api.xql
+  s_b4064a6f7d116c::t_771de38c96633d 16
+modules/expand-shards.xqm
+  s_b4064a6f7d116c::t_651362e5596278 16-23
+  s_b4064a6f7d116c::t_e6915c97977856 329-331,333-339
+  s_b4064a6f7d116c::t_3d26f6f0b5bf76 4-10,13-15,27-32,36-84,112-116,124-129,131-201,206,208-277
+  s_b4064a6f7d116c::t_06a77588611f5d 130,203-204
+  s_b4064a6f7d116c::t_f3c4fcfe929146 86-111
+  s_b4064a6f7d116c::t_30b2950e10ba81 3,26,85,278-328,332
+  s_b4064a6f7d116c::t_3e5d425482a314 11-12
+  s_b4064a6f7d116c::t_c889b6e3608cb3 202
+  s_b4064a6f7d116c::t_fc2129bab68147 117-123,205,207
+  s_b4064a6f7d116c::t_7b9ff4d8b83da3 33-35
+  s_b4064a6f7d116c::t_b2a4edb33c24a7 1-2,24-25
+modules/routes.json
+  s_b4064a6f7d116c::t_255d3b93000913 4687-4748
+  s_b4064a6f7d116c::t_bd6605375f1e4e 4749-4800
+test/xqs/test-runner.xq
+  s_b4064a6f7d116c::t_2755d63fe837b4 97
+  s_b4064a6f7d116c::t_fe812da3e86a9d 41
+test/xqs/ts-expand-shards.xqm
+  s_b4064a6f7d116c::t_c900100a95fb6f 159-163,165,170-178,182-183
+  s_b4064a6f7d116c::t_64497a61549b11 190-270
+  s_b4064a6f7d116c::t_7b85b0bd5eb2e3 164,181,184-187
+  s_b4064a6f7d116c::t_acdcd514bbe46d 127-134
+  s_b4064a6f7d116c::t_2c192b206b38b4 1-15,20-66,70-126,135-158,166-169,179-180,188-189
+  s_b4064a6f7d116c::t_0e4da735a71785 16-19,271-274
+  s_b4064a6f7d116c::t_d7fedd8eca7f01 67-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b43e4bfa02d03e81db491824eadd3d1e80b98b96",
+  "prompts": {},
+  "sessions": {
+    "s_b4064a6f7d116c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5632ac4-04a3-45c0-a637-65a985c63b37",
+        "model": "grok-4.6"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
