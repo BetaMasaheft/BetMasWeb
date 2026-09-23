@@ -1,0 +1,20 @@
+test/cypress/e2e/permanentItems.cy.js
+  s_d2a9cb304e6ef8::t_02c503775b23e0 51-63,70-72
+  s_d2a9cb304e6ef8::t_dda0f21c15a83c 64-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b088020a2d05e0024efd13180dcf5a66bb056ef2",
+  "prompts": {},
+  "sessions": {
+    "s_d2a9cb304e6ef8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78572056-631a-400f-a384-ffe6c0523e51",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
