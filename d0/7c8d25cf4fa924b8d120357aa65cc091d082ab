@@ -1,0 +1,31 @@
+test/xqs/ts-batch-expand.xqm
+  s_b4064a6f7d116c::t_6250836a0bcf4c 95
+test/xqs/ts-expand-shards.xqm
+  s_b4064a6f7d116c::t_2c192b206b38b4 1-144,146-150,153,159,161-162,170-171
+  s_b4064a6f7d116c::t_7b85b0bd5eb2e3 145,151-152,154-158,160,163-169
+modules/expand-shards.xqm
+  s_b4064a6f7d116c::t_3d26f6f0b5bf76 4,6-13,18-228
+modules/routes.json
+  s_b4064a6f7d116c::t_255d3b93000913 4687-4748
+modules/api.xql
+  s_b4064a6f7d116c::t_771de38c96633d 16
+test/xqs/test-runner.xq
+  s_b4064a6f7d116c::t_2755d63fe837b4 97
+  s_b4064a6f7d116c::t_fe812da3e86a9d 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d07c8d25cf4fa924b8d120357aa65cc091d082ab",
+  "prompts": {},
+  "sessions": {
+    "s_b4064a6f7d116c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5632ac4-04a3-45c0-a637-65a985c63b37",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
