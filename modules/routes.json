@@ -4684,6 +4684,120 @@
 				}
 			}
 		},
+		"/api/expand/shards": {
+			"get": {
+				"operationId": "expandShards:list",
+				"summary": "List BetMasData collections this instance can expand",
+				"description": "Shard paths relative to /db/apps/BetMasData. manuscripts/EMML is split to its L2 buckets. authority-files/new is refused. Requires a DBA or Editors user.",
+				"parameters": [
+					{
+						"name": "mode",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": ["hybrid", "l1", "matrix"],
+							"default": "hybrid"
+						}
+					},
+					{
+						"name": "collection",
+						"in": "query",
+						"required": false,
+						"description": "One relative path, or manuscripts/EMML to expand its L2 buckets. Empty lists the whole mode.",
+						"schema": {
+							"type": "string",
+							"default": ""
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Shard paths present in this instance",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": ["mode", "shards"],
+									"properties": {
+										"mode": {
+											"type": "string"
+										},
+										"shards": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Unknown mode, or authority-files/new"
+					},
+					"403": {
+						"description": "Caller is not a DBA or in Editors"
+					},
+					"404": {
+						"description": "Collection is not in this instance"
+					}
+				}
+			}
+		},
+		"/api/expand/deletions": {
+			"get": {
+				"operationId": "expandShards:deletions",
+				"summary": "Shard paths this image's expanded collection has and BetMasData does not",
+				"description": "Compares the expanded collection and BetMasData frozen in this image. */new is never returned. A child of a corpus that still exists is not returned. Requires a DBA or Editors user.",
+				"parameters": [
+					{
+						"name": "mode",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": ["hybrid", "l1", "matrix"],
+							"default": "hybrid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Shard paths to remove from the checkout",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": ["mode", "removed"],
+									"properties": {
+										"mode": {
+											"type": "string"
+										},
+										"removed": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Unknown mode"
+					},
+					"403": {
+						"description": "Caller is not a DBA or in Editors"
+					},
+					"404": {
+						"description": "BetMasData is not in this instance"
+					}
+				}
+			}
+		},
 		"/api/lists/canonicaltaxonomy.xml": {
 			"get": {
 				"operationId": "listsTax:canonicaltaxonomy",
