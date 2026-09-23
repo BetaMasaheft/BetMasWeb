@@ -56,9 +56,9 @@ from=1r to=3v => &start=1r&end=3v oppure (vedi sopra) a .1r-3v che poi verra red
  : bug) rather than finishing the unimplemented parsing.
  :
  : @param measure raw <measure unit="leaf"> text content
- : @return one s:analyze-string-result per parser, in parser order
+ : @return one fn:analyze-string() result per parser, in parser order
  :)
-declare %test:arg("measure", "i") %test:assertTrue function locus:analyzeMeasure($measure as xs:string*) {
+declare %test:arg("measure", "i") %test:assertTrue function locus:analyzeMeasure($measure as xs:string) {
 	(: set different parsers for each possible structure and try each :)
 	let $parsers := (
 		"([ivx]?)(\+?)(\d{1,3})(\+?)([ivx]?)" (: matches: iii+69+iv, ii+69, 69+i, 69 :),
@@ -115,9 +115,13 @@ declare
 	%test:arg("folio", "xl")
 	%test:assertEquals("xl")
 function locus:strict-roman-prefix($folio as xs:string) as xs:string {
-	(
-		for $length in reverse(1 to string-length($folio))
-		let $candidate := substring($folio, 1, $length)
+	(: only the leading [xlcvi] run can ever match $locus:RegexStrictRoman,
+	so bound the scan to it instead of $folio's full length (which may
+	carry a trailing recto/verso annotation of arbitrary length) :)
+	let $romanRun := replace($folio, "^([xlcvi]+).*", "$1")
+	return (
+		for $length in reverse(1 to string-length($romanRun))
+		let $candidate := substring($romanRun, 1, $length)
 		where matches($candidate, $locus:RegexStrictRoman)
 		return $candidate
 	)[1]
