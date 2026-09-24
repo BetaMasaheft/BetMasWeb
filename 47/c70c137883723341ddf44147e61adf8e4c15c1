@@ -1,0 +1,32 @@
+scripts/run-catalog-oracle.sh
+  s_68918b3788855a::t_db7f8eeee9de18 18-22
+  s_68918b3788855a::t_eb1c2d78a93678 17
+package.json
+  s_68918b3788855a::t_1041610283c9dc 19
+test/CATALOG_ORACLE.md
+  s_68918b3788855a::t_79f63fb6c7a163 6-7,10-12,14
+test/xqs/catalog-parity-oracle.xq
+  s_68918b3788855a::t_2f8adfd1755214 39-42,73,77-83,95
+  s_68918b3788855a::t_27b24ab8039d7b 59,90-91,94
+test/catalog_oracle_runner_spec.bats
+  s_68918b3788855a::t_0d826e1e6030d3 15,24-32
+  s_68918b3788855a::t_825036b2843b08 1-14,16-23,33-37
+test/catalog-oracle-result.json
+  s_68918b3788855a::t_186f4c37132f37 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "47c70c137883723341ddf44147e61adf8e4c15c1",
+  "prompts": {},
+  "sessions": {
+    "s_68918b3788855a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "352a5e5f-8a7b-4040-9b54-13ff69de1fe7",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
