@@ -20,6 +20,19 @@ declare variable $effective-backend-a := try { request:get-parameter("backend-a"
 
 declare variable $effective-backend-b := try { request:get-parameter("backend-b", $backend-b) } catch * { $backend-b };
 
+(: Optional cap for local/CI smoke. Empty or non-positive = full id space. :)
+declare variable $limit external := ();
+
+declare variable $effective-limit := try {
+	let $p := request:get-parameter("limit", ())
+	return if (exists($p) and $p castable as xs:integer) then
+		xs:integer($p)
+	else if (exists($limit) and $limit castable as xs:integer) then
+		xs:integer($limit)
+	else (
+	)
+} catch * { () };
+
 declare variable $reviewed-path := "/db/apps/BetMasWeb/test/catalog-reviewed-mismatches.xml";
 
 declare variable $reviewed := if (doc-available($reviewed-path)) then
@@ -66,12 +79,16 @@ let $title-ids := distinct-values(
 let $bibliography-ids := distinct-values(
 	collection("/db/apps/expanded")//t:ptr[starts-with(@target, "bm:")]/@target/string()
 )
-let $cases := (
+let $all-cases := (
 	for $key in $title-ids
 	return map {"kind": "title", "key": $key},
 	for $key in $bibliography-ids
 	return map {"kind": "bibliography", "key": $key}
 )
+let $cases := if (exists($effective-limit) and $effective-limit gt 0) then
+	subsequence($all-cases, 1, $effective-limit)
+else
+	$all-cases
 let $mismatches :=
 	for $case in $cases
 	let $kind := $case?kind
@@ -102,8 +119,10 @@ return serialize(
 		"backendA": $effective-backend-a,
 		"backendB": $effective-backend-b,
 		"comparisonMode": "resolved-values",
+		"limit": if (exists($effective-limit)) then $effective-limit else (),
 		"titleCases": count($title-ids),
 		"bibliographyCases": count($bibliography-ids),
+		"comparedCases": count($cases),
 		"resolutionCallsA": count($cases),
 		"resolutionCallsB": count($cases),
 		"mismatchCount": count($mismatches),
