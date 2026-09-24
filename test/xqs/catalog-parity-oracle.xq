@@ -36,6 +36,10 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
 			error(xs:QName("oracle:UNKNOWN_BACKEND"), "Unknown oracle backend: " || $backend)
 };
 
+declare function local:valid-review($review as element(mismatch)?) as xs:boolean {
+	exists($review[@triage = ("better", "worse", "neutral")])
+};
+
 let $title-ids := distinct-values(
 	(
 		collection("/db/apps/expanded")/t:TEI/@xml:id/string(),
@@ -52,8 +56,7 @@ let $cases := (
 	for $key in $bibliography-ids
 	return map {"kind": "bibliography", "key": $key}
 )
-let $mismatches := if ($backend-a = $backend-b) then (
-) else
+let $mismatches :=
 	for $case in $cases
 	let $kind := $case?kind
 	let $key := $case?key
@@ -67,18 +70,29 @@ let $mismatches := if ($backend-a = $backend-b) then (
 		"backendA": $a,
 		"backendB": $b,
 		"triage": string($review/@triage),
-		"reviewed": exists($review),
+		"reviewed": local:valid-review($review),
 		"note": string($review/@note)
 	}
 let $unreviewed := $mismatches[not(.?reviewed)]
+let $invalid-reviewed-entries := $reviewed[not(local:valid-review(.))]
+let $triage-validation-passed := every
+	$review in
+	(<mismatch triage="better" />, <mismatch triage="worse" />, <mismatch triage="neutral" />) satisfies
+	local:valid-review($review) and
+		not(local:valid-review(<mismatch />)) and
+		not(local:valid-review(<mismatch triage="invalid" />))
 return serialize(
 	map {
 		"backendA": $backend-a,
 		"backendB": $backend-b,
 		"titleCases": count($title-ids),
 		"bibliographyCases": count($bibliography-ids),
+		"resolutionCallsA": count($cases),
+		"resolutionCallsB": count($cases),
 		"mismatchCount": count($mismatches),
 		"unreviewedCount": count($unreviewed),
+		"invalidReviewedEntries": count($invalid-reviewed-entries),
+		"triageValidationPassed": $triage-validation-passed,
 		"mismatches": array { $mismatches }
 	},
 	map {"method": "json"}
