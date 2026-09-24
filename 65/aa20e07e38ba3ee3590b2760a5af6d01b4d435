@@ -1,0 +1,24 @@
+docs/CATALOG.md
+  s_e98fb2299e704f::t_2f26a89679b805 23-48
+scripts/run-catalog-oracle.sh
+  s_e98fb2299e704f::t_8c0407ed1123c9 14-15,19-30,32,34-39,41-43,47-48
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_8baf04332129a8 82,88-91,122,125
+  s_e98fb2299e704f::t_73ff8c1d40b486 23-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "65aa20e07e38ba3ee3590b2760a5af6d01b4d435",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
