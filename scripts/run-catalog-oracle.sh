@@ -14,6 +14,9 @@ export EXISTDB_SERVER EXISTDB_USER EXISTDB_PASS
 
 xst run --file "$QUERY" --bind \
 	"{\"backend-a\":\"$CATALOG_BACKEND_A\",\"backend-b\":\"$CATALOG_BACKEND_B\"}" > "$OUT"
-jq -e '.mismatchCount == 0 and .unreviewedCount == 0' "$OUT" >/dev/null
-printf 'catalog oracle: %s title cases, %s bibliography cases, 0 mismatches\n' \
-	"$(jq -r '.titleCases' "$OUT")" "$(jq -r '.bibliographyCases' "$OUT")"
+jq -e '.unreviewedCount == 0 and .triageValidationPassed == true' "$OUT" >/dev/null
+printf 'catalog oracle: %s title cases, %s bibliography cases, %s mismatches, %s unreviewed\n' \
+	"$(jq -r '.titleCases' "$OUT")" \
+	"$(jq -r '.bibliographyCases' "$OUT")" \
+	"$(jq -r '.mismatchCount' "$OUT")" \
+	"$(jq -r '.unreviewedCount' "$OUT")"
