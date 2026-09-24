@@ -1,0 +1,22 @@
+test/xqs/ts-queries-facetdiv.xqm
+  s_2e771ee34719d0::t_1770350957add6 328-332
+modules/queries.xqm
+  s_2e771ee34719d0::t_0fd413f8cd5ae6 2344-2346,2355,2376
+  s_2e771ee34719d0::t_7d484a96e6b3e1 2293,2347-2354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8753924db755dccee87d0684def42d0c2f3b75cb",
+  "prompts": {},
+  "sessions": {
+    "s_2e771ee34719d0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4631dfec-eef3-41b4-8118-e45f10dfd049",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
