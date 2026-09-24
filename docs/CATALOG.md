@@ -46,3 +46,22 @@ The pre-2026-09 `titlesData` copy used an unprefixed `objectDesc` predicate
 that never matched namespaced TEI, so inscriptions fell through to the
 repository branch. The prefixed form is intentional; see
 `test/xqs/ts-catalog-selectors.xqm`.
+
+## Bibliography lookup performance
+
+`catalog:bibl` must use **single-value** `@id` equality (then an optional
+underscore-id fallback). A general comparison such as
+`[@id = ($id, replace($id, ":", "_"))]` forces a full scan of
+`bibliography.xml` (~14 s per lookup on the release-expanded image vs ~10 ms
+indexed). That alone timed out `/works/…/text` in CI. Same rule for any other
+large list/catalog document under `/db/apps/lists` or `/db/apps/catalogs`.
+
+## Tests
+
+- **bats** — smoke only (container / package / logs).
+- **XQSuite** — contract and selectors (`test/xqs/ts-catalog-*.xqm`).
+- **Cypress** — HTTP integration (e.g. work-text HTML regression in
+  `test/cypress/e2e/items.cy.js`).
+- **Oracle** — `scripts/run-catalog-oracle.sh` with
+  `CATALOG_ORACLE_TRANSPORT=rest` in CI; requires `resolutionCallsA/B > 0` and
+  zero unreviewed mismatches. See `test/CATALOG_ORACLE.md`.
