@@ -65,3 +65,10 @@ large list/catalog document under `/db/apps/lists` or `/db/apps/catalogs`.
 - **Oracle** — `scripts/run-catalog-oracle.sh` with
   `CATALOG_ORACLE_TRANSPORT=rest` in CI; requires `resolutionCallsA/B > 0` and
   zero unreviewed mismatches. See `test/CATALOG_ORACLE.md`.
+
+## Formatting
+
+Run Prettier before every commit on this repo (`npm run format:write`, or at
+least `npm run format:check`). CI `format-check` fails the PR otherwise;
+XQuery/JS/Markdown under the facade workstream have already tripped it more
+than once.
