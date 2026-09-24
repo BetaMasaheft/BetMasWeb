@@ -11,18 +11,18 @@ xquery version "3.1" encoding "UTF-8";
  : request-independent seam to fake), matching ts-queries-formbounds.xqm's
  : own q:max-folia tests.
  :)
-module namespace tslistids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-listids-cache";
+module namespace tsexpandedscan = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expanded-repository-scan-cache";
 
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 
 import module namespace listIds = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/listIds" at "../../restviews/ids.xqm";
 
-declare %test:assertTrue function tslistids:cached-body-returns-institution-divs() {
+declare %test:assertTrue function tsexpandedscan:cached-body-returns-institution-divs() {
 	let $body := listIds:cached-body()
 	return exists($body) and (every $div in $body satisfies $div/@class = "w3-container")
 };
 
-declare %test:assertTrue function tslistids:cached-body-second-call-matches-first() {
+declare %test:assertTrue function tsexpandedscan:cached-body-second-call-matches-first() {
 	(:
 	 : the actual fix being tested: a cache hit must return the same
 	 : content as the call that populated it, not stale/partial data

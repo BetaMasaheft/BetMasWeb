@@ -47,6 +47,7 @@ import module namespace tsdecores = "https://www.betamasaheft.uni-hamburg.de/Bet
 import module namespace tsformbatch = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-resources-formbatch" at "ts-resources-formbatch.xqm";
 import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titles-consolidation" at "ts-titles-consolidation.xqm";
 import module namespace tsprinttitle = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-exptit-printtitle" at "ts-exptit-printtitle.xqm";
+import module namespace tscatalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-catalog-contract" at "ts-catalog-contract.xqm";
 import module namespace tspersrole = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-persrole" at "ts-app-persrole.xqm";
 import module namespace tsmssfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-msfilters" at "ts-app-msfilters.xqm";
 import module namespace tscrange = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-computed-range-filters" at "ts-computed-range-filters.xqm";
@@ -60,7 +61,7 @@ import module namespace tsplainfields = "https://www.betamasaheft.uni-hamburg.de
 import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-datefilter" at "ts-charts-datefilter.xqm";
 import module namespace tstaglia = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-tagliasupport" at "ts-charts-tagliasupport.xqm";
 import module namespace tsjsescape = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-jsstringescape" at "ts-charts-jsstringescape.xqm";
-import module namespace tslistids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-listids-cache" at "ts-listids-cache.xqm";
+import module namespace tsexpandedscan = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expanded-repository-scan-cache" at "ts-expanded-repository-scan-cache.xqm";
 import module namespace tswikicache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-wikitable-cache" at "ts-wikitable-cache.xqm";
 
 declare option output:method "json";
@@ -104,6 +105,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-resources-formbatch.xqm")),
 		inspect:module-functions(xs:anyURI("ts-titles-consolidation.xqm")),
 		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
+		inspect:module-functions(xs:anyURI("ts-catalog-contract.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-persrole.xqm")),
@@ -119,7 +121,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-charts-datefilter.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-tagliasupport.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-jsstringescape.xqm")),
-		inspect:module-functions(xs:anyURI("ts-listids-cache.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expanded-repository-scan-cache.xqm")),
 		inspect:module-functions(xs:anyURI("ts-wikitable-cache.xqm"))
 	)
 )
