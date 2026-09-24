@@ -2287,11 +2287,12 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : t:desc, so a catDesc-less category with an id must still resolve
  : here or its keyword silently loses its section grouping.
  :
+ : @param $taxonomy the taxonomy document to index
  : @return a map from category @xml:id/catDesc text to its t:category node
  :)
-declare %private function q:tax-lookup-map() as map(*) {
+declare function q:tax-lookup-map($taxonomy as node()) as map(*) {
 	map:merge(
-		for $category in $q:tax//t:category
+		for $category in $taxonomy//t:category
 		return (
 			if ($category/t:catDesc) then
 				map:entry(string($category/t:catDesc[1]), $category)
@@ -2303,6 +2304,10 @@ declare %private function q:tax-lookup-map() as map(*) {
 			)
 		)
 	)
+};
+
+declare %private function q:tax-lookup-map() as map(*) {
+	q:tax-lookup-map($q:tax)
 };
 
 (:~
