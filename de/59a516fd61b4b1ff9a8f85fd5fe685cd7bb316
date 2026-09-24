@@ -1,0 +1,43 @@
+test/xqs/catalog-parity-oracle.xq
+  s_f9baaa830868ac::t_cc0d0097257569 17,30-36,38-52,75,104
+test/xqs/ts-catalog-selectors.xqm
+  s_f9baaa830868ac::t_085d98fd1b29f7 1-56,58-132
+  s_f9baaa830868ac::t_0a947adc678081 57
+  s_f9baaa830868ac::t_7548e9d95a0577 133-139
+modules/catalog-legacy.xqm
+  s_f9baaa830868ac::t_7fe0977bbc4172 1-125
+modules/exptit.xqm
+  s_f9baaa830868ac::t_83c40abfd46d14 15-16
+  s_f9baaa830868ac::t_e924caf558de6e 132
+  s_f9baaa830868ac::t_33bbecc6110667 144-148,150-158,161-165,167,171,175,179,183
+modules/catalog-selectors.xqm
+  s_f9baaa830868ac::t_a31d1169af71be 97-167
+modules/catalog.xqm
+  s_f9baaa830868ac::t_5fa0edc82c9335 7-12,21-22,40-41,51-60,64,68,72-99,101,104-105,107,112-113,115,117,119-121,123,127,138,140-142,150-153,169-173,176,186-187,189-190,202-203,214-219
+scripts/check-no-serving-writes.sh
+  s_f9baaa830868ac::t_d8806c46db2547 8-18,22-27,29-34
+test/xqs/ts-catalog-contract.xqm
+  s_f9baaa830868ac::t_020c6dbefb62b5 7-10,19,21-174,176-182,185-191,194-200,203-209,212-218,221-222,225-226
+modules/catalog-places.xqm
+  s_f9baaa830868ac::t_a2b83c1208f7de 1-110
+modules/titlesData.xqm
+  s_f9baaa830868ac::t_5ea351ddb8fc5d 50-55,57-65
+test/xqs/test-runner.xq
+  s_f9baaa830868ac::t_84ae40acd510d0 51,110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "de59a516fd61b4b1ff9a8f85fd5fe685cd7bb316",
+  "prompts": {},
+  "sessions": {
+    "s_f9baaa830868ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "93f24fe4-b60f-4020-b15a-1b0dfcfd2743",
+        "model": "claude-opus-5-thinking-high"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
