@@ -45,11 +45,7 @@ declare function legacy:subtitle($node as node(), $sub-id as xs:string) as xs:st
 	selectors:subtitle(
 		$node,
 		$sub-id,
-		map {
-			"label": legacy:label#1,
-			"text": function ($nodes as node()*) { $nodes/text() },
-			"additio": false()
-		}
+		map {"label": legacy:label#1, "text": function ($nodes as node()*) { $nodes/text() }, "additio": false()}
 	)
 };
 

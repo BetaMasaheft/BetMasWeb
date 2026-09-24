@@ -96,9 +96,7 @@ declare function places:pleiades($string as xs:string) {
 declare function places:wikidata($ref as xs:string) {
 	let $qid := substring-after($ref, "wd:")
 	let $sparql := "SELECT * WHERE {
-  wd:" ||
-		$qid ||
-		' rdfs:label ?label .
+  wd:" || $qid || ' rdfs:label ?label .
   FILTER (langMatches( lang(?label), "EN" ) )
 }'
 	let $query := "https://query.wikidata.org/sparql?query=" || xmldb:encode-uri($sparql)

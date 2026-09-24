@@ -72,11 +72,7 @@ declare %private function catalog:subtitle($node as node(), $sub-id as xs:string
 	selectors:subtitle(
 		$node,
 		$sub-id,
-		map {
-			"label": catalog:resolve-label#1,
-			"text": function ($nodes as node()*) { $nodes/text() },
-			"additio": false()
-		}
+		map {"label": catalog:resolve-label#1, "text": function ($nodes as node()*) { $nodes/text() }, "additio": false()}
 	)
 };
 

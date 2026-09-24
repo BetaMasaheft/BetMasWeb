@@ -57,11 +57,7 @@ declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as x
 	selectors:subtitle(
 		$node,
 		$SUBid,
-		map {
-			"label": titles:printTitleID#1,
-			"text": titles:tei2string#1,
-			"additio": true()
-		}
+		map {"label": titles:printTitleID#1, "text": titles:tei2string#1, "additio": true()}
 	)
 };
 
