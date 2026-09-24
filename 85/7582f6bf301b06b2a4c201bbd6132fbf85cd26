@@ -1,0 +1,21 @@
+docs/CATALOG.md
+  s_e98fb2299e704f::t_520726716aa85a 49-67
+test/CATALOG_ORACLE.md
+  s_e98fb2299e704f::t_22d466824d0dc3 4-13,17-20,25-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "857582f6bf301b06b2a4c201bbd6132fbf85cd26",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
