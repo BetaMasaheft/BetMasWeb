@@ -12,17 +12,25 @@ xquery version "3.1" encoding "UTF-8";
  : or setUp body runs, so a document stored mid-suite is invisible to
  : it - only $exptit:TUList/$exptit:persNamesList (doc() references,
  : mutated in place via `update insert`) pick up same-run changes.
+ : Cache fixtures are passed directly as maps, and taxonomy fixtures
+ : are stored under the suite's temporary collection.
  :)
 module namespace tsfacetdiv = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-facetdiv";
 
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
+declare namespace xmldb = "http://exist-db.org/xquery/xmldb";
 
 import module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries" at "../../modules/queries.xqm";
 import module namespace lists = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/lists" at "../../modules/resources.xqm";
-import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "../../modules/titlesData.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "../../modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "../../modules/exptit.xqm";
+
+declare variable $tsfacetdiv:temp-root := "/db/apps/BetMasWeb/test-tmp";
+
+declare variable $tsfacetdiv:temp-col := $tsfacetdiv:temp-root || "/facetdiv";
+
+declare variable $tsfacetdiv:temp-tax-path := $tsfacetdiv:temp-col || "/canonicaltaxonomy.xml";
 
 declare variable $tsfacetdiv:cache-id := "INSTESTfacetDivCache77";
 
@@ -46,17 +54,6 @@ declare variable $tsfacetdiv:persnames-id := "LOC1001Aallee";
 declare variable $tsfacetdiv:persnames-override-title :=
 	"a distinctive persNamesList override title only that list has";
 
-declare %private function tsfacetdiv:remove-title-cache-entry($id as xs:string) {
-	if (doc-available("/db/apps/lists/titleCache.xml")) then
-		let $existing := doc("/db/apps/lists/titleCache.xml")//t:item[@corresp eq $id]
-		return if ($existing) then
-			update delete $existing
-		else (
-		)
-	else (
-	)
-};
-
 declare %private function tsfacetdiv:remove-tulist-entry($id as xs:string) {
 	let $existing := $exptit:TUList//t:item[@corresp eq $id]
 	return if ($existing) then
@@ -73,24 +70,26 @@ declare %private function tsfacetdiv:remove-persnames-entry($id as xs:string) {
 	)
 };
 
-declare %private function tsfacetdiv:remove-nocatdesc-category() {
-	let $existing := doc("/db/apps/lists/canonicaltaxonomy.xml")//t:category[t:category/@xml:id eq
-		$tsfacetdiv:tax-nocatdesc-id]
-	return if ($existing) then
-		update delete $existing
+declare %private function tsfacetdiv:ensure-temp-taxonomy() {
+	if (not(xmldb:collection-available($tsfacetdiv:temp-root))) then
+		xmldb:create-collection("/db/apps/BetMasWeb", "test-tmp")
+	else (
+	),
+	xmldb:create-collection($tsfacetdiv:temp-root, "facetdiv"),
+	xmldb:store($tsfacetdiv:temp-col, "canonicaltaxonomy.xml", doc("/db/apps/lists/canonicaltaxonomy.xml"))
+};
+
+declare %private function tsfacetdiv:cleanup() {
+	tsfacetdiv:remove-tulist-entry($tsfacetdiv:tulist-id),
+	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id),
+	if (xmldb:collection-available($tsfacetdiv:temp-col)) then
+		xmldb:remove($tsfacetdiv:temp-col)
 	else (
 	)
 };
 
-declare %private function tsfacetdiv:cleanup() {
-	tsfacetdiv:remove-title-cache-entry($tsfacetdiv:cache-id),
-	tsfacetdiv:remove-tulist-entry($tsfacetdiv:tulist-id),
-	tsfacetdiv:remove-persnames-entry($tsfacetdiv:persnames-id),
-	tsfacetdiv:remove-nocatdesc-category()
-};
-
 declare %test:setUp function tsfacetdiv:setUp() {
-	tsfacetdiv:cleanup()
+	tsfacetdiv:cleanup(), tsfacetdiv:ensure-temp-taxonomy()
 };
 
 declare %test:tearDown function tsfacetdiv:tearDown() {
@@ -105,8 +104,7 @@ declare %test:tearDown function tsfacetdiv:tearDown() {
 declare
 	%test:assertEquals("a distinctive cached facet title no live lookup could produce")
 function tsfacetdiv:cache-hit-renders-cached-title() {
-	let $_ := titles:updateTitleCache($tsfacetdiv:cache-id, $tsfacetdiv:cache-title)
-	let $titleMap := lists:title-lookup-map()
+	let $titleMap := map {$tsfacetdiv:cache-id: $tsfacetdiv:cache-title}
 	let $facets := map {$config:BMurl || $tsfacetdiv:cache-id: 3}
 	let $div := q:facetDiv("repository", $facets, "Repository", $titleMap)
 	return string($div//*:div[contains(@id, "facet-list")]/text()[normalize-space(.) != ""][1])
@@ -149,8 +147,7 @@ declare %test:assertEquals(7) function tsfacetdiv:preserves-each-facet-value-cou
 declare
 	%test:assertEquals("a distinctive cached facet title no live lookup could produce")
 function tsfacetdiv:facetgroup-threads-titlemap-to-facetdiv() {
-	let $_ := titles:updateTitleCache($tsfacetdiv:cache-id, $tsfacetdiv:cache-title)
-	let $titleMap := lists:title-lookup-map()
+	let $titleMap := map {$tsfacetdiv:cache-id: $tsfacetdiv:cache-title}
 	let $subsequence := <fixture>
 		<t:witness xmlns:t="http://www.tei-c.org/ns/1.0" corresp="{ $config:BMurl || $tsfacetdiv:cache-id }" />
 	</fixture>
@@ -327,10 +324,8 @@ declare %test:assertTrue function tsfacetdiv:keywords-id-only-category-still-gro
 	let $_insert := update insert <category xmlns="http://www.tei-c.org/ns/1.0">
 		<desc>{ $tsfacetdiv:tax-nocatdesc-group }</desc>
 		<category xml:id="{ $tsfacetdiv:tax-nocatdesc-id }" />
-	</category> into doc("/db/apps/lists/canonicaltaxonomy.xml")//t:taxonomy
-	let $titleMap := lists:title-lookup-map()
-	let $facets := map {$tsfacetdiv:tax-nocatdesc-id: 1}
-	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap)
-	let $groupId := "keywords-" || replace($tsfacetdiv:tax-nocatdesc-group, " ", "") || "-facet-sublist"
-	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-nocatdesc-id])
+	</category> into doc($tsfacetdiv:temp-tax-path)//t:taxonomy
+	let $taxByKey := q:tax-lookup-map(doc($tsfacetdiv:temp-tax-path))
+	return $taxByKey($tsfacetdiv:tax-nocatdesc-id)/parent::t:category/t:desc eq
+		$tsfacetdiv:tax-nocatdesc-group
 };
