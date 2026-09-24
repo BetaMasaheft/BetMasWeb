@@ -16,6 +16,7 @@ import module namespace roaster = "http://e-editiones.org/roaster";
 import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:///db/apps/BetMasWeb/modules/log.xqm";
 import module namespace apptable = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/apptable" at "xmldb:exist:///db/apps/BetMasWeb/modules/apptable.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
@@ -28,13 +29,15 @@ import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMa
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 
-declare variable $list:instit := doc("/db/apps/lists/institutions.xml");
+declare variable $list:catalog-backend := catalog:backend("web-list");
+
+declare variable $list:instit := <list xmlns="http://www.tei-c.org/ns/1.0">
+	{ catalog:institutions($list:catalog-backend) }
+</list>;
 
 declare variable $list:taxonomy := doc("/db/apps/lists/canonicaltaxonomy.xml");
 
 declare variable $list:catalogues := doc("/db/apps/lists/catalogues.xml")//t:list;
-
-declare variable $list:bibliography := doc("/db/apps/lists/bibliography.xml");
 
 declare variable $list:app-meta := (
 	<meta
@@ -1509,7 +1512,7 @@ declare function list:getcatalogues($request as map(*)) {
 										let $zoTag := substring-after($catalogue, "bm:")
 										let $count := count($cats//t:ptr[@target eq $catalogue])
 										let $val := string($catalogue)
-										let $entry := $list:bibliography//b:entry[@id = $val]
+										let $entry := catalog:bibl($val, $list:catalog-backend)
 
 										let $data := if (count($entry) ge 1) then
 											let $c := $entry
