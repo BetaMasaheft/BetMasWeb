@@ -1,0 +1,23 @@
+test/CATALOG_ORACLE_PHASE2.md
+  s_e98fb2299e704f::t_80a5a7c97a2d65 1-15
+test/catalog-oracle-legacy-vs-catalog.json
+  s_e98fb2299e704f::t_a228a1bd60bd68 2,6,8,10,15
+test/catalog-oracle-legacy-vs-catalog.sample.json
+  s_e98fb2299e704f::t_f8146094e7fe61 1-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "04df03434944ceab5585dc3e9c10b68e2fe778e9",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
