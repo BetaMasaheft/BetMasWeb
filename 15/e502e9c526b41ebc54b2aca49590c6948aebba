@@ -1,0 +1,41 @@
+modules/catalog-legacy.xqm
+  s_e98fb2299e704f::t_62d164ad0a0bd8 48
+modules/catalog-places.xqm
+  s_e98fb2299e704f::t_5af70b51f39c09 99
+modules/catalog-selectors.xqm
+  s_e98fb2299e704f::t_42c197f68c743c 101-106
+modules/catalog.xqm
+  s_e98fb2299e704f::t_aed27d667e325e 75
+modules/exptit.xqm
+  s_e98fb2299e704f::t_05aaf07f3cf72f 153
+modules/titlesData.xqm
+  s_e98fb2299e704f::t_c488345c023c45 60
+test/catalog-oracle-legacy-vs-catalog.json
+  s_e98fb2299e704f::t_dd7ca3ad83d36a 2-15
+test/catalog-oracle-legacy-vs-catalog.sample.json
+  s_e98fb2299e704f::t_bb4590959007bc 2-15
+test/catalog-oracle-result.json
+  s_e98fb2299e704f::t_f3151a703a7e0e 1-13
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_9b15e55eb4d514 122-126
+test/xqs/ts-catalog-contract.xqm
+  s_e98fb2299e704f::t_2b6bc8e02c1b92 26,44,54,64,66,70,99,111,126-130,138-140,147,153,159,165,171,177
+test/xqs/ts-catalog-selectors.xqm
+  s_e98fb2299e704f::t_d553d6ccfe9d31 20,22-23,29-30,51-52,59,61,69-70,75-77,79,89-93,105-109,117-121,131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "15e502e9c526b41ebc54b2aca49590c6948aebba",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
