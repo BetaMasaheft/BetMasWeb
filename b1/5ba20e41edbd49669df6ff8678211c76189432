@@ -1,0 +1,23 @@
+test/xqs/ts-queries-facetdiv.xqm
+  s_2e771ee34719d0::t_68e1b5338317c0 15-16,29-34,73-75,77-79,85-88,92,107,150,327-330
+  s_2e771ee34719d0::t_225a97f66f73e0 22
+modules/queries.xqm
+  s_2e771ee34719d0::t_0f7abc4b6e9958 2290,2293,2295,2309-2310
+  s_2e771ee34719d0::t_95b6716d4c1bad 2311-2312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b15ba20e41edbd49669df6ff8678211c76189432",
+  "prompts": {},
+  "sessions": {
+    "s_2e771ee34719d0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4631dfec-eef3-41b4-8118-e45f10dfd049",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
