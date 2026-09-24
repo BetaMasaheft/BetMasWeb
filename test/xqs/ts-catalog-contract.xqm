@@ -23,10 +23,7 @@ declare %private function tscatalog:text($label as item()*) as xs:string {
 };
 
 declare
-	%test:args("legacy")
-	%test:assertEquals("Exodus")
-	%test:args("catalog")
-	%test:assertEquals("Exodus")
+	%test:args("legacy") %test:assertEquals("Exodus") %test:args("catalog") %test:assertEquals("Exodus")
 function tscatalog:label-resolves-a-record($backend as xs:string) as xs:string {
 	tscatalog:text(catalog:label("LIT1367Exodus", $backend))
 };
@@ -44,10 +41,7 @@ function tscatalog:labels-preserve-input-order($backend as xs:string) as xs:stri
  : A trailing "#" is authored noise, not a fragment reference.
  :)
 declare
-	%test:args("legacy")
-	%test:assertEquals("Senodos")
-	%test:args("catalog")
-	%test:assertEquals("Senodos")
+	%test:args("legacy") %test:assertEquals("Senodos") %test:args("catalog") %test:assertEquals("Senodos")
 function tscatalog:label-ignores-a-trailing-hash($backend as xs:string) as xs:string {
 	tscatalog:text(catalog:label("LIT2317Senodo#", $backend))
 };
@@ -57,10 +51,7 @@ function tscatalog:label-ignores-a-trailing-hash($backend as xs:string) as xs:st
  : structurally because the anchor text is corpus data, not a fixture.
  :)
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:label-composes-record-and-anchor($backend as xs:string) as xs:boolean {
 	let $composed := tscatalog:text(catalog:label("LIT1367Exodus#Ex1", $backend))
 	return starts-with($composed, "Exodus: ") and string-length($composed) gt string-length("Exodus: ")
@@ -70,22 +61,13 @@ function tscatalog:label-composes-record-and-anchor($backend as xs:string) as xs
  : An unresolvable main id must say so rather than return nothing.
  :)
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:label-reports-an-unknown-main-id($backend as xs:string) as xs:boolean {
-	contains(
-		tscatalog:text(catalog:label("LIT0000NoSuchRecord#t1", $backend)),
-		"No item: LIT0000NoSuchRecord"
-	)
+	contains(tscatalog:text(catalog:label("LIT0000NoSuchRecord#t1", $backend)), "No item: LIT0000NoSuchRecord")
 };
 
 declare
-	%test:args("legacy")
-	%test:assertEquals("no id")
-	%test:args("catalog")
-	%test:assertEquals("no id")
+	%test:args("legacy") %test:assertEquals("no id") %test:args("catalog") %test:assertEquals("no id")
 function tscatalog:empty-id-is-marked($backend as xs:string) as xs:string {
 	tscatalog:text(catalog:label("", $backend))
 };
@@ -114,10 +96,7 @@ function tscatalog:sdc-ids-are-expanded($backend as xs:string) as xs:string {
  : or the permanent-deletion form.
  :)
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:deleted-ids-explain-themselves($backend as xs:string) as xs:boolean {
 	let $id := (doc("/db/apps/lists/deleted.xml")//t:item)[1]/string()
 	let $label := tscatalog:text(catalog:label($id, $backend))
@@ -129,10 +108,7 @@ function tscatalog:deleted-ids-explain-themselves($backend as xs:string) as xs:b
  : terminate instead of recursing (the LOC1464Ankoba stack overflow).
  :)
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:self-referential-successor-terminates($backend as xs:string) as xs:boolean {
 	let $label := tscatalog:text(catalog:label("LOC1464Ankoba", $backend))
 	return contains($label, "deleted") or contains($label, "formerly also listed as")
@@ -147,10 +123,11 @@ declare %test:assertTrue function tscatalog:external-place-labels-agree-across-b
 	let $ref := (
 		doc("/db/apps/lists/placeNamesLabels.xml")//t:item[matches(@corresp, "^(wd:Q\d+|gn:|pleiades:)")]
 	)[1]/@corresp/string()
-	return empty($ref) or (
-		tscatalog:text(catalog:label($ref, "legacy")) eq tscatalog:text(catalog:label($ref, "catalog")) and
-			tscatalog:text(catalog:label($ref, "legacy")) ne ""
-	)
+	return empty($ref) or
+		(
+			tscatalog:text(catalog:label($ref, "legacy")) eq tscatalog:text(catalog:label($ref, "catalog")) and
+				tscatalog:text(catalog:label($ref, "legacy")) ne ""
+		)
 };
 
 (:~
@@ -158,62 +135,46 @@ declare %test:assertTrue function tscatalog:external-place-labels-agree-across-b
  : interim HTTP fetch runs at most once per identifier and never writes to the
  : database.
  :)
-declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered-place-labels-come-from-cache() as xs:string {
+declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered-place-labels-come-from-cache(
+
+) as xs:string {
 	let $ref := "wd:Q999999999"
 	let $remembered := places:remember($ref, "Cached Fixture Place")
 	return tscatalog:text(places:label($ref))
 };
 
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:institutions-return-labelled-items($backend as xs:string) as xs:boolean {
 	exists(catalog:institutions($backend)[self::t:item][@xml:id][normalize-space(.)])
 };
 
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:textparts-resolve-known-work($backend as xs:string) as xs:boolean {
 	exists(catalog:textparts("LIT1367Exodus", $backend)[self::t:item][starts-with(@corresp, "LIT1367Exodus")])
 };
 
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:bibl-resolves-known-entry($backend as xs:string) as xs:boolean {
 	exists(catalog:bibl("bm:IHABook557", $backend)[self::b:entry])
 };
 
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:bibl-accepts-an-unprefixed-key($backend as xs:string) as xs:boolean {
 	deep-equal(catalog:bibl("IHABook557", $backend), catalog:bibl("bm:IHABook557", $backend))
 };
 
 declare
-	%test:args("legacy")
-	%test:assertTrue
-	%test:args("catalog")
-	%test:assertTrue
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:retired-identifies-known-deletion($backend as xs:string) as xs:boolean {
 	catalog:retired("LOC1464Ankoba", $backend)
 };
 
 declare
-	%test:args("legacy")
-	%test:assertFalse
-	%test:args("catalog")
-	%test:assertFalse
+	%test:args("legacy") %test:assertFalse %test:args("catalog") %test:assertFalse
 function tscatalog:retired-is-false-for-a-live-record($backend as xs:string) as xs:boolean {
 	catalog:retired("LIT1367Exodus", $backend)
 };

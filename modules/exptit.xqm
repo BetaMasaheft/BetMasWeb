@@ -150,11 +150,7 @@ declare function exptit:printSubtitle($node as node(), $SUBid as xs:string) as x
 	selectors:subtitle(
 		$node,
 		$SUBid,
-		map {
-			"label": exptit:printTitleID#1,
-			"text": function ($nodes as node()*) { $nodes/text() },
-			"additio": false()
-		}
+		map {"label": exptit:printTitleID#1, "text": function ($nodes as node()*) { $nodes/text() }, "additio": false()}
 	)
 };
 

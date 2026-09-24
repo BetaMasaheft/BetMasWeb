@@ -98,12 +98,12 @@ declare function selectors:work-title($resource as node()) {
  : Single anchor-label rule, shared by the raw-data (titlesData), expanded-data
  : (exptit) and catalog callers, which differ only in these three points:
  :
- :   "label"   function(xs:string) as item()*  resolver for referenced ids
- :   "text"    function(node()*) as item()*    text extraction inside msItem
- :                                             titles and labels (raw data has
- :                                             to resolve nested pointers)
- :   "additio" xs:boolean                      raw data labels bare "aN"
- :                                             anchors as additiones
+ : "label"   function(xs:string) as item()*  resolver for referenced ids
+ : "text"    function(node()*) as item()*    text extraction inside msItem
+ : titles and labels (raw data has
+ : to resolve nested pointers)
+ : "additio" xs:boolean                      raw data labels bare "aN"
+ : anchors as additiones
  :)
 declare function selectors:subtitle($node as node(), $sub-id as xs:string, $options as map(*)) as xs:string {
 	let $label := $options?label

@@ -119,7 +119,11 @@ return serialize(
 		"backendA": $effective-backend-a,
 		"backendB": $effective-backend-b,
 		"comparisonMode": "resolved-values",
-		"limit": if (exists($effective-limit)) then $effective-limit else (),
+		"limit":
+			if (exists($effective-limit)) then
+				$effective-limit
+			else (
+			),
 		"titleCases": count($title-ids),
 		"bibliographyCases": count($bibliography-ids),
 		"comparedCases": count($cases),
