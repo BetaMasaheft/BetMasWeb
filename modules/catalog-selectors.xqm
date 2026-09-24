@@ -94,6 +94,77 @@ declare function selectors:work-title($resource as node()) {
 		selectors:normalize($titles/t:title[1])
 };
 
+(:~
+ : Single anchor-label rule, shared by the raw-data (titlesData), expanded-data
+ : (exptit) and catalog callers, which differ only in these three points:
+ :
+ :   "label"   function(xs:string) as item()*  resolver for referenced ids
+ :   "text"    function(node()*) as item()*    text extraction inside msItem
+ :                                             titles and labels (raw data has
+ :                                             to resolve nested pointers)
+ :   "additio" xs:boolean                      raw data labels bare "aN"
+ :                                             anchors as additiones
+ :)
+declare function selectors:subtitle($node as node(), $sub-id as xs:string, $options as map(*)) as xs:string {
+	let $label := $options?label
+	let $text := $options?text
+	return if (starts-with($sub-id, "tr")) then
+		"transformation " || $sub-id
+	else if (starts-with($sub-id, "Uni")) then
+		$sub-id
+	else
+		let $item := $node//id($sub-id)
+		return if ($item/name() = "title") then
+			string($item/@xml:lang) ||
+				(
+					if ($item/text()) then
+						$item/text()
+					else
+						" ... empty, sorry!"
+				)
+		else if ($item/name() = "persName") then
+			let $normalized := root($item)//t:persName[@type = "normalized"][contains(@corresp, $sub-id)]
+			return if ($normalized) then
+				string-join($normalized//text(), "")
+			else
+				normalize-space(string-join($item, ""))
+		else if ($item/name() = "msItem") then
+			if ($item/t:title/@ref) then
+				$label(string($item/t:title/@ref)) || " (in " || $sub-id || ")"
+			else
+				normalize-space(string-join($text($item/t:title), ""))
+		else if ($item/t:label) then
+			normalize-space(string-join($text($item/t:label), "")) ||
+				(
+					if ($item/@corresp) then
+						" (same as " || string($item/@corresp) || ")"
+					else
+						""
+				)
+		else if ($item[not(t:label)]/@corresp) then
+			normalize-space(string-join($label(string($item/@corresp)), ""))
+		else if ($options?additio and matches($sub-id, "^a\d+$")) then
+			"  additio " || $sub-id
+		else if ($item/t:desc) then
+			$label(string($item/t:desc/@type)) || " " || $sub-id
+		else if (
+			$item/@subtype = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday") and
+				not($item/node())
+		) then
+			" for " || $sub-id
+		else if ($item/@subtype) then
+			$label(string($item/@subtype)) || ": " || $sub-id
+		else
+			$item/name() || " " || $sub-id
+};
+
+(:~
+ : Inscriptions are labelled by their idno alone. The predicate is namespace
+ : prefixed; the pre-2026-09 copy in titlesData.xqm tested an unprefixed
+ : `objectDesc`, which never matched TEI input, so inscriptions silently took
+ : the repository branch instead. Correcting the prefix changes inscription
+ : labels corpus-wide; see docs/CATALOG.md and the selector suite.
+ :)
 declare function selectors:manuscript-label(
 	$resource as node(),
 	$repository-name as xs:string?,

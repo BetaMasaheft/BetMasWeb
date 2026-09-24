@@ -14,7 +14,7 @@ declare option exist:optimize "enable=no";
 
 declare variable $backend-a external := "legacy";
 
-declare variable $backend-b external := "legacy";
+declare variable $backend-b external := "catalog";
 
 declare variable $effective-backend-a := try { request:get-parameter("backend-a", $backend-a) } catch * { $backend-a };
 
@@ -27,28 +27,29 @@ declare variable $reviewed := if (doc-available($reviewed-path)) then
 else (
 );
 
-declare function local:resolve-backend($backend as xs:string, $kind as xs:string, $key as xs:string) as xs:string {
-	if ($kind = "title") then
-		normalize-space(
-			string-join(
-				for $item in catalog:label($key, $backend)
-				return string($item),
-				" "
-			)
-		)
-	else
-		let $entry := catalog:bibl($key, $backend)
-		return normalize-space(serialize($entry))
-};
-
+(:~
+ : Resolves one case through one backend. `legacy` reaches the frozen
+ : pre-Phase-2 chain in catalog-legacy.xqm, `catalog` this phase's own
+ : resolution — two distinct implementations, which is the only reason
+ : comparing them is informative. A backend that raises is reported as an
+ : ERROR value so one bad identifier cannot silence the whole run.
+ :)
 declare function local:resolve($backend as xs:string, $kind as xs:string, $key as xs:string) as xs:string {
-	switch ($backend)
-		case "legacy" return
-			local:resolve-backend($backend, $kind, $key)
-		case "catalog" return
-			local:resolve-backend($backend, $kind, $key)
-		default return
-			error(xs:QName("oracle:UNKNOWN_BACKEND"), "Unknown oracle backend: " || $backend)
+	if (not($backend = ("legacy", "catalog"))) then
+		error(xs:QName("oracle:UNKNOWN_BACKEND"), "Unknown oracle backend: " || $backend)
+	else
+		try {
+			if ($kind = "title") then
+				normalize-space(
+					string-join(
+						for $item in catalog:label($key, $backend)
+						return string($item),
+						" "
+					)
+				)
+			else
+				normalize-space(serialize(catalog:bibl($key, $backend)))
+		} catch * { "ERROR " || $err:code || ": " || $err:description }
 };
 
 declare function local:valid-review($review as element(mismatch)?) as xs:boolean {
@@ -71,18 +72,7 @@ let $cases := (
 	for $key in $bibliography-ids
 	return map {"kind": "bibliography", "key": $key}
 )
-let $equivalent-fallback := ($effective-backend-a, $effective-backend-b) = "legacy" and
-	($effective-backend-a, $effective-backend-b) = "catalog" and
-	not(
-		some
-			$path in
-			(
-				"/db/apps/catalogs/labels.xml", "/db/apps/catalogs/bibliography.xml", "/db/apps/catalogs/retired-ids.xml"
-			) satisfies
-			doc-available($path)
-	)
-let $mismatches := if ($equivalent-fallback) then (
-) else
+let $mismatches :=
 	for $case in $cases
 	let $kind := $case?kind
 	let $key := $case?key
@@ -111,11 +101,7 @@ return serialize(
 	map {
 		"backendA": $effective-backend-a,
 		"backendB": $effective-backend-b,
-		"comparisonMode":
-			if ($equivalent-fallback) then
-				"equivalent-query-fallback"
-			else
-				"resolved-values",
+		"comparisonMode": "resolved-values",
 		"titleCases": count($title-ids),
 		"bibliographyCases": count($bibliography-ids),
 		"resolutionCallsA": count($cases),
