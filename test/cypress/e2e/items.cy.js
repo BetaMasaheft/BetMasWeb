@@ -24,7 +24,7 @@ it("GET /works/LIT1709Kebran/text returns HTML (not XPTY0004 JSON error)", () =>
 		url: "/works/LIT1709Kebran/text",
 		method: "GET",
 		failOnStatusCode: false,
-		timeout: 90000
+		timeout: 90000,
 	}).then((res) => {
 		expect(res.status, `GET /works/LIT1709Kebran/text responded with ${res.status}`).to.equal(200);
 		expect(res.body, "body should be HTML").to.match(/<!DOCTYPE html|<html/i);
