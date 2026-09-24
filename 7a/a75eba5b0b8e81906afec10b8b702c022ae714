@@ -1,0 +1,33 @@
+test/CATALOG_ORACLE.md
+  s_68918b3788855a::t_87e9628bccf68c 1-11,14-22
+  s_68918b3788855a::t_9e12d78a73d928 12-13
+test/catalog-reviewed-mismatches.xml
+  s_68918b3788855a::t_95b48e4e63176e 1-7
+scripts/run-catalog-oracle.sh
+  s_68918b3788855a::t_e96af5049f0e4e 11-12,15-16
+  s_68918b3788855a::t_53ed3ef71658e3 1-10,13-14,17-19
+test/xqs/catalog-parity-oracle.xq
+  s_68918b3788855a::t_fd8b661c03e5cd 24
+  s_68918b3788855a::t_64affdac193fdd 1-4,6-23,25-72,74-80
+  s_68918b3788855a::t_1a25c78dbb518d 5
+  s_68918b3788855a::t_97dbca03b869ce 73,81
+  s_68918b3788855a::t_f4a5ee232ec055 82-85
+test/catalog-oracle-result.json
+  s_68918b3788855a::t_bffd5ecf94db11 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7aa75eba5b0b8e81906afec10b8b702c022ae714",
+  "prompts": {},
+  "sessions": {
+    "s_68918b3788855a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "352a5e5f-8a7b-4040-9b54-13ff69de1fe7",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
