@@ -325,7 +325,9 @@ declare %test:assertTrue function tsfacetdiv:keywords-id-only-category-still-gro
 		<desc>{ $tsfacetdiv:tax-nocatdesc-group }</desc>
 		<category xml:id="{ $tsfacetdiv:tax-nocatdesc-id }" />
 	</category> into doc($tsfacetdiv:temp-tax-path)//t:taxonomy
-	let $taxByKey := q:tax-lookup-map(doc($tsfacetdiv:temp-tax-path))
-	return $taxByKey($tsfacetdiv:tax-nocatdesc-id)/parent::t:category/t:desc eq
-		$tsfacetdiv:tax-nocatdesc-group
+	let $titleMap := lists:title-lookup-map()
+	let $facets := map {$tsfacetdiv:tax-nocatdesc-id: 1}
+	let $div := q:facetDiv("keywords", $facets, "Keywords", $titleMap, doc($tsfacetdiv:temp-tax-path))
+	let $groupId := "keywords-" || replace($tsfacetdiv:tax-nocatdesc-group, " ", "") || "-facet-sublist"
+	return exists($div//*:div[@id = $groupId]//*:input[@value = $tsfacetdiv:tax-nocatdesc-id])
 };

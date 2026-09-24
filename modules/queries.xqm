@@ -2290,7 +2290,7 @@ declare function q:facetGroup($group, $groupname, $subsequence, $titleMap as map
  : @param $taxonomy the taxonomy document to index
  : @return a map from category @xml:id/catDesc text to its t:category node
  :)
-declare function q:tax-lookup-map($taxonomy as node()) as map(*) {
+declare %private function q:tax-lookup-map($taxonomy as node()) as map(*) {
 	map:merge(
 		for $category in $taxonomy//t:category
 		return (
@@ -2304,10 +2304,6 @@ declare function q:tax-lookup-map($taxonomy as node()) as map(*) {
 			)
 		)
 	)
-};
-
-declare %private function q:tax-lookup-map() as map(*) {
-	q:tax-lookup-map($q:tax)
 };
 
 (:~
@@ -2345,6 +2341,18 @@ declare %private function q:tax-lookup-map() as map(*) {
  : @see https://github.com/BetaMasaheft/BetMasWeb/issues/3
  :)
 declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
+	q:facetDiv($f, $facets, $facetTitle, $titleMap, $q:tax)
+};
+
+(:~
+ : Renders a facet using a caller-supplied taxonomy. Production callers
+ : use q:facetDiv#4; this overload lets XQSuite exercise the complete
+ : rendered keywords path against an isolated taxonomy fixture.
+ :
+ : @param $taxonomy the taxonomy document used by the keywords branch
+ : @return the same facet markup as q:facetDiv#4
+ :)
+declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*), $taxonomy as node()) {
 	let $facets := map:merge($facets)
 	return if (map:size($facets) gt 1000) then (
 		util:log("info", concat($facetTitle, " has ", map:size($facets), " facets"))
@@ -2365,7 +2373,7 @@ declare function q:facetDiv($f, $facets, $facetTitle, $titleMap as map(*)) {
 					)
 					let $batchTitles := lists:batch-resolve-titles($bareIds, $titleMap)
 					let $taxByKey := if ($f = "keywords") then
-						q:tax-lookup-map()
+						q:tax-lookup-map($taxonomy)
 					else
 						map {}
 					let $inputs :=
