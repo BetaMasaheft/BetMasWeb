@@ -199,7 +199,14 @@ declare function catalog:bibl($bm as xs:string, $backend as xs:string) as elemen
 		(catalog:artifact("bibliography.xml"), $catalog:bibliography)[1]
 	else
 		$catalog:bibliography
-	return ($source//b:entry[@id = ($id, replace($id, ":", "_"))])[1]
+	(: Two single-value equality checks — NOT `@id = ($id, $alt)`. A general
+	   comparison against a sequence forces a full scan of bibliography.xml
+	   (~14s per lookup here); one value uses the range index (~10ms). :)
+	let $exact := ($source//b:entry[@id = $id])[1]
+	return if ($exact) then
+		$exact
+	else
+		($source//b:entry[@id = replace($id, ":", "_")])[1]
 };
 
 declare function catalog:retired($id as xs:string) as xs:boolean {
