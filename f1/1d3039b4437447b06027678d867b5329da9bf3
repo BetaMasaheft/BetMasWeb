@@ -1,0 +1,20 @@
+test/catalog_oracle_runner_spec.bats
+  s_e98fb2299e704f::t_44490fa50959af 24,29-30,34,42-43,45-50
+  s_e98fb2299e704f::t_95119d03405c95 14-22,26,36,44,52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f11d3039b4437447b06027678d867b5329da9bf3",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
