@@ -48,6 +48,7 @@ import module namespace tsformbatch = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titles-consolidation" at "ts-titles-consolidation.xqm";
 import module namespace tsprinttitle = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-exptit-printtitle" at "ts-exptit-printtitle.xqm";
 import module namespace tscatalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-catalog-contract" at "ts-catalog-contract.xqm";
+import module namespace tsselectors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-catalog-selectors" at "ts-catalog-selectors.xqm";
 import module namespace tspersrole = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-persrole" at "ts-app-persrole.xqm";
 import module namespace tsmssfilters = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-app-msfilters" at "ts-app-msfilters.xqm";
 import module namespace tscrange = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-computed-range-filters" at "ts-computed-range-filters.xqm";
@@ -106,6 +107,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-titles-consolidation.xqm")),
 		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
 		inspect:module-functions(xs:anyURI("ts-catalog-contract.xqm")),
+		inspect:module-functions(xs:anyURI("ts-catalog-selectors.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-persrole.xqm")),

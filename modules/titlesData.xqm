@@ -47,63 +47,22 @@ declare function titles:printTitle($node as element()) {
 	return titles:switcher($resource//t:TEI/@type, $resource)
 };
 
-(: looks for different possible locations of anchor and where to pick the correct label :)
+(:~
+ : Anchor label for raw source data. The rule itself lives in
+ : catalog-selectors.xqm and is shared with exptit and the catalog facade;
+ : raw data differs only in resolving nested pointers inside msItem titles
+ : and labels, and in naming bare "aN" anchors additiones.
+ :)
 declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as xs:string {
-	if (starts-with($SUBid, "tr")) then
-		"transformation " || $SUBid
-	else if (starts-with($SUBid, "Uni")) then
-		$SUBid
-	else
-		let $item := $node//id($SUBid)
-		return if ($item/name() = "title") then (
-			string($item/@xml:lang) ||
-				(
-					if ($item/text()) then
-						$item/text()
-					else
-						" ... empty, sorry!"
-				)
-		) else if ($item/name() = "persName") then (
-			let $r := root($item)
-			return if ($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]) then
-				string-join($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]//text(), "")
-			else
-				normalize-space(string-join($item, ""))
-		) else if ($item/name() = "msItem") then (
-			if ($item/t:title/@ref) then (
-				titles:printTitleID(string($item/t:title/@ref)) || " (in " || $SUBid || ")"
-			) else
-				normalize-space(string-join(titles:tei2string($item/t:title), ""))
-		) else if ($item/t:label) then
-			let $sameAs := if ($item/@corresp) then (
-				" (same as " || string($item/@corresp) || ")"
-			) else (
-			)
-			return (normalize-space(string-join(titles:tei2string($item/t:label), "")) || $sameAs)
-		else if ($item[not(t:label)]/@corresp) then
-			normalize-space(string-join(titles:printTitleID($item/@corresp), ""))
-		else if (matches($SUBid, "^a\d+$")) then
-			"  additio " || $SUBid
-		else if ($item/t:desc) then (
-			titles:printTitleID(string($item/t:desc/@type)) || " " || $SUBid
-		) else if (
-			(
-				$item/@subtype eq "Monday" or
-					$item/@subtype eq "Tuesday" or
-					$item/@subtype eq "Wednesday" or
-					$item/@subtype eq "Thursday" or
-					$item/@subtype eq "Friday" or
-					$item/@subtype eq "Saturday" or
-					$item/@subtype eq "Sunday"
-			) and
-				not($item/node())
-		) then (
-			" for " || $SUBid
-		) else if ($item/@subtype) then (
-			titles:printTitleID(string($item/@subtype)) || ": " || $SUBid
-		) else (
-			$item/name() || " " || $SUBid
-		)
+	selectors:subtitle(
+		$node,
+		$SUBid,
+		map {
+			"label": titles:printTitleID#1,
+			"text": titles:tei2string#1,
+			"additio": true()
+		}
+	)
 };
 
 (:~
