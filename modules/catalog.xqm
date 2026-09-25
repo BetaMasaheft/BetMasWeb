@@ -67,6 +67,10 @@ declare %private function catalog:expanded-sha() as xs:string? {
 	return $sha!normalize-space(normalize-unicode(., "NFC"))
 };
 
+declare function catalog:sha-matches($want as xs:string, $have as xs:string?) as xs:boolean {
+	empty($have) or $want = $have
+};
+
 declare %private function catalog:artifact-fresh($name as xs:string) as xs:boolean {
 	let $manifest := catalog:manifest()
 	let $artifact := $manifest/artifact[@name = $name]
@@ -75,7 +79,7 @@ declare %private function catalog:artifact-fresh($name as xs:string) as xs:boole
 	else
 		let $expected := normalize-space(normalize-unicode(string($artifact/@expanded-sha), "NFC"))
 		let $actual := catalog:expanded-sha()
-		return empty($actual) or $expected = $actual
+		return catalog:sha-matches($expected, $actual)
 };
 
 declare %private function catalog:artifact($name as xs:string) as document-node()? {
