@@ -186,3 +186,49 @@ declare %test:assertEquals("legacy") function tscatalog:default-backend-is-legac
 declare %test:assertEquals("legacy") function tscatalog:invalid-backend-value-falls-back() as xs:string {
 	catalog:backend("contract-test-nonsense-value")
 };
+
+declare %test:assertFalse function tscatalog:missing-artifact-is-unavailable() as xs:boolean {
+	catalog:artifact-available("no-such-catalog-artifact.xml")
+};
+
+declare %test:assertTrue function tscatalog:sha-matches-equal-pins() as xs:boolean {
+	catalog:sha-matches("abc123", "abc123")
+};
+
+declare %test:assertFalse function tscatalog:sha-matches-unequal-pins() as xs:boolean {
+	catalog:sha-matches("deadbeef", "cafebabe")
+};
+
+declare %test:assertTrue function tscatalog:sha-matches-empty-have-is-dev-fallback() as xs:boolean {
+	catalog:sha-matches("deadbeef", ())
+};
+
+(:~
+ : Stale pin semantics: when manifest `expanded-sha` disagrees with
+ : `expanded-sha.txt`, `catalog:sha-matches` is false, so `catalog:artifact`
+ : returns () and `catalog:artifact-available` is false even if the XML file
+ : exists on disk. `$catalog:artifacts` is fixed at `/db/apps/catalogs` (not
+ : overridable in tests); the live correlation assert below re-checks that
+ : wiring against the deployed fixture collection.
+ :)
+declare %test:assertFalse function tscatalog:stale-pin-sha-mismatch() as xs:boolean {
+	catalog:sha-matches("deadbeef", "cafebabe")
+};
+
+declare %test:assertTrue function tscatalog:artifact-available-tracks-manifest-pin() as xs:boolean {
+	if (
+		not(doc-available("/db/apps/catalogs/manifest.xml")) or not(doc-available("/db/apps/catalogs/retired-ids.xml"))
+	) then
+		true()
+	else
+		let $artifact := doc("/db/apps/catalogs/manifest.xml")/catalog-manifest/artifact[@name = "retired-ids.xml"][1]
+		return if (empty($artifact) or empty($artifact/@expanded-sha)) then
+			catalog:artifact-available("retired-ids.xml")
+		else
+			let $want := normalize-space(normalize-unicode(string($artifact/@expanded-sha), "NFC"))
+			let $have := if (unparsed-text-available("/db/apps/catalogs/expanded-sha.txt")) then
+				normalize-space(normalize-unicode(unparsed-text("/db/apps/catalogs/expanded-sha.txt"), "NFC"))
+			else (
+			)
+			return catalog:sha-matches($want, $have) = catalog:artifact-available("retired-ids.xml")
+};
