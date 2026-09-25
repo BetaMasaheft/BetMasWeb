@@ -1,0 +1,24 @@
+test/xqs/ts-catalog-contract.xqm
+  s_65c2f1ac21663f::t_ce0e816971dabd 193-233
+  s_65c2f1ac21663f::t_0f058199143a7e 234
+test/xqs/test-runner-catalog.xq
+  s_65c2f1ac21663f::t_69b9e05a71568a 1-19
+modules/catalog.xqm
+  s_65c2f1ac21663f::t_7cd6e2b0ce4ca4 70-73,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3d5bdf913ecf779138cdd8c0844cf8e11a994877",
+  "prompts": {},
+  "sessions": {
+    "s_65c2f1ac21663f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "69d59d53-209a-4be0-85f5-0d16bdaa4cee",
+        "model": "composer-2.5-fast"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
