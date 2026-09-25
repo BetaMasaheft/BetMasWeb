@@ -186,3 +186,7 @@ declare %test:assertEquals("legacy") function tscatalog:default-backend-is-legac
 declare %test:assertEquals("legacy") function tscatalog:invalid-backend-value-falls-back() as xs:string {
 	catalog:backend("contract-test-nonsense-value")
 };
+
+declare %test:assertFalse function tscatalog:missing-artifact-is-unavailable() as xs:boolean {
+	catalog:artifact-available("no-such-catalog-artifact.xml")
+};
