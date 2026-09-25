@@ -18,6 +18,20 @@ it("GET /{collection}/{id}/text (as /manuscripts/BAVet1/text)", () => {
 	});
 });
 
+// Regression: Roaster document unwrap / work-text 500 (was bats work_text_spec).
+it("GET /works/LIT1709Kebran/text returns HTML (not XPTY0004 JSON error)", () => {
+	cy.request({
+		url: "/works/LIT1709Kebran/text",
+		method: "GET",
+		failOnStatusCode: false,
+		timeout: 90000,
+	}).then((res) => {
+		expect(res.status, `GET /works/LIT1709Kebran/text responded with ${res.status}`).to.equal(200);
+		expect(res.body, "body should be HTML").to.match(/<!DOCTYPE html|<html/i);
+		expect(res.body, "body should not be an XPTY0004 JSON error").to.not.include("XPTY0004");
+	});
+});
+
 it("GET /{collection}/{id}/analytic (as /manuscripts/BAVet1/analytic)", () => {
 	cy.request({ url: "/manuscripts/BAVet1/analytic", method: "GET", failOnStatusCode: false }).then((res) => {
 		expect(res.status, `GET /manuscripts/BAVet1/analytic responded with ${res.status}`).to.not.equal(500);

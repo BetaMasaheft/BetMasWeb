@@ -8,13 +8,13 @@ The views do not need to use this, and should instead get the information straig
 module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit";
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace http = "http://expath.org/ns/http-client";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
-declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
-declare namespace feed = "http://www.w3.org/2005/Atom";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
-import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
+import module namespace selectors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-selectors" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog-selectors.xqm";
+import module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog-places.xqm";
+import module namespace cache = "http://exist-db.org/xquery/cache";
 
 declare variable $exptit:col := collection($config:data-root);
 
@@ -129,233 +129,52 @@ The following tests are also failing on the old system.
 %test:arg('id', 'PRS5684JesusCh#n2') %test:assertEquals('Jesus Christ, Krǝstos')
  :)
 function exptit:printTitleID($id as xs:string) {
-	let $cacheHit := $exptit:titleCache//t:item[@corresp eq $id][1]
-	return if ($exptit:deleted//t:item[. = $id]) then
-		let $del := $exptit:deleted//t:item[. = $id]
-		let $formerly := $exptit:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
-		(: Prefer a successor that is not $id — self-loops (e.g. LOC1464Ankoba)
-		   used to StackOverflow via exptit:printTitleID($formerly/@active). :)
-		let $active := titles:distinctSuccessor($formerly, $id)
-		return if ($active) then
-			exptit:printTitleID($active) ||
-				" [now " ||
-				$active ||
-				", formerly also listed as " ||
-				$id ||
-				", which was requested here but has been deleted on " ||
-				string($del/@change) ||
-				"]"
-		else if (exists($formerly)) then
-			string($exptit:col/id($id)//t:title[@type = "full"]/text()) ||
-				" [deleted on " ||
-				string($del/@change) ||
-				"; formerlyAlsoListedAs is self-referential or empty]"
-		else
-			$id || " was permanently deleted"
-	else if (starts-with($id, "sdc:")) then
-		"La Synthaxe du Codex " || substring-after($id, "sdc:")
-	(: another hack for things like ref="#" :)
-	else if ($id = "#") then
-		<span class="w3-tag w3-red">{ "no item yet with id " || $id }</span>
-	(: cache-first: expand:file writes every record's own resolved title
-	   here, keyed by its own xml:id - a hit skips the collection-wide
-	   id() lookup further down entirely :)
-	else if (exists($cacheHit)) then (
-		$cacheHit/node()
-	) (: hack to avoid the bad usage of # at the end of an id like <title type="complete" ref="LIT2317Senodo#" xml:lang="gez"> :) else if (
-		$exptit:TUList//t:item[@corresp eq $id]
-	) then (
-		$exptit:TUList//t:item[@corresp eq $id][1]/node()
-	) else if ($exptit:persNamesList//t:item[@corresp eq $id]) then (
-		$exptit:persNamesList//t:item[@corresp eq $id][1]/node()
-	) else if (ends-with($id, "#")) then (
-		let $newid := replace($id, "#", "")
-		return exptit:printTitleID($newid)
-	) else if (matches($id, "wd:Q\d+") or starts-with($id, "gn:") or starts-with($id, "pleiades:")) then
-		exptit:decidePlaceNameSource($id)
-	else if ($id = "") then
-		<span class="w3-tag w3-red">{ "no id" }</span>
-	(: if the id has a subid, than split it :)
-	else if (contains($id, "#")) then (
-		let $mainIDstart := substring-before($id, "#")
-		let $mainID := if (starts-with($mainIDstart, $config:BMurl)) then
-			substring-after($mainIDstart, $config:BMurl)
-		else
-			$mainIDstart
-		let $SUBid := substring-after($id, "#")
-		let $node := $exptit:col//id($mainID)
-		return if ($node) then (
-			if (starts-with($SUBid, "t")) then (
-				let $subtitles := $node//t:title[contains(@corresp, $SUBid)]
-				let $subtitlemain := $subtitles[@type eq "main"]/text()
-				let $subtitlenorm := $subtitles[@type eq "normalized"]/text()
-				let $tit := $node//t:title[@xml:id = $SUBid]
-				return if ($subtitlemain) then
-					$subtitlemain
-				else if ($subtitlenorm) then
-					$subtitlenorm
-				else
-					$tit/text()
-			) else (
-				(: Return composed title; id($id) misses LIT…#fragment forms. :)
-				let $subtitle := exptit:printSubtitle($node[1], $SUBid)
-				return normalize-space(exptit:printTitleID($mainID) || ": " || $subtitle)
-			)
-		) (: if no node could be found with the main id, that has a problem :) else (
-			<span class="w3-tag w3-red">{ "No item: " || $mainID || ", could not check for " || $SUBid }</span>
-		)
-	) else if (not(starts-with($id, "http")) and matches($id, "(A-Za-z0-9\.\-)")) then
-		(: in e.g. LIT1340EnochE.1.6-9 will remove .1 and .6-9 :)
-		let $mainid := replace($id, "(\.[A-Za-z0-9\-]+)", "")
-		return $exptit:col/id($mainid)//t:title[@type = "full"]/text()
-		(: if not, procede to main title printing :)
-	else
-		$exptit:col/id($id)//t:title[@type = "full"]/text()
+	catalog:label($id, catalog:backend("exptit"))
 };
 
 declare function exptit:updateTUList($name, $pRef) {
-	let $TUlist := $exptit:TUList//t:list
 	let $ref := if (contains($pRef, ".eu/")) then
 		substring-after($pRef, ".eu/")
 	else
 		string($pRef)
-	let $update := if ($TUlist/t:item[@corresp eq $ref]) then
-		update value $TUlist/t:item[@corresp eq $ref] with $name
-	else if (contains($pRef, "#")) then (
-	) else
-		update insert <item xmlns="http://www.tei-c.org/ns/1.0" change="added{ current-dateTime() }" corresp="{ $ref }">
-			{ $name }
-		</item> into $TUlist
-	return "updated textpartstitles.xml static list "
+	let $ensure-cache := cache:create("catalog-textpart-labels", map {"maximumSize": 10000, "expireAfterWrite": 86400})
+	return cache:put("catalog-textpart-labels", $ref, $name)
 };
 
-(: looks for different possible locations of anchor and where to pick the correct label :)
+(:~
+ : Anchor label for an expanded-data node. The rule itself lives in
+ : catalog-selectors.xqm and is shared with titlesData and the catalog
+ : facade; only the id resolver differs.
+ :)
 declare function exptit:printSubtitle($node as node(), $SUBid as xs:string) as xs:string {
-	if (starts-with($SUBid, "tr")) then
-		"transformation " || $SUBid
-	else if (starts-with($SUBid, "Uni")) then
-		$SUBid
-	else
-		let $item := $node//id($SUBid)
-		return if ($item/name() = "title") then (
-			string($item/@xml:lang) ||
-				(
-					if ($item/text()) then
-						$item/text()
-					else
-						" ... empty, sorry!"
-				)
-		) else if ($item/name() = "persName") then (
-			let $r := root($item)
-			return if ($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]) then
-				string-join($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]//text(), "")
-			else
-				normalize-space(string-join($item, ""))
-		) else if ($item/name() = "msItem") then (
-			if ($item/t:title/@ref) then (
-				exptit:printTitleID(string($item/t:title/@ref)) || " (in " || $SUBid || ")"
-			) else
-				normalize-space(string-join($item/t:title/text(), ""))
-		) else if ($item/t:label) then
-			let $sameAs := if ($item/@corresp) then (
-				" (same as " || string($item/@corresp) || ")"
-			) else (
-			)
-			return (normalize-space(string-join($item/t:label/text(), "")) || $sameAs)
-		else if ($item[not(t:label)]/@corresp) then
-			normalize-space(string-join(exptit:printTitleID($item/@corresp), ""))
-		else if ($item/t:desc) then (
-			exptit:printTitleID(string($item/t:desc/@type)) || " " || $SUBid
-		) else if (
-			(
-				$item/@subtype eq "Monday" or
-					$item/@subtype eq "Tuesday" or
-					$item/@subtype eq "Wednesday" or
-					$item/@subtype eq "Thursday" or
-					$item/@subtype eq "Friday" or
-					$item/@subtype eq "Saturday" or
-					$item/@subtype eq "Sunday"
-			) and
-				not($item/node())
-		) then (
-			" for " || $SUBid
-		) else if ($item/@subtype) then (
-			exptit:printTitleID(string($item/@subtype)) || ": " || $SUBid
-		) else (
-			$item/name() || " " || $SUBid
-		)
+	selectors:subtitle(
+		$node,
+		$SUBid,
+		map {"label": exptit:printTitleID#1, "text": function ($nodes as node()*) { $nodes/text() }, "additio": false()}
+	)
 };
 
-(: Given an id, decides if it is one of BM or from another source and gets the name accordingly :)
+(:~
+ : External and listed place labels resolve through the catalog contract, so
+ : Web and API agree; see catalog-places.xqm. Kept as thin wrappers for the
+ : existing call sites.
+ :)
 declare function exptit:decidePlaceNameSource($pRef as xs:string) {
-	if ($exptit:placeNamesList//t:item[@corresp = $pRef]) then
-		$exptit:placeNamesList//t:item[@corresp = $pRef][1]/text()
-	else if (starts-with($pRef, "gn:")) then (
-		let $name := exptit:getGeoNames($pRef)
-		let $addit := exptit:updatePlaceList($name, $pRef)
-		return exptit:decidePlaceNameSource($pRef)
-	) else if (starts-with($pRef, "pleiades:")) then (
-		let $name := exptit:getPleiadesNames($pRef)
-		let $addit := exptit:updatePlaceList($name, $pRef)
-		return exptit:decidePlaceNameSource($pRef)
-	) else if (matches($pRef, "wd:Q\d+")) then (
-		let $name := exptit:getwikidataNames($pRef)
-		let $addit := exptit:updatePlaceList($name, $pRef)
-		return exptit:decidePlaceNameSource($pRef)
-	) else
-		$exptit:col/id($pRef)//t:title[@type = "full"]/text()
+	places:label($pRef)
 };
 
 declare function exptit:updatePlaceList($name, $pRef) {
-	let $placeslist := $exptit:placeNamesList//t:list
-	return update insert <item
-		xmlns="http://www.tei-c.org/ns/1.0"
-		change="entryAddedAt{ current-dateTime() }"
-		corresp="{ $pRef }"
-	>{ $name }</item> into $placeslist
+	places:remember(string($pRef), $name)
 };
 
 declare function exptit:getGeoNames($string as xs:string) {
-	let $gnid := substring-after($string, "gn:")
-	let $xml-url := concat("http://api.geonames.org/get?geonameId=", $gnid, "&amp;username=betamasaheft")
-	let $data := try {
-		let $request := <http:request href="{ xs:anyURI($xml-url) }" method="GET" />
-		return http:send-request($request)[2]
-	} catch * { $err:description }
-	return if ($data//toponymName) then
-		$data//toponymName/text()
-	else
-		"no data from geonames"
+	places:geonames($string)
 };
 
 declare function exptit:getPleiadesNames($string as xs:string) {
-	let $plid := substring-after($string, "pleiades:")
-	let $url := concat("https://pleiades.stoa.org/places/", $plid, "/atom")
-	let $request := <http:request href="{ $url }" method="GET">
-		<http:header name="Connection" value="close" />
-	</http:request>
-	let $title :=
-		let $response := http:send-request($request)
-		let $response-head := $response[1]
-		let $response-body := $response[2]
-		return $response-body//feed:title
-	return string($title[1])
+	places:pleiades($string)
 };
 
 declare function exptit:getwikidataNames($pRef as xs:string) {
-	let $pRef := substring-after($pRef, "wd:")
-	let $sparql := "SELECT * WHERE {
-  wd:" ||
-		$pRef ||
-		' rdfs:label ?label .
-  FILTER (langMatches( lang(?label), "EN" ) )
-}'
-
-	let $query := "https://query.wikidata.org/sparql?query=" || xmldb:encode-uri($sparql)
-
-	let $req := try {
-		let $request := <http:request href="{ xs:anyURI($query) }" method="GET" />
-		return http:send-request($request)[2]
-	} catch * { $err:description }
-	return $req//sparql:result/sparql:binding[@name eq "label"]/sparql:literal[@xml:lang = "en"]/text()
+	places:wikidata($pRef)
 };

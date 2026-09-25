@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reviewed-mismatches>
+	<!--
+		Add entries only after review:
+		<mismatch kind="title|bibliography" key="..." triage="better|worse|neutral" note="..." />
+	-->
+</reviewed-mismatches>
