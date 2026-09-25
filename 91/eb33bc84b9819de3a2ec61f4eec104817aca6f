@@ -1,0 +1,23 @@
+test/xqs/ts-catalog-contract.xqm
+  s_12ad7bed768e83::t_d988cef0d62053 189-192
+modules/catalog.xqm
+  s_12ad7bed768e83::t_21d7cf03595f17 52-80,83,89-91
+  s_12ad7bed768e83::t_94ac1cca9f5bc3 18
+  s_12ad7bed768e83::t_a292251f1d0bd6 92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "91eb33bc84b9819de3a2ec61f4eec104817aca6f",
+  "prompts": {},
+  "sessions": {
+    "s_12ad7bed768e83": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9d50f532-faea-4079-9627-8e515596234f",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
