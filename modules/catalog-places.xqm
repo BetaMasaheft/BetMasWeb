@@ -1,13 +1,11 @@
 xquery version "3.1" encoding "UTF-8";
 
 (:~
- : External place-label resolution for the catalog contract: cache lookup,
- : the maintained placeNamesLabels list, and — only on a miss — an interim
- : HTTP fetch from GeoNames, Pleiades or Wikidata whose result is written to
- : a process-local cache instead of the database. Both catalog backends and
- : every consumer (Web and API) go through here, so wd:/gn:/pleiades: labels
- : cannot diverge between them. The HTTP fallback disappears with the Phase 3
- : place-label artifact.
+ : Offline external place-label resolution for the catalog contract: process
+ : cache, the generated place-label artifact when available, the maintained
+ : placeNamesLabels list, then the reference itself. Both catalog backends and
+ : every consumer (Web and API) go through here, so serving a wd:/gn:/pleiades:
+ : label never depends on an authority HTTP request.
  :)
 module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places";
 
@@ -45,15 +43,20 @@ declare function places:label($ref as xs:string) {
 	return if (exists($cached)) then
 		$cached
 	else
-		let $listed := ($places:list//t:item[@corresp = $ref])[1]/text()
-		return if (exists($listed)) then
-			$listed
-		else if (places:external($ref)) then
-			let $name := places:fetch($ref)
-			let $remembered := places:remember($ref, $name)
-			return $name
+		let $artifact := if (doc-available("/db/apps/catalogs/place-labels.xml")) then
+			(doc("/db/apps/catalogs/place-labels.xml")//t:item[@corresp = $ref])[1]/text()
+		else (
+		)
+		return if (exists($artifact)) then
+			$artifact
 		else
-			collection($config:data-root)/id($ref)//t:title[@type = "full"]/text()
+			let $listed := ($places:list//t:item[@corresp = $ref])[1]/text()
+			return if (exists($listed)) then
+				$listed
+			else if (places:external($ref)) then
+				$ref
+			else
+				collection($config:data-root)/id($ref)//t:title[@type = "full"]/text()
 };
 
 declare function places:fetch($ref as xs:string) {

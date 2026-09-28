@@ -143,6 +143,39 @@ declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered
 	return tscatalog:text(places:label($ref))
 };
 
+(:~
+ : External misses are served offline and preserve the reference instead of
+ : making an authority HTTP request.
+ :)
+declare %test:assertEquals("wd:Q999999998") function tscatalog:unknown-external-place-label-is-the-reference(
+
+) as xs:string {
+	tscatalog:text(places:label("wd:Q999999998"))
+};
+
+(:~
+ : The catalog backend reads a fresh place-label artifact before delegating to
+ : the shared place resolver. Poisoning the process cache proves which source
+ : won without relying on an authority HTTP response.
+ :)
+declare %test:assertTrue function tscatalog:catalog-prefers-place-label-artifact() as xs:boolean {
+	if (not(catalog:artifact-available("place-labels.xml"))) then
+		true()
+	else
+		let $fixture := (
+			doc("/db/apps/catalogs/place-labels.xml")//t:item[matches(@corresp, "^(wd:Q\d+|gn:|pleiades:)")][normalize-space(
+				.
+			)]
+		)[1]
+		return if (empty($fixture)) then
+			true()
+		else
+			let $ref := string($fixture/@corresp)
+			let $expected := normalize-space(string($fixture))
+			let $remembered := places:remember($ref, "Wrong Cached Label")
+			return tscatalog:text(catalog:label($ref, "catalog")) = $expected
+};
+
 declare
 	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:institutions-return-labelled-items($backend as xs:string) as xs:boolean {

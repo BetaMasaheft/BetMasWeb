@@ -152,7 +152,11 @@ declare %private function catalog:resolve-label($id as xs:string) {
 	else if (ends-with($id, "#")) then
 		catalog:resolve-label(substring($id, 1, string-length($id) - 1))
 	else if (places:external($id)) then
-		places:label($id)
+		let $artifact := (catalog:artifact("place-labels.xml")//t:item[@corresp = $id])[1]/text()
+		return if (exists($artifact)) then
+			$artifact
+		else
+			places:label($id)
 	else if ($id = "") then
 		<span class="w3-tag w3-red">{ "no id" }</span>
 	else if (contains($id, "#")) then
