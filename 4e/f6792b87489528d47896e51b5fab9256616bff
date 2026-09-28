@@ -1,0 +1,21 @@
+docs/CATALOG.md
+  s_e98fb2299e704f::t_b236e6e026ecef 68-74
+test/cypress/e2e/items.cy.js
+  s_e98fb2299e704f::t_621e8b53b77abc 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4ef6792b87489528d47896e51b5fab9256616bff",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
