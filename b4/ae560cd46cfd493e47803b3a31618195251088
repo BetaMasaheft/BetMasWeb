@@ -1,0 +1,25 @@
+modules/catalog-places.xqm
+  s_88b2158b6998cb::t_78496f796f0bcc 4
+  s_88b2158b6998cb::t_ea09bbfa52968c 47-51,53
+  s_88b2158b6998cb::t_39709f2cc1966d 5-9
+test/xqs/ts-catalog-contract.xqm
+  s_88b2158b6998cb::t_3e4c45a5d8a8fd 134-135
+  s_88b2158b6998cb::t_abbb3931c6998e 156-175,178-179
+  s_88b2158b6998cb::t_181d9c41b4239f 155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b4ae560cd46cfd493e47803b3a31618195251088",
+  "prompts": {},
+  "sessions": {
+    "s_88b2158b6998cb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d60dd8fb-643c-4fcc-bd40-1382496631e3",
+        "model": "composer-2.5-fast"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
