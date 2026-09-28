@@ -131,9 +131,8 @@ declare %test:assertTrue function tscatalog:external-place-labels-agree-across-b
 };
 
 (:~
- : A remembered external label is served from the process-local cache, so the
- : interim HTTP fetch runs at most once per identifier and never writes to the
- : database.
+ : A remembered external label is served from the process-local cache and
+ : never from the catalogs place-label artifact (that path is catalog-only).
  :)
 declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered-place-labels-come-from-cache(
 
@@ -154,9 +153,30 @@ declare %test:assertEquals("wd:Q999999998") function tscatalog:unknown-external-
 };
 
 (:~
+ : places:label must not doc() the catalogs artifact (stale pins would bypass
+ : catalog:artifact). An id present only in place-labels.xml falls back to $ref
+ : here while catalog:label still serves it when the manifest pin matches.
+ :)
+declare %test:assertTrue function tscatalog:places-label-skips-catalog-artifact() as xs:boolean {
+	if (not(doc-available("/db/apps/catalogs/place-labels.xml"))) then
+		true()
+	else
+		let $artifact-only := (
+			doc("/db/apps/catalogs/place-labels.xml")//t:item[matches(@corresp, "^(wd:Q\d+|gn:|pleiades:)")][normalize-space(
+				.
+			)][not(@corresp = doc("/db/apps/lists/placeNamesLabels.xml")//t:item/@corresp)]
+		)[1]
+		return if (empty($artifact-only)) then
+			true()
+		else
+			let $ref := string($artifact-only/@corresp)
+			return tscatalog:text(places:label($ref)) = $ref
+};
+
+(:~
  : The catalog backend reads a fresh place-label artifact before delegating to
- : the shared place resolver. Poisoning the process cache proves which source
- : won without relying on an authority HTTP response.
+ : places:label. Poisoning the process cache proves artifact wins on the
+ : resolve path without places:label reading catalogs/place-labels.xml.
  :)
 declare %test:assertTrue function tscatalog:catalog-prefers-place-label-artifact() as xs:boolean {
 	if (not(catalog:artifact-available("place-labels.xml"))) then

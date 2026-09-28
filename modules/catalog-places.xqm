@@ -1,11 +1,12 @@
 xquery version "3.1" encoding "UTF-8";
 
 (:~
- : Offline external place-label resolution for the catalog contract: process
- : cache, the generated place-label artifact when available, the maintained
- : placeNamesLabels list, then the reference itself. Both catalog backends and
- : every consumer (Web and API) go through here, so serving a wd:/gn:/pleiades:
- : label never depends on an authority HTTP request.
+ : Shared offline place-label resolution: process cache, the maintained
+ : placeNamesLabels list, then the reference itself for wd:/gn:/pleiades: ids.
+ : Stale-aware serving of the generated place-labels.xml artifact lives only in
+ : catalog:resolve-label via catalog:artifact; this module never doc()s the
+ : catalogs collection, so a STALE pin cannot leak here. Authority HTTP helpers
+ : places:fetch and below are retained for other callers but not on this path.
  :)
 module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places";
 
@@ -43,20 +44,13 @@ declare function places:label($ref as xs:string) {
 	return if (exists($cached)) then
 		$cached
 	else
-		let $artifact := if (doc-available("/db/apps/catalogs/place-labels.xml")) then
-			(doc("/db/apps/catalogs/place-labels.xml")//t:item[@corresp = $ref])[1]/text()
-		else (
-		)
-		return if (exists($artifact)) then
-			$artifact
+		let $listed := ($places:list//t:item[@corresp = $ref])[1]/text()
+		return if (exists($listed)) then
+			$listed
+		else if (places:external($ref)) then
+			$ref
 		else
-			let $listed := ($places:list//t:item[@corresp = $ref])[1]/text()
-			return if (exists($listed)) then
-				$listed
-			else if (places:external($ref)) then
-				$ref
-			else
-				collection($config:data-root)/id($ref)//t:title[@type = "full"]/text()
+			collection($config:data-root)/id($ref)//t:title[@type = "full"]/text()
 };
 
 declare function places:fetch($ref as xs:string) {
