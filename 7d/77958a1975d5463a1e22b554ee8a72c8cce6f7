@@ -1,0 +1,25 @@
+test/xqs/ts-catalog-contract.xqm
+  s_f4aa1d23632104::t_4a1e5a58c348d9 166
+  s_f4aa1d23632104::t_03f3c6b4c35813 146-165,167-176
+  s_f4aa1d23632104::t_0080f1be3b03e8 177-178
+modules/catalog.xqm
+  s_f4aa1d23632104::t_ebf2f3c987c998 155-159
+modules/catalog-places.xqm
+  s_f4aa1d23632104::t_fcb632657926a5 4-8,46-51,53-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7d77958a1975d5463a1e22b554ee8a72c8cce6f7",
+  "prompts": {},
+  "sessions": {
+    "s_f4aa1d23632104": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4f09b749-904c-446f-ba24-bb06a3b16463",
+        "model": "gpt-5.6-sol-medium"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
