@@ -220,23 +220,23 @@ function tscatalog:bibl-accepts-an-unprefixed-key($backend as xs:string) as xs:b
 	deep-equal(catalog:bibl("IHABook557", $backend), catalog:bibl("bm:IHABook557", $backend))
 };
 
-declare
-	%test:args("catalog") %test:assertTrue
-function tscatalog:bibl-catalog-prefers-ethiostudies($backend as xs:string) as xs:boolean {
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-prefers-ethiostudies(
+	$backend as xs:string
+) as xs:boolean {
 	(: Known tag present in EthioStudies citations.xml on release-expanded. :)
 	let $e := catalog:bibl("bm:IHABook557", $backend)
 	return exists($e/self::b:entry) and exists($e/b:reference//*:div[@class = "csl-entry"])
 };
 
-declare
-	%test:args("catalog") %test:assertTrue
-function tscatalog:bibl-catalog-miss-without-exception-is-empty($backend as xs:string) as xs:boolean {
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-miss-without-exception-is-empty(
+	$backend as xs:string
+) as xs:boolean {
 	empty(catalog:bibl("bm:definitely-not-a-real-tag-xyz", $backend))
 };
 
-declare
-	%test:args("legacy") %test:assertTrue
-function tscatalog:bibl-legacy-still-lists($backend as xs:string) as xs:boolean {
+declare %test:args("legacy") %test:assertTrue function tscatalog:bibl-legacy-still-lists(
+	$backend as xs:string
+) as xs:boolean {
 	exists(catalog:bibl("bm:IHABook557", $backend)[self::b:entry])
 };
 
