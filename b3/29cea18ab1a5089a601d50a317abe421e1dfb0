@@ -1,0 +1,21 @@
+.github/workflows/format-check.yml
+  s_e98fb2299e704f::t_4cc6e20a284c61 33-35
+scripts/check-no-serving-writes.sh
+  s_e98fb2299e704f::t_0cedb77f44548e 19-36,40,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b329cea18ab1a5089a601d50a317abe421e1dfb0",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
