@@ -15,6 +15,7 @@ module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ca
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace b = "betmas.biblio";
+declare namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace selectors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-selectors" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog-selectors.xqm";
@@ -48,12 +49,49 @@ declare function catalog:backend($consumer as xs:string) as xs:string {
 		"legacy"
 };
 
+declare %private function catalog:manifest() as element(catalog-manifest)? {
+	if (doc-available($catalog:artifacts || "/manifest.xml")) then
+		doc($catalog:artifacts || "/manifest.xml")/catalog-manifest
+	else (
+	)
+};
+
+declare %private function catalog:expanded-sha() as xs:string? {
+	let $path := $catalog:artifacts || "/expanded-sha.txt"
+	let $sha := if (util:binary-doc-available($path)) then
+		util:binary-to-string(util:binary-doc($path))
+	else if (unparsed-text-available($path)) then
+		unparsed-text($path)
+	else (
+	)
+	return $sha!normalize-space(normalize-unicode(., "NFC"))
+};
+
+declare function catalog:sha-matches($want as xs:string, $have as xs:string?) as xs:boolean {
+	empty($have) or $want = $have
+};
+
+declare %private function catalog:artifact-fresh($name as xs:string) as xs:boolean {
+	let $manifest := catalog:manifest()
+	let $artifact := $manifest/artifact[@name = $name]
+	return if (empty($manifest) or empty($artifact) or empty($artifact/@expanded-sha)) then
+		true()
+	else
+		let $expected := normalize-space(normalize-unicode(string($artifact/@expanded-sha), "NFC"))
+		let $actual := catalog:expanded-sha()
+		return catalog:sha-matches($expected, $actual)
+};
+
 declare %private function catalog:artifact($name as xs:string) as document-node()? {
 	let $path := $catalog:artifacts || "/" || $name
-	return if (doc-available($path)) then
+	return if (doc-available($path) and catalog:artifact-fresh($name)) then
 		doc($path)
 	else (
 	)
+};
+
+declare function catalog:artifact-available($name as xs:string) as xs:boolean {
+	exists(catalog:artifact($name))
 };
 
 declare %private function catalog:full-title($id as xs:string) as xs:string? {
@@ -114,7 +152,11 @@ declare %private function catalog:resolve-label($id as xs:string) {
 	else if (ends-with($id, "#")) then
 		catalog:resolve-label(substring($id, 1, string-length($id) - 1))
 	else if (places:external($id)) then
-		places:label($id)
+		let $artifact := (catalog:artifact("place-labels.xml")//t:item[@corresp = $id])[1]/text()
+		return if (exists($artifact)) then
+			$artifact
+		else
+			places:label($id)
 	else if ($id = "") then
 		<span class="w3-tag w3-red">{ "no id" }</span>
 	else if (contains($id, "#")) then

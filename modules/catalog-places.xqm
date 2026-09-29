@@ -1,13 +1,12 @@
 xquery version "3.1" encoding "UTF-8";
 
 (:~
- : External place-label resolution for the catalog contract: cache lookup,
- : the maintained placeNamesLabels list, and — only on a miss — an interim
- : HTTP fetch from GeoNames, Pleiades or Wikidata whose result is written to
- : a process-local cache instead of the database. Both catalog backends and
- : every consumer (Web and API) go through here, so wd:/gn:/pleiades: labels
- : cannot diverge between them. The HTTP fallback disappears with the Phase 3
- : place-label artifact.
+ : Shared offline place-label resolution: process cache, the maintained
+ : placeNamesLabels list, then the reference itself for wd:/gn:/pleiades: ids.
+ : Stale-aware serving of the generated place-labels.xml artifact lives only in
+ : catalog:resolve-label via catalog:artifact; this module never doc()s the
+ : catalogs collection, so a STALE pin cannot leak here. Authority HTTP helpers
+ : places:fetch and below are retained for other callers but not on this path.
  :)
 module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places";
 
@@ -49,9 +48,7 @@ declare function places:label($ref as xs:string) {
 		return if (exists($listed)) then
 			$listed
 		else if (places:external($ref)) then
-			let $name := places:fetch($ref)
-			let $remembered := places:remember($ref, $name)
-			return $name
+			$ref
 		else
 			collection($config:data-root)/id($ref)//t:title[@type = "full"]/text()
 };

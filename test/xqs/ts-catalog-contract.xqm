@@ -131,9 +131,8 @@ declare %test:assertTrue function tscatalog:external-place-labels-agree-across-b
 };
 
 (:~
- : A remembered external label is served from the process-local cache, so the
- : interim HTTP fetch runs at most once per identifier and never writes to the
- : database.
+ : A remembered external label is served from the process-local cache and
+ : never from the catalogs place-label artifact (that path is catalog-only).
  :)
 declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered-place-labels-come-from-cache(
 
@@ -141,6 +140,60 @@ declare %test:assertEquals("Cached Fixture Place") function tscatalog:remembered
 	let $ref := "wd:Q999999999"
 	let $remembered := places:remember($ref, "Cached Fixture Place")
 	return tscatalog:text(places:label($ref))
+};
+
+(:~
+ : External misses are served offline and preserve the reference instead of
+ : making an authority HTTP request.
+ :)
+declare %test:assertEquals("wd:Q999999998") function tscatalog:unknown-external-place-label-is-the-reference(
+
+) as xs:string {
+	tscatalog:text(places:label("wd:Q999999998"))
+};
+
+(:~
+ : places:label must not doc() the catalogs artifact (stale pins would bypass
+ : catalog:artifact). An id present only in place-labels.xml falls back to $ref
+ : here while catalog:label still serves it when the manifest pin matches.
+ :)
+declare %test:assertTrue function tscatalog:places-label-skips-catalog-artifact() as xs:boolean {
+	if (not(doc-available("/db/apps/catalogs/place-labels.xml"))) then
+		true()
+	else
+		let $artifact-only := (
+			doc("/db/apps/catalogs/place-labels.xml")//t:item[matches(@corresp, "^(wd:Q\d+|gn:|pleiades:)")][normalize-space(
+				.
+			)][not(@corresp = doc("/db/apps/lists/placeNamesLabels.xml")//t:item/@corresp)]
+		)[1]
+		return if (empty($artifact-only)) then
+			true()
+		else
+			let $ref := string($artifact-only/@corresp)
+			return tscatalog:text(places:label($ref)) = $ref
+};
+
+(:~
+ : The catalog backend reads a fresh place-label artifact before delegating to
+ : places:label. Poisoning the process cache proves artifact wins on the
+ : resolve path without places:label reading catalogs/place-labels.xml.
+ :)
+declare %test:assertTrue function tscatalog:catalog-prefers-place-label-artifact() as xs:boolean {
+	if (not(catalog:artifact-available("place-labels.xml"))) then
+		true()
+	else
+		let $fixture := (
+			doc("/db/apps/catalogs/place-labels.xml")//t:item[matches(@corresp, "^(wd:Q\d+|gn:|pleiades:)")][normalize-space(
+				.
+			)]
+		)[1]
+		return if (empty($fixture)) then
+			true()
+		else
+			let $ref := string($fixture/@corresp)
+			let $expected := normalize-space(string($fixture))
+			let $remembered := places:remember($ref, "Wrong Cached Label")
+			return tscatalog:text(catalog:label($ref, "catalog")) = $expected
 };
 
 declare
@@ -185,4 +238,50 @@ declare %test:assertEquals("legacy") function tscatalog:default-backend-is-legac
 
 declare %test:assertEquals("legacy") function tscatalog:invalid-backend-value-falls-back() as xs:string {
 	catalog:backend("contract-test-nonsense-value")
+};
+
+declare %test:assertFalse function tscatalog:missing-artifact-is-unavailable() as xs:boolean {
+	catalog:artifact-available("no-such-catalog-artifact.xml")
+};
+
+declare %test:assertTrue function tscatalog:sha-matches-equal-pins() as xs:boolean {
+	catalog:sha-matches("abc123", "abc123")
+};
+
+declare %test:assertFalse function tscatalog:sha-matches-unequal-pins() as xs:boolean {
+	catalog:sha-matches("deadbeef", "cafebabe")
+};
+
+declare %test:assertTrue function tscatalog:sha-matches-empty-have-is-dev-fallback() as xs:boolean {
+	catalog:sha-matches("deadbeef", ())
+};
+
+(:~
+ : Stale pin semantics: when manifest `expanded-sha` disagrees with
+ : `expanded-sha.txt`, `catalog:sha-matches` is false, so `catalog:artifact`
+ : returns () and `catalog:artifact-available` is false even if the XML file
+ : exists on disk. `$catalog:artifacts` is fixed at `/db/apps/catalogs` (not
+ : overridable in tests); the live correlation assert below re-checks that
+ : wiring against the deployed fixture collection.
+ :)
+declare %test:assertFalse function tscatalog:stale-pin-sha-mismatch() as xs:boolean {
+	catalog:sha-matches("deadbeef", "cafebabe")
+};
+
+declare %test:assertTrue function tscatalog:artifact-available-tracks-manifest-pin() as xs:boolean {
+	if (
+		not(doc-available("/db/apps/catalogs/manifest.xml")) or not(doc-available("/db/apps/catalogs/retired-ids.xml"))
+	) then
+		true()
+	else
+		let $artifact := doc("/db/apps/catalogs/manifest.xml")/catalog-manifest/artifact[@name = "retired-ids.xml"][1]
+		return if (empty($artifact) or empty($artifact/@expanded-sha)) then
+			catalog:artifact-available("retired-ids.xml")
+		else
+			let $want := normalize-space(normalize-unicode(string($artifact/@expanded-sha), "NFC"))
+			let $have := if (unparsed-text-available("/db/apps/catalogs/expanded-sha.txt")) then
+				normalize-space(normalize-unicode(unparsed-text("/db/apps/catalogs/expanded-sha.txt"), "NFC"))
+			else (
+			)
+			return catalog:sha-matches($want, $have) = catalog:artifact-available("retired-ids.xml")
 };
