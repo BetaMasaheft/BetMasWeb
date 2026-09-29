@@ -1,0 +1,19 @@
+test/xqs/ts-catalog-contract.xqm
+  s_e98fb2299e704f::t_25138cfeeee379 223-225,231-233,237-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "992aff3c6c3ea48b845d5be9319e6a229b27ce5d",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
