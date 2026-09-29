@@ -13,6 +13,7 @@ declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace item2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/item2" at "xmldb:exist:///db/apps/BetMasWeb/modules/item.xqm";
 import module namespace iiifut = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/iiif-util" at "xmldb:exist:///db/apps/BetMasWeb/modules/iiif-util.xqm";
@@ -29,7 +30,7 @@ declare option output:encoding "utf-8";
 
 declare variable $viewItem:coll := collection("/db/apps/expanded");
 
-declare variable $viewItem:bibliography := doc("/db/apps/lists/bibliography.xml");
+declare variable $viewItem:catalog-backend := catalog:backend("view-item");
 
 declare variable $viewItem:prefixDef := doc("/db/apps/lists/listPrefixDef.xml");
 
@@ -997,7 +998,7 @@ declare %private function viewItem:bibl($node, $t) {
 		<div class="w3-col" style="width:85%">
 			<span data-type="{ $node/t:seg/@type }" data-value="{ $t }">
 				{
-					let $bib := $viewItem:bibliography//b:entry[@id = $t]/b:reference/*:div/node()
+					let $bib := catalog:bibl($t, $viewItem:catalog-backend)/b:reference/*:div/node()
 					return if (count($bib) ge 1) then
 						$bib
 					else
@@ -1051,7 +1052,7 @@ declare %private function viewItem:bibliographyitem($node) {
 		else if ($node/parent::t:witness) then
 			<span>
 				{
-					string-join($viewItem:bibliography//b:entry[@id = $t]/b:citation/node()) ||
+					string-join(catalog:bibl($t, $viewItem:catalog-backend)/b:citation/node()) ||
 						(
 							if (exists($crs)) then
 								"  " || string-join($crs, ", ")
@@ -1063,7 +1064,7 @@ declare %private function viewItem:bibliographyitem($node) {
 		else if ($node/parent::t:listBibl[not(ancestor::t:note)]) then
 			<li class="bibliographyItem">{ viewItem:bibl($node, $t) }<hr /></li>
 		else
-			string-join($viewItem:bibliography//b:entry[@id = $t]/b:citation/node()) ||
+			string-join(catalog:bibl($t, $viewItem:catalog-backend)/b:citation/node()) ||
 				(
 					if (exists($crs)) then
 						"  " || string-join($crs, ", ")
@@ -1099,7 +1100,7 @@ declare %private function viewItem:EthioSpareFormatter($node) {
             , catalogued by { $cataloguer }
 		</a>,
 		" in ",
-		$viewItem:bibliography//b:entry[@id = $t]/b:reference/node()
+		catalog:bibl($t, $viewItem:catalog-backend)/b:reference/node()
 	)
 };
 
@@ -3386,7 +3387,7 @@ declare function viewItem:tipResp($resp as attribute()?, $label as xs:string) as
 				return if (starts-with($r, "PRS") or starts-with($r, "ETH")) then
 					string-join(exptit:printTitle($r), ", ")
 				else if (starts-with($r, "bm:")) then
-					string-join($viewItem:bibliography//b:entry[@id = $r]/b:citation, ", ")
+					string-join(catalog:bibl($r, $viewItem:catalog-backend)/b:citation, ", ")
 				else
 					viewItem:editorName($r),
 				", "
@@ -3796,7 +3797,7 @@ declare %private function viewItem:titletemplate($div, $text) {
 								let $bmbiblid := substring-after($r, "#")
 								let $bibl := $div/ancestor::t:TEI//t:bibl[@xml:id = $bmbiblid]
 								let $t := string($bibl/t:ptr/@target)
-								return $viewItem:bibliography//b:entry[@id = $t]/b:reference/node()
+								return catalog:bibl($t, $viewItem:catalog-backend)/b:reference/node()
 							) else (
 							)
 						)

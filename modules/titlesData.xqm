@@ -21,6 +21,7 @@ declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
 declare namespace feed = "http://www.w3.org/2005/Atom";
 
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace selectors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-selectors" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog-selectors.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace hc = "http://expath.org/ns/http-client";
 
@@ -46,63 +47,18 @@ declare function titles:printTitle($node as element()) {
 	return titles:switcher($resource//t:TEI/@type, $resource)
 };
 
-(: looks for different possible locations of anchor and where to pick the correct label :)
+(:~
+ : Anchor label for raw source data. The rule itself lives in
+ : catalog-selectors.xqm and is shared with exptit and the catalog facade;
+ : raw data differs only in resolving nested pointers inside msItem titles
+ : and labels, and in naming bare "aN" anchors additiones.
+ :)
 declare function titles:printSubtitle($node as node(), $SUBid as xs:string) as xs:string {
-	if (starts-with($SUBid, "tr")) then
-		"transformation " || $SUBid
-	else if (starts-with($SUBid, "Uni")) then
-		$SUBid
-	else
-		let $item := $node//id($SUBid)
-		return if ($item/name() = "title") then (
-			string($item/@xml:lang) ||
-				(
-					if ($item/text()) then
-						$item/text()
-					else
-						" ... empty, sorry!"
-				)
-		) else if ($item/name() = "persName") then (
-			let $r := root($item)
-			return if ($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]) then
-				string-join($r//t:persName[@type eq "normalized"][contains(@corresp, $SUBid)]//text(), "")
-			else
-				normalize-space(string-join($item, ""))
-		) else if ($item/name() = "msItem") then (
-			if ($item/t:title/@ref) then (
-				titles:printTitleID(string($item/t:title/@ref)) || " (in " || $SUBid || ")"
-			) else
-				normalize-space(string-join(titles:tei2string($item/t:title), ""))
-		) else if ($item/t:label) then
-			let $sameAs := if ($item/@corresp) then (
-				" (same as " || string($item/@corresp) || ")"
-			) else (
-			)
-			return (normalize-space(string-join(titles:tei2string($item/t:label), "")) || $sameAs)
-		else if ($item[not(t:label)]/@corresp) then
-			normalize-space(string-join(titles:printTitleID($item/@corresp), ""))
-		else if (matches($SUBid, "^a\d+$")) then
-			"  additio " || $SUBid
-		else if ($item/t:desc) then (
-			titles:printTitleID(string($item/t:desc/@type)) || " " || $SUBid
-		) else if (
-			(
-				$item/@subtype eq "Monday" or
-					$item/@subtype eq "Tuesday" or
-					$item/@subtype eq "Wednesday" or
-					$item/@subtype eq "Thursday" or
-					$item/@subtype eq "Friday" or
-					$item/@subtype eq "Saturday" or
-					$item/@subtype eq "Sunday"
-			) and
-				not($item/node())
-		) then (
-			" for " || $SUBid
-		) else if ($item/@subtype) then (
-			titles:printTitleID(string($item/@subtype)) || ": " || $SUBid
-		) else (
-			$item/name() || " " || $SUBid
-		)
+	selectors:subtitle(
+		$node,
+		$SUBid,
+		map {"label": titles:printTitleID#1, "text": titles:tei2string#1, "additio": true()}
+	)
 };
 
 (:~
@@ -369,167 +325,40 @@ declare function titles:switcher($type, $resource) {
 };
 
 declare function titles:manuscriptLabelFormatter($resource) as xs:string {
-	if ($resource//objectDesc[@form eq "Inscription"]) then (
-		$resource//t:msIdentifier/t:idno/text()
-	) else (
-		if ($resource//t:repository/text() = "Lost") then (
-			"Lost. " || $resource//t:msIdentifier/t:idno/text()
-		) else if ($resource//t:repository/@ref and $resource//t:msDesc/t:msIdentifier/t:idno/text()) then
-			let $repoid := string(($resource//t:repository/@ref)[1])
-			let $reponame := $titles:institutionsList/id($repoid)[1]/text()
-			let $r := collection(concat($config:bmdata-root, "/institutions"))/id($repoid)
-			let $repo := if ($r) then (
-				$r
-			) else
-				"No Institution record"
-			let $repoPlace := if ($repo = "No Institution record") then
-				$repo
-			else (
-				if ($repo[not(descendant::t:settlement)][not(descendant::t:country)]) then (
-					"No location record"
-				) else if ($repo//t:settlement[1]/@ref) then
-					let $plaID := string($repo//t:settlement[1]/@ref)
-					let $placeName := titles:decidePlaceNameSource($plaID)
-					return $placeName
-				else if ($repo//t:settlement[1]/text()) then
-					$repo//t:settlement[1]/text()
-				else if ($repo//t:country/@ref) then
-					let $plaID := string($repo//t:country/@ref)
-					return titles:decidePlaceNameSource($plaID)
-				else if ($repo//t:country/text()) then
-					$repo//t:country/text()
-				else
-					"No location record"
-			)
-			let $candidate := string-join($repoPlace, " ") ||
-				", " ||
-				(
-					if ($repo = "No Institution record") then
-						$repo
-					else (
-						$reponame
-					)
-				) ||
-				", " ||
-				$resource//t:msDesc/t:msIdentifier/t:idno[1]/text()
-			return normalize-space($candidate)
-		else
-			"no repository data for " || string($resource/@xml:id)
-	)
+	let $repository-id := string(($resource//t:repository/@ref)[1])
+	let $repository := collection(concat($config:bmdata-root, "/institutions"))/id($repository-id)
+	let $repository-name := $titles:institutionsList/id($repository-id)[1]/string()
+	let $repository-place := if (not($repository)) then
+		"No Institution record"
+	else if ($repository[not(descendant::t:settlement)][not(descendant::t:country)]) then
+		"No location record"
+	else if ($repository//t:settlement[1]/@ref) then
+		titles:decidePlaceNameSource(string($repository//t:settlement[1]/@ref))
+	else if ($repository//t:settlement[1]/text()) then
+		string($repository//t:settlement[1])
+	else if ($repository//t:country/@ref) then
+		titles:decidePlaceNameSource(string($repository//t:country/@ref))
+	else if ($repository//t:country/text()) then
+		string($repository//t:country)
+	else
+		"No location record"
+	return selectors:manuscript-label($resource, $repository-name, $repository-place)
 };
 
 declare function titles:placeNameSelector($resource as node()) {
-	let $pl := $resource//t:place
-	let $pnorm := $pl/t:placeName[@corresp eq "#n1"][@type eq "normalized"]
-	let $pEN := $pl/t:placeName[@corresp eq "#n1"][@xml:lang = "en"]
-	let $Maintitle := $pl/t:placeName[@type eq "main"]
-	return if ($Maintitle) then
-		string-join($Maintitle/text())
-	else if ($pnorm) then
-		normalize-space(string-join($pnorm/text(), " "))
-	else if ($pEN) then
-		normalize-space(string-join($pEN/text(), " "))
-	else if ($pl/t:placeName[@xml:id]) then
-		let $pn := $pl/t:placeName[@xml:id = "n1"]
-		return normalize-space($pn/text())
-	else if ($pl/t:placeName[text()][position() = 1]/text()) then
-		normalize-space($pl/t:placeName[text()][position() = 1]/text())
-	else
-		$resource//t:titleStmt/t:title[text()]/text()
+	selectors:place-name($resource)
 };
 
 declare function titles:persNameSelector($resource as node()) {
-	let $p := $resource//t:person
-	let $pg := $resource//t:personGrp
-	let $Maintitle := $p/t:persName[@type eq "main"]
-	let $twonames := $p/t:persName[@xml:id eq "n1"][t:forename or t:surname]
-	let $namegez := $p/t:persName[@corresp eq "#n1"][@xml:lang = "gez"]
-	let $nameennorm := $p/t:persName[@corresp eq "#n1"][@xml:lang = "en"][@type eq "normalized"]
-	let $nameen := $p/t:persName[@corresp eq "#n1"][@xml:lang = "en"]
-	let $nameOthers := $p/t:persName[@corresp eq "#n1"][@xml:lang[not(. = "en")][not(. = "gez")]]
-	let $group := $pg/t:persName
-	let $groupgez := $pg/t:persName[@corresp eq "#n1"][@xml:lang = "gez"]
-	let $groupennorm := $pg/t:persName[@corresp eq "#n1"][@xml:lang = "en"][@type eq "normalized"]
-
-	return (: first check for persons with two names :) if ($twonames) then (
-		if ($namegez) then (
-			$namegez/t:forename/text() || " " || $namegez/t:surname/text()
-		) else if ($nameennorm) then (
-			$nameennorm/t:forename/text() || " " || $nameennorm/t:surname/text()
-		) else if ($nameOthers) then (
-			$nameOthers[1]/t:forename/text() || " " || $nameOthers[1]/t:surname/text()
-		) else if ($resource//t:person/t:persName[@xml:id]) then
-			let $name := $resource//t:person/t:persName[@xml:id = "n1"]
-			return ($name/t:forename/text() || " " || $name/t:surname/text())
-
-		else (
-			$p/t:persName[position() = 1]/t:forename[1]/text() || " " || $p/t:persName[position() = 1]/t:surname[1]/text()
-		)
-	) (: then check if it is a personGrp :) else if ($group) then (
-		if ($groupgez) then
-			$groupgez/text()
-
-		else if ($pg/t:persName[t:orgName]) then
-			let $gname := $pg/t:persName[@xml:id = "n1"]
-			return $gname/t:orgName/text()
-
-		else if ($groupennorm) then
-			$groupennorm
-
-		else if ($pg/t:persName[@xml:id]) then
-			let $gname := $pg/t:persName[@xml:id = "n1"]
-			return string-join($gname/text())
-
-		else (
-			$pg/t:persName[position() = 1]//text()
-		)
-	) (: otherways is just a normal person :) else if ($Maintitle) then
-		string-join($Maintitle/text())
-	else (
-		if ($namegez) then
-			string-join($namegez//text())
-
-		else if ($nameennorm) then
-			string-join($nameennorm//text())
-
-		else if ($nameen) then
-			string-join($nameen//text())
-		else if ($nameOthers) then
-			string-join($nameOthers[1]/text())
-
-		else if ($p/t:persName[@xml:id]) then
-			let $name := $p/t:persName[@xml:id = "n1"]
-			return string-join($name//text())
-
-		else
-			string-join($p/t:persName[position() = 1][text()]//text())
-	)
+	selectors:person-name($resource)
 };
 
 declare function titles:worknarrTitleSelector($resource as node()) {
-	let $W := $resource//t:titleStmt
-	let $Maintitle := $W/t:title[@type eq "main"][@corresp eq "#t1"][text()]
-	let $amarictitle := $W/t:title[@corresp eq "#t1"][@xml:lang = "am" or @xml:lang = "ar"]
-	let $geztitle := $W/t:title[@corresp eq "#t1"][@xml:lang = "gez"]
-	let $entitle := $W/t:title[@corresp eq "#t1"][@xml:lang = "en"]
-	return if ($Maintitle) then
-		titles:normalize($Maintitle[1])
-	else if ($amarictitle) then
-		titles:normalize($amarictitle[1])
-	else if ($geztitle) then
-		titles:normalize($geztitle[1])
-	else if ($entitle) then
-		titles:normalize($entitle[1])
-	else if ($W/t:title[@xml:id]) then
-		let $tit := $W/t:title[@xml:id = "t1"]
-		return titles:normalize($tit)
-	else
-		titles:normalize($W/t:title[1])
+	selectors:work-title($resource)
 };
 
 declare function titles:normalize($nodes) {
-	let $tostring := $nodes/string()
-	return normalize-space(string-join($tostring))
+	selectors:normalize($nodes)
 };
 
 declare function titles:decidePlName($plaID) {
