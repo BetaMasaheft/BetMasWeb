@@ -70,7 +70,7 @@ $(document).on("ready", function () {
                     id:                 "choj' +
 						record.digvatID +
 						'",\
-                    prefixUrl:          "../resources/openseadragon/images/",\
+                    prefixUrl:          "../resources/js/external/openseadragon/images/",\
                     preserveViewport:   true,\
                     visibilityRatio:    1,\
                     minZoomLevel:       1,\

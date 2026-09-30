@@ -52,12 +52,9 @@ declare function comparems:compareSelected($request as map(*)) {
 					xmlns="http://www.w3.org/1999/xhtml"
 					content="Akademie der Wissenschaften in Hamburg, Hiob-Ludolf-Zentrum für Äthiopistik"
 					property="dcterms:publisher schema:publisher" />
-				<link
-					href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.css"
-					rel="stylesheet"
-					type="text/css" />
-				<link href="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.css" rel="stylesheet" type="text/css" />
-				<link href="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick-theme.css" rel="stylesheet" type="text/css" />
+				<link href="resources/js/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />
+				<link href="resources/js/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
+				<link href="resources/js/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
 				{ scriptlinks:scriptStyle() }
 				<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />
 			</head>
@@ -93,8 +90,8 @@ declare function comparems:compareSelected($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="https://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.js" type="text/javascript" />
+				<script src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 				<script src="resources/js/introText.js" type="application/javascript" />
 				<script src="resources/js/titles.js" type="text/javascript" />
 				<script src="resources/js/slickoptions.js" type="text/javascript" />

@@ -3,13 +3,26 @@
     <property name="project.version" value="${package(version)}"/>
     <property name="project.app" value="BetMasWeb"/>
     <property name="build.dir" value="build"/>
-    <target name="xar">
+    <!-- Frontend vendor libraries (jQuery, Leaflet, Mirador's neighbors, etc.) are npm
+         dependencies, not committed binaries. This installs them and copies the exact
+         files the app loads into resources/js/external, which IS committed/shipped -
+         see package.json's "dependencies" and scripts/copy-vendor-libs.js. -->
+    <target name="vendor">
+        <exec executable="npm" failonerror="true">
+            <arg value="install"/>
+        </exec>
+        <exec executable="npm" failonerror="true">
+            <arg value="run"/>
+            <arg value="vendor:copy"/>
+        </exec>
+    </target>
+    <target name="xar" depends="vendor">
         <mkdir dir="${build.dir}"/>
         <!-- node_modules needs the /** suffix to recurse - a bare "node_modules"
              pattern only excludes the directory entry itself, not its contents,
              and silently ships every dev dependency into the .xar. -->
         <!-- Ship XQSuite under test/xqs/ with the package (exist-markdown /
              issue #44). Keep Cypress fixtures/specs and host bats out of the xar. -->
-        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/** .github/** test/cypress/** test/fixtures/** test/*.bats test/xqs/*.js docker/** node_modules/** .husky/** .gitignore services.xml .codacy/** .cursor/** .claude/** .zed/**"/>
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/** .github/** test/cypress/** test/fixtures/** test/*.bats test/xqs/*.js docker/** node_modules/** scripts/** .husky/** .gitignore services.xml .codacy/** .cursor/** .claude/** .zed/**"/>
     </target>
 </project>

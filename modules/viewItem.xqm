@@ -290,7 +290,7 @@ declare %private function viewItem:gallery($item) {
 								'id: "' ||
 								$openseadragonjsid ||
 								'",' ||
-								'prefixUrl: "../resources/openseadragon/images/",' ||
+								'prefixUrl: "../resources/js/external/openseadragon/images/",' ||
 								"preserveViewport: true," ||
 								"visibilityRatio: 1," ||
 								"minZoomLevel: 1," ||
@@ -391,7 +391,7 @@ declare function viewItem:matchingFacs($locus) {
                            id: "openseadragon' ||
 						$openseadragonjsid ||
 						'",
-                           prefixUrl: "../resources/openseadragon/images/",
+                           prefixUrl: "../resources/js/external/openseadragon/images/",
                            preserveViewport: true,
                            visibilityRatio:    1,
                            minZoomLevel:       1,
@@ -1817,7 +1817,7 @@ declare %private function viewItem:figure($figure as element(t:figure)) {
                            id: "openseadragon' ||
 						$id ||
 						'",
-                           prefixUrl: "resources/openseadragon/images/",
+                           prefixUrl: "resources/js/external/openseadragon/images/",
                            preserveViewport: true,
                            visibilityRatio:    1,
                            minZoomLevel:       1,
@@ -1843,7 +1843,7 @@ declare %private function viewItem:figure($figure as element(t:figure)) {
                     {
                         'OpenSeadragon({
                            id: "openseadragon' || $id || '",
-                           prefixUrl: "resources/openseadragon/images/",
+                           prefixUrl: "resources/js/external/openseadragon/images/",
                            preserveViewport: true,
                            visibilityRatio:    1,
                            minZoomLevel:       1,
@@ -4856,7 +4856,7 @@ declare function viewItem:placeRoot($node as node(), $model as map(*)) {
 
 declare function viewItem:placeFigureScript($node as node(), $model as map(*)) {
 	if ($model("item")//t:figure) then
-		<script src="resources/openseadragon/openseadragon.min.js" type="text/javascript" />
+		<script src="resources/js/external/openseadragon/openseadragon.min.js" type="text/javascript" />
 	else (
 	)
 };

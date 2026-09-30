@@ -3040,7 +3040,7 @@ declare function item2:mainContentGraphDefault($id as xs:string*, $collection as
 		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
 		<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
 		<div class="w3-container" id="GraphResultNotMS" />
-		<script src="resources/js/colorbrewer.js" />
+		<script src="resources/js/external/colorbrewer/colorbrewer.js" />
 		<script src="resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
 	</div>
 };

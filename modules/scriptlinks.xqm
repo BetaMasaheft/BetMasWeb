@@ -108,15 +108,12 @@ declare function scriptlinks:scriptStyle() {
 		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link
-			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"
+			href="{ $config:appUrl }/resources/js/external/font-awesome-4/font-awesome.min.css"
 			rel="stylesheet"
 			type="text/css" />,
-		<link
-			href="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/css/keyboard-basic.min.css"
-			rel="stylesheet"
-			type="text/css" />,
+		<link href="resources/js/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
 		(: introjs :)
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.css" rel="stylesheet" type="text/css" />,
+		<link href="resources/js/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
 		<link
@@ -127,7 +124,7 @@ declare function scriptlinks:scriptStyle() {
 		<link href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
 		(: w3 :)
 		<link href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
-		<script src="https://code.jquery.com/jquery-1.11.1.min.js" type="text/javascript" />
+		<script src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 	)
 };
 
@@ -139,17 +136,17 @@ declare function scriptlinks:listScriptStyle() {
 		<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"
+			href="{ $config:appUrl }/resources/js/external/font-awesome-4/font-awesome.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/css/keyboard-basic.min.css"
+			href="resources/js/external/virtual-keyboard/keyboard-basic.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.css"
+			href="resources/js/external/intro.js/introjs.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
@@ -159,7 +156,7 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+			href="resources/js/external/jquery-ui/jquery-ui.min.css"
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -174,7 +171,7 @@ declare function scriptlinks:listScriptStyle() {
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="https://code.jquery.com/jquery-1.11.1.min.js"
+			src="resources/js/external/jquery/jquery.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -182,7 +179,7 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+			src="resources/js/external/jquery-ui/jquery-ui.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -224,16 +221,19 @@ declare function scriptlinks:ItemScriptStyle() {
 		xmlns="http://www.w3.org/1999/xhtml"
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
 		type="text/javascript" />,
-	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/mapbox.js" type="text/javascript" />,
-	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/Leaflet.fullscreen.min.js" type="text/javascript" />,
+	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/vendor/mapbox/mapbox.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/leaflet-ajax-gh-pages/dist/leaflet.ajax.min.js"
+		src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+		type="text/javascript" />,
+	<script
+		xmlns="http://www.w3.org/1999/xhtml"
+		src="resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 		type="text/javascript" />,
 	<script xmlns="http://www.w3.org/1999/xhtml" src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/openseadragon/openseadragon.min.js"
+		src="resources/js/external/openseadragon/openseadragon.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
@@ -252,18 +252,14 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="resources/js/explain.js" type="text/javascript" />,
 	<script src="resources/js/dateConversions.js" type="text/javascript" />,
 	<script src="resources/js/w3.js" type="application/javascript" />,
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" type="text/javascript" />,
+	<script src="resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
+	<script src="resources/js/external/virtual-keyboard/jquery.keyboard.js" type="text/javascript" />,
+	<script src="resources/js/external/virtual-keyboard/jquery.mousewheel.min.js" type="text/javascript" />,
 	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/js/jquery.keyboard.js"
+		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-typing.min.js"
 		type="text/javascript" />,
 	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/js/jquery.mousewheel.min.js"
-		type="text/javascript" />,
-	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/js/jquery.keyboard.extension-typing.min.js"
-		type="text/javascript" />,
-	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/virtual-keyboard/1.26.22/js/jquery.keyboard.extension-altkeyspopup.min.js"
+		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
 		type="text/javascript" />,
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
@@ -271,7 +267,7 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="resources/js/diacriticskeyboard.js" type="text/javascript" />,
 	<script src="resources/js/analytics.js" type="text/javascript" />,
 	<script src="resources/js/listResponse.js" type="text/javascript" />,
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.js" type="text/javascript" />,
+	<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />,
 	<script src="resources/alpheios/alpheiosStart.js" type="text/javascript" />,
 	<script src="resources/js/introText.js" type="application/javascript" />,
 	<script src="resources/js/versions.js" type="text/javascript" />,

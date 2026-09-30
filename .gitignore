@@ -14,3 +14,7 @@ test/xqs/runners/
 docker-compose.agent.yml
 scripts/agent-stack.sh
 .worktrees/
+# External dependencies, downloaded from npm (see scripts/copy-vendor-libs.js).
+# resources/js/vendor is different: libraries with no usable npm package, committed
+# directly since nothing regenerates them.
+resources/js/external
