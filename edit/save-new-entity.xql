@@ -82,7 +82,8 @@ return if ($idResult?status = 409) then (
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="{ $config:appUrl }/$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-			<link href="{ $config:appUrl }/resources/js/external/font-awesome-4/font-awesome.min.css" rel="stylesheet" />
+			<link href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
+			<link href="{ $config:appUrl }/resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
@@ -114,7 +115,8 @@ return if ($idResult?status = 409) then (
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-			<link href="resources/js/external/font-awesome-4/font-awesome.min.css" rel="stylesheet" />
+			<link href="resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
+			<link href="resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
@@ -519,7 +521,8 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 					href="{ $config:appUrl }/$shared/resources/css/bootstrap-3.0.3.min.css"
 					rel="stylesheet"
 					type="text/css" />
-				<link href="{ $config:appUrl }/resources/js/external/font-awesome-4/font-awesome.min.css" rel="stylesheet" />
+				<link href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
+				<link href="{ $config:appUrl }/resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
 				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
@@ -557,7 +560,8 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-				<link href="resources/js/external/font-awesome-4/font-awesome.min.css" rel="stylesheet" />
+				<link href="resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
+				<link href="resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
 				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />

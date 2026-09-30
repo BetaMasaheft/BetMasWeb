@@ -81,17 +81,11 @@ const MANIFEST = {
 			["build/openseadragon/images", "images"],
 		],
 	],
-	"font-awesome": [
-		"font-awesome-4",
-		[
-			["css/font-awesome.min.css", "font-awesome.min.css"],
-			["fonts", "fonts"],
-		],
-	],
 	"@fortawesome/fontawesome-free": [
-		"fontawesome-5",
+		"fontawesome",
 		[
 			["css/all.min.css", "all.min.css"],
+			["css/v4-shims.min.css", "v4-shims.min.css"],
 			["webfonts", "webfonts"],
 		],
 	],
