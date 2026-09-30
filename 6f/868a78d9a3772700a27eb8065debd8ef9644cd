@@ -1,0 +1,24 @@
+modules/catalog.xqm
+  s_1253ffb84560e1::t_749668b1980cf5 43-51
+  s_1253ffb84560e1::t_f0ee3a168fb881 127-132,134
+  s_1253ffb84560e1::t_b227124291995b 126
+modules/catalog-legacy.xqm
+  s_1253ffb84560e1::t_ee47f3bad667c0 36-51
+  s_1253ffb84560e1::t_db9e44879aeb88 72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6f868a78d9a3772700a27eb8065debd8ef9644cd",
+  "prompts": {},
+  "sessions": {
+    "s_1253ffb84560e1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ad97d5ac-6d02-4345-8d1e-03195239e289",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
