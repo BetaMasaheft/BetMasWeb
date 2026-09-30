@@ -14,6 +14,7 @@ module namespace tscatalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace b = "betmas.biblio";
+declare namespace xmldb = "http://exist-db.org/xquery/xmldb";
 
 import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "../../modules/catalog.xqm";
 import module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places" at "../../modules/catalog-places.xqm";
@@ -238,10 +239,60 @@ declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-p
 declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-uses-allowlisted-lists-fallback(
 	$backend as xs:string
 ) as xs:boolean {
-	(: bm:Ludolf1661lexicon: lists-fallback="true", absent from EthioStudies. :)
-	let $e := catalog:bibl("bm:Ludolf1661lexicon", $backend)
-	return exists($e[self::b:entry]) and
-		empty(doc("/db/apps/EthioStudies/citations.xml")//*[@tag = "bm:Ludolf1661lexicon"])
+	(: The data image's bibl-exceptions pin can be stale, so catalog:artifact()
+	   ignores it and this case cannot depend on bm:Ludolf1661lexicon. Install a
+	   fresh allowlist entry and a lists row, then put both back. :)
+	let $id := "bm:XQSuiteListsFallback"
+	let $col := "/db/apps/catalogs"
+	let $ex-name := "bibl-exceptions.xml"
+	let $ex-path := $col || "/" || $ex-name
+	let $had-ex := doc-available($ex-path)
+	let $old-ex := if ($had-ex) then
+		doc($ex-path)
+	else (
+	)
+	let $manifest-path := $col || "/manifest.xml"
+	let $art := if (doc-available($manifest-path)) then
+		doc($manifest-path)//artifact[@name = $ex-name]
+	else (
+	)
+	let $had-pin := exists($art/@expanded-sha)
+	let $old-pin := string($art/@expanded-sha)
+	let $bib := doc("/db/apps/lists/bibliography.xml")
+	let $fixture := <bibl-exceptions xmlns="https://betamasaheft.eu/catalogs" version="test">
+		<entry bm="{ $id }" disposition="pending-export" lists-fallback="true" />
+	</bibl-exceptions>
+	let $row := <entry xmlns="betmas.biblio" id="{ $id }"><citation>xqsuite-fallback</citation></entry>
+	let $ok := try {
+		let $_ := if (xmldb:collection-available($col)) then (
+		) else
+			xmldb:create-collection("/db/apps", "catalogs")
+		let $_ := xmldb:store($col, $ex-name, $fixture)
+		let $_ := if ($had-pin) then
+			update delete $art/@expanded-sha
+		else (
+		)
+		let $_ := if ($bib//b:entry[@id = $id]) then (
+		) else
+			update insert $row into $bib/*
+		let $e := catalog:bibl($id, $backend)
+		return exists($e[self::b:entry][b:citation = "xqsuite-fallback"])
+	} catch * { false() }
+	let $_ := if ($bib//b:entry[@id = $id]) then
+		update delete $bib//b:entry[@id = $id]
+	else (
+	)
+	let $_ := if ($had-ex) then
+		xmldb:store($col, $ex-name, $old-ex)
+	else if (doc-available($ex-path)) then
+		xmldb:remove($col, $ex-name)
+	else (
+	)
+	let $_ := if ($had-pin) then
+		update insert attribute expanded-sha { $old-pin } into $art
+	else (
+	)
+	return $ok
 };
 
 declare
