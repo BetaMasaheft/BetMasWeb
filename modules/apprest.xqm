@@ -1959,13 +1959,13 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 		<div class="w3-container w3-margin-bottom w3-margin-top">
 			<div class="w3-bar ">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="{ $config:appUrl }/{ $collection }/list">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 				<a class="w3-bar-item w3-button w3-red" href="{ $config:appUrl }/as.html" role="button">
-					<i aria-hidden="true" class="fa fa-cog" />
+					<i aria-hidden="true" class="fas fa-cog" />
 				</a>
 			</div>
 		</div>
@@ -2003,16 +2003,16 @@ declare function apprest:paginate-rest(
 				let $params := string-join($paramssingle, "&amp;")
 				return (
 					if ($start = 1) then (
-						<a class="w3-button w3-disabled"><i class="fa fa-fast-backward" /></a>,
-						<a class="w3-button w3-disabled"><i class="fa fa-backward" /></a>
+						<a class="w3-button w3-disabled"><i class="fas fa-fast-backward" /></a>,
+						<a class="w3-button w3-disabled"><i class="fas fa-backward" /></a>
 					) else (
 						<a class="w3-button" href="?per-page={ $per-page }&amp;start=1&amp;{ $params }">
-							<i class="fa fa-fast-backward" />
+							<i class="fas fa-fast-backward" />
 						</a>,
 						<a
 							class="w3-button"
 							href="?per-page={ $per-page }&amp;start={ max(($start - $per-page, 1)) }&amp;{ $params }"
-						><i class="fa fa-backward" /></a>
+						><i class="fas fa-backward" /></a>
 					),
 					let $startPage := xs:integer(ceiling($start div $per-page))
 					let $lowerBound := max(($startPage - ($max-pages idiv 2), 1))
@@ -2031,15 +2031,15 @@ declare function apprest:paginate-rest(
 						>{ $i }</a>,
 					if ($start + $per-page < count($model("hits"))) then (
 						<a class="w3-button" href="?per-page={ $per-page }&amp;start={ $start + $per-page }&amp;{ $params }">
-							<i class="fa fa-forward" />
+							<i class="fas fa-forward" />
 						</a>,
 						<a
 							class="w3-button"
 							href="?per-page={ $per-page }&amp;start={ max((($count - 1) * $per-page + 1, 1)) }&amp;{ $params }"
-						><i class="fa fa-fast-forward" /></a>
+						><i class="fas fa-fast-forward" /></a>
 					) else (
-						<a class="w3-button w3-disabled"><i class="fa fa-forward" /></a>,
-						<a class="w3-button w3-disabled"><i class="fa fa-fast-forward" /></a>
+						<a class="w3-button w3-disabled"><i class="fas fa-forward" /></a>,
+						<a class="w3-button w3-disabled"><i class="fas fa-fast-forward" /></a>
 					)
 				)
 			else (
@@ -2285,10 +2285,10 @@ declare function apprest:compareMssFromForm($target-work as xs:string?) {
 				</span> pointers to this work in <span class="w3-tag w3-gray">{ count(distinct-values($ids)) }</span> mss.</p>,
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button" onclick="document.getElementById('mscomps').scrollBy(-200,0)">
-					<i class="fa fa-arrow-left" />
+					<i class="fas fa-arrow-left" />
 				</button>
 				<button class="w3-bar-item w3-button w3-right" onclick="document.getElementById('mscomps').scrollBy(200,0)">
-					<i class="fa fa-arrow-right" />
+					<i class="fas fa-arrow-right" />
 				</button>
 			</div>,
 			<div class=" w3-container" id="mscomps" style="overflow: auto; scroll-behavior: smooth;">

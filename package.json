@@ -5,7 +5,7 @@
 	"private": true,
 	"comments": {
 		"dependencies": "Frontend vendor libraries served to the browser. The build.xml Ant target copies these from node_modules into resources/js/external.",
-		"font-awesome": "Consolidated onto @fortawesome/fontawesome-free@7.3.1 everywhere (previously split 4.7.0/5.7.2). css/v4-shims.min.css is loaded alongside all.min.css so the site's old v4-style `fa fa-x` markup keeps rendering without an icon-by-icon rewrite.",
+		"font-awesome": "Consolidated onto @fortawesome/fontawesome-free@7.3.1 everywhere (previously split 4.7.0/5.7.2). All icon markup was rewritten to explicit fas/far classes and current icon names (see shims.yml-derived mapping in the PR) - no v4-shims.css dependency.",
 		"d3": "Two d3 majors are both in use: d3@5.16.0 (d3.v5) backs items/permanentItems; d3-v3 is an npm alias for d3@3.5.17 (d3.v3), used only by templates/sparql.html. Both kept, pinned, to preserve current per-page behavior."
 	},
 	"dependencies": {

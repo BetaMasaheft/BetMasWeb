@@ -14,7 +14,7 @@ module namespace locallogin = "https://www.betamasaheft.eu/login";
 declare function locallogin:loginNew() {
 	if (sm:id()//sm:username/text() = "guest") then
 		<div class="w3-dropdown-hover w3-hide-small" id="logging">
-			<button class="w3-button" title="Login">Login <i class="fa fa-caret-down" /></button>
+			<button class="w3-button" title="Login">Login <i class="fas fa-caret-down" /></button>
 			<div class="w3-dropdown-content w3-bar-block w3-card-4" style="width:400px;">
 				<form accept-charset="UTF-8" class="w3-bar-item" id="login-nav" method="post" role="form">
 					<label for="user">User:</label>
@@ -35,7 +35,7 @@ declare function locallogin:loginNew() {
 			role="form"
 			style="margin:0;padding:0"
 		>
-			<button class=" w3-button w3-red" type="submit"><i class="fa fa-sign-out-alt" /></button>
+			<button class=" w3-button w3-red" type="submit"><i class="fas fa-sign-out-alt" /></button>
 			<input name="logout" type="hidden" value="true" />
 		</form>
 };

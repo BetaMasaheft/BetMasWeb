@@ -108,10 +108,6 @@ declare function scriptlinks:scriptStyle() {
 		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css" rel="stylesheet" type="text/css" />,
-		<link
-			href="{ $config:appUrl }/resources/js/external/fontawesome/v4-shims.min.css"
-			rel="stylesheet"
-			type="text/css" />,
 		<link href="resources/js/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
 		(: introjs :)
 		<link href="resources/js/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
@@ -138,11 +134,6 @@ declare function scriptlinks:listScriptStyle() {
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
 			href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css"
-			rel="stylesheet"
-			type="text/css" />,
-		<link
-			xmlns="http://www.w3.org/1999/xhtml"
-			href="{ $config:appUrl }/resources/js/external/fontawesome/v4-shims.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link

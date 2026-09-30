@@ -85,7 +85,6 @@ const MANIFEST = {
 		"fontawesome",
 		[
 			["css/all.min.css", "all.min.css"],
-			["css/v4-shims.min.css", "v4-shims.min.css"],
 			["webfonts", "webfonts"],
 		],
 	],

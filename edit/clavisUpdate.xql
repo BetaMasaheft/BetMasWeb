@@ -97,7 +97,6 @@ if (contains(sm:get-user-groups(sm:id()//sm:real/sm:username/string()), "Editors
 			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
 			<link href="resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
-			<link href="resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 			<link href="resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
@@ -118,7 +117,7 @@ if (contains(sm:get-user-groups(sm:id()//sm:real/sm:username/string()), "Editors
 							class="lead"
 						>the CORRECT SUBDIRECTORY</span>.<br />
 						<a class="btn btn-primary" download="{ $WorkID }.xml" href="{ $uri }" id="downloaded">
-							<i aria-hidden="true" class="fa fa-download" /> Download</a>
+							<i aria-hidden="true" class="fas fa-download" /> Download</a>
 						<br />
                                 open it up and check it is valid and complete. <br />
 						<span class="label label-warning confirmationwarning">DO THIS!</span>
@@ -142,7 +141,6 @@ else
 			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
 			<link href="resources/js/external/fontawesome/all.min.css" rel="stylesheet" />
-			<link href="resources/js/external/fontawesome/v4-shims.min.css" rel="stylesheet" />
 			<link href="resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />

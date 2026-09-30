@@ -34,7 +34,7 @@ declare function apptable:nextID($collection as xs:string) {
  :)
 declare function apptable:pdf-link($id) {
 	<a xmlns="http://www.w3.org/1999/xhtml" class="w3-button w3-padding-small w3-gray" href="/{ $id }.pdf" id="mainPDF">
-		<i aria-hidden="true" class="fa fa-file-pdf-o" />
+		<i aria-hidden="true" class="far fa-file-pdf" />
 	</a>
 };
 
@@ -250,7 +250,7 @@ declare function apptable:tds($item as node(), $list as xs:string) {
 		if ($list = "works") then (
 			(: id only works :)
 			<td>
-				<a href="/{ $list }/{ $itemid }/main"><i class="fa fa-arrow-circle-right" /></a>
+				<a href="/{ $list }/{ $itemid }/main"><i class="fas fa-arrow-circle-right" /></a>
 				{
 					if (ends-with($itemid, "IHA")) then (
 						"IslHornAfr " || substring($itemid, 4, 4)
@@ -467,9 +467,9 @@ EMIP :)
 				{
 					switch (data($item//t:person/@sex))
 						case "1" return
-							<i aria-hidden="true" class="fa fa-male" />
+							<i aria-hidden="true" class="fas fa-male" />
 						case "2" return
-							<i aria-hidden="true" class="fa fa-female" />
+							<i aria-hidden="true" class="fas fa-female" />
 						default return
 							()
 				}

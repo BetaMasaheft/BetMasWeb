@@ -3318,12 +3318,12 @@ function app:paginateNew(
 		return (
 			(: backwarding arrows, disabled if not available :)
 			if ($start = 1) then (
-				<a class="w3-button w3-disabled"><i class="fa fa-fast-backward" /></a>,
-				<a class="w3-button w3-disabled"><i class="fa fa-backward" /></a>
+				<a class="w3-button w3-disabled"><i class="fas fa-fast-backward" /></a>,
+				<a class="w3-button w3-disabled"><i class="fas fa-backward" /></a>
 			) else (
-				<a class="w3-button " href="?{ $params }&amp;start=1"><i class="fa fa-fast-backward" /></a>,
+				<a class="w3-button " href="?{ $params }&amp;start=1"><i class="fas fa-fast-backward" /></a>,
 				<a class="w3-button " href="?{ $params }&amp;start={ max(($start - $per-page, 1)) }">
-					<i class="fa fa-backward" />
+					<i class="fas fa-backward" />
 				</a>
 			),
 			(: numbers :)
@@ -3338,13 +3338,13 @@ function app:paginateNew(
 				<a class="w3-button" href="?{ $params }&amp;start={ max((($i - 1) * $per-page + 1, 1)) }">{ $i }</a>,
 			(: forwarding arrows, disabled if not available :)
 			if ($start + $per-page < count($model("hits"))) then (
-				<a class="w3-button" href="?{ $params }&amp;start={ $start + $per-page }"><i class="fa fa-forward" /></a>,
+				<a class="w3-button" href="?{ $params }&amp;start={ $start + $per-page }"><i class="fas fa-forward" /></a>,
 				<a class="w3-button" href="?{ $params }&amp;start={ max((($count - 1) * $per-page + 1, 1)) }">
-					<i class="fa fa-fast-forward" />
+					<i class="fas fa-fast-forward" />
 				</a>
 			) else (
-				<a class="w3-button w3-disabled"><i class="fa fa-forward" /></a>,
-				<a class="w3-button w3-disabled"><i class="fa fa-fast-forward" /></a>
+				<a class="w3-button w3-disabled"><i class="fas fa-forward" /></a>,
+				<a class="w3-button w3-disabled"><i class="fas fa-fast-forward" /></a>
 			)
 		)
 	else (

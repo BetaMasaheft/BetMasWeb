@@ -237,7 +237,7 @@ declare %private function viewItem:locus($this) {
 			)
 			for $r in $refs[not(. = "")]
 			return <a class="locusReference" href="{ $config:appUrl }/{ $mainID }.{ $r }" target="_blank">
-				<i aria-hidden="true" class="fa fa-file-text-o" />
+				<i aria-hidden="true" class="far fa-file-lines" />
 			</a>
 		else (
 		),
@@ -1148,14 +1148,14 @@ declare %private function viewItem:ref($ref) {
 	return if ($ref/@cRef) then
 		if (starts-with($ref/@cRef, "urn:cts")) then
 			<a href="http://data.perseus.org/citations/{ $ref/@cRef }">
-				<i class="fa fa-angle-double-right" />
+				<i class="fas fa-angle-double-right" />
 				{
 					if ($text) then
 						$text
 					else
 						"ref"
 				}
-				<i class="fa fa-angle-double-right" />
+				<i class="fas fa-angle-double-right" />
 			</a>
 		else
 			<a class="reference" href="{ $config:appUrl }/{ substring-after($ref/@cRef, "betmas:") }" target="_blank">
@@ -1165,7 +1165,7 @@ declare %private function viewItem:ref($ref) {
 					else
 						"[link]"
 				}
-				<i aria-hidden="true" class="fa fa-file-text-o" />
+				<i aria-hidden="true" class="far fa-file-lines" />
 			</a>
 	else if ($ref/@corresp) then
 		for $c in viewItem:makeSequence($ref/@corresp)
@@ -1271,7 +1271,7 @@ declare %private function viewItem:date-like($date) {
 			viewItem:dates($date),
 			viewItem:time($date),
 			<a class="popup" id="date{ $id }calendar" onclick="popup('dateInfo{ $id }')">
-				<i aria-hidden="true" class="fa fa-calendar-plus-o" />
+				<i aria-hidden="true" class="far fa-calendar-plus" />
 			</a>
 		)
 	else (
@@ -1282,7 +1282,7 @@ declare %private function viewItem:date-like($date) {
 declare %private function viewItem:time($date) {
 	let $cal := $date/@calendar
 	return <sup class="w3-tooltip">
-		<i class="fa fa-exchange" />
+		<i class="fas fa-right-left" />
 		<span class="w3-text">
 			{
 				for $att in
@@ -1513,7 +1513,7 @@ declare %private function viewItem:cae($entity) {
 declare %private function viewItem:lefthand($entity) {
 	let $id := viewItem:URI2ID($entity/@ref)
 	return <span xmlns="http://www.w3.org/1999/xhtml" class="popup" id="{ generate-id($entity) }Ent{ $id }relations">
-		<span class="fa fa-hand-o-left" />
+		<span class="far fa-hand-point-left" />
 	</span>
 };
 
@@ -2786,7 +2786,7 @@ declare %private function viewItem:additionItem($a) {
 						{ string($a/t:desc/@type) }
 					</a>,
 					<a href="{ $config:appUrl }/additions?type={ $a/t:desc/@type }" target="_blank">
-						<i class="fa fa-hand-o-left" />
+						<i class="far fa-hand-point-left" />
 					</a>,
 					") "
 				) else (
@@ -2989,7 +2989,7 @@ declare %private function viewItem:note($node as element(t:note)) {
 			}
 			{
 				if ($node/@source) then
-					<a href="{ $node/@source }">Source <i aria-hidden="true" class="fa fa-link" /></a>
+					<a href="{ $node/@source }">Source <i aria-hidden="true" class="fas fa-link" /></a>
 				else (
 				)
 			}
@@ -3159,7 +3159,7 @@ declare %private function viewItem:term($node as element(t:term)) {
 		string($node/@key)
 	return <b>
 		{ $term }
-		<a href="{ string($node/@key) }" target="_blank"><sup><i aria-hidden="true" class="fa fa-info-circle" /></sup></a>
+		<a href="{ string($node/@key) }" target="_blank"><sup><i aria-hidden="true" class="fas fa-info-circle" /></sup></a>
 	</b>
 };
 
@@ -3902,7 +3902,7 @@ declare %private function viewItem:titletemplate($div, $text) {
 					class="w3-button w3-padding-small w3-gray w3-right w3-bar-item"
 					href="#"
 					onclick="document.getElementById('textHelp').style.display='block'"
-				><i aria-hidden="true" class="fa fa-info-circle" /></a>
+				><i aria-hidden="true" class="fas fa-info-circle" /></a>
 			) else (
 			)
 		}
@@ -4664,9 +4664,9 @@ declare %templates:wrap function viewItem:personSidebarHeading($node as node(), 
 		"Names ",
 		switch ($item//t:person/@sex)
 			case "1" return
-				<i class="fa fa-mars" />
+				<i class="fas fa-mars" />
 			case "2" return
-				<i class="fa fa-venus" />
+				<i class="fas fa-venus" />
 			default return
 				(),
 		if ($item//t:person/@sameAs) then
@@ -5509,7 +5509,7 @@ return :)
 							onclick="document.getElementById('textHelp{
 								$frag/descendant-or-self::*[@xml:id][1]/@xml:id
 							}').style.display='none'"
-						><i class="fa fa-times" /></span>
+						><i class="fas fa-times" /></span>
 					</header>
 					<div
 						class="w3-container w3-margin"
@@ -5533,7 +5533,7 @@ return :)
 						<ul class="nodot">
 							<li>Click on ↗ to see the related items in Pelagios.</li>
 							<li>Click on <i
-									class="fa fa-hand-o-left" />
+									class="far fa-hand-point-left" />
                                 to see the which entities within Beta maṣāḥǝft point to this identifier.</li>
 							<li><sup>[!]</sup> contains additional information related to uncertainties in the encoding.</li>
 							<li>Superscript digits refer to notes in the apparatus which are displayed on the right.</li>

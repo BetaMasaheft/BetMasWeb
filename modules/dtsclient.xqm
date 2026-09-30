@@ -193,7 +193,7 @@ DTSannoCollectionLink">
 						<div class="w3-bar w3-gray" id="textnavigation">
 							<div class="w3-bar-item textNavigation" style="padding: 8px 8px;">
 								<a href="/{ $collection }/{ $id }/text?ref={ $links[dir = "prev"]/val/text() }">
-									<i class="fa fa-angle-left" />
+									<i class="fas fa-angle-left" />
 								</a>
 							</div>
 							<div class="w3-bar-item textNavigation" style="padding: 8px 8px;">
@@ -201,7 +201,7 @@ DTSannoCollectionLink">
 							</div>
 							<div class="w3-bar-item  textNavigation" style="padding: 8px 8px;">
 								<a href="/{ $collection }/{ $id }/text?ref={ $links[dir = "next"]/val/text() }">
-									<i class="fa fa-angle-right" />
+									<i class="fas fa-angle-right" />
 								</a>
 							</div>
 						</div>

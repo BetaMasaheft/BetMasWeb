@@ -2194,7 +2194,7 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
 					title="first select then press"
 					type="submit"
 				>
-					<i class="fa fa-search" />  refine search results  <span
+					<i class="fas fa-search" />  refine search results  <span
 						class="w3-text w3-tag w3-tiny"
 					>first select then press</span>
 				</button>
@@ -2221,7 +2221,7 @@ declare function q:showFacets($node as node()*, $model as map(*)) {
 					title="first select then press"
 					type="submit"
 				>
-					<i class="fa fa-search" />  refine search results  <span
+					<i class="fas fa-search" />  refine search results  <span
 						class="w3-text w3-tag w3-round-xlarge w3-dark-grey w3-small"
 					>first select then press</span>
 				</button>
@@ -3139,10 +3139,10 @@ declare %templates:wrap function q:compare($node as node()*, $model as map(*)) {
 				</span> manuscripts which can be put side by side.</p>,
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button" onclick="document.getElementById('mscomps').scrollBy(-200,0)">
-					<i class="fa fa-arrow-left" />
+					<i class="fas fa-arrow-left" />
 				</button>
 				<button class="w3-bar-item w3-button w3-right" onclick="document.getElementById('mscomps').scrollBy(200,0)">
-					<i class="fa fa-arrow-right" />
+					<i class="fas fa-arrow-right" />
 				</button>
 			</div>,
 			<div class=" w3-container" id="mscomps" style="overflow: auto; scroll-behavior: smooth;">
@@ -3698,9 +3698,9 @@ declare function q:summaryPers($item, $id) {
 		}
 		{
 			if ($item//t:person/@sex = 1) then
-				<i class="fa fa-mars" />
+				<i class="fas fa-mars" />
 			else
-				<i class="fa fa-venus" />
+				<i class="fas fa-venus" />
 		}
 		{
 			if ($item//t:person/@sameAs) then
@@ -4003,11 +4003,9 @@ declare function q:resultitemlinks($collection, $item, $id, $root, $text) {
 	if ($q:searchType = "clavis" or $q:searchType = "linkeddata") then (
 	) else (
 		if ($text//t:facsimile/t:graphic/@url) then
-			<a href="{ $config:appUrl }/{ $text//t:facsimile/t:graphic/@url }" target="_blank">
-				<i class="fa fa-picture-o" />
-			</a>
+			<a href="{ $config:appUrl }/{ $text//t:facsimile/t:graphic/@url }" target="_blank"><i class="far fa-image" /></a>
 		else if ($text//t:msIdentifier/t:idno[@facs]) then
-			<a href="{ $config:appUrl }/manuscripts/{ $id }/viewer" target="_blank"><i class="fa fa-picture-o" /></a>
+			<a href="{ $config:appUrl }/manuscripts/{ $id }/viewer" target="_blank"><i class="far fa-image" /></a>
 		else (
 		)
 	),

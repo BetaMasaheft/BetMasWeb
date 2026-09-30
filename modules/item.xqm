@@ -212,7 +212,7 @@ declare function item2:RestViewOptions($this, $collection) {
 		<!--
  <div class="w3-bar-item w3-tooltip" >
  <a class="w3-button w3-padding-small w3-gray" target="_blank" href="https://github.com/BetaMasaheft/Documentation/issues/new/choose">
-                                <i class="fa fa-envelope"/>
+                                <i class="fas fa-envelope"/>
                             </a>
                             <span class="w3-text w3-tag itemoptiontooltip">Do you want to notify us of an error, please do so by writing an issue in our GitHub repository (click the envelope for a precomiled one).</span>
 
@@ -239,7 +239,7 @@ declare function item2:RestViewOptions($this, $collection) {
 					replace(replace(base-uri($this), "/db/apps/expanded/", ""), $collection, concat($collection, "/blob/master"))
 				}"
 				target="_blank"
-			><i class="fa fa-pencil-square-o" /></a>
+			><i class="far fa-pen-to-square" /></a>
 			<span class="w3-text w3-tag itemoptiontooltip">
  Edit on GitHub
 </span>
@@ -335,7 +335,7 @@ then you will see visualizations based on La Syntaxe du Codex, by Andrist, Canar
 						<span
 							class="w3-button w3-display-topright"
 							onclick="document.getElementById('relations').style.display='none'"
-						><i class="fa fa-times" /></span>
+						><i class="fas fa-times" /></span>
 						<span class="w3-button w3-padding-small">Relations</span>
 					</header>
 					<div class="w3-container">{ item2:EntityRelsTable($document, $collection) }</div>
@@ -375,7 +375,7 @@ then you will see visualizations based on La Syntaxe du Codex, by Andrist, Canar
         onclick="document.getElementById('attest').style.display='none'"
         class="w3-button w3-display-topright"
       >
-       <i class="fa fa-times"/>
+       <i class="fas fa-times"/>
       </span>
       <h4>Attestations</h4>
     </header>
@@ -882,7 +882,7 @@ declare function item2:AdminLocTable($adminLoc as element()*) {
 						}
 					</a>,
 					<a xmlns="http://www.w3.org/1999/xhtml" id="{ generate-id($s) }Ent{ $s/@ref }relations">
-						<i class="fa fa-hand-o-left" />
+						<i class="far fa-hand-point-left" />
 					</a>
 				) else
 					$s/text()
@@ -1992,10 +1992,10 @@ Scrolling in this box will also show you a summary of all the occurences.  <a
 												class="w3-bar-item w3-circle"
 												href="{ $config:appUrl }/manuscripts/{ $groupkey }/viewer"
 												target="_blank"
-											><i class="fa fa-picture-o" /></a>
+											><i class="far fa-image" /></a>
 										else if ($item//t:facsimile/t:graphic/@url) then
 											<a class="w3-bar-item" href="{ $item//t:facsimile/t:graphic[1]/@url }" target="_blank">
-												<i class="fa fa-picture-o" />
+												<i class="far fa-image" />
 											</a>
 										else (
 										)
