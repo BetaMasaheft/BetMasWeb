@@ -991,10 +991,6 @@ declare %private function viewItem:bibliographyHeader($listBibl) {
 	)
 };
 
-declare %private function viewItem:zot($c) {
-	zc:full-url-doi($c)
-};
-
 declare %private function viewItem:bibl($node, $t) {
 	<div class="w3-row">
 		<div class="w3-col" style="width:85%">
@@ -1004,7 +1000,7 @@ declare %private function viewItem:bibl($node, $t) {
 					return if (count($bib) ge 1) then
 						$bib
 					else
-						$t
+						string($t)
 				}
 				{
 					let $crs :=

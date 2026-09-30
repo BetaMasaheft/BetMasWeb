@@ -235,6 +235,21 @@ declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-p
 	return deep-equal($e, $expected)
 };
 
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-uses-allowlisted-lists-fallback(
+	$backend as xs:string
+) as xs:boolean {
+	(: bm:Ludolf1661lexicon: lists-fallback="true", absent from EthioStudies. :)
+	let $e := catalog:bibl("bm:Ludolf1661lexicon", $backend)
+	return exists($e[self::b:entry]) and
+		empty(doc("/db/apps/EthioStudies/citations.xml")//*[@tag = "bm:Ludolf1661lexicon"])
+};
+
+declare
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
+function tscatalog:bibl-accepts-an-underscore-key($backend as xs:string) as xs:boolean {
+	deep-equal(catalog:bibl("bm_IHABook557", $backend), catalog:bibl("bm:IHABook557", $backend))
+};
+
 declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-miss-without-exception-is-empty(
 	$backend as xs:string
 ) as xs:boolean {

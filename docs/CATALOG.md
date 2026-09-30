@@ -36,8 +36,10 @@ The CI no-writes gate rejects `update insert|value|delete|replace|rename` and
 `xmldb:store` outside an explicit allow-list (install, editors, expansion/
 admin entry points, tests). One **tracked serving-reachable exception** remains:
 `modules/titlesData.xqm`, which DTS still calls and which can upsert list
-files. The gate prints that path as a tracked exception rather than failing;
-Phase 4 moves DTS onto the catalog contract and removes the exception.
+files. The gate prints that path as a tracked exception rather than failing.
+Phase 4 did not touch `titlesData`; a later phase moves DTS onto the catalog
+contract and removes the exception. Until then the titlesData write exception
+remains.
 
 ## Backends
 
