@@ -1,0 +1,33 @@
+modules/zoteroCache.xqm
+  s_ab2df52972f765::t_69136e40b59a35 16-18
+  s_ab2df52972f765::t_b537cb34459f5e 154-155,159-160
+  s_ab2df52972f765::t_3780df2fc88fd8 161
+modules/expand.xqm
+  s_ab2df52972f765::t_26c46ce157eb88 937-942
+docs/CATALOG.md
+  s_ab2df52972f765::t_6303a062912e60 18,20-29,33
+modules/viewItem.xqm
+  s_ab2df52972f765::t_be5c702cda79b1 35-36
+  s_ab2df52972f765::t_d4ffb9df5b1512 1003,1007
+  s_ab2df52972f765::t_5f16b81d631f66 1057,1069,1105,3802
+  s_ab2df52972f765::t_395baf20c89b1e 3392
+restviews/list.xqm
+  s_ab2df52972f765::t_6234485f93b858 34-35
+  s_ab2df52972f765::t_ebe043c4f58312 1517
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0c6f120af1575f578a90c2f1e0d3878c01765c31",
+  "prompts": {},
+  "sessions": {
+    "s_ab2df52972f765": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "71072831-69f5-4c65-a2eb-165e1c597ccf",
+        "model": "claude-sonnet-5-5-high"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
