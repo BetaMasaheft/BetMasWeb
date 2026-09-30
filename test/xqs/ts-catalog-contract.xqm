@@ -223,9 +223,16 @@ function tscatalog:bibl-accepts-an-unprefixed-key($backend as xs:string) as xs:b
 declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-prefers-ethiostudies(
 	$backend as xs:string
 ) as xs:boolean {
-	(: Known tag present in EthioStudies citations.xml on release-expanded. :)
+	(: Must match the EthioStudies-synthesized betmas.biblio entry, not the
+	   lists/bibliography.xml copy (which already has a xhtml csl-entry). :)
 	let $e := catalog:bibl("bm:IHABook557", $backend)
-	return exists($e/self::b:entry) and exists($e/b:reference//*:div[@class = "csl-entry"])
+	let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = "bm:IHABook557"])[1]
+	let $div := ($cit//*:div[@class = "csl-entry"])[1]
+	let $expected := <entry xmlns="betmas.biblio" id="bm:IHABook557">
+		<citation>{ normalize-space(string-join($div//text(), "")) }</citation>
+		<reference>{ $div }</reference>
+	</entry>
+	return deep-equal($e, $expected)
 };
 
 declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-miss-without-exception-is-empty(

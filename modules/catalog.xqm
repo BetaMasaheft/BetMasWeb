@@ -232,23 +232,60 @@ declare function catalog:bibl($bm as xs:string) as element(b:entry)? {
 	catalog:bibl($bm, catalog:backend("bibl"))
 };
 
-declare function catalog:bibl($bm as xs:string, $backend as xs:string) as element(b:entry)? {
-	let $id := if (starts-with($bm, "bm:")) then
+declare %private function catalog:bibl-normalize($bm as xs:string) as xs:string {
+	if (starts-with($bm, "bm_")) then
+		"bm:" || substring-after($bm, "bm_")
+	else if (starts-with($bm, "bm:")) then
 		$bm
 	else
 		"bm:" || $bm
-	let $source := if ($backend = "catalog") then
-		(catalog:artifact("bibliography.xml"), $catalog:bibliography)[1]
-	else
-		$catalog:bibliography
+};
+
+declare %private function catalog:bibl-from-lists($id as xs:string) as element(b:entry)? {
 	(: Two single-value equality checks — NOT `@id = ($id, $alt)`. A general
 	   comparison against a sequence forces a full scan of bibliography.xml
 	   (~14s per lookup here); one value uses the range index (~10ms). :)
-	let $exact := ($source//b:entry[@id = $id])[1]
+	let $exact := ($catalog:bibliography//b:entry[@id = $id])[1]
 	return if ($exact) then
 		$exact
 	else
-		($source//b:entry[@id = replace($id, ":", "_")])[1]
+		($catalog:bibliography//b:entry[@id = replace($id, ":", "_")])[1]
+};
+
+declare %private function catalog:bibl-from-ethio($id as xs:string) as element(b:entry)? {
+	try {
+		let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $id])[1]
+		let $div := ($cit//*:div[@class = "csl-entry"])[1]
+		return if (empty($div)) then (
+		) else
+			<entry xmlns="betmas.biblio" id="{ $id }">
+				<citation>{ normalize-space(string-join($div//text(), "")) }</citation>
+				<reference>{ $div }</reference>
+			</entry>
+	} catch * { () }
+};
+
+declare %private function catalog:bibl-exception($id as xs:string) as element()? {
+	let $doc := catalog:artifact("bibl-exceptions.xml")
+	return if (empty($doc)) then (
+	) else
+		($doc//*:entry[@bm = $id])[1]
+};
+
+declare function catalog:bibl($bm as xs:string, $backend as xs:string) as element(b:entry)? {
+	let $id := catalog:bibl-normalize($bm)
+	return if ($backend != "catalog") then
+		catalog:bibl-from-lists($id)
+	else
+		let $ethio := catalog:bibl-from-ethio($id)
+		return if (exists($ethio)) then
+			$ethio
+		else
+			let $ex := catalog:bibl-exception($id)
+			return if (exists($ex) and $ex/@lists-fallback = "true") then
+				catalog:bibl-from-lists($id)
+			else (
+			)
 };
 
 declare function catalog:retired($id as xs:string) as xs:boolean {

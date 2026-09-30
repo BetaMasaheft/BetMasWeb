@@ -15,6 +15,9 @@ Current consumers and variables:
 - item bibliography rendering: `CATALOG_BACKEND_VIEW_ITEM`
 - API titles: `CATALOG_BACKEND_API_TITLES`
 - API repository list: `CATALOG_BACKEND_API_REST`
+- bibliography resolution: `CATALOG_BACKEND_BIBL` (Phase 4; default flip to `catalog`)
+
+Note: `viewItem` / `list` bibl call sites must use the `bibl` consumer (Task 4), not `view-item` / `web-list`.
 
 The deployment initializer copies configured environment variables into
 `services.xml`, following the same mechanism as other service configuration.
