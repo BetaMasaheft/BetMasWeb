@@ -33,6 +33,22 @@ declare variable $legacy:persNamesList := doc("/db/apps/lists/persNamesLabels.xm
 
 declare variable $legacy:deleted := doc("/db/apps/lists/deleted.xml");
 
+(: Same relations as the old per-id scan, grouped by @passive. Output is unchanged. :)
+declare variable $legacy:formerly-by-passive := map:merge(
+	for $rel in $legacy:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"]
+	let $passive := string($rel/@passive)
+	where $passive ne ""
+	group by $passive
+	return map:entry($passive, array { $rel })
+);
+
+declare %private function legacy:formerly($id as xs:string) as element(t:relation)* {
+	let $found := $legacy:formerly-by-passive($id)
+	return if (empty($found)) then (
+	) else
+		$found?*
+};
+
 (:~
  : Self-loop-safe successor id, as titles:distinctSuccessor. Inlined to keep
  : this module free of the raw-data title module.
@@ -53,7 +69,7 @@ declare function legacy:label($id as xs:string) {
 	let $cacheHit := $legacy:titleCache//t:item[@corresp eq $id][1]
 	return if ($legacy:deleted//t:item[. = $id]) then
 		let $del := $legacy:deleted//t:item[. = $id]
-		let $formerly := $legacy:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
+		let $formerly := legacy:formerly($id)
 		let $active := legacy:successor($formerly, $id)
 		return if ($active) then
 			legacy:label($active) ||

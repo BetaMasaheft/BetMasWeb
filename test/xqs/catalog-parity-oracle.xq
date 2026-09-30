@@ -10,7 +10,6 @@ import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMa
 
 declare option output:method "json";
 declare option output:media-type "application/json";
-declare option exist:optimize "enable=no";
 
 declare variable $backend-a external := "legacy";
 

@@ -42,6 +42,15 @@ declare variable $catalog:bibliography := doc("/db/apps/lists/bibliography.xml")
 
 declare variable $catalog:artifacts := "/db/apps/catalogs";
 
+(: One scan of expanded. Keyed by @passive so a deleted id does not walk the corpus again. :)
+declare variable $catalog:formerly-by-passive := map:merge(
+	for $rel in $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+	let $passive := string($rel/@passive)
+	where $passive ne ""
+	group by $passive
+	return map:entry($passive, array { $rel })
+);
+
 declare function catalog:backend($consumer as xs:string) as xs:string {
 	let $name := "CATALOG_BACKEND_" || upper-case(replace($consumer, "[^A-Za-z0-9]", "_"))
 	let $configured := lower-case(config:service-url($name, "legacy"))
@@ -116,8 +125,15 @@ declare %private function catalog:subtitle($node as node(), $sub-id as xs:string
 	)
 };
 
+declare %private function catalog:formerly($id as xs:string) as element(t:relation)* {
+	let $found := $catalog:formerly-by-passive($id)
+	return if (empty($found)) then (
+	) else
+		$found?*
+};
+
 declare %private function catalog:deleted-label($id as xs:string, $deleted as element(t:item)) {
-	let $formerly := $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"][@passive = $id]
+	let $formerly := catalog:formerly($id)
 	let $active := ($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]
 	return if ($active) then
 		catalog:resolve-label($active) ||
