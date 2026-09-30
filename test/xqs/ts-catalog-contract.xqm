@@ -248,7 +248,7 @@ declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-u
 	let $ex-path := $col || "/" || $ex-name
 	let $had-ex := doc-available($ex-path)
 	let $old-ex := if ($had-ex) then
-		doc($ex-path)
+		parse-xml(fn:serialize(doc($ex-path), map {"method": "xml"}))
 	else (
 	)
 	let $manifest-path := $col || "/manifest.xml"
