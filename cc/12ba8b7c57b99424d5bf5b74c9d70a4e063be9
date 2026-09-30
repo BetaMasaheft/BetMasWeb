@@ -1,0 +1,24 @@
+modules/viewItem.xqm
+  s_6a93d770c2058d::t_c7df869f829351 1003
+docs/CATALOG.md
+  s_6a93d770c2058d::t_137c30ba6074a9 39-42
+test/xqs/ts-catalog-contract.xqm
+  s_6a93d770c2058d::t_abef561f00fa60 238-251
+  s_6a93d770c2058d::t_a2560974a864a2 252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cc12ba8b7c57b99424d5bf5b74c9d70a4e063be9",
+  "prompts": {},
+  "sessions": {
+    "s_6a93d770c2058d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0a40eb3e-b54d-4198-bc9d-2a11b9414406",
+        "model": "claude-sonnet-5-5-high"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
