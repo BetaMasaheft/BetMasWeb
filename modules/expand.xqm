@@ -4,10 +4,8 @@ module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace xi = "http://www.w3.org/2001/XInclude";
-declare namespace b = "betmas.biblio";
 
 import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm";
-import module namespace gfb = "https://www.betamasaheft.uni-hamburg.de/BetMas/gfb" at "xmldb:exist:///db/apps/BetMasWeb/modules/generateFormattedBibliography.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
@@ -935,30 +933,13 @@ declare function expand:wholike($attribute) {
 	}
 };
 
-declare function expand:syncBibliography($expanded as element()) {
-	let $bm-cites := distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
-	let $bibliography := doc("/db/apps/lists/bibliography.xml")/b:bibliography
-	for $cite in $bm-cites
-	let $exists := $bibliography//b:entry[@id = $cite]
-	return if (empty($exists)) then
-		let $entry := gfb:updateentry($cite)
-		let $updated := update insert $entry into $bibliography/b:entries
-		let $updatetotal := update value $bibliography/b:total with count(
-			distinct-values(($bibliography//b:entry/@id, $bm-cites))
-		)
-		return util:log("INFO", concat("Added new bibliography entry for: ", $cite))
-	else (
-	)
-};
-
 (:~
- : Expands one raw TEI source file into its full expanded form and syncs
- : per-file side caches: bibliography entries (expand:syncBibliography)
- : and, once the expanded title is known, this document's own entry in
- : the shared title cache (titles:updateTitleCache) that
- : exptit:printTitleID reads at render time. Does not persist the
- : expanded document itself - that's the caller's responsibility (see
- : batchExpand:expandOne).
+ : Expands one raw TEI source file into its full expanded form and, once
+ : the expanded title is known, syncs this document's own entry in the
+ : shared title cache (titles:updateTitleCache) that exptit:printTitleID
+ : reads at render time. Does not mutate bibliography.xml. Does not
+ : persist the expanded document itself - that's the caller's
+ : responsibility (see batchExpand:expandOne).
  :
  : @param $filepath db path to the raw source TEI file
  : @return the expanded document
@@ -967,7 +948,6 @@ declare function expand:file($filepath) {
 	let $doc := doc($filepath)
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
 	let $expanded := util:expand($doc/t:TEI)
-	let $syncBib := expand:syncBibliography($expanded)
 
 	let $zotero :=
 		for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])

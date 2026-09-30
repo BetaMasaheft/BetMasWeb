@@ -15,13 +15,22 @@ Current consumers and variables:
 - item bibliography rendering: `CATALOG_BACKEND_VIEW_ITEM`
 - API titles: `CATALOG_BACKEND_API_TITLES`
 - API repository list: `CATALOG_BACKEND_API_REST`
-- bibliography resolution: `CATALOG_BACKEND_BIBL` (Phase 4; default flip to `catalog`)
+- bibliography resolution: `CATALOG_BACKEND_BIBL` (Phase 4; set to `catalog` in deployment)
 
-Note: `viewItem` / `list` bibl call sites must use the `bibl` consumer (Task 4), not `view-item` / `web-list`.
+`viewItem` / `list` / `zc:bibl-page-entry` resolve bibliography through the
+`bibl` consumer (`CATALOG_BACKEND_BIBL`), not `view-item` / `web-list`.
+
+Missing or unset `CATALOG_BACKEND_BIBL` still selects `legacy` (same as every
+other consumer: `catalog:backend` → `config:service-url(..., "legacy")`).
+Phase 4 expects the deployment initializer / compose env to set
+`CATALOG_BACKEND_BIBL=catalog` explicitly. That env is read by BetMas
+`db/apps/BetMasInitInstance/finish.xq` into `services.xml`; BetMasWeb's own
+`docker-compose.yml` has no betmas service env block. Until the BetMas
+compose / CI override sets the variable, instances keep lists-only bibl.
 
 The deployment initializer copies configured environment variables into
 `services.xml`, following the same mechanism as other service configuration.
-No backend is flipped by this phase.
+Do not flip `CATALOG_BACKEND_VIEW_ITEM` / `WEB_LIST` / institutions here.
 
 The CI no-writes gate rejects `update insert|value|delete|replace|rename` and
 `xmldb:store` outside an explicit allow-list (install, editors, expansion/

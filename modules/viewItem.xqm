@@ -32,6 +32,8 @@ declare variable $viewItem:coll := collection("/db/apps/expanded");
 
 declare variable $viewItem:catalog-backend := catalog:backend("view-item");
 
+declare variable $viewItem:bibl-backend := catalog:backend("bibl");
+
 declare variable $viewItem:prefixDef := doc("/db/apps/lists/listPrefixDef.xml");
 
 declare variable $viewItem:domlib := doc("/db/apps/lists/domlib.xml");
@@ -998,11 +1000,11 @@ declare %private function viewItem:bibl($node, $t) {
 		<div class="w3-col" style="width:85%">
 			<span data-type="{ $node/t:seg/@type }" data-value="{ $t }">
 				{
-					let $bib := catalog:bibl($t, $viewItem:catalog-backend)/b:reference/*:div/node()
+					let $bib := catalog:bibl($t, $viewItem:bibl-backend)/b:reference/*:div/node()
 					return if (count($bib) ge 1) then
 						$bib
 					else
-						viewItem:zot($t)
+						$t
 				}
 				{
 					let $crs :=
@@ -1052,7 +1054,7 @@ declare %private function viewItem:bibliographyitem($node) {
 		else if ($node/parent::t:witness) then
 			<span>
 				{
-					string-join(catalog:bibl($t, $viewItem:catalog-backend)/b:citation/node()) ||
+					string-join(catalog:bibl($t, $viewItem:bibl-backend)/b:citation/node()) ||
 						(
 							if (exists($crs)) then
 								"  " || string-join($crs, ", ")
@@ -1064,7 +1066,7 @@ declare %private function viewItem:bibliographyitem($node) {
 		else if ($node/parent::t:listBibl[not(ancestor::t:note)]) then
 			<li class="bibliographyItem">{ viewItem:bibl($node, $t) }<hr /></li>
 		else
-			string-join(catalog:bibl($t, $viewItem:catalog-backend)/b:citation/node()) ||
+			string-join(catalog:bibl($t, $viewItem:bibl-backend)/b:citation/node()) ||
 				(
 					if (exists($crs)) then
 						"  " || string-join($crs, ", ")
@@ -1100,7 +1102,7 @@ declare %private function viewItem:EthioSpareFormatter($node) {
             , catalogued by { $cataloguer }
 		</a>,
 		" in ",
-		catalog:bibl($t, $viewItem:catalog-backend)/b:reference/node()
+		catalog:bibl($t, $viewItem:bibl-backend)/b:reference/node()
 	)
 };
 
@@ -3387,7 +3389,7 @@ declare function viewItem:tipResp($resp as attribute()?, $label as xs:string) as
 				return if (starts-with($r, "PRS") or starts-with($r, "ETH")) then
 					string-join(exptit:printTitle($r), ", ")
 				else if (starts-with($r, "bm:")) then
-					string-join(catalog:bibl($r, $viewItem:catalog-backend)/b:citation, ", ")
+					string-join(catalog:bibl($r, $viewItem:bibl-backend)/b:citation, ", ")
 				else
 					viewItem:editorName($r),
 				", "
@@ -3797,7 +3799,7 @@ declare %private function viewItem:titletemplate($div, $text) {
 								let $bmbiblid := substring-after($r, "#")
 								let $bibl := $div/ancestor::t:TEI//t:bibl[@xml:id = $bmbiblid]
 								let $t := string($bibl/t:ptr/@target)
-								return catalog:bibl($t, $viewItem:catalog-backend)/b:reference/node()
+								return catalog:bibl($t, $viewItem:bibl-backend)/b:reference/node()
 							) else (
 							)
 						)
