@@ -1,0 +1,28 @@
+modules/viewItem.xqm
+  s_1253ffb84560e1::t_396630044c918a 994-1001
+modules/zoteroCache.xqm
+  s_1253ffb84560e1::t_d35e452f6dacb5 154-160
+modules/catalog.xqm
+  s_1253ffb84560e1::t_a29f07df8f4f2a 233-238,243-248
+  s_1253ffb84560e1::t_de656b0e3889d1 258-267
+  s_1253ffb84560e1::t_a6de8279833142 276-282
+  s_1253ffb84560e1::t_5e0ae9f13c4f67 296-302
+  s_1253ffb84560e1::t_545a5e205d1c9b 310-319
+  s_1253ffb84560e1::t_ce524350a673ab 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0d0a94a7df557f1b67193ecbfb4ae2ae7580cc0a",
+  "prompts": {},
+  "sessions": {
+    "s_1253ffb84560e1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ad97d5ac-6d02-4345-8d1e-03195239e289",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
