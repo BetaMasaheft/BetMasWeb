@@ -34,13 +34,50 @@ declare variable $legacy:persNamesList := doc("/db/apps/lists/persNamesLabels.xm
 declare variable $legacy:deleted := doc("/db/apps/lists/deleted.xml");
 
 (:~
+ : betmas:formerlyAlsoListedAs relations in expanded, grouped by @passive.
+ : Built once so a deleted id does not walk the corpus again. Same nodes as
+ : the old per-id scan.
+ :)
+declare variable $legacy:formerly-by-passive := map:merge(
+	for $rel in $legacy:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"]
+	let $passive := string($rel/@passive)
+	where $passive ne ""
+	group by $passive
+	return map:entry($passive, array { $rel })
+);
+
+(:~
+ : Formerly-also-listed-as relations whose @passive is $id.
+ :
+ : @param $id deleted id
+ : @return the relation elements, or empty
+ :)
+declare %private function legacy:formerly($id as xs:string) as element(t:relation)* {
+	let $found := $legacy:formerly-by-passive($id)
+	return if (empty($found)) then (
+	) else
+		$found?*
+};
+
+(:~
  : Self-loop-safe successor id, as titles:distinctSuccessor. Inlined to keep
  : this module free of the raw-data title module.
+ :
+ : @param $formerly formerlyAlsoListedAs relations for one passive id
+ : @param $id the deleted id that was requested
+ : @return the first @active that is not $id, or empty
  :)
 declare %private function legacy:successor($formerly as element()*, $id as xs:string) as xs:string? {
 	($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]
 };
 
+(:~
+ : Subtitle for a text-part id, using the legacy label function.
+ :
+ : @param $node the expanded record that contains the part
+ : @param $sub-id the part id, such as t2
+ : @return the subtitle text
+ :)
 declare function legacy:subtitle($node as node(), $sub-id as xs:string) as xs:string {
 	selectors:subtitle(
 		$node,
@@ -49,11 +86,18 @@ declare function legacy:subtitle($node as node(), $sub-id as xs:string) as xs:st
 	)
 };
 
+(:~
+ : Pre-Phase-2 label for one id. Branch order is frozen. Deleted ids consult
+ : legacy:formerly instead of scanning expanded per id. Output is unchanged.
+ :
+ : @param $id record id, including a deleted id
+ : @return the legacy label text or HTML marker
+ :)
 declare function legacy:label($id as xs:string) {
 	let $cacheHit := $legacy:titleCache//t:item[@corresp eq $id][1]
 	return if ($legacy:deleted//t:item[. = $id]) then
 		let $del := $legacy:deleted//t:item[. = $id]
-		let $formerly := $legacy:col//t:relation[@name eq "betmas:formerlyAlsoListedAs"][@passive eq $id]
+		let $formerly := legacy:formerly($id)
 		let $active := legacy:successor($formerly, $id)
 		return if ($active) then
 			legacy:label($active) ||

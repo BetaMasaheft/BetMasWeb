@@ -14,12 +14,26 @@ module namespace tscatalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace b = "betmas.biblio";
+declare namespace xmldb = "http://exist-db.org/xquery/xmldb";
+declare namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "../../modules/catalog.xqm";
 import module namespace places = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-places" at "../../modules/catalog-places.xqm";
 
 declare %private function tscatalog:text($label as item()*) as xs:string {
 	normalize-space(string-join($label!string(.), " "))
+};
+
+(: Same resolution as catalog:expanded-sha(), which is private. :)
+declare %private function tscatalog:live-expanded-sha() as xs:string? {
+	let $path := "/db/apps/catalogs/expanded-sha.txt"
+	let $sha := if (util:binary-doc-available($path)) then
+		util:binary-to-string(util:binary-doc($path))
+	else if (unparsed-text-available($path)) then
+		unparsed-text($path)
+	else (
+	)
+	return $sha!normalize-space(normalize-unicode(., "NFC"))
 };
 
 declare
@@ -220,10 +234,142 @@ function tscatalog:bibl-accepts-an-unprefixed-key($backend as xs:string) as xs:b
 	deep-equal(catalog:bibl("IHABook557", $backend), catalog:bibl("bm:IHABook557", $backend))
 };
 
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-prefers-ethiostudies(
+	$backend as xs:string
+) as xs:boolean {
+	(: Must match the EthioStudies-synthesized betmas.biblio entry, not the
+	   lists/bibliography.xml copy (which already has a xhtml csl-entry). :)
+	let $e := catalog:bibl("bm:IHABook557", $backend)
+	let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = "bm:IHABook557"])[1]
+	let $div := ($cit//*:div[@class = "csl-entry"])[1]
+	let $expected := <entry xmlns="betmas.biblio" id="bm:IHABook557">
+		<citation>{ normalize-space(string-join($div//text(), "")) }</citation>
+		<reference>{ $div }</reference>
+	</entry>
+	return deep-equal($e, $expected)
+};
+
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-uses-allowlisted-lists-fallback(
+	$backend as xs:string
+) as xs:boolean {
+	(: The baked allowlist can carry a stale expanded-sha, and catalog:artifact()
+	   then ignores the file. This case must still pass on that image, but it
+	   must not hide the gate: an empty @expanded-sha is defined as fresh, so
+	   deleting the pin would make a stale bake look fine. Pin the fixture to
+	   the live sha, require the lists row, then require a mismatched pin to
+	   hide the artifact. :)
+	let $id := "bm:XQSuiteListsFallback"
+	let $col := "/db/apps/catalogs"
+	let $ex-name := "bibl-exceptions.xml"
+	let $ex-path := $col || "/" || $ex-name
+	let $had-ex := doc-available($ex-path)
+	let $old-ex := if ($had-ex) then
+		parse-xml(fn:serialize(doc($ex-path), map {"method": "xml"}))
+	else (
+	)
+	let $manifest-path := $col || "/manifest.xml"
+	let $manifest := if (doc-available($manifest-path)) then
+		doc($manifest-path)/catalog-manifest
+	else (
+	)
+	let $art := ($manifest/artifact[@name = $ex-name])[1]
+	let $had-pin := exists($art/@expanded-sha)
+	let $old-pin := string($art/@expanded-sha)
+	let $made-art := empty($art) and exists($manifest)
+	let $have := tscatalog:live-expanded-sha()
+	let $stale := "stale-pin-not-the-baked-sha"
+	let $entry := <entry
+		xmlns="https://betamasaheft.eu/catalogs"
+		bm="{ $id }"
+		disposition="pending-export"
+		lists-fallback="true" />
+	let $fixture := if ($had-ex) then
+		element {node-name($old-ex/*)} { $old-ex/*/@*, $old-ex/*/node(), $entry }
+	else
+		<bibl-exceptions xmlns="https://betamasaheft.eu/catalogs" version="test">{ $entry }</bibl-exceptions>
+	let $bib := doc("/db/apps/lists/bibliography.xml")
+	let $row := <entry xmlns="betmas.biblio" id="{ $id }"><citation>xqsuite-fallback</citation></entry>
+	let $ok := try {
+		let $_ := if (xmldb:collection-available($col)) then (
+		) else
+			xmldb:create-collection("/db/apps", "catalogs")
+		let $_ := xmldb:store($col, $ex-name, $fixture)
+		let $_ := if ($made-art) then
+			update insert <artifact expanded-sha="{ $stale }" name="{ $ex-name }" /> into $manifest
+		else (
+		)
+		let $pin := (doc($manifest-path)//artifact[@name = $ex-name])[1]
+		let $_ := if (exists($have) and exists($pin)) then
+			if (exists($pin/@expanded-sha)) then
+				update value $pin/@expanded-sha with $have
+			else
+				update insert attribute expanded-sha { $have } into $pin
+		else (
+		)
+		let $_ := if ($bib//b:entry[@id = $id]) then (
+		) else
+			update insert $row into $bib/*
+		let $hit := exists(catalog:bibl($id, $backend)[self::b:entry][b:citation = "xqsuite-fallback"])
+		(: No expanded-sha.txt means every pin matches (dev fallback), so a
+		   mismatch cannot be observed. CI's data image has the file. :)
+		let $hidden := if (exists($have) and exists($pin)) then
+			let $_ := update value $pin/@expanded-sha with $stale
+			return empty(catalog:bibl($id, $backend)) and not(catalog:artifact-available($ex-name))
+		else
+			true()
+		return $hit and $hidden
+	} catch * { false() }
+	let $_ := if ($bib//b:entry[@id = $id]) then
+		update delete $bib//b:entry[@id = $id]
+	else (
+	)
+	let $_ := if ($had-ex) then
+		xmldb:store($col, $ex-name, $old-ex)
+	else if (doc-available($ex-path)) then
+		xmldb:remove($col, $ex-name)
+	else (
+	)
+	let $_ := if ($made-art) then
+		update delete (doc($manifest-path)//artifact[@name = $ex-name])[1]
+	else if ($had-pin) then
+		update value $art/@expanded-sha with $old-pin
+	else if (exists($art/@expanded-sha)) then
+		update delete $art/@expanded-sha
+	else (
+	)
+	return $ok
+};
+
+declare
+	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
+function tscatalog:bibl-accepts-an-underscore-key($backend as xs:string) as xs:boolean {
+	deep-equal(catalog:bibl("bm_IHABook557", $backend), catalog:bibl("bm:IHABook557", $backend))
+};
+
+declare %test:args("catalog") %test:assertTrue function tscatalog:bibl-catalog-miss-without-exception-is-empty(
+	$backend as xs:string
+) as xs:boolean {
+	empty(catalog:bibl("bm:definitely-not-a-real-tag-xyz", $backend))
+};
+
+declare %test:args("legacy") %test:assertTrue function tscatalog:bibl-legacy-still-lists(
+	$backend as xs:string
+) as xs:boolean {
+	exists(catalog:bibl("bm:IHABook557", $backend)[self::b:entry])
+};
+
 declare
 	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:retired-identifies-known-deletion($backend as xs:string) as xs:boolean {
-	catalog:retired("LOC1464Ankoba", $backend)
+	(: lists/deleted.xml and retired-ids.xml are not the same set. LOC1464Ankoba
+	   is a lists tombstone and is absent from the artifact, so the catalog
+	   backend only returned true while a stale pin hid the file and fell
+	   through to lists. A fresh artifact must be tested with an id it contains. :)
+	let $id := if ($backend = "catalog" and catalog:artifact-available("retired-ids.xml")) then
+		string((doc("/db/apps/catalogs/retired-ids.xml")//*:issued-id/@id)[1])
+	else
+		"LOC1464Ankoba"
+	return $id ne "" and catalog:retired($id, $backend)
 };
 
 declare

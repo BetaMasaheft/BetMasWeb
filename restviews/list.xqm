@@ -31,6 +31,8 @@ import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/
 
 declare variable $list:catalog-backend := catalog:backend("web-list");
 
+declare variable $list:bibl-backend := catalog:backend("bibl");
+
 declare variable $list:instit := <list xmlns="http://www.tei-c.org/ns/1.0">
 	{ catalog:institutions($list:catalog-backend) }
 </list>;
@@ -1512,7 +1514,7 @@ declare function list:getcatalogues($request as map(*)) {
 										let $zoTag := substring-after($catalogue, "bm:")
 										let $count := count($cats//t:ptr[@target eq $catalogue])
 										let $val := string($catalogue)
-										let $entry := catalog:bibl($val, $list:catalog-backend)
+										let $entry := catalog:bibl($val, $list:bibl-backend)
 
 										let $data := if (count($entry) ge 1) then
 											let $c := $entry

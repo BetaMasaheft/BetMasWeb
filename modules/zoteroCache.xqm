@@ -13,6 +13,9 @@ module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc";
 declare namespace http = "http://expath.org/ns/http-client";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace templates = "http://exist-db.org/xquery/templates";
+declare namespace b = "betmas.biblio";
+
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 
 declare variable $zc:root := "/db/apps/EthioStudies/";
 
@@ -148,22 +151,21 @@ declare %templates:wrap %templates:default("tag", "") function zc:html(
 };
 
 (:~
- : Prefer EthioStudies, then lists/bibliography.xml, then live Zotero.
- : Used by lists:biblRes (one page of hits only).
+ : Bibliography page HTML for one tag, via catalog:bibl and CATALOG_BACKEND_BIBL.
+ : No live Zotero. The EthioStudies div is in the bibliography namespace, so
+ : its class is copied onto an HTML div; otherwise Cypress and CSS do not see
+ : .csl-entry.
+ :
+ : @param $tag bibliography key, normalized the same way as other zc lookups
+ : @return an HTML div.csl-entry, or empty
  :)
 declare function zc:bibl-page-entry($tag as xs:string) as node()* {
 	let $t := zc:normalize-tag($tag)
-	let $from-cache := zc:bib("citations.xml", $t)
-	return if (exists($from-cache)) then
-		$from-cache
-	else
-		let $from-lists := try {
-			doc("/db/apps/lists/bibliography.xml")//*:entry[@xml:id = $t]/*:reference/node()
-		} catch * { () }
-		return if (exists($from-lists)) then
-			$from-lists
-		else
-			zc:live-bib($t, $zc:style-main)
+	let $entry := catalog:bibl($t)
+	let $div := ($entry/b:reference/*:div)[1]
+	return if (empty($div)) then (
+	) else
+		element div { $div/@*[local-name() = ("class", "style", "id", "lang", "dir")], $div/node() }
 };
 
 declare %private function zc:version-item($item as map(*), $resolved as map(*)) as map(*) {

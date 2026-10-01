@@ -8,6 +8,8 @@ xquery version "3.1" encoding "UTF-8";
  : `legacy` is the frozen pre-Phase-2 implementation in catalog-legacy.xqm.
  : `catalog` is this module's own resolution: a Phase 3 artifact when one is
  : present, otherwise a query over expanded TEI through the shared selectors.
+ : Bibliography is the exception: EthioStudies first, then an allowlisted
+ : lists fallback, else empty.
  : The two are separate code paths on purpose — the parity oracle compares
  : them, which only means anything if they can disagree.
  :)
@@ -39,6 +41,18 @@ declare variable $catalog:deleted := doc("/db/apps/lists/deleted.xml");
 declare variable $catalog:bibliography := doc("/db/apps/lists/bibliography.xml");
 
 declare variable $catalog:artifacts := "/db/apps/catalogs";
+
+(:~
+ : betmas:formerlyAlsoListedAs relations in expanded, grouped by @passive.
+ : One scan. A deleted id then looks up its group instead of walking the corpus.
+ :)
+declare variable $catalog:formerly-by-passive := map:merge(
+	for $rel in $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+	let $passive := string($rel/@passive)
+	where $passive ne ""
+	group by $passive
+	return map:entry($passive, array { $rel })
+);
 
 declare function catalog:backend($consumer as xs:string) as xs:string {
 	let $name := "CATALOG_BACKEND_" || upper-case(replace($consumer, "[^A-Za-z0-9]", "_"))
@@ -114,8 +128,29 @@ declare %private function catalog:subtitle($node as node(), $sub-id as xs:string
 	)
 };
 
+(:~
+ : Formerly-also-listed-as relations whose @passive is $id.
+ :
+ : @param $id deleted id
+ : @return the relation elements, or empty
+ :)
+declare %private function catalog:formerly($id as xs:string) as element(t:relation)* {
+	let $found := $catalog:formerly-by-passive($id)
+	return if (empty($found)) then (
+	) else
+		$found?*
+};
+
+(:~
+ : Label for a deleted id: the successor's label when one exists, otherwise
+ : a deletion notice. Relations come from catalog:formerly.
+ :
+ : @param $id deleted id
+ : @param $deleted the deleted.xml item for $id
+ : @return the label text
+ :)
 declare %private function catalog:deleted-label($id as xs:string, $deleted as element(t:item)) {
-	let $formerly := $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"][@passive = $id]
+	let $formerly := catalog:formerly($id)
 	let $active := ($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]
 	return if ($active) then
 		catalog:resolve-label($active) ||
@@ -228,27 +263,107 @@ declare function catalog:textparts($id as xs:string, $backend as xs:string) as e
 	return $source//t:item[starts-with(@corresp, $id)]
 };
 
+(:~
+ : Bibliography entry for the configured CATALOG_BACKEND_BIBL.
+ :
+ : @param $bm key with or without a bm: or bm_ prefix
+ : @return the entry for that backend, or empty
+ :)
 declare function catalog:bibl($bm as xs:string) as element(b:entry)? {
 	catalog:bibl($bm, catalog:backend("bibl"))
 };
 
-declare function catalog:bibl($bm as xs:string, $backend as xs:string) as element(b:entry)? {
-	let $id := if (starts-with($bm, "bm:")) then
+(:~
+ : Normalize a bibliography key to the bm: form.
+ :
+ : @param $bm key with a bm: prefix, a bm_ prefix, or neither
+ : @return the key starting with bm:
+ :)
+declare %private function catalog:bibl-normalize($bm as xs:string) as xs:string {
+	if (starts-with($bm, "bm_")) then
+		"bm:" || substring-after($bm, "bm_")
+	else if (starts-with($bm, "bm:")) then
 		$bm
 	else
 		"bm:" || $bm
-	let $source := if ($backend = "catalog") then
-		(catalog:artifact("bibliography.xml"), $catalog:bibliography)[1]
-	else
-		$catalog:bibliography
-	(: Two single-value equality checks — NOT `@id = ($id, $alt)`. A general
-	   comparison against a sequence forces a full scan of bibliography.xml
-	   (~14s per lookup here); one value uses the range index (~10ms). :)
-	let $exact := ($source//b:entry[@id = $id])[1]
+};
+
+(:~
+ : Lists copy of a bibliography entry.
+ :
+ : Two single-value @id lookups, not @id = ($id, $alt). A general comparison
+ : against a sequence full-scans bibliography.xml (~14s); one value uses the
+ : range index (~10ms).
+ :
+ : @param $id key already in bm: form
+ : @return the lists entry, or empty
+ :)
+declare %private function catalog:bibl-from-lists($id as xs:string) as element(b:entry)? {
+	let $exact := ($catalog:bibliography//b:entry[@id = $id])[1]
 	return if ($exact) then
 		$exact
 	else
-		($source//b:entry[@id = replace($id, ":", "_")])[1]
+		($catalog:bibliography//b:entry[@id = replace($id, ":", "_")])[1]
+};
+
+(:~
+ : EthioStudies citation synthesized as a betmas.biblio entry.
+ : b:citation is the full csl-entry text.
+ :
+ : @param $id key already in bm: form
+ : @return the synthesized entry, or empty when citations.xml has no csl-entry
+ :)
+declare %private function catalog:bibl-from-ethio($id as xs:string) as element(b:entry)? {
+	try {
+		let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $id])[1]
+		let $div := ($cit//*:div[@class = "csl-entry"])[1]
+		return if (empty($div)) then (
+		) else
+			<entry xmlns="betmas.biblio" id="{ $id }">
+				<citation>{ normalize-space(string-join($div//text(), "")) }</citation>
+				<reference>{ $div }</reference>
+			</entry>
+	} catch * { () }
+};
+
+(:~
+ : Allowlist row for a bibliography key. Ignored when the bibl-exceptions
+ : artifact pin does not match expanded-sha.txt.
+ :
+ : @param $id key already in bm: form
+ : @return the exception entry, or empty
+ :)
+declare %private function catalog:bibl-exception($id as xs:string) as element()? {
+	let $doc := catalog:artifact("bibl-exceptions.xml")
+	return if (empty($doc)) then (
+	) else
+		($doc//*:entry[@bm = $id])[1]
+};
+
+(:~
+ : Bibliography entry for an explicit backend.
+ : catalog: EthioStudies, then a lists fallback only when the allowlist says
+ : lists-fallback="true", otherwise empty.
+ : any other value: lists only.
+ :
+ : @param $bm key with or without a bm: or bm_ prefix
+ : @param $backend "catalog" or "legacy"
+ : @return the entry, or empty
+ :)
+declare function catalog:bibl($bm as xs:string, $backend as xs:string) as element(b:entry)? {
+	let $id := catalog:bibl-normalize($bm)
+	return if ($backend != "catalog") then
+		catalog:bibl-from-lists($id)
+	else
+		let $ethio := catalog:bibl-from-ethio($id)
+		return if (exists($ethio)) then
+			$ethio
+		else
+			let $ex := catalog:bibl-exception($id)
+			return if (exists($ex) and $ex/@lists-fallback = "true") then
+				catalog:bibl-from-lists($id)
+			else (
+			)
 };
 
 declare function catalog:retired($id as xs:string) as xs:boolean {
