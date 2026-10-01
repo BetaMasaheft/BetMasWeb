@@ -5,6 +5,7 @@ module namespace q = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/queries"
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace xconf = "http://exist-db.org/collection-config/1.0";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
+declare namespace range = "http://exist-db.org/xquery/range";
 
 import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
 import module namespace cache = "http://exist-db.org/xquery/cache";
