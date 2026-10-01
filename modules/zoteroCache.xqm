@@ -158,7 +158,13 @@ declare function zc:bibl-page-entry($tag as xs:string) as node()* {
 	let $t := zc:normalize-tag($tag)
 	(: uses CATALOG_BACKEND_BIBL :)
 	let $entry := catalog:bibl($t)
-	return $entry/b:reference/*:div/node()
+	let $div := ($entry/b:reference/*:div)[1]
+	(: The EthioStudies div is in the bibliography namespace. A namespaced
+	   element is visible as text but Cypress and CSS class selectors do not
+	   treat it as an HTML .csl-entry. Copy the class onto an HTML div. :)
+	return if (empty($div)) then (
+	) else
+		element div { $div/@*[local-name() = ("class", "style", "id", "lang", "dir")], $div/node() }
 };
 
 declare %private function zc:version-item($item as map(*), $resolved as map(*)) as map(*) {
