@@ -991,6 +991,14 @@ declare %private function viewItem:bibliographyHeader($listBibl) {
 	)
 };
 
+(:~
+ : One bibliography row in an item view. A miss prints the bare tag.
+ : CATALOG_BACKEND_BIBL chooses the entry; this is not the view-item backend.
+ :
+ : @param $node the TEI bibl (or ptr wrapper) being rendered
+ : @param $t bibliography key
+ : @return an HTML row
+ :)
 declare %private function viewItem:bibl($node, $t) {
 	<div class="w3-row">
 		<div class="w3-col" style="width:85%">

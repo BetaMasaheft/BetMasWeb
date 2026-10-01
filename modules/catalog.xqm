@@ -8,6 +8,8 @@ xquery version "3.1" encoding "UTF-8";
  : `legacy` is the frozen pre-Phase-2 implementation in catalog-legacy.xqm.
  : `catalog` is this module's own resolution: a Phase 3 artifact when one is
  : present, otherwise a query over expanded TEI through the shared selectors.
+ : Bibliography is the exception: EthioStudies first, then an allowlisted
+ : lists fallback, else empty.
  : The two are separate code paths on purpose — the parity oracle compares
  : them, which only means anything if they can disagree.
  :)
@@ -228,10 +230,22 @@ declare function catalog:textparts($id as xs:string, $backend as xs:string) as e
 	return $source//t:item[starts-with(@corresp, $id)]
 };
 
+(:~
+ : Bibliography entry for the configured CATALOG_BACKEND_BIBL.
+ :
+ : @param $bm key with or without a bm: or bm_ prefix
+ : @return the entry for that backend, or empty
+ :)
 declare function catalog:bibl($bm as xs:string) as element(b:entry)? {
 	catalog:bibl($bm, catalog:backend("bibl"))
 };
 
+(:~
+ : Normalize a bibliography key to the bm: form.
+ :
+ : @param $bm key with a bm: prefix, a bm_ prefix, or neither
+ : @return the key starting with bm:
+ :)
 declare %private function catalog:bibl-normalize($bm as xs:string) as xs:string {
 	if (starts-with($bm, "bm_")) then
 		"bm:" || substring-after($bm, "bm_")
@@ -241,10 +255,17 @@ declare %private function catalog:bibl-normalize($bm as xs:string) as xs:string 
 		"bm:" || $bm
 };
 
+(:~
+ : Lists copy of a bibliography entry.
+ :
+ : Two single-value @id lookups, not @id = ($id, $alt). A general comparison
+ : against a sequence full-scans bibliography.xml (~14s); one value uses the
+ : range index (~10ms).
+ :
+ : @param $id key already in bm: form
+ : @return the lists entry, or empty
+ :)
 declare %private function catalog:bibl-from-lists($id as xs:string) as element(b:entry)? {
-	(: Two single-value equality checks — NOT `@id = ($id, $alt)`. A general
-	   comparison against a sequence forces a full scan of bibliography.xml
-	   (~14s per lookup here); one value uses the range index (~10ms). :)
 	let $exact := ($catalog:bibliography//b:entry[@id = $id])[1]
 	return if ($exact) then
 		$exact
@@ -252,6 +273,13 @@ declare %private function catalog:bibl-from-lists($id as xs:string) as element(b
 		($catalog:bibliography//b:entry[@id = replace($id, ":", "_")])[1]
 };
 
+(:~
+ : EthioStudies citation synthesized as a betmas.biblio entry.
+ : b:citation is the full csl-entry text.
+ :
+ : @param $id key already in bm: form
+ : @return the synthesized entry, or empty when citations.xml has no csl-entry
+ :)
 declare %private function catalog:bibl-from-ethio($id as xs:string) as element(b:entry)? {
 	try {
 		let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $id])[1]
@@ -265,6 +293,13 @@ declare %private function catalog:bibl-from-ethio($id as xs:string) as element(b
 	} catch * { () }
 };
 
+(:~
+ : Allowlist row for a bibliography key. Ignored when the bibl-exceptions
+ : artifact pin does not match expanded-sha.txt.
+ :
+ : @param $id key already in bm: form
+ : @return the exception entry, or empty
+ :)
 declare %private function catalog:bibl-exception($id as xs:string) as element()? {
 	let $doc := catalog:artifact("bibl-exceptions.xml")
 	return if (empty($doc)) then (
@@ -272,6 +307,16 @@ declare %private function catalog:bibl-exception($id as xs:string) as element()?
 		($doc//*:entry[@bm = $id])[1]
 };
 
+(:~
+ : Bibliography entry for an explicit backend.
+ : catalog: EthioStudies, then a lists fallback only when the allowlist says
+ : lists-fallback="true", otherwise empty.
+ : any other value: lists only.
+ :
+ : @param $bm key with or without a bm: or bm_ prefix
+ : @param $backend "catalog" or "legacy"
+ : @return the entry, or empty
+ :)
 declare function catalog:bibl($bm as xs:string, $backend as xs:string) as element(b:entry)? {
 	let $id := catalog:bibl-normalize($bm)
 	return if ($backend != "catalog") then
