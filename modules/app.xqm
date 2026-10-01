@@ -519,10 +519,7 @@ declare function app:team($node as node(), $model as map(*)) {
 			for $who in $exptit:col//t:change/@who
 			group by $key := string($who)
 			order by $key
-			let $k := if (contains($key, "#")) then
-				substring-after($key, "#")
-			else
-				$key
+			let $xpath := "$config:collection-root//t:change[matches(@who, '" || $key || "')]"
 			return <li id="{ $key }">
 				{
 					editors:editorKey(replace($key, "#", "")) ||
@@ -535,9 +532,7 @@ declare function app:team($node as node(), $model as map(*)) {
 						count(distinct-values($who!document-uri(root(.)))) ||
 						" documents. "
 				}
-				<a
-					href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5Bmatches%28%40who%2C+%27{ $k }%27%29%5D"
-				>See the changes.</a>
+				<a href="{ $config:appUrl }/xpath?xpath={ encode-for-uri($xpath) }">See the changes.</a>
 			</li>
 		}
 	</ul>
