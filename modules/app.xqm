@@ -8,6 +8,8 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app";
 
+declare default element namespace "http://www.w3.org/1999/xhtml";
+
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace functx = "http://www.functx.com";
@@ -514,35 +516,29 @@ declare function app:logout() {
 declare function app:team($node as node(), $model as map(*)) {
 	<ul class="w3-ul w3-hoverable w3-padding">
 		{
-			$exptit:col/$app:range-lookup(
-				"changewho",
-				(),
-				function ($key, $count) {
-					let $k := distinct-values(
-						if (contains($key, "#")) then
-							substring-after($key, "#")
-						else
-							$key
-					)
-					return <li id="{ $key }">
-						{
-							editors:editorKey(replace($key, "#", "")) ||
-								" (" ||
-								$key ||
-								")" ||
-								" made " ||
-								$count[1] ||
-								" changes in " ||
-								$count[2] ||
-								" documents. "
-						}
-						<a
-							href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5Bmatches%28%40who%2C+%27{ $k }%27%29%5D"
-						>See the changes.</a>
-					</li>
-				},
-				1000
-			)
+			for $who in $exptit:col//t:change/@who
+			group by $key := string($who)
+			order by $key
+			let $k := if (contains($key, "#")) then
+				substring-after($key, "#")
+			else
+				$key
+			return <li id="{ $key }">
+				{
+					editors:editorKey(replace($key, "#", "")) ||
+						" (" ||
+						$key ||
+						")" ||
+						" made " ||
+						count($who) ||
+						" changes in " ||
+						count(distinct-values($who!document-uri(root(.)))) ||
+						" documents. "
+				}
+				<a
+					href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5Bmatches%28%40who%2C+%27{ $k }%27%29%5D"
+				>See the changes.</a>
+			</li>
 		}
 	</ul>
 };
