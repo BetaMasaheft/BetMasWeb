@@ -107,10 +107,10 @@ declare function scriptlinks:scriptStyle() {
 		(: listResponse: normalises list-valued API fields - see listItems(). :)
 		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
-		<link href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css" rel="stylesheet" type="text/css" />,
-		<link href="resources/js/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
+		<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" type="text/css" />,
+		<link href="resources/css/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
 		(: introjs :)
-		<link href="resources/js/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
+		<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
 		<link
@@ -133,17 +133,17 @@ declare function scriptlinks:listScriptStyle() {
 		<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="{ $config:appUrl }/resources/js/external/fontawesome/all.min.css"
+			href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/js/external/virtual-keyboard/keyboard-basic.min.css"
+			href="resources/css/external/virtual-keyboard/keyboard-basic.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/js/external/intro.js/introjs.min.css"
+			href="resources/css/external/intro.js/introjs.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
@@ -153,7 +153,7 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/js/external/jquery-ui/jquery-ui.min.css"
+			href="resources/css/external/jquery-ui/jquery-ui.min.css"
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"

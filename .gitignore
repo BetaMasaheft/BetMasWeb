@@ -18,3 +18,5 @@ scripts/agent-stack.sh
 # resources/js/vendor is different: libraries with no usable npm package, committed
 # directly since nothing regenerates them.
 resources/js/external
+resources/css/external
+resources/fonts/external

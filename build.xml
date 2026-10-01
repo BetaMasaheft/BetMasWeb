@@ -5,8 +5,9 @@
     <property name="build.dir" value="build"/>
     <!-- Frontend vendor libraries (jQuery, Leaflet, Mirador's neighbors, etc.) are npm
          dependencies, not committed binaries. This installs them and copies the exact
-         files the app loads into resources/js/external, which IS committed/shipped -
-         see package.json's "dependencies" and scripts/copy-vendor-libs.js. -->
+         files the app loads into resources/{js,css,fonts}/external, which ARE
+         committed/shipped - see package.json's "dependencies" and
+         scripts/copy-vendor-libs.js. -->
     <target name="vendor">
         <exec executable="npm" failonerror="true">
             <arg value="install"/>

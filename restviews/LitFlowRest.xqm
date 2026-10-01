@@ -53,8 +53,8 @@ declare function LitFlowRest:compareSelected($request as map(*)) {
 					xmlns="http://www.w3.org/1999/xhtml"
 					content="Akademie der Wissenschaften in Hamburg, Hiob-Ludolf-Zentrum für Äthiopistik"
 					property="dcterms:publisher schema:publisher" />
-				<link href="resources/js/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
-				<link href="resources/js/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
+				<link href="resources/css/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
+				<link href="resources/css/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
 				{ scriptlinks:scriptStyle() }
 				<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />
 			</head>
