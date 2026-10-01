@@ -3,6 +3,8 @@
 # Basic start-up and connection smoke tests
 # Adapted from https://github.com/eeditiones/jinks/blob/main/test/01-smoke.bats
 
+REST="http://127.0.0.1:8080/exist/rest/db"
+
 @test "container jvm responds from client" {
   run docker exec exist java -version
   [ "$status" -eq 0 ]
@@ -23,15 +25,15 @@
   [ "$result" == 'Server has started' ]
 }
 
-# Make sure the package has been deployed. This Dockerfile installs at
-# build time (exec-form client boot), so the runtime boot correctly logs
-# "already installed" rather than "Deploying package" - at least one of
-# either line is valid evidence of deployment, not exactly one:
-# AutoDeploymentTrigger's scan has been observed logging the same
-# package's "already installed" line twice in a single boot.
-@test "logs show package deployment" {
-  result=$(docker logs exist | grep -cF -e "Deploying package https://betamasaheft.eu/betmasweb/" -e "Application package https://betamasaheft.eu/betmasweb/ already installed")
-  [ "$result" -ge 1 ]
+# Overlay runs at image build via docker/overlay-web.xq. Query the running
+# server over REST (docker exec client would fight the live broker lock).
+@test "BetMasWeb overlay deployed this build" {
+  result=$(curl -fsSu admin: "${REST}/apps/BetMasWeb/expath-pkg.xml" | grep -o 'version="[^"]*"' | head -1 | cut -d'"' -f2)
+  [ "$result" = "0.2.0" ]
+}
+
+@test "BetMasWeb overlay content canary present" {
+  curl -fsSu admin: "${REST}/apps/BetMasWeb/modules/queries.xqm" | grep -q 'q:ms-parts-count-filter'
 }
 
 @test "logs are error free" {
