@@ -1,0 +1,33 @@
+modules/catalog-legacy.xqm
+  s_1253ffb84560e1::t_67378b6cb0a1ca 74-80
+  s_1253ffb84560e1::t_e27953a01c3310 89-95
+  s_1253ffb84560e1::t_41334420d4284a 65-68
+  s_1253ffb84560e1::t_d70f1fe87aa81f 49-54
+  s_1253ffb84560e1::t_067939be3fe994 36-40
+test/xqs/catalog-parity-oracle.xq
+  s_1253ffb84560e1::t_70f10ebdab6806 3-9
+  s_1253ffb84560e1::t_0f4c57acd2df85 87-92
+  s_1253ffb84560e1::t_42497c86d358e1 59-67
+  s_1253ffb84560e1::t_7b9f95a60eb957 35-38
+  s_1253ffb84560e1::t_ec491533de1806 21-23,26-28
+modules/catalog.xqm
+  s_1253ffb84560e1::t_dd281ffabc4934 43-46
+  s_1253ffb84560e1::t_69e0f7e4ddd63b 129-134
+  s_1253ffb84560e1::t_8167c3a87f5176 142-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4150a2c0e0935d25b89f3a1f79f4aa650e8d4b03",
+  "prompts": {},
+  "sessions": {
+    "s_1253ffb84560e1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ad97d5ac-6d02-4345-8d1e-03195239e289",
+        "model": "grok-4.7"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
