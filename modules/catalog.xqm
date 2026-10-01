@@ -42,7 +42,10 @@ declare variable $catalog:bibliography := doc("/db/apps/lists/bibliography.xml")
 
 declare variable $catalog:artifacts := "/db/apps/catalogs";
 
-(: One scan of expanded. Keyed by @passive so a deleted id does not walk the corpus again. :)
+(:~
+ : betmas:formerlyAlsoListedAs relations in expanded, grouped by @passive.
+ : One scan. A deleted id then looks up its group instead of walking the corpus.
+ :)
 declare variable $catalog:formerly-by-passive := map:merge(
 	for $rel in $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"]
 	let $passive := string($rel/@passive)
@@ -125,6 +128,12 @@ declare %private function catalog:subtitle($node as node(), $sub-id as xs:string
 	)
 };
 
+(:~
+ : Formerly-also-listed-as relations whose @passive is $id.
+ :
+ : @param $id deleted id
+ : @return the relation elements, or empty
+ :)
 declare %private function catalog:formerly($id as xs:string) as element(t:relation)* {
 	let $found := $catalog:formerly-by-passive($id)
 	return if (empty($found)) then (
@@ -132,6 +141,14 @@ declare %private function catalog:formerly($id as xs:string) as element(t:relati
 		$found?*
 };
 
+(:~
+ : Label for a deleted id: the successor's label when one exists, otherwise
+ : a deletion notice. Relations come from catalog:formerly.
+ :
+ : @param $id deleted id
+ : @param $deleted the deleted.xml item for $id
+ : @return the label text
+ :)
 declare %private function catalog:deleted-label($id as xs:string, $deleted as element(t:item)) {
 	let $formerly := catalog:formerly($id)
 	let $active := ($formerly[normalize-space(@active) ne normalize-space($id)]/normalize-space(@active))[1]

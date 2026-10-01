@@ -1,5 +1,12 @@
 xquery version "3.1";
 
+(:~
+ : Parity oracle. Compares resolved labels and bibliography entries for
+ : backend-a and backend-b over expanded ids and bm: pointers.
+ : A mismatch is unreviewed unless catalog-reviewed-mismatches.xml triages it
+ : better, worse, or neutral. Does not disable the optimizer.
+ :)
+
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace exist = "http://exist.sourceforge.net/NS/exist";
 declare namespace request = "http://exist-db.org/xquery/request";
@@ -11,15 +18,24 @@ import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMa
 declare option output:method "json";
 declare option output:media-type "application/json";
 
+(:~
+ : First backend. Request parameter "backend-a" overrides this. Default legacy.
+ :)
 declare variable $backend-a external := "legacy";
 
+(:~
+ : Second backend. Request parameter "backend-b" overrides this. Default catalog.
+ :)
 declare variable $backend-b external := "catalog";
 
 declare variable $effective-backend-a := try { request:get-parameter("backend-a", $backend-a) } catch * { $backend-a };
 
 declare variable $effective-backend-b := try { request:get-parameter("backend-b", $backend-b) } catch * { $backend-b };
 
-(: Optional cap for local/CI smoke. Empty or non-positive = full id space. :)
+(:~
+ : Optional cap for a local or CI smoke run. Empty or non-positive means the
+ : full id space. Request parameter "limit" overrides this external variable.
+ :)
 declare variable $limit external := ();
 
 declare variable $effective-limit := try {
@@ -40,11 +56,15 @@ else (
 );
 
 (:~
- : Resolves one case through one backend. `legacy` reaches the frozen
- : pre-Phase-2 chain in catalog-legacy.xqm, `catalog` this phase's own
- : resolution — two distinct implementations, which is the only reason
- : comparing them is informative. A backend that raises is reported as an
- : ERROR value so one bad identifier cannot silence the whole run.
+ : Resolves one case through one backend. legacy reaches the frozen
+ : pre-Phase-2 chain in catalog-legacy.xqm. catalog uses this phase's own
+ : resolution. A backend that raises is reported as an ERROR value so one
+ : bad identifier cannot silence the whole run.
+ :
+ : @param $backend "legacy" or "catalog"
+ : @param $kind "title" or "bibliography"
+ : @param $key the id or bm: pointer
+ : @return the normalized resolved value, or an ERROR string
  :)
 declare function local:resolve($backend as xs:string, $kind as xs:string, $key as xs:string) as xs:string {
 	if (not($backend = ("legacy", "catalog"))) then
@@ -64,6 +84,12 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
 		} catch * { "ERROR " || $err:code || ": " || $err:description }
 };
 
+(:~
+ : Whether a reviewed-mismatch row has a triage the oracle accepts.
+ :
+ : @param $review one mismatch element from the reviewed file, or empty
+ : @return true when @triage is better, worse, or neutral
+ :)
 declare function local:valid-review($review as element(mismatch)?) as xs:boolean {
 	exists($review[@triage = ("better", "worse", "neutral")])
 };
