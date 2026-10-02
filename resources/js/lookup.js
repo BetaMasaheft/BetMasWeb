@@ -15,6 +15,15 @@ $("[id^='AttestedInType']").on("change", function () {
 	$("[id^='AttestedInType']").not(this).prop("checked", false);
 });
 
+/*
+ * The suggestion lists must be driven by the items that were actually sent,
+ * never by ?total. Since both endpoints got a response cap, ?total is the
+ * number of matches in the whole corpus and can be far larger than the
+ * array - looping to ?total ran off the end of it and threw.
+ *
+ * A single match also arrives as a bare object rather than a one-element
+ * array; listItems() (resources/js/listResponse.js) reconciles both cases.
+ */
 $(document).on("ready", function () {
 	$("#GoTo").on("change paste", function () {
 		/*$( document ).ajaxStop(function() {
@@ -62,7 +71,7 @@ $(document).on("ready", function () {
 			// this will look ONLY in one element for each type of record
 			var apiurl = "";
 			if (type == 2) {
-				apiurl = appBase + "/api/search?element=" + element + "&collection=" + collection + " &q=";
+				apiurl = appBase + "/api/search?element=" + element + "&collection=" + collection + "&q=";
 			} else {
 				apiurl = appBase + "/api/idlookup?id=";
 			}
@@ -72,15 +81,27 @@ $(document).on("ready", function () {
 				console.log(data);
 
 				var options = "";
-				for (var i = 0; i < data.total; i++) {
+				var items = listItems(data.items);
+				for (var i = 0; i < items.length; i++) {
 					var tit = "";
 					if (type == 2) {
-						tit = data.items[i].title;
+						tit = items[i].title;
 					} else {
-						tit = data.items[i].id;
+						tit = items[i].id;
 					}
-					var option = '<option value="' + data.items[i].id + '">' + tit + "</option>";
+					var option = '<option value="' + items[i].id + '">' + tit + "</option>";
 					options += option;
+				}
+
+				if (data.truncated) {
+					options =
+						'<option value="" disabled>' +
+						"showing first " +
+						items.length +
+						" of " +
+						data.total +
+						" matches - keep typing to narrow it down</option>" +
+						options;
 				}
 
 				$("#gotohits").html(options);
@@ -105,10 +126,22 @@ $(document).on("ready", function () {
 
 			$.getJSON(searchurl, function (data) {
 				var options = "";
-				for (var i = 0; i < data.total; i++) {
-					var option = '<option value="' + data.items[i].id + '">' + data.items[i].id + "</option>";
+				var items = listItems(data.items);
+				for (var i = 0; i < items.length; i++) {
+					var option = '<option value="' + items[i].id + '">' + items[i].id + "</option>";
 					options += option;
 					console.log(option);
+				}
+
+				if (data.truncated) {
+					options =
+						'<option value="" disabled>' +
+						"showing first " +
+						items.length +
+						" of " +
+						data.total +
+						" matches - keep typing to narrow it down</option>" +
+						options;
 				}
 
 				$("#gotoID").html(options);

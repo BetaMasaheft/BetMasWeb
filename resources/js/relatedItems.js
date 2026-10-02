@@ -8,30 +8,17 @@ $("#seealsoSelector").change(function (showthefilters) {
 	$.getJSON(call, function (data) {
 		//console.log(data)
 		var items = [];
-		if (data.total == 1) {
-			var match = data.hits;
-			var id = match.id;
-			//  console.log(id)
-			var title = match.title;
-			var card =
-				"<div class='w3-card-4  w3-margin-bottom w3-gray'><div id='" +
-				id +
-				"' class='w3-container'><div><a href='/" +
-				id +
-				"'>" +
-				title +
-				"</a></div></div></div>";
-			items.push(card);
-		} else if (data.total == 0) {
+		// Normalise the hits: a single result used to arrive as a bare object
+		// rather than a one-element array, which needed a branch of its own.
+		var hits = listItems(data.hits);
+		if (hits.length === 0) {
 			var card =
 				"<div class='w3-card-4  w3-margin-bottom w3-gray'><div class='w3-container'><div>no results</div><div class='w3-content'>Sorry, this query returned no result</div></div></div>";
 			items.push(card);
 		} else {
-			for (var i = 0; i < data.total; i++) {
-				//console.log(data.hits[i])
-				var match = data.hits[i];
+			for (var i = 0; i < hits.length; i++) {
+				var match = hits[i];
 				var id = match.id;
-				// console.log(id)
 				var title = match.title;
 				var card =
 					"<div class='w3-card-4  w3-margin-bottom w3-gray'><div id='" +

@@ -27,12 +27,14 @@ $(".role").on("click", function () {
 
 	var hasRole = appBase + "/api/hasrole/" + role;
 	$.getJSON(hasRole, function (data) {
-		var results = data.hits;
+		// A role held by a single person serialises `hits` as a bare object, and
+		// `total` counts every hit, so normalise before taking the length.
+		var results = listItems(data.hits);
 		var length = results.length;
 		console.log(length);
 		$("#" + role + "listcount").text("There are other " + data.total + " " + role + "s");
 		var list = $("#" + role + "listitems");
-		for (i = 0; i < length; i++) {
+		for (var i = 0; i < length; i++) {
 			$(list).append(
 				'<li><a target="_blank" href="/' +
 					results[i].pwl +

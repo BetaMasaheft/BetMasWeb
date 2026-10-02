@@ -4,9 +4,12 @@ $(".parallelversion").on("click", function () {
 	// Web-only path (not Api /api/SPARQL/versions) so editionHtml enrichment always runs
 	var getVersions = appBase + "/api/versions/" + workid + "/" + unit;
 	$.getJSON(getVersions, function (d) {
-		if (d.total >= 1) {
-			for (var i = 0; i < d.total; i++) {
-				var vers = d.versions[i].version;
+		// Iterate the versions that arrived rather than d.total, which counts
+		// every match; a single version may also arrive as a bare object.
+		var versions = listItems(d.versions);
+		if (versions.length >= 1) {
+			for (var i = 0; i < versions.length; i++) {
+				var vers = versions[i].version;
 				var textwithlinks = addDillmannlinks(vers.text);
 				var $block = versionBlock(vers.source.id, vers.source.title);
 				if (vers.source.uniqueWitness) {

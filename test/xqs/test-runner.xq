@@ -63,6 +63,7 @@ import module namespace tscharts = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tstaglia = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-tagliasupport" at "ts-charts-tagliasupport.xqm";
 import module namespace tsjsescape = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-charts-jsstringescape" at "ts-charts-jsstringescape.xqm";
 import module namespace tsexpandedscan = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expanded-repository-scan-cache" at "ts-expanded-repository-scan-cache.xqm";
+import module namespace tsidlookup = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-idlookup" at "ts-idlookup.xqm";
 import module namespace tswikicache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-wikitable-cache" at "ts-wikitable-cache.xqm";
 
 declare option output:method "json";
@@ -124,6 +125,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-charts-tagliasupport.xqm")),
 		inspect:module-functions(xs:anyURI("ts-charts-jsstringescape.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expanded-repository-scan-cache.xqm")),
+		inspect:module-functions(xs:anyURI("ts-idlookup.xqm")),
 		inspect:module-functions(xs:anyURI("ts-wikitable-cache.xqm"))
 	)
 )
