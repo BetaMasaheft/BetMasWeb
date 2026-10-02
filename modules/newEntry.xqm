@@ -74,52 +74,50 @@ declare function new:newentry($node as node()*, $model as map(*)) {
 				if ($app:collection = "authority-files") then (
 				) else (
 					if ($app:collection = "persons") then (
-						(
-							<div class="w3-container w3-margin-bottom">
-								<label>Faith</label>
-								<br />
-								<select class="w3-select" id="faithkeywords" multiple="multiple" name="keywords">
-									{
-										let $categories := $taxonomy//t:category[t:desc eq "Confessions"]//t:catDesc/text()
-										for $k in $categories
-										order by $k
-										return <option value="{ $k }">{ $k }</option>
-									}
-								</select>
-								<br />
-								<small class="form-text text-muted">give the file at least one keyword</small>
-							</div>,
-							<div class="w3-container w3-margin-bottom">
-								<label>Occupation</label>
-								<br />
-								<select class="w3-select" id="occupation" name="occupation">
-									<option selected="selected" value="">choose</option>
-									{
-										let $categories := $schema//t:elementSpec[@ident eq "occupation"]//t:valItem
-										for $k in $categories
-										order by $k/@ident
-										return <option value="{ data($k/@ident) }">{ data($k/t:desc) }</option>
-									}
-								</select>
-								<br />
-								<small class="form-text text-muted">give the file at least one keyword</small>
-							</div>,
-							<div class="w3-container w3-margin-bottom">
-								<label>Nationality</label>
-								<br />
-								<select class="w3-select" id="nationality" name="nationality">
-									<option selected="selected" value="">choose</option>
-									{
-										let $categories := $schema//t:elementSpec[@ident eq "nationality"]//t:valItem
-										for $k in $categories
-										order by $k/@ident
-										return <option value="{ data($k/@ident) }">{ data($k/@ident) }</option>
-									}
-								</select>
-								<br />
-								<small class="form-text text-muted">give the file at least one keyword</small>
-							</div>
-						)
+						<div class="w3-container w3-margin-bottom">
+							<label>Faith</label>
+							<br />
+							<select class="w3-select" id="faithkeywords" multiple="multiple" name="keywords">
+								{
+									let $categories := $taxonomy//t:category[t:desc eq "Confessions"]//t:catDesc/text()
+									for $k in $categories
+									order by $k
+									return <option value="{ $k }">{ $k }</option>
+								}
+							</select>
+							<br />
+							<small class="form-text text-muted">give the file at least one keyword</small>
+						</div>,
+						<div class="w3-container w3-margin-bottom">
+							<label>Occupation</label>
+							<br />
+							<select class="w3-select" id="occupation" name="occupation">
+								<option selected="selected" value="">choose</option>
+								{
+									let $categories := $schema//t:elementSpec[@ident eq "occupation"]//t:valItem
+									for $k in $categories
+									order by $k/@ident
+									return <option value="{ data($k/@ident) }">{ data($k/t:desc) }</option>
+								}
+							</select>
+							<br />
+							<small class="form-text text-muted">give the file at least one keyword</small>
+						</div>,
+						<div class="w3-container w3-margin-bottom">
+							<label>Nationality</label>
+							<br />
+							<select class="w3-select" id="nationality" name="nationality">
+								<option selected="selected" value="">choose</option>
+								{
+									let $categories := $schema//t:elementSpec[@ident eq "nationality"]//t:valItem
+									for $k in $categories
+									order by $k/@ident
+									return <option value="{ data($k/@ident) }">{ data($k/@ident) }</option>
+								}
+							</select>
+							<br />
+							<small class="form-text text-muted">give the file at least one keyword</small>
+						</div>
 					) else (
 						<div class="w3-container w3-margin-bottom">
 							<label>Keywords</label>
