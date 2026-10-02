@@ -1,0 +1,14 @@
+modules/newEntry.xqm
+  h_ff0005bef58c9d 77-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "96baa9132848af1ccf9ea2181c5c4f7818ce2dce",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
