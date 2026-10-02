@@ -16,6 +16,18 @@ import module namespace log = "http://www.betamasaheft.eu/log" at "xmldb:exist:/
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
 
 (:~
+ : The most ids this endpoint will put in a response.
+ :
+ : The endpoint is a typeahead, and no typeahead renders thousands of
+ : suggestions. The cap bounds both the response and the work spent
+ : building it: without it a needle as short as "1" matched ~125,600
+ : nodes and returned a 3.7 MB JSON array. ?total still reports the true
+ : count and ?truncated says the list is partial, so nothing is silently
+ : withheld.
+ :)
+declare variable $lookID:MAX-HITS := 100;
+
+(:~
  : The id to match on, normalised, or () when the caller did not ask for
  : anything specific.
  :
@@ -42,7 +54,17 @@ declare function lookID:no-results() as element(json:value) {
 };
 
 (:~
- : searches the content of the ids and returns a JSON object containing an array of objects with possible matches. id here can be a full id or any part of it.
+ : Looks up records whose xml:id contains the requested id and returns a
+ : JSON object with an array of possible matches. The id may be a full id
+ : or any part of one.
+ :
+ : The response is bounded by $lookID:MAX-HITS. ?total always reports the
+ : real number of matches and ?truncated says whether the list is partial,
+ : so a capped answer never reads as a complete one.
+ :
+ : @param $request the REST request map
+ : @return a map of items/total/returned/truncated, or the "No results"
+ : element when nothing matched
  :)
 declare function lookID:IDSlookup($request as map(*)) {
 	let $id := lookID:requested-id($request)
@@ -55,20 +77,24 @@ declare function lookID:IDSlookup($request as map(*)) {
 		 : a definite value keeps the optimiser's index rewrite well formed.
 		 :)
 		let $needle := string($id)
-		let $query := (
+		let $matches := (
 			$exptit:col/t:TEI[contains(@xml:id, $needle)],
 			$exptit:col//t:msPart[contains(@xml:id, $needle)],
 			$exptit:col//t:msItem[contains(@xml:id, $needle)],
 			$exptit:col//t:title[contains(@xml:id, $needle)],
 			$exptit:col//t:div[contains(@xml:id, $needle)]
 		)
-		let $results :=
-			for $hit in $query
-			let $i := string($hit/@xml:id)
-			(: let $rootID := string(root($hit)/t:TEI/@xml:id) :)(: let $title := if ($i = $rootID) then exptit:printTitleID($i) else api:printSubtitle(root($hit),$i) :)
-			return map {"id": $i}
-		return if (exists($query)) then (
-			map {"items": $results, "total": count($query)}
+		(:
+		 : count() streams, so the true total costs little even when it is
+		 : six figures; building a map per match and serialising it does
+		 : not, which is what the cap is for.
+		 :)
+		let $total := count($matches)
+		return if ($total gt 0) then (
+			let $items :=
+				for $hit in $matches[position() le $lookID:MAX-HITS]
+				return map {"id": string($hit/@xml:id)}
+			return map {"items": $items, "total": $total, "returned": count($items), "truncated": $total gt count($items)}
 		) else (
 			lookID:no-results()
 		)
