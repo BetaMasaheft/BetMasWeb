@@ -1,0 +1,28 @@
+test/xqs/ts-idlookup.xqm
+  s_01d21a79f6288a::t_154b64e0a709f5 23-26,29-30,32-33,35-41,49,53,57,59
+  s_01d21a79f6288a::t_34c41aede58a1b 31
+  s_01d21a79f6288a::t_af6ab6a2b4f321 1-22,27-28,34,42-48,50-52,54-56,58
+restviews/idlookup.xqm
+  s_01d21a79f6288a::t_f4e4df8ffeb943 19-34,38-40,42-43,48-51,57,59-63,70-71,73
+  s_01d21a79f6288a::t_154b64e0a709f5 35-37,41,53-56
+  s_01d21a79f6288a::t_2a39bcbc07985e 18
+test/xqs/test-runner.xq
+  s_01d21a79f6288a::t_cd3e28629910a5 128
+  s_01d21a79f6288a::t_d0cca5de8d9772 66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2f8d746455be2bc78a1855d7c0a32d8ad1b350eb",
+  "prompts": {},
+  "sessions": {
+    "s_01d21a79f6288a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f03f3e26effe3xUGvV3hLXAHR1",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
