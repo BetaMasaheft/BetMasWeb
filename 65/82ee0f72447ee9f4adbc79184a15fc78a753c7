@@ -1,0 +1,24 @@
+restviews/ids.xqm
+  s_01d21a79f6288a::t_f2c5c8a840aa9e 36,40,54-55,67,83-86,93-96
+  s_01d21a79f6288a::t_3a732b2da7808d 22-35,37-39,41-53,56-66,68-69,76-78,80,87,89,97,103-106,116-117
+test/xqs/ts-expanded-repository-scan-cache.xqm
+  s_01d21a79f6288a::t_979bd17d0033f3 20
+  s_01d21a79f6288a::t_f2c5c8a840aa9e 17,44-46,48,53-55,62-67,86-88
+  s_01d21a79f6288a::t_20cfee53659462 36-43,47,49-52,56-61,68-85,89-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6582ee0f72447ee9f4adbc79184a15fc78a753c7",
+  "prompts": {},
+  "sessions": {
+    "s_01d21a79f6288a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f03f3e26effe3xUGvV3hLXAHR1",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
