@@ -16,21 +16,14 @@ $("[id^='AttestedInType']").on("change", function () {
 });
 
 /*
- * The suggestion list must be driven by the items that were actually sent,
- * never by ?total. Since the id lookup got a response cap, ?total is the
+ * The suggestion lists must be driven by the items that were actually sent,
+ * never by ?total. Since both endpoints got a response cap, ?total is the
  * number of matches in the whole corpus and can be far larger than the
  * array - looping to ?total ran off the end of it and threw.
  *
  * A single match also arrives as a bare object rather than a one-element
- * array, so wrap that case back into an array before iterating.
+ * array; listItems() (resources/js/listResponse.js) reconciles both cases.
  */
-function suggestionItems(data) {
-	if (!data || data.items === undefined || data.items === null) {
-		return [];
-	}
-	return Array.isArray(data.items) ? data.items : [data.items];
-}
-
 $(document).on("ready", function () {
 	$("#GoTo").on("change paste", function () {
 		/*$( document ).ajaxStop(function() {
@@ -78,7 +71,7 @@ $(document).on("ready", function () {
 			// this will look ONLY in one element for each type of record
 			var apiurl = "";
 			if (type == 2) {
-				apiurl = appBase + "/api/search?element=" + element + "&collection=" + collection + " &q=";
+				apiurl = appBase + "/api/search?element=" + element + "&collection=" + collection + "&q=";
 			} else {
 				apiurl = appBase + "/api/idlookup?id=";
 			}
@@ -88,7 +81,7 @@ $(document).on("ready", function () {
 				console.log(data);
 
 				var options = "";
-				var items = suggestionItems(data);
+				var items = listItems(data.items);
 				for (var i = 0; i < items.length; i++) {
 					var tit = "";
 					if (type == 2) {
@@ -133,7 +126,7 @@ $(document).on("ready", function () {
 
 			$.getJSON(searchurl, function (data) {
 				var options = "";
-				var items = suggestionItems(data);
+				var items = listItems(data.items);
 				for (var i = 0; i < items.length; i++) {
 					var option = '<option value="' + items[i].id + '">' + items[i].id + "</option>";
 					options += option;

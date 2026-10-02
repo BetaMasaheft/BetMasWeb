@@ -104,6 +104,8 @@ declare function scriptlinks:scriptStyle() {
 		   (empty in production, where nginx already rewrites the mount path
 		   away; "/exist/apps/BetMasWeb" in dev/CI) - see BetMasWeb#32. :)
 		<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>,
+		(: listResponse: normalises list-valued API fields - see listItems(). :)
+		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link
 			href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css"
@@ -268,6 +270,7 @@ declare function scriptlinks:ItemFooterScript() {
 		type="text/javascript" />,
 	<script src="resources/js/diacriticskeyboard.js" type="text/javascript" />,
 	<script src="resources/js/analytics.js" type="text/javascript" />,
+	<script src="resources/js/listResponse.js" type="text/javascript" />,
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.js" type="text/javascript" />,
 	<script src="resources/alpheios/alpheiosStart.js" type="text/javascript" />,
 	<script src="resources/js/introText.js" type="application/javascript" />,

@@ -7,8 +7,11 @@ $(document).on("ready", function () {
 	$.getJSON(url, function (data) {
 		//console.log(data)
 		var items = [];
-		for (var i = 0; i < data.total; i++) {
-			var ann = data.rows[i];
+		// Hypothes.is reports every annotation in `total` but only returns the
+		// first `limit` of them in `rows`, so iterate the rows that arrived.
+		var rows = listItems(data.rows);
+		for (var i = 0; i < rows.length; i++) {
+			var ann = rows[i];
 			var content = "";
 			var contentdata = ann.text;
 			if (contentdata.startsWith("http")) {

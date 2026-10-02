@@ -285,8 +285,12 @@ $(document).on("change", "#target-ins", function () {
 	var apicall = appBase + "/api/manuscripts/list/json?perpage=2000&repo=" + ins;
 	$.getJSON(apicall, function (data) {
 		var options = "";
-		for (var i = 0; i < data.total; i++) {
-			var ms = data.items[i];
+		// Iterate the returned items, not data.total: the endpoint reports every
+		// match in the repository while sending at most `perpage` of them, so
+		// looping to total walks off the end of the array for large repositories.
+		var items = listItems(data.items);
+		for (var i = 0; i < items.length; i++) {
+			var ms = items[i];
 			options += '<option value="' + ms.id + '">' + ms.title + "</option>";
 		}
 		$("#target-ms").html(options);

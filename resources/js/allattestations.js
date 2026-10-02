@@ -5,30 +5,23 @@ $("#showattestations").on("click", function () {
 	var id = $(this).data("id");
 	var apicall = appBase + "/api/attestations/" + type + "/" + id;
 	$.getJSON(apicall, function (data) {
-		if (data.results == null) {
+		// Normalise first: the API returns an array, but a single attestation
+		// used to arrive as a bare object, and an absent list as null.
+		var resultgroups = listItems(data.results);
+		if (resultgroups.length === 0) {
 			$("#allattestations").append("No attestations of this entity could be found.");
 		} else {
 			var resheading =
 				'<div class="w3-row"><div class="w3-quarter">Attestation source</div><div class="w3-threequarter">attestations</div></div>';
-			var totatt = "";
-			if (data.results.length > 1) {
-				totatt = data.results.length;
-			} else {
-				totatt = 1;
-			}
 			var report =
-				'There are <span class="w3-label w3-red">' + totatt + "</span> entities with attestations of this record.";
+				'There are <span class="w3-label w3-red">' +
+				resultgroups.length +
+				"</span> entities with attestations of this record.";
 			$("#allattestations").append(report);
 			$("#allattestations").append(resheading);
 
-			if (data.results.length > 1) {
-				var resultlength = data.results.length;
-				for (var i = 0; i < resultlength; i++) {
-					var res = data.results[i];
-					results(res);
-				}
-			} else {
-				results(data.results);
+			for (var i = 0; i < resultgroups.length; i++) {
+				results(resultgroups[i]);
 			}
 		}
 	});
@@ -39,16 +32,9 @@ function results(res) {
 	var allresults = "";
 	var resid = res.id;
 	var restitle = res.title;
-	if (res.result.length > 1) {
-		var reslength = res.result.length;
-		for (var l = 0; l < reslength; l++) {
-			var thisresult = res.result[l];
-			var thisentry = entry(thisresult);
-			allresults += thisentry;
-		}
-	} else {
-		var thisresult = res.result;
-		var thisentry = entry(thisresult);
+	var entries = listItems(res.result);
+	for (var l = 0; l < entries.length; l++) {
+		var thisentry = entry(entries[l]);
 		allresults += thisentry;
 	}
 
