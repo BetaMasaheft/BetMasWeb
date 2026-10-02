@@ -20,47 +20,90 @@ declare variable $listIds:CACHE := "list-ids";
 declare variable $listIds:CACHE-TTL := 3600;
 
 (:~
+ : Groups values by a derived key, preserving input order within each group.
+ :
+ : eXist's group-by is unusable for /listIds: inside this stored library
+ : module it drove the heap past 4 GB and killed the JVM, while the very
+ : same FLWOR run as an ad-hoc query stayed under 800 MB. The corpus walk
+ : and the node construction are both cheap on their own - it is only the
+ : group-by that costs - so the grouping is done by folding into a map and
+ : the working set stays proportional to the input.
+ :
+ : @param $items the values to group
+ : @param $key derives the grouping key from one value
+ : @return a map from key to the values carrying that key
+ :)
+declare %private function listIds:bucket-by($items as item()*, $key as function (item()) as xs:string) as map(*) {
+	fold-left(
+		$items,
+		map {},
+		function ($buckets, $item) {
+			let $bucket-key := $key($item)
+			return map:put($buckets, $bucket-key, ($buckets($bucket-key), $item))
+		}
+	)
+};
+
+(:~
+ : The collection a repository is filed under.
+ :
+ : @param $repo a t:repository element
+ : @return the collection name, or a placeholder when it has none
+ :)
+declare %private function listIds:collection-of($repo as element(t:repository)) as xs:string {
+	if ($repo/following-sibling::t:collection) then
+		string($repo/following-sibling::t:collection[1]/text())
+	else
+		"no specific collection"
+};
+
+(:~
+ : The row this repository contributes to the listing.
+ :
+ : @param $repo a t:repository element
+ : @return a map with the collection and the owning document's xml:id
+ :)
+declare %private function listIds:entry($repo as element(t:repository)) as map(*) {
+	map {"collection": listIds:collection-of($repo), "id": string(root($repo)/t:TEI/@xml:id)}
+};
+
+(:~
  : One <div> per institution, each listing its manuscripts' @xml:id
  : grouped by collection - the expensive part of /listIds: an unindexed
  : scan of every t:repository in the manuscripts collection (~22,000
  : elements), a per-distinct-institution exptit:printTitleID lookup, and
  : a nested collection/id extraction across every manuscript (~20,000
- : ids). Measured 14-22s under load, against a collection() call that
- : can't use a range index for a "contains" test.
+ : ids). Against a collection() call that can't use a range index for a
+ : "contains" test, so the cost is paid per cache generation rather than
+ : per request.
  :
- : @return the institution divs, unsorted by caller expectations beyond @order by $tit
+ : @return the institution divs, ordered by title then institution ref
  :)
 declare %private function listIds:body() as element(div)* {
-	let $allrepos := collection($config:data-rootMS)//t:repository[contains(@ref, "INS")]
-	let $repos := $allrepos[not(ends-with(@ref, "IHA"))][not(@ref eq "INS0004HMML")]
-	for $repo in $repos
-	let $ref := $repo/@ref
-	group by $ref
-	let $rID := string($ref)
+	let $repos := collection($config:data-rootMS)//t:repository[contains(@ref, "INS")][not(ends-with(@ref, "IHA"))][not(
+		@ref eq "INS0004HMML"
+	)]
+	let $by-ref := listIds:bucket-by($repos, function ($repo) { string($repo/@ref) })
+	for $rID in map:keys($by-ref)
 	let $tit := try { exptit:printTitleID($rID) } catch * { "no title" }
-	order by $tit
+	order by ($tit, $rID)
 	return <div class="w3-container">
 		<h1>{ $tit } ({ $rID })</h1>
 		{
-			for $rep in $repo
-			let $collection := if ($rep/following-sibling::t:collection) then
-				$rep/following-sibling::t:collection[1]/text()
-			else
-				"no specific collection"
-			group by $collection
+			let $entries :=
+				for $repo in $by-ref($rID)
+				return listIds:entry($repo)
+			let $by-collection := listIds:bucket-by($entries, function ($entry) { $entry?collection })
+			for $collection in map:keys($by-collection)
 			order by $collection
 			return <div class="w3-row">
 				<h2>{ $collection }</h2>
 				<div class="w3-container">
 					{
-						let $ids :=
-							for $reC in $rep
-							let $root := root($reC)
-							let $id := string($root/t:TEI/@xml:id)
-							return $id
-						for $i in $ids
-						order by $i
-						return <div class="w3-row"><b>{ $i }</b></div>
+						for $entry in $by-collection($collection)
+						let $id := $entry?id
+						order by $id
+						return <div class="w3-row"><b>{ $id }</b></div>
 					}
 				</div>
 			</div>
@@ -70,8 +113,8 @@ declare %private function listIds:body() as element(div)* {
 
 (:~
  : Cached wrapper around listIds:body() - deterministic given current
- : corpus state, so recomputing it on every request pays that ~14-22s
- : cost every time. Same TTL-cache idiom as q:max-folia/q:max-written-lines
+ : corpus state, so recomputing it on every request pays that cost every
+ : time. Same TTL-cache idiom as q:max-folia/q:max-written-lines
  : (modules/queries.xqm's $q:CORPUS-STATS-CACHE). Deliberately does NOT
  : wrap listIds:getlist's whole page: nav:barNew() renders per-session
  : login state (locallogin:loginNew()), which a shared cache would leak
