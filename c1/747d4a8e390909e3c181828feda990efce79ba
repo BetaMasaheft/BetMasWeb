@@ -1,0 +1,52 @@
+resources/js/samerole.js
+  s_01d21a79f6288a::t_cedcf4699c5db9 30-32,37
+templates/newsearch.html
+  s_01d21a79f6288a::t_fe87d18d0a0699 77
+resources/js/filters.js
+  s_01d21a79f6288a::t_52c316cc9c2ddf 291-293
+  s_01d21a79f6288a::t_ee693edbb73bb0 288-290
+as.html
+  s_01d21a79f6288a::t_de2a0ae23ed908 375-376
+resources/js/hypothesis.js
+  s_01d21a79f6288a::t_88c4d4dd9a68be 10-14
+test/cypress/e2e/listResponses.cy.js
+  s_01d21a79f6288a::t_f52ca6000fda05 20-30,32,35,47-48,50-51,53-54
+  s_01d21a79f6288a::t_7893e453b0db66 1-17,64-142,145-188,191-206
+  s_01d21a79f6288a::t_6e6140d03bcf56 18-19,31,33-34,36-46,49,52,58-63
+  s_01d21a79f6288a::t_d915a0fade3c40 189-190
+  s_01d21a79f6288a::t_43e4b2ed419acb 55-57,143-144,207
+resources/js/listResponse.js
+  s_01d21a79f6288a::t_43e4b2ed419acb 20
+  s_01d21a79f6288a::t_3305abad6885de 1-19
+modules/scriptlinks.xqm
+  s_01d21a79f6288a::t_fe87d18d0a0699 107-108,273
+newSearch.html
+  s_01d21a79f6288a::t_eae92fadd12b87 1228-1229
+resources/js/versions.js
+  s_01d21a79f6288a::t_5129290bd1f53f 7-12
+resources/js/lookup.js
+  s_01d21a79f6288a::t_7f6aaf77f1d35d 19-20,25
+  s_01d21a79f6288a::t_b3d8ca2cf27129 74,84,129
+resources/js/allattestations.js
+  s_01d21a79f6288a::t_6e471fec9b2d09 35-37
+  s_01d21a79f6288a::t_43aa05d61470a2 8-11,17-19,23-24
+resources/js/relatedItems.js
+  s_01d21a79f6288a::t_89987127ad0ef4 11,13-14,19-20
+  s_01d21a79f6288a::t_52e5361d1230af 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c1747d4a8e390909e3c181828feda990efce79ba",
+  "prompts": {},
+  "sessions": {
+    "s_01d21a79f6288a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f03f3e26effe3xUGvV3hLXAHR1",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
