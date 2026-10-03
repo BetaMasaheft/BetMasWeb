@@ -1,0 +1,41 @@
+test/xqs/ts-queries-idscan.xqm
+  s_01d21a79f6288a::t_6a4a4325e0da8c 76,97
+  s_01d21a79f6288a::t_8aa09717df92d8 1-3,45-50,78-80,100-102,112-114,126-128
+  s_01d21a79f6288a::t_00396877c468d4 4-44,53-61,65-75,81-88,91-96,98-99,103-109,115-123,129-134,140-146,152-158,164-169,175-183,189-198,204-213,216
+  s_01d21a79f6288a::t_e2625aa61e878a 51-52,62-64,77,89-90,137-139,149-151,161-163,172-174,186-188
+  s_01d21a79f6288a::t_a0861fe788de86 185,200
+  s_01d21a79f6288a::t_0d499d748d5fb4 111,124-125,135-136,147-148,159-160,170-171,184,199,201-203,214-215
+  s_01d21a79f6288a::t_98fe6bdd5800f7 110
+test/xqs/run-idscan.xq
+  s_01d21a79f6288a::t_06b3dbe097e86d 1-3,19-27
+  s_01d21a79f6288a::t_00396877c468d4 4-18,28
+modules/queries.xqm
+  s_01d21a79f6288a::t_00396877c468d4 893-906,912-917,923-936,939-942,967-980,983-986,990-1009,1012-1013,1015-1021
+  s_01d21a79f6288a::t_b0cf8bf3c6f517 1022-1023,1026-1027,1030
+  s_01d21a79f6288a::t_bb15efe1f79545 1014
+  s_01d21a79f6288a::t_cd778fb11e87cd 892,907-911,918-922,938,944,987
+  s_01d21a79f6288a::t_ac012010bcb4fb 966,981-982,989,1011
+  s_01d21a79f6288a::t_dc6bce0dde51a0 988
+test/cypress/e2e/newSearch-idFragments.cy.js
+  s_01d21a79f6288a::t_4adb8fcbec2490 1-66
+  s_01d21a79f6288a::t_7e650fed9fa469 67
+test/xqs/test-runner.xq
+  s_01d21a79f6288a::t_d9a4311b67234c 68
+  s_01d21a79f6288a::t_72114c20972fb3 130-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "54ad2cebe34bc6eda09420cb20243d27b65379e1",
+  "prompts": {},
+  "sessions": {
+    "s_01d21a79f6288a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f03f3e26effe3xUGvV3hLXAHR1",
+        "model": "big-pickle"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
