@@ -1,0 +1,48 @@
+.existdb.json
+  h_ff0005bef58c9d 2-24
+.gitignore
+  h_ff0005bef58c9d 20-22
+build.xml
+  h_ff0005bef58c9d 8-10
+edit/clavisUpdate.xql
+  h_ff0005bef58c9d 99,143
+edit/save-new-entity.xql
+  h_ff0005bef58c9d 85,117,522,560
+modules/scriptlinks.xqm
+  h_ff0005bef58c9d 110-111,113,136,141,146,156
+package-lock.json
+  h_ff0005bef58c9d 19-20,23-26,980-985,1034-1039,1090-1095,1122-1127,1142-1144,1147,1151-1153,1156-1157,1820-1824,1827-1833,1846-1852,1862-1865,2344-2346
+package.json
+  h_ff0005bef58c9d 7,9-11,22-23,26-29
+restviews/LitFlowRest.xqm
+  h_ff0005bef58c9d 56-57
+restviews/compare.xqm
+  h_ff0005bef58c9d 62-64,149-151
+restviews/comparems.xqm
+  h_ff0005bef58c9d 55-57
+restviews/litcompare.xqm
+  h_ff0005bef58c9d 83-85
+restviews/workmap.xqm
+  h_ff0005bef58c9d 81-83
+scripts/copy-vendor-libs.js
+  h_ff0005bef58c9d 3-6,12-16,28-32,34-46,55-57,65,72,79,86-88,104-118,122-134,141,148-151,162,170,181-183,194-215
+templates/newindex2.html
+  h_ff0005bef58c9d 30,39-41,47
+templates/newpage.html
+  h_ff0005bef58c9d 31-33
+templates/newsearch.html
+  h_ff0005bef58c9d 30,32-33
+templates/sparql.html
+  h_ff0005bef58c9d 34-36,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e5da3c71d7f53068d4d38ad3c6fe1a02426e051c",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
