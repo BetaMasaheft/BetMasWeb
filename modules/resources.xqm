@@ -805,10 +805,10 @@ declare function lists:biblform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin-top">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/bibliography" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -1249,10 +1249,10 @@ declare function lists:additionsform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin-top">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/additions" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -1458,10 +1458,10 @@ declare function lists:titlesform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/titles" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -1693,10 +1693,10 @@ declare function lists:decorationsform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/decorations" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -1880,10 +1880,10 @@ declare function lists:calendarform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/decorations" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -2023,10 +2023,10 @@ declare function lists:bindingsform($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-search" />
+					<i aria-hidden="true" class="fas fa-search" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/bindings" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -2121,12 +2121,12 @@ declare function lists:groupPager($groupCount as xs:integer, $start as xs:intege
 		return <div class="w3-bar w3-border w3-round w3-margin-bottom">
 			{
 				if ($start = 1) then (
-					<a class="w3-button w3-disabled"><i class="fa fa-fast-backward" /></a>,
-					<a class="w3-button w3-disabled"><i class="fa fa-backward" /></a>
+					<a class="w3-button w3-disabled"><i class="fas fa-fast-backward" /></a>,
+					<a class="w3-button w3-disabled"><i class="fas fa-backward" /></a>
 				) else (
-					<a class="w3-button" href="?{ $params }&amp;start=1"><i class="fa fa-fast-backward" /></a>,
+					<a class="w3-button" href="?{ $params }&amp;start=1"><i class="fas fa-fast-backward" /></a>,
 					<a class="w3-button" href="?{ $params }&amp;start={ max(($start - $per-page, 1)) }">
-						<i class="fa fa-backward" />
+						<i class="fas fa-backward" />
 					</a>
 				),
 				for $i in 1 to $pageCount
@@ -2135,13 +2135,13 @@ declare function lists:groupPager($groupCount as xs:integer, $start as xs:intege
 				else
 					<a class="w3-button" href="?{ $params }&amp;start={ (($i - 1) * $per-page) + 1 }">{ $i }</a>,
 				if ($start + $per-page < $groupCount) then (
-					<a class="w3-button" href="?{ $params }&amp;start={ $start + $per-page }"><i class="fa fa-forward" /></a>,
+					<a class="w3-button" href="?{ $params }&amp;start={ $start + $per-page }"><i class="fas fa-forward" /></a>,
 					<a class="w3-button" href="?{ $params }&amp;start={ (($pageCount - 1) * $per-page) + 1 }">
-						<i class="fa fa-fast-forward" />
+						<i class="fas fa-fast-forward" />
 					</a>
 				) else (
-					<a class="w3-button w3-disabled"><i class="fa fa-forward" /></a>,
-					<a class="w3-button w3-disabled"><i class="fa fa-fast-forward" /></a>
+					<a class="w3-button w3-disabled"><i class="fas fa-forward" /></a>,
+					<a class="w3-button w3-disabled"><i class="fas fa-fast-forward" /></a>
 				)
 			}
 		</div>

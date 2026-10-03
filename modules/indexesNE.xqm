@@ -87,10 +87,10 @@ declare function indexesNE:placeNameForm($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin-bottom">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-filter" />
+					<i aria-hidden="true" class="fas fa-filter" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/IndexPlaces" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>
@@ -120,10 +120,10 @@ declare function indexesNE:persNameForm($node as node(), $model as map(*)) {
 		<div class="w3-container w3-margin-bottom">
 			<div class="w3-bar">
 				<button class="w3-bar-item w3-button w3-red" type="submit">
-					<i aria-hidden="true" class="fa fa-filter" />
+					<i aria-hidden="true" class="fas fa-filter" />
 				</button>
 				<a class="w3-bar-item w3-button w3-gray" href="/IndexPersons" role="button">
-					<i aria-hidden="true" class="fa fa-th-list" />
+					<i aria-hidden="true" class="fas fa-th-list" />
 				</a>
 			</div>
 		</div>

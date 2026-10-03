@@ -82,11 +82,11 @@ return if ($idResult?status = 409) then (
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="{ $config:appUrl }/$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-			<link href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+			<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" />
-			<script xmlns="" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js" type="text/javascript" />
-			<script xmlns="" src="http://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
 			<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
 			<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
 			<title>This id already exists!</title>
@@ -114,11 +114,11 @@ return if ($idResult?status = 409) then (
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-			<link href="resources/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+			<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" />
-			<script xmlns="" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js" type="text/javascript" />
-			<script xmlns="" src="http://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
+			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
 			<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
 			<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
 			<title>Save Confirmation</title>
@@ -519,11 +519,11 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 					href="{ $config:appUrl }/$shared/resources/css/bootstrap-3.0.3.min.css"
 					rel="stylesheet"
 					type="text/css" />
-				<link href="{ $config:appUrl }/resources/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+				<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" />
-				<script xmlns="" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js" type="text/javascript" />
-				<script xmlns="" src="http://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
 				<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
 				<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>
@@ -538,7 +538,7 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 							>not yet done</span>...</p>
 						<p>Download the file in your BetMas project folder <span class="lead">{ $collection }/new</span>.<br />
 							<a class="btn btn-primary" download="{ $file }" href="{ $config:appUrl }/{ $file }" id="downloaded">
-								<i aria-hidden="true" class="fa fa-download" /> Download</a>
+								<i aria-hidden="true" class="fas fa-download" /> Download</a>
 							<br />
                                 open it up and check it is valid and complete. <br />
 							<span class="label label-warning confirmationwarning">DO THIS!</span>
@@ -557,11 +557,11 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
-				<link href="resources/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+				<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" />
-				<script xmlns="" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js" type="text/javascript" />
-				<script xmlns="" src="http://cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
+				<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
 				<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
 				<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>

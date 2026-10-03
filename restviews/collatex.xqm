@@ -193,7 +193,7 @@ declare function collatex:collateSelected($request as map(*)) {
 					<div />
 				</div>
 				{ nav:footerNew() }
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.js" type="text/javascript" />
+				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 			</body>
 		</html>
 	)

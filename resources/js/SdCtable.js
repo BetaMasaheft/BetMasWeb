@@ -311,7 +311,7 @@ $(document).on("ready", function () {
                         <div id="'+openseaID+'"><script type="text/javascript">\
                            OpenSeadragon({\
                            id: "'+openseaID+'",\
-                           prefixUrl: "../resources/openseadragon/images/",\
+                           prefixUrl: "../resources/js/external/openseadragon/images/",\
                            preserveViewport: true,\
                            visibilityRatio:    1,\
                            minZoomLevel:       1,\

@@ -1,0 +1,25 @@
+{
+	"servers": {
+		"localhost": {
+			"server": "http://localhost:8080/exist",
+			"user": "admin",
+			"password": "",
+			"root": "/db/apps/BetMasWeb"
+		}
+	},
+	"sync": {
+		"server": "localhost",
+		"ignore": [
+			".existdb.json",
+			".git/**",
+			"build/**",
+			"node_modules/**",
+			"data/**",
+			"package*.json",
+			".idea/**",
+			".vscode/**"
+		],
+		"polling": false,
+		"interval": 100
+	}
+}

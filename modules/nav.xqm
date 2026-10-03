@@ -17,7 +17,7 @@ declare function nav:modalsNew() {
 				<span
 					class="w3-button w3-display-topright"
 					onclick="document.getElementById('versionInfo').style.display='none'"
-				><i class="fa fa-times" /></span>
+				><i class="fas fa-times" /></span>
 				<p> You are looking at work in progress version of this website.
                     For questions <a
 						href="mailto:eugenia.sokolinski@uni-hamburg.de?Subject=Issue%20Report%20BetaMasaheft"
@@ -41,7 +41,7 @@ declare function nav:barNew() {
 					href="javascript:void(0)"
 					onclick="myFunction()"
 					title="Toggle Navigation Menu"
-				><i class="fa fa-bars" /></a>
+				><i class="fas fa-bars" /></a>
 				{
 					(: if (ends-with($url, '.html') or ($url = $config:appUrl) or ($url = 'https://betamasaheft.eu/')  or ($url = 'http://localhost/') or ends-with($url, 'BetMas/')) then :)
 					locallogin:loginNew()
@@ -49,7 +49,7 @@ declare function nav:barNew() {
                         () :)
 				}
 				<a class="w3-padding w3-hover-red w3-hide-small w3-left" href="{ $config:appUrl }/index.html">
-					<i class="fa fa-home" />
+					<i class="fas fa-house" />
 				</a>
 				<div class="w3-dropdown-hover w3-hide-small" id="introductory">
 					<button class=" w3-button" onclick="window.location.href='{ $config:appUrl }/about.html'" title="About">
@@ -60,7 +60,7 @@ declare function nav:barNew() {
 								"About"
 							)
 						}
-						<i class="fa fa-caret-down" />
+						<i class="fas fa-caret-down" />
 					</button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
@@ -195,7 +195,7 @@ declare function nav:barNew() {
 						class=" w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#manuscripts'"
 						title="Manuscripts"
-					>Manuscripts <i class="fa fa-caret-down" /></button>
+					>Manuscripts <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small" id="manuscriptsmenuintro">
@@ -308,7 +308,7 @@ declare function nav:barNew() {
 						class=" w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#texts'"
 						title="Works"
-					>Texts <i class="fa fa-caret-down" /></button>
+					>Texts <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small">
@@ -411,7 +411,7 @@ See also <a
 						class=" w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#taxonomy'"
 						title="Art"
-					>Art Themes <i class="fa fa-caret-down" /></button>
+					>Art Themes <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small">
@@ -483,7 +483,7 @@ the decorations filtered search and the general keyword search.</span>
 						class=" w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#gazetteer'"
 						title="Places"
-					>Places <i class="fa fa-caret-down" /></button>
+					>Places <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small">
@@ -551,7 +551,7 @@ See also <a
 						class="w3-button"
 						onclick="window.location.href='{ $config:appUrl }/index.html#prosopography'"
 						title="Persons"
-					>Persons <i class="fa fa-caret-down" /></button>
+					>Persons <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small">
@@ -615,7 +615,7 @@ See also <a
 					</div>
 				</div>
 				<div class="w3-dropdown-hover w3-hide-small w3-hide-medium" id="res">
-					<button class=" w3-button " title="Resources">Resources <i class="fa fa-caret-down" /></button>
+					<button class=" w3-button " title="Resources">Resources <i class="fas fa-caret-down" /></button>
 					<div class="w3-dropdown-content" style="background:transparent;">
 						<div class="w3-col" style="width:100%">
 							<div class="w3-container w3-left-align w3-sand w3-display-container w3-small" id="resourcesintro">
@@ -742,7 +742,7 @@ See also <a
 					if (contains($url, "newSearch.html")) then (
 					) else
 						<a class="w3-padding w3-hover-red w3-hide-small w3-right" href="{ $config:appUrl }/simpleSearch.html">
-							<i class="fa fa-search" />
+							<i class="fas fa-search" />
 						</a>
 				}
 			</div>
