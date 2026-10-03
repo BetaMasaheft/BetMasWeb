@@ -66,14 +66,27 @@ function casesFromSuite(suite) {
 	return Array.isArray(suite.testcase) ? suite.testcase : [suite.testcase];
 }
 
+// An XQSuite failure record splits the three useful parts across fields:
+// `message` ("assertEquals failed."), the expected value in `#text`, and the
+// value the test actually returned in the sibling `output` key. Reporting only
+// `message` makes every failing assertion read identically, so include all of
+// them when they are available.
+function describeOutcome(xqstCase, node) {
+	const parts = [node.message || JSON.stringify(node)];
+	const expected = node["#text"];
+	const actual = xqstCase.output;
+	if (expected !== undefined || actual !== undefined) {
+		parts.push(`expected ${JSON.stringify(expected ?? null)}, got ${JSON.stringify(actual ?? null)}`);
+	}
+	return parts.join(" — ");
+}
+
 function assertCase(xqstCase) {
 	if (Object.hasOwn(xqstCase, "failure")) {
-		const detail = xqstCase.failure.message || JSON.stringify(xqstCase.failure);
-		assert.fail(`Function ${xqstCase.class} ${detail}`);
+		assert.fail(`Function ${xqstCase.class} ${describeOutcome(xqstCase, xqstCase.failure)}`);
 	}
 	if (Object.hasOwn(xqstCase, "error")) {
-		const detail = xqstCase.error.message || JSON.stringify(xqstCase.error);
-		assert.fail(`Function ${xqstCase.class} ${detail}`);
+		assert.fail(`Function ${xqstCase.class} ${describeOutcome(xqstCase, xqstCase.error)}`);
 	}
 }
 
