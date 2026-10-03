@@ -8,6 +8,8 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace app = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/app";
 
+declare default element namespace "http://www.w3.org/1999/xhtml";
+
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 declare namespace functx = "http://www.functx.com";
@@ -17,6 +19,7 @@ declare namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 declare namespace s = "http://www.w3.org/2005/xpath-functions";
 declare namespace sr = "http://www.w3.org/2005/sparql-results#";
 declare namespace xconf = "http://exist-db.org/collection-config/1.0";
+declare namespace range = "http://exist-db.org/xquery/range";
 
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace kwic = "http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
@@ -513,35 +516,24 @@ declare function app:logout() {
 declare function app:team($node as node(), $model as map(*)) {
 	<ul class="w3-ul w3-hoverable w3-padding">
 		{
-			$exptit:col/$app:range-lookup(
-				"changewho",
-				(),
-				function ($key, $count) {
-					let $k := distinct-values(
-						if (contains($key, "#")) then
-							substring-after($key, "#")
-						else
-							$key
-					)
-					return <li id="{ $key }">
-						{
-							editors:editorKey(replace($key, "#", "")) ||
-								" (" ||
-								$key ||
-								")" ||
-								" made " ||
-								$count[1] ||
-								" changes in " ||
-								$count[2] ||
-								" documents. "
-						}
-						<a
-							href="/xpath?xpath=%24config%3Acollection-root%2F%2Ft%3Achange%5Bmatches%28%40who%2C+%27{ $k }%27%29%5D"
-						>See the changes.</a>
-					</li>
-				},
-				1000
-			)
+			for $who in $exptit:col//t:change/@who
+			group by $key := string($who)
+			order by $key
+			let $xpath := "$config:collection-root//t:change[matches(@who, '" || $key || "')]"
+			return <li id="{ $key }">
+				{
+					editors:editorKey(replace($key, "#", "")) ||
+						" (" ||
+						$key ||
+						")" ||
+						" made " ||
+						count($who) ||
+						" changes in " ||
+						count(distinct-values($who!document-uri(root(.)))) ||
+						" documents. "
+				}
+				<a href="{ $config:appUrl }/xpath?xpath={ encode-for-uri($xpath) }">See the changes.</a>
+			</li>
 		}
 	</ul>
 };
