@@ -620,13 +620,7 @@ declare function functx:escape-for-regex($arg as xs:string?) as xs:string {
  : ADVANCED SEARCH FUNCTIONS the list of searchable and indexed elements
  :)
 declare function app:elements($node as node(), $model as map(*)) {
-	let $control := <select
-		xmlns="http://www.w3.org/1999/xhtml"
-		class="w3-select w3-border"
-		id="element"
-		multiple="multiple"
-		name="element"
-	>
+	let $control := <select class="w3-select w3-border" id="element" multiple="multiple" name="element">
 		<option value="title">Titles</option>
 		<option value="persName">Person names</option>
 		<option value="placeName">Place names</option>
@@ -3122,17 +3116,16 @@ declare function app:hit-count($node as node()*, $model as map(*)) {
 	<div class="w3-panel w3-card-4">
 		{
 			if ($model("type") = "bibliography") then
-				<h3>There are <span xmlns="http://www.w3.org/1999/xhtml" class="w3-tag w3-gray" id="hit-count">
+				<h3>There are <span class="w3-tag w3-gray" id="hit-count">
 						{ count($model("hits")) }
 					</span> distinct bibliographical references</h3>
 			else if ($model("type") = "matches") then
 				<h3>You found <span class="w3-tag w3-gray">{ $app:searchphrase }</span> in <span
-						xmlns="http://www.w3.org/1999/xhtml"
 						class="w3-tag w3-gray"
 						id="hit-count"
 					>{ count($model("hits")) }</span> results</h3>
 			else (
-				<h3> There are <span xmlns="http://www.w3.org/1999/xhtml" class="w3-tag w3-gray" id="hit-count">
+				<h3> There are <span class="w3-tag w3-gray" id="hit-count">
 						{ count($model("hits")) }
 					</span> entities matching your query. </h3>
 			)
@@ -3197,7 +3190,7 @@ declare function app:list-count($node as node()*, $model as map(*)) {
 					$param || ": " || $value,
 				", "
 			)
-		}: <span xmlns="http://www.w3.org/1999/xhtml" id="hit-count">{ count($model("hits")) }</span>
+		}: <span id="hit-count">{ count($model("hits")) }</span>
 	</h3>
 };
 
