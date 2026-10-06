@@ -1236,7 +1236,7 @@ declare function list:getplacelist($request as map(*)) {
 					{ scriptlinks:listScriptStyle() }
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
+						src="resources/js/external/leaflet/leaflet.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"

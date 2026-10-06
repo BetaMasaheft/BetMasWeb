@@ -131,9 +131,7 @@ declare function scriptlinks:scriptStyle() {
 			type="text/css" />,
 		<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
-		<link
-			href="https://cdn.jsdelivr.net/npm/alpheios-components@latest/dist/style/style-components.min.css"
-			rel="stylesheet" />,
+		<link href="{ config:appBase() }/resources/css/external/alpheios/style-components.min.css" rel="stylesheet" />,
 		(: d3 :)
 		<link href="{ config:appBase() }/resources/css/d3.css" rel="stylesheet" type="text/css" />,
 		<link href="{ config:appBase() }/resources/css/w3.css" rel="stylesheet" />,
@@ -175,12 +173,12 @@ declare function scriptlinks:listScriptStyle() {
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/css/bootstrap-slider.min.css"
+			href="{ config:appBase() }/resources/css/external/bootstrap-slider/bootstrap-slider.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdn.jsdelivr.net/npm/alpheios-components@rc/dist/style/style-components.min.css"
+			href="{ config:appBase() }/resources/css/external/alpheios/style-components.min.css"
 			rel="stylesheet" />,
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ config:appBase() }/resources/css/w3.css" rel="stylesheet" />,
 		<link
@@ -195,13 +193,14 @@ declare function scriptlinks:listScriptStyle() {
 			xmlns="http://www.w3.org/1999/xhtml"
 			src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js"
 			type="text/javascript" />,
+		(: bootstrap-slider before jQuery UI: it warns when $.fn.slider is already taken by UI's slider :)
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="{ config:appBase() }/resources/js/external/jquery-ui/jquery-ui.min.js"
+			src="{ config:appBase() }/resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
+			src="{ config:appBase() }/resources/js/external/jquery-ui/jquery-ui.min.js"
 			type="text/javascript" />
 	)
 };
@@ -232,12 +231,12 @@ declare function scriptlinks:ItemScriptStyle() {
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="https://unpkg.com/vis-timeline/styles/vis-timeline-graph2d.min.css"
+		href="{ config:appBase() }/resources/css/external/vis-timeline/vis-timeline-graph2d.min.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
+		src="{ config:appBase() }/resources/js/external/leaflet/leaflet.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
@@ -258,11 +257,11 @@ declare function scriptlinks:ItemScriptStyle() {
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://unpkg.com/vis-timeline/standalone/umd/vis-timeline-graph2d.min.js"
+		src="{ config:appBase() }/resources/js/external/vis-timeline/vis-timeline-graph2d.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://unpkg.com/vis-network@7.10.2/peer/umd/vis-network.min.js"
+		src="{ config:appBase() }/resources/js/external/vis-network/vis-network.peer.min.js"
 		type="text/javascript" />
 };
 
@@ -273,6 +272,9 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="{ config:appBase() }/resources/js/explain.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/dateConversions.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/w3.js" type="application/javascript" />,
+	<script
+		src="{ config:appBase() }/resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
+		type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
 	<script
 		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.keyboard.js"
@@ -285,9 +287,6 @@ declare function scriptlinks:ItemFooterScript() {
 		type="text/javascript" />,
 	<script
 		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
-		type="text/javascript" />,
-	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
 		type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/diacriticskeyboard.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />,
