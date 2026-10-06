@@ -83,9 +83,15 @@ declare variable $config:BMurl := "https://betamasaheft.eu/";
  : (direct eXist access, init, REST on an internal port), it can stick at
  : the mount-path value for later, differently-fronted requests too. Same
  : pattern as controller.xql's own local:get-uri().
+ :
+ : Returns "" when there is no request at all (XQSuite, post-install,
+ : scheduled jobs), where there is no mount path to speak of and
+ : request:get-header() would raise err:XPDY0002.
  :)
 declare function config:appBase() as xs:string {
-	if (request:get-header("nginx-request-uri")) then
+	if (not(request:exists())) then
+		""
+	else if (request:get-header("nginx-request-uri")) then
 		""
 	else
 		request:get-context-path() || "/apps/BetMasWeb"
