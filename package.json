@@ -8,6 +8,7 @@
 		"font-awesome": "Consolidated onto @fortawesome/fontawesome-free@7.3.1 everywhere (previously split 4.7.0/5.7.2). All icon markup was rewritten to explicit fas/far classes and current icon names (see shims.yml-derived mapping in the PR) - no v4-shims.css dependency.",
 		"d3": "Two d3 majors are both in use: d3@5.16.0 (d3.v5) backs items/permanentItems; d3-v3 is an npm alias for d3@3.5.17 (d3.v3), used only by templates/sparql.html. Both kept, pinned, to preserve current per-page behavior.",
 		"jquery": "jQuery 3.7.1 -> 4.0.0 (+ jquery-migrate 3.6.0 -> 4.0.2). Removed APIs used by first-party code ($.trim, .bind, $(window).load) were replaced with native/.on equivalents; jquery-migrate 4 stays loaded as a safety net for the vendored plugins (jQuery UI 1.13, DataTables 1.13, slick-carousel, virtual-keyboard) - check the browser console for migrate warnings. Bootstrap is deliberately still 3.4.1 (last 3.x): 5.x needs a template-wide markup migration. datatables.net/-bs were bumped 1.10.9 -> 1.13.11 earlier to close a high-severity prototype-pollution/XSS advisory.",
+		"cdn": "Everything loaded from a CDN has been vendored through npm (bootstrap-slider, vis-timeline, vis-network, leaflet-v1 = npm alias for leaflet@1.9.4 used by newindex2/newpage, alpheios CSS). The only remaining external load is Google Charts (gstatic loader.js), which fetches further scripts at runtime and can't be vendored as a single file. .npmrc sets legacy-peer-deps because vis-network@7.10.2 (vis-data ^6) and vis-timeline@8 (vis-data >=8) peer ranges conflict, while we only ship their self-contained prebuilt bundles.",
 		"d3-color-audit": "npm audit still flags a d3-color ReDoS (GHSA-36jr-mh4h-2g58) transitively via d3@5.16.0. Deliberately NOT using an npm override to silence it: we vendor d3's prebuilt dist/d3.min.js as-is (see copy-vendor-libs.js), which bundles its own copy of d3-color at publish time and ignores whatever version node_modules/d3-color resolves to - an override only fixes what `npm audit` reports, not the actual bytes we ship. d3 never back-patched this into a 5.x release, so the real fix needs the d3 6/7 major jump, out of scope for this pass."
 	},
 	"dependencies": {
@@ -15,6 +16,7 @@
 		"alpheios-components": "3.4.3-incr-3.4.x.20220428394",
 		"alpheios-embedded": "3.4.2-incr-3.4.x.20220429024",
 		"bootstrap": "3.4.1",
+		"bootstrap-slider": "9.5.1",
 		"colorbrewer": "1.7.0",
 		"cookie-bar": "1.10.3",
 		"d3": "5.16.0",
@@ -31,10 +33,13 @@
 		"leaflet-ajax": "2.1.0",
 		"leaflet-fullscreen": "1.0.0",
 		"leaflet-search": "2.3.3",
+		"leaflet-v1": "npm:leaflet@1.9.4",
 		"openseadragon": "2.1.0",
 		"slick-carousel": "1.6.0",
 		"tinysort": "2.3.6",
-		"virtual-keyboard": "1.26.22"
+		"virtual-keyboard": "1.26.22",
+		"vis-network": "7.10.2",
+		"vis-timeline": "8.5.4"
 	},
 	"devDependencies": {
 		"cypress": "^16.1.1",

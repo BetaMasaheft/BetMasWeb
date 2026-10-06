@@ -72,6 +72,40 @@ const MANIFEST = {
 			["dist/leaflet.css", "leaflet.css", "css"],
 		],
 	],
+	// Leaflet 1.x, used by newindex2.html/newpage.html; "leaflet" above stays on 0.7.7 for the
+	// mapbox.js-based item/list pages. leaflet.css finds its images/ through a relative url(), so
+	// the two stay together under css.
+	"leaflet-v1": [
+		"leaflet-v1",
+		[
+			["dist/leaflet.js", "leaflet.js"],
+			["dist/leaflet.css", "leaflet.css", "css"],
+			["dist/images", "images", "css"],
+		],
+	],
+	"bootstrap-slider": [
+		"bootstrap-slider",
+		[
+			["dist/bootstrap-slider.min.js", "bootstrap-slider.min.js"],
+			["dist/css/bootstrap-slider.min.css", "bootstrap-slider.min.css", "css"],
+		],
+	],
+	"vis-timeline": [
+		"vis-timeline",
+		[
+			["standalone/umd/vis-timeline-graph2d.min.js", "vis-timeline-graph2d.min.js"],
+			["styles/vis-timeline-graph2d.min.css", "vis-timeline-graph2d.min.css", "css"],
+		],
+	],
+	// peer/ expects vis-data/vis-util as globals (supplied by the vis-timeline standalone bundle,
+	// which must load first); standalone/ is self-contained.
+	"vis-network": [
+		"vis-network",
+		[
+			["peer/umd/vis-network.min.js", "vis-network.peer.min.js"],
+			["standalone/umd/vis-network.min.js", "vis-network.min.js"],
+		],
+	],
 	"leaflet-search": [
 		"leaflet-search",
 		[

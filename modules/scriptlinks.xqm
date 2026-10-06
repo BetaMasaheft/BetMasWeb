@@ -113,9 +113,7 @@ declare function scriptlinks:scriptStyle() {
 		<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
-		<link
-			href="https://cdn.jsdelivr.net/npm/alpheios-components@latest/dist/style/style-components.min.css"
-			rel="stylesheet" />,
+		<link href="resources/css/external/alpheios/style-components.min.css" rel="stylesheet" />,
 		(: d3 :)
 		<link href="{ $config:appUrl }/resources/css/d3.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
@@ -157,12 +155,12 @@ declare function scriptlinks:listScriptStyle() {
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/css/bootstrap-slider.min.css"
+			href="resources/css/external/bootstrap-slider/bootstrap-slider.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="https://cdn.jsdelivr.net/npm/alpheios-components@rc/dist/style/style-components.min.css"
+			href="resources/css/external/alpheios/style-components.min.css"
 			rel="stylesheet" />,
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
@@ -174,13 +172,14 @@ declare function scriptlinks:listScriptStyle() {
 			xmlns="http://www.w3.org/1999/xhtml"
 			src="$shared/resources/scripts/bootstrap-3.0.3.min.js"
 			type="text/javascript" />,
+		(: bootstrap-slider before jQuery UI: it warns when $.fn.slider is already taken by UI's slider :)
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/jquery-ui/jquery-ui.min.js"
+			src="resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
+			src="resources/js/external/jquery-ui/jquery-ui.min.js"
 			type="text/javascript" />
 	)
 };
@@ -211,13 +210,10 @@ declare function scriptlinks:ItemScriptStyle() {
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="https://unpkg.com/vis-timeline/styles/vis-timeline-graph2d.min.css"
+		href="resources/css/external/vis-timeline/vis-timeline-graph2d.min.css"
 		rel="stylesheet"
 		type="text/css" />,
-	<script
-		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
-		type="text/javascript" />,
+	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/external/leaflet/leaflet.js" type="text/javascript" />,
 	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/vendor/mapbox/mapbox.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
@@ -234,11 +230,11 @@ declare function scriptlinks:ItemScriptStyle() {
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://unpkg.com/vis-timeline/standalone/umd/vis-timeline-graph2d.min.js"
+		src="resources/js/external/vis-timeline/vis-timeline-graph2d.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="https://unpkg.com/vis-network@7.10.2/peer/umd/vis-network.min.js"
+		src="resources/js/external/vis-network/vis-network.peer.min.js"
 		type="text/javascript" />
 };
 
@@ -249,6 +245,7 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="resources/js/explain.js" type="text/javascript" />,
 	<script src="resources/js/dateConversions.js" type="text/javascript" />,
 	<script src="resources/js/w3.js" type="application/javascript" />,
+	<script src="resources/js/external/bootstrap-slider/bootstrap-slider.min.js" type="text/javascript" />,
 	<script src="resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
 	<script src="resources/js/external/virtual-keyboard/jquery.keyboard.js" type="text/javascript" />,
 	<script src="resources/js/external/virtual-keyboard/jquery.mousewheel.min.js" type="text/javascript" />,
@@ -257,9 +254,6 @@ declare function scriptlinks:ItemFooterScript() {
 		type="text/javascript" />,
 	<script
 		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
-		type="text/javascript" />,
-	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
 		type="text/javascript" />,
 	<script src="resources/js/diacriticskeyboard.js" type="text/javascript" />,
 	<script src="resources/js/analytics.js" type="text/javascript" />,
