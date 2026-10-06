@@ -211,22 +211,17 @@ declare function scriptlinks:listScriptStyle() {
 declare function scriptlinks:ItemScriptStyle() {
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ config:appBase() }/resources/css/mapbox.css"
+		href="{ config:appBase() }/resources/css/external/leaflet/leaflet.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ config:appBase() }/resources/css/leaflet.css"
+		href="{ config:appBase() }/resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ config:appBase() }/resources/css/leaflet.fullscreen.css"
-		rel="stylesheet"
-		type="text/css" />,
-	<link
-		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ config:appBase() }/resources/css/leaflet-search.css"
+		href="{ config:appBase() }/resources/css/external/leaflet-search/leaflet-search.min.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
@@ -237,10 +232,6 @@ declare function scriptlinks:ItemScriptStyle() {
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
 		src="{ config:appBase() }/resources/js/external/leaflet/leaflet.js"
-		type="text/javascript" />,
-	<script
-		xmlns="http://www.w3.org/1999/xhtml"
-		src="{ config:appBase() }/resources/js/vendor/mapbox/mapbox.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"

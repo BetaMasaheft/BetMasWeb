@@ -18,16 +18,13 @@ resources/js/leaflet-ajax-gh-pages/
 resources/**/*.min.js
 resources/js/jquery-1.7.1.min.js
 resources/js/leaflet.js
-resources/js/leaflet-search.js
 resources/js/Leaflet.fullscreen.min.js
 resources/js/yui-min.js
-resources/js/mapbox.js
 resources/js/colorbrewer.js
 resources/js/d3sparql.js
 resources/js/Slider.js
 resources/css/mirador-combined.css
 resources/css/leaflet.css
-resources/css/leaflet-search.css
 resources/css/leaflet.fullscreen.css
 resources/css/vis.css
 resources/css/vis.min.css

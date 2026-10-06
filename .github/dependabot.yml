@@ -56,7 +56,6 @@ updates:
       - dependency-name: "leaflet-ajax"
       - dependency-name: "leaflet-fullscreen"
       - dependency-name: "leaflet-search"
-      - dependency-name: "leaflet-v1"
       - dependency-name: "openseadragon"
       - dependency-name: "slick-carousel"
       - dependency-name: "tinysort"
