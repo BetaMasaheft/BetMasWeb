@@ -13,36 +13,50 @@ updates:
           - "minor"
           - "patch"
 
-  # Maintain npm dependencies - production (frontend vendor libraries, copied into
-  # resources/js/external by the Ant "vendor" target - see scripts/copy-vendor-libs.js)
-  # Disabled for now (open-pull-requests-limit: 0) - these are pinned to exact,
-  # verified versions matching what's actually deployed; re-enable once that's settled.
+  # Maintain npm dependencies. Dependabot allows only one npm entry per directory
+  # (and target-branch), so production and development are separate groups here.
+  # Production = frontend vendor libraries (copied into resources/js/external by the
+  # Ant "vendor" target - see scripts/copy-vendor-libs.js). They are pinned to exact,
+  # verified versions matching what's deployed, so that group is disabled by ignoring
+  # every production dependency below. To re-enable, delete the ignore list (keep it
+  # in sync with package.json "dependencies" if you add packages).
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 0
-    allow:
-      - dependency-type: "production"
     groups:
       npm-production:
-        patterns:
-          - "*"
+        dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-
-  # Maintain npm dependencies - development (build/test tooling)
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    allow:
-      - dependency-type: "development"
-    groups:
       npm-development:
-        patterns:
-          - "*"
+        dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "@fortawesome/fontawesome-free"
+      - dependency-name: "alpheios-components"
+      - dependency-name: "alpheios-embedded"
+      - dependency-name: "bootstrap"
+      - dependency-name: "colorbrewer"
+      - dependency-name: "cookie-bar"
+      - dependency-name: "d3"
+      - dependency-name: "d3-v3"
+      - dependency-name: "datatables.net"
+      - dependency-name: "datatables.net-bs"
+      - dependency-name: "fuse.js"
+      - dependency-name: "intro.js"
+      - dependency-name: "jquery"
+      - dependency-name: "jquery-migrate"
+      - dependency-name: "jquery-ui-dist"
+      - dependency-name: "jquery.easing"
+      - dependency-name: "leaflet"
+      - dependency-name: "leaflet-ajax"
+      - dependency-name: "leaflet-fullscreen"
+      - dependency-name: "leaflet-search"
+      - dependency-name: "openseadragon"
+      - dependency-name: "slick-carousel"
+      - dependency-name: "tinysort"
+      - dependency-name: "virtual-keyboard"
