@@ -866,7 +866,7 @@ declare function nav:footerNew() {
 								width="50" />
 						</a>
 						<a class=" w3-bar-item" href="http://exist-db.org">
-							<img alt="Powered by eXist-db" src="$shared/resources/images/powered-by.svg" width="100" />
+							<img alt="Powered by eXist-db" src="{ $config:appUrl }/resources/images/powered-by.svg" width="100" />
 						</a>
 					</div>
 					<div class="w3-bar">

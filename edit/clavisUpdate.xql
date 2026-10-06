@@ -95,14 +95,16 @@ if (contains(sm:get-user-groups(sm:id()//sm:real/sm:username/string()), "Editors
 			<link href="resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
+			<link
+				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+				rel="stylesheet"
+				type="text/css" />
 			<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
-			<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
-			<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
+			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>Save Confirmation</title>
 		</head>
 		<body>
@@ -139,14 +141,16 @@ else
 			<link href="resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-			<link href="$shared/resources/css/bootstrap-3.0.3.min.css" rel="stylesheet" type="text/css" />
+			<link
+				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+				rel="stylesheet"
+				type="text/css" />
 			<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="resources/css/style.css" rel="stylesheet" type="text/css" />
 			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
 			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
-			<script src="$shared/resources/scripts/loadsource.js" type="text/javascript" />
-			<script src="$shared/resources/scripts/bootstrap-3.0.3.min.js" type="text/javascript" />
+			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>Save Confirmation</title>
 		</head>
 		<body>

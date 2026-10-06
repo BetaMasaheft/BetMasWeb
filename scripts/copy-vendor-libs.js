@@ -109,6 +109,7 @@ const MANIFEST = {
 		"bootstrap",
 		[
 			["dist/css/bootstrap.min.css", "bootstrap.min.css", "css"],
+			["dist/js/bootstrap.min.js", "bootstrap.min.js"],
 			// bootstrap.min.css references its glyphicon font via url(../fonts/...), same
 			// deal as fontawesome above - rewritten below to point at the shared fonts root.
 			["dist/fonts/glyphicons-halflings-regular.eot", "glyphicons-halflings-regular.eot", "fonts", ""],
