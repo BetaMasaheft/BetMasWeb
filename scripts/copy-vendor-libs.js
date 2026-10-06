@@ -123,7 +123,6 @@ const MANIFEST = {
 		],
 	],
 	"leaflet-ajax": ["leaflet-ajax", [["dist/leaflet.ajax.min.js", "leaflet.ajax.min.js"]]],
-	"fuse.js": ["fuse", [["dist/fuse.min.js", "fuse.min.js"]]],
 	openseadragon: [
 		"openseadragon",
 		[
