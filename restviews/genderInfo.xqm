@@ -218,7 +218,7 @@ declare function genderInfo:landingpage($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -289,9 +289,9 @@ declare function genderInfo:landingpage($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -307,7 +307,7 @@ declare function genderInfo:table($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -334,9 +334,9 @@ declare function genderInfo:table($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -348,7 +348,7 @@ declare function genderInfo:tableF($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -375,9 +375,9 @@ declare function genderInfo:tableF($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -389,7 +389,7 @@ declare function genderInfo:tableM($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -416,9 +416,9 @@ declare function genderInfo:tableM($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -431,7 +431,7 @@ declare function genderInfo:page($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -566,9 +566,9 @@ function drawMultSeries() {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -581,7 +581,7 @@ declare function genderInfo:graph($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<meta
 					xmlns="http://www.w3.org/1999/xhtml"
@@ -618,15 +618,15 @@ declare function genderInfo:graph($request as map(*)) {
 									<button class="w3-button w3-gray" id="clusterByHubsize">Cluster by hubsize</button>
 								</div>
 								<div class="w3-container" id="BetMasRelView" />
-								<script src="resources/js/visgraphspecgender.js" type="text/javascript" />
+								<script src="{ $config:appUrl }/resources/js/visgraphspecgender.js" type="text/javascript" />
 							</div>
 						</div>
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/tablesorter.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/tablesorter.js" type="text/javascript" />
 			</body>
 		</html>
 	)

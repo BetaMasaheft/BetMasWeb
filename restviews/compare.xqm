@@ -37,9 +37,9 @@ declare function compare:compare($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="resources/js/analytics.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/analytics.js" type="text/javascript" />
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ $compare:meta }
 				<meta
@@ -59,9 +59,18 @@ declare function compare:compare($request as map(*)) {
 					xmlns="http://www.w3.org/1999/xhtml"
 					content="Akademie der Wissenschaften in Hamburg, Hiob-Ludolf-Zentrum für Äthiopistik"
 					property="dcterms:publisher schema:publisher" />
-				<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />
-				<link href="resources/css/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
-				<link href="resources/css/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/intro.js/introjs.min.css"
+					rel="stylesheet"
+					type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick.css"
+					rel="stylesheet"
+					type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick-theme.css"
+					rel="stylesheet"
+					type="text/css" />
 				{ scriptlinks:scriptStyle() }
 				<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />
 			</head>
@@ -102,13 +111,13 @@ declare function compare:compare($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
-				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
-				<script src="resources/js/introText.js" type="application/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/slickoptions.js" type="text/javascript" />
-				<script src="resources/js/coloronhover.js" type="application/javascript" />
-				<script src="resources/js/lookup.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/introText.js" type="application/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/slickoptions.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/coloronhover.js" type="application/javascript" />
+				<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
 			</body>
 		</html>
 	) else (
@@ -126,7 +135,7 @@ declare function compare:compareSelected($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ $compare:meta }
 				<meta
@@ -146,9 +155,18 @@ declare function compare:compareSelected($request as map(*)) {
 					xmlns="http://www.w3.org/1999/xhtml"
 					content="Akademie der Wissenschaften in Hamburg, Hiob-Ludolf-Zentrum für Äthiopistik"
 					property="dcterms:publisher schema:publisher" />
-				<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />
-				<link href="resources/css/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
-				<link href="resources/css/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/intro.js/introjs.min.css"
+					rel="stylesheet"
+					type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick.css"
+					rel="stylesheet"
+					type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick-theme.css"
+					rel="stylesheet"
+					type="text/css" />
 				{ scriptlinks:scriptStyle() }
 				<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />
 			</head>
@@ -185,13 +203,13 @@ declare function compare:compareSelected($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
-				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
-				<script src="resources/js/introText.js" type="application/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
-				<script src="resources/js/slickoptions.js" type="text/javascript" />
-				<script src="resources/js/coloronhover.js" type="application/javascript" />
-				<script src="resources/js/lookup.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/introText.js" type="application/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/slickoptions.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/coloronhover.js" type="application/javascript" />
+				<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
 			</body>
 		</html>
 	)

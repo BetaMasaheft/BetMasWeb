@@ -55,9 +55,9 @@ return if (sm:is-authenticated()) then
 				console:log("message not sent to editor"),
 			<html>
 				<head>
-					<link href="resources/images/favicon.ico" rel="shortcut icon" />
+					<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-					<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<link
 						href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 						rel="stylesheet"
@@ -99,9 +99,9 @@ return if (sm:is-authenticated()) then
 				console:log("message not sent to editor"),
 			<html>
 				<head>
-					<link href="resources/images/favicon.ico" rel="shortcut icon" />
+					<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-					<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<link
 						href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 						rel="stylesheet"
@@ -122,9 +122,9 @@ return if (sm:is-authenticated()) then
 else (
 	<html>
 		<head>
-			<link href="resources/images/favicon.ico" rel="shortcut icon" />
+			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link
 				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 				rel="stylesheet"

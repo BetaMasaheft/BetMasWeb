@@ -87,9 +87,15 @@ return if ($idResult?status = 409) then (
 				type="text/css" />
 			<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
-			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
-			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+			<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<script
+				xmlns=""
+				src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+				type="text/javascript" />
+			<script
+				xmlns=""
+				src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+				type="text/javascript" />
 			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>This id already exists!</title>
 		</head>
@@ -119,11 +125,17 @@ return if ($idResult?status = 409) then (
 				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 				rel="stylesheet"
 				type="text/css" />
-			<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+			<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
-			<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
-			<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+			<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<script
+				xmlns=""
+				src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+				type="text/javascript" />
+			<script
+				xmlns=""
+				src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+				type="text/javascript" />
 			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>Save Confirmation</title>
 		</head>
@@ -525,9 +537,15 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 					type="text/css" />
 				<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
-				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
-				<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<script
+					xmlns=""
+					src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+					type="text/javascript" />
+				<script
+					xmlns=""
+					src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+					type="text/javascript" />
 				<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>
 			</head>
@@ -550,7 +568,7 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 						<a href="{ $config:appUrl }/newentry.html?collection={ $collection }">create another entry</a>
 					</div>
 				</div>
-				<script src="resources/js/confirmonleave.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/confirmonleave.js" type="text/javascript" />
 			</body>
 		</html>
 	} catch * {
@@ -563,11 +581,17 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 					href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 					rel="stylesheet"
 					type="text/css" />
-				<link href="resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+				<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
 				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
-				<script xmlns="" src="resources/js/external/jquery-migrate/jquery-migrate.min.js" type="text/javascript" />
-				<script xmlns="" src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<script
+					xmlns=""
+					src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+					type="text/javascript" />
+				<script
+					xmlns=""
+					src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+					type="text/javascript" />
 				<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>
 			</head>

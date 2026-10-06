@@ -584,7 +584,7 @@ declare function app:deleted($node as node(), $model as map(*)) {
 			</li>
 		}
 	</ul>,
-	<script src="resources/js/permanentID.js" type="text/javascript" />
+	<script src="{ $config:appUrl }/resources/js/permanentID.js" type="text/javascript" />
 };
 
 declare function app:oldids($node as node(), $model as map(*)) {

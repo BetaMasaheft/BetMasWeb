@@ -164,8 +164,8 @@ declare function list:browseMS($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -191,11 +191,11 @@ declare function list:browseUnits($request as map(*)) {
 				{ nav:modalsNew() }
 				<div class="w3-container w3-margin w3-padding-64">
 					<div class="w3-main" data-value="{ $unitType }" id="result" />
-					<script src="resources/js/UnitList.js" type="application/javascript" />
+					<script src="{ $config:appUrl }/resources/js/UnitList.js" type="application/javascript" />
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/w3.js" type="text/javascript" />
-				<script src="resources/js/titles.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -380,7 +380,7 @@ declare function list:artthemes($request as map(*)) {
 				</div>
 			</div>
 			{ nav:footerNew() }
-			<script src="resources/js/w3.js" type="text/javascript" />
+			<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
 		</body>
 	</html>
 };
@@ -835,14 +835,14 @@ then in apprest:listrest() all these need to be taken into account for the query
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="resources/js/w3.js" type="text/javascript" />
-					<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
-					<script src="resources/js/printgroupbutton.js" type="text/javascript" />
-					<script src="resources/js/printgroup.js" type="text/javascript" />
-					<script src="resources/js/toogle.js" type="text/javascript" />
-					<script src="resources/js/titles.js" type="text/javascript" />
-					<script src="resources/js/clavisid.js" type="text/javascript" />
-					<script src="resources/js/lookup.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/printgroupbutton.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/printgroup.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/toogle.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/clavisid.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1240,19 +1240,19 @@ declare function list:getplacelist($request as map(*)) {
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/vendor/mapbox/mapbox.js"
+						src="{ $config:appUrl }/resources/js/vendor/mapbox/mapbox.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-search/leaflet-search.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-search/leaflet-search.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 						type="text/javascript" />
 				</head>
 				<body id="body">
@@ -1273,7 +1273,7 @@ declare function list:getplacelist($request as map(*)) {
 									width="100%" />
 								<div id="entitymap" style="width: 100%; height: 400px; margin-top:100px" />
 								<script>{ 'var placeid = "' || $place || '"' }</script>
-								<script src="resources/geo/geojsonentitymap.js" type="text/javascript" />
+								<script src="{ $config:appUrl }/resources/geo/geojsonentitymap.js" type="text/javascript" />
 							</div>
 							{ apprest:EntityRelsTable($file, "places") }
 						</div>
@@ -1378,15 +1378,15 @@ declare function list:getplacelist($request as map(*)) {
 						</div>
 					</div>
 					{ nav:footerNew() }
-					<script src="resources/js/w3.js" type="text/javascript" />
-					<script src="resources/js/introText.js" type="application/javascript" />
-					<script src="resources/js/printgroupbutton.js" type="text/javascript" />
-					<script src="resources/js/printgroup.js" type="text/javascript" />
-					<script src="resources/js/toogle.js" type="text/javascript" />
-					<script src="resources/js/titles.js" type="text/javascript" />
-					<script src="resources/js/clavisid.js" type="text/javascript" />
-					<script src="resources/js/lookup.js" type="text/javascript" />
-					<script src="resources/js/allattestations.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/introText.js" type="application/javascript" />
+					<script src="{ $config:appUrl }/resources/js/printgroupbutton.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/printgroup.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/toogle.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/clavisid.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/allattestations.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1713,7 +1713,7 @@ declare function list:getcataloguelist($request as map(*)) {
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="resources/js/w3.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1859,7 +1859,7 @@ declare function list:getcataloguelistChart($request as map(*)) {
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="resources/js/w3.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (

@@ -184,7 +184,7 @@ DTSannoCollectionLink">
 		<div class="w3-col w3-hide " id="indexNav" style="width:15%">
 			<div class="w3-bar w3-gray" id="indexnavigation" />
 			<div class="w3-bar-block" id="indexitems" />
-			<script src="resources/js/dtsAnno.js" type="text/javascript" />
+			<script src="{ $config:appUrl }/resources/js/dtsAnno.js" type="text/javascript" />
 		</div>
 		<div class="w3-col" id="refslist" style="width:10%">
 			{

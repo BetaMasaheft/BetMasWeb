@@ -69,9 +69,9 @@ declare function collatex:collateSelected($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="resources/js/analytics.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/analytics.js" type="text/javascript" />
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ $collatex:meta }
 				<meta
@@ -185,15 +185,15 @@ declare function collatex:collateSelected($request as map(*)) {
 									onclick="javascript:introJs().addHints();"
 								>hints</a>
 							</div>
-							<img id="loading" src="resources/Loading.gif" style="display: none;" />
+							<img id="loading" src="{ $config:appUrl }/resources/Loading.gif" style="display: none;" />
 							<div class="w3-container" id="collationResult" />
-							<script src="resources/js/collatex.js" type="application/javascript" />
+							<script src="{ $config:appUrl }/resources/js/collatex.js" type="application/javascript" />
 						</div>
 					</div>
 					<div />
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 			</body>
 		</html>
 	)

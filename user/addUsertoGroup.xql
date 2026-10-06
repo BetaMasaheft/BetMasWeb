@@ -59,9 +59,9 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 					console:log("message not sent to editor"),
 				<html>
 					<head>
-						<link href="resources/images/favicon.ico" rel="shortcut icon" />
+						<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-						<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+						<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 						<link
 							href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 							rel="stylesheet"
@@ -103,9 +103,9 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 					console:log("message not sent to editor"),
 				<html>
 					<head>
-						<link href="resources/images/favicon.ico" rel="shortcut icon" />
+						<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-						<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+						<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 						<link
 							href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 							rel="stylesheet"
@@ -125,9 +125,9 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 	} catch * {
 		<html>
 			<head>
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<link
 					href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 					rel="stylesheet"
@@ -142,9 +142,9 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 else (
 	<html>
 		<head>
-			<link href="resources/images/favicon.ico" rel="shortcut icon" />
+			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link
 				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
 				rel="stylesheet"

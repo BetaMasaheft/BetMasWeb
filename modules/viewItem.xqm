@@ -302,7 +302,9 @@ declare %private function viewItem:gallery($item) {
 								"});"
 							return (
 								<p class="w3-panel w3-red">
-									<a href="{ $manifest }" target="_blank"><img src="/resources/images/iiif.png" width="20px" /></a>
+									<a href="{ $manifest }" target="_blank">
+										<img src="{ $config:appUrl }/resources/images/iiif.png" width="20px" />
+									</a>
 								</p>,
 								<div id="{ $openseadragonjsid }" />,
 								<script type="text/javascript">{ $openseadragonjs }</script>
@@ -408,7 +410,9 @@ declare function viewItem:matchingFacs($locus) {
                         });"
 					return (
 						<p class="w3-panel w3-red">
-							<a href="{ $manifest }" target="_blank"><img src="/resources/images/iiif.png" width="20px" /></a>
+							<a href="{ $manifest }" target="_blank">
+								<img src="{ $config:appUrl }/resources/images/iiif.png" width="20px" />
+							</a>
 							<a href="{ $mirador }" target="_blank">Open with Mirador Viewer</a>
 						</p>,
 						<div id="{ $openseadragonjsid }" />,
@@ -4856,7 +4860,7 @@ declare function viewItem:placeRoot($node as node(), $model as map(*)) {
 
 declare function viewItem:placeFigureScript($node as node(), $model as map(*)) {
 	if ($model("item")//t:figure) then
-		<script src="resources/js/external/openseadragon/openseadragon.min.js" type="text/javascript" />
+		<script src="{ $config:appUrl }/resources/js/external/openseadragon/openseadragon.min.js" type="text/javascript" />
 	else (
 	)
 };
@@ -5118,7 +5122,7 @@ declare function viewItem:manuscriptDescription($node as node(), $model as map(*
 		</div>
 		{ viewItem:relsinfoblock($rels, $id) }
 		<div class="w3-container" id="generalphysical">{ viewItem:TEI2HTML($item//t:msDesc) }</div>
-		<img id="loadingRole" src="resources/Loading.gif" style="display: none;" />
+		<img id="loadingRole" src="{ $config:appUrl }/resources/Loading.gif" style="display: none;" />
 		<div id="roleAttestations" />
 	</div>
 };
@@ -5543,8 +5547,8 @@ return :)
 				</div>
 			</div>
 		</div>
-		<script src="resources/js/pelagios.js" type="text/javascript" />
-		<img src="resources/Loading.gif" style="display: none;" />
+		<script src="{ $config:appUrl }/resources/js/pelagios.js" type="text/javascript" />
+		<img src="{ $config:appUrl }/resources/Loading.gif" style="display: none;" />
 		<div class="w3-container" id="versions" />
 		{
 			if ($frag//t:pb[@facs]) then (
@@ -5552,7 +5556,7 @@ return :)
 				<script type="text/javascript">
 					{ "var data = [{collectionUri: " || concat("/api/iiif/witnesses/", $frag//ancestor::t:TEI/@xml:id) || "}]" }
 				</script>,
-				<script src="resources/js/editionmirador.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/editionmirador.js" type="text/javascript" />
 			) else (
 			)
 		}
