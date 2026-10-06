@@ -6,11 +6,10 @@
 	"comments": {
 		"dependencies": "Frontend vendor libraries served to the browser. The build.xml Ant target copies these from node_modules into resources/{js,css,fonts}/external (scripts/copy-vendor-libs.js) - split by file type so a stylesheet's relative url()s to its own images/fonts still resolve; fontawesome's webfonts are the one exception, pulled into resources/fonts/external with a rewritten url() since nothing else needed its own css-adjacent font folder.",
 		"font-awesome": "Consolidated onto @fortawesome/fontawesome-free@7.3.1 everywhere (previously split 4.7.0/5.7.2). All icon markup was rewritten to explicit fas/far classes and current icon names (see shims.yml-derived mapping in the PR) - no v4-shims.css dependency.",
-		"d3": "Two d3 majors are both in use: d3@5.16.0 (d3.v5) backs items/permanentItems; d3-v3 is an npm alias for d3@3.5.17 (d3.v3), used only by templates/sparql.html. Both kept, pinned, to preserve current per-page behavior.",
+		"d3": "Single d3, pinned to 3.5.17 (the last 3.x). Everything that uses d3 here targets the v3 API: d3sparql.js (vendored, third-party), d3sparqlsettings*.js (d3.layout.force, d3.xhr, d3.scale.ordinal) and templates/sparql.html. items/permanentItems used to load d3 v5 with the same code, which has none of those APIs (removed in v4). Moving to d3 7 means rewriting d3sparql.js and the settings scripts.",
 		"jquery": "jQuery 3.7.1 -> 4.0.0 (+ jquery-migrate 3.6.0 -> 4.0.2). Removed APIs used by first-party code ($.trim, .bind, $(window).load) were replaced with native/.on equivalents; jquery-migrate 4 stays loaded as a safety net for the vendored plugins (jQuery UI 1.13, DataTables 1.13, slick-carousel, virtual-keyboard) - check the browser console for migrate warnings. Bootstrap is deliberately still 3.4.1 (last 3.x): 5.x needs a template-wide markup migration. datatables.net/-bs were bumped 1.10.9 -> 1.13.11 earlier to close a high-severity prototype-pollution/XSS advisory.",
 		"leaflet": "Leaflet 0.7.7 -> 1.9.4 and leaflet-search 2.3.3 -> 4.0.0. The vendored mapbox.js 2.3.0 (a Leaflet 0.7 bundle) and its mapbox.css are removed: the app only ever used plain Leaflet APIs (L.map, L.tileLayer pointed at the Mapbox styles API, L.geoJSON, L.control) and never L.mapbox.*. The local leaflet/leaflet-search/leaflet.fullscreen CSS copies are replaced by the vendored package CSS.",
-		"cdn": "Everything loaded from a CDN has been vendored through npm (bootstrap-slider, vis-timeline, vis-network, alpheios CSS). The only remaining external load is Google Charts (gstatic loader.js), which fetches further scripts at runtime and can't be vendored as a single file. .npmrc sets legacy-peer-deps because vis-network@7.10.2 (vis-data ^6) and vis-timeline@8 (vis-data >=8) peer ranges conflict, while we only ship their self-contained prebuilt bundles.",
-		"d3-color-audit": "npm audit still flags a d3-color ReDoS (GHSA-36jr-mh4h-2g58) transitively via d3@5.16.0. Deliberately NOT using an npm override to silence it: we vendor d3's prebuilt dist/d3.min.js as-is (see copy-vendor-libs.js), which bundles its own copy of d3-color at publish time and ignores whatever version node_modules/d3-color resolves to - an override only fixes what `npm audit` reports, not the actual bytes we ship. d3 never back-patched this into a 5.x release, so the real fix needs the d3 6/7 major jump, out of scope for this pass."
+		"cdn": "Everything loaded from a CDN has been vendored through npm (bootstrap-slider, vis-timeline, vis-network, alpheios CSS). The only remaining external load is Google Charts (gstatic loader.js), which fetches further scripts at runtime and can't be vendored as a single file. .npmrc sets legacy-peer-deps because vis-network@7.10.2 (vis-data ^6) and vis-timeline@8 (vis-data >=8) peer ranges conflict, while we only ship their self-contained prebuilt bundles."
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "7.3.1",
@@ -20,8 +19,7 @@
 		"bootstrap-slider": "11.0.2",
 		"colorbrewer": "1.7.0",
 		"cookie-bar": "1.10.3",
-		"d3": "5.16.0",
-		"d3-v3": "npm:d3@3.5.17",
+		"d3": "3.5.17",
 		"datatables.net": "1.13.11",
 		"datatables.net-bs": "1.13.11",
 		"intro.js": "8.6.0",

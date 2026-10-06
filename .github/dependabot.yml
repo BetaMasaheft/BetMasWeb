@@ -43,10 +43,8 @@ updates:
       # bootstrap 3 -> 5 needs a template-wide markup migration
       - dependency-name: "bootstrap"
         update-types: ["version-update:semver-major"]
-      # d3 5 and the d3-v3 alias are both kept on purpose
+      # all d3 code targets the v3 API (d3sparql.js and friends)
       - dependency-name: "d3"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "d3-v3"
         update-types: ["version-update:semver-major"]
       - dependency-name: "datatables.net"
         update-types: ["version-update:semver-major"]

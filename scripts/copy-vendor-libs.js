@@ -154,8 +154,7 @@ const MANIFEST = {
 			["lang", "lang"],
 		],
 	],
-	d3: ["d3", [["dist/d3.min.js", "d3.min.js"]]],
-	"d3-v3": ["d3-v3", [["d3.min.js", "d3.min.js"]]],
+	d3: ["d3", [["d3.min.js", "d3.min.js"]]],
 	"intro.js": [
 		"intro.js",
 		[
