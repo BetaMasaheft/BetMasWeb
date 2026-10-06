@@ -1,7 +1,7 @@
 // add test as templating page in the app and load this file there as well for testing with working call to api
 //all sparqlresult property paths are to be updated to deal with the json returned from the query
 
-$(document).on("ready", function () {
+$(function () {
 	var id = $("#SdCTable").data("id");
 	var extent = $("#SdCTable").data("extent");
 	var manifest = $("#SdCTable").data("images");

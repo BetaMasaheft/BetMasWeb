@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	$("#VIAF").on("change paste keyup", function () {
 		var collection = $("#VIAF").data("value");
 		var searchterm = $("#VIAF").val();

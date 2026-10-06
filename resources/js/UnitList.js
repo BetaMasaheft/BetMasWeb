@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var type = $("#result").data("value");
 	var apicall = appBase + "/api/SPARQL/SdCunits/" + type;
 	$.getJSON(apicall, function (data) {

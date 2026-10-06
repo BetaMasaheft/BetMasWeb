@@ -24,7 +24,7 @@ $("[id^='AttestedInType']").on("change", function () {
  * A single match also arrives as a bare object rather than a one-element
  * array; listItems() (resources/js/listResponse.js) reconciles both cases.
  */
-$(document).on("ready", function () {
+$(function () {
 	$("#GoTo").on("change paste", function () {
 		/*$( document ).ajaxStop(function() {
   $( "#loading" ).hide();

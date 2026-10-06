@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var id = $("#Chojnacki").data("id");
 	var restcall = appBase + "/api/Chojnacki/" + id;
 	$.getJSON(restcall, function (data) {

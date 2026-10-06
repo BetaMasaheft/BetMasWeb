@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var url = $("#search");
 	var jsonlisturl = $("#jsonlist");
 	var baseurl = url.attr("href");

@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var input = $("#hypothesisFeedResults").data("value");
 	var url = "https://hypothes.is/api/search?tag=BetMas:" + input + "&limit=200";
 	//console.log(url)

@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	$.getJSON(appBase + "/api/academics", function (data) {
 		var acs = $("#academicscards");
 		var length = data.length;

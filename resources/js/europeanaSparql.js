@@ -10,7 +10,7 @@ function makeSPARQLQuery(endpointUrl, sparqlQuery, doneCallback) {
 	return $.ajax(endpointUrl, settings).then(doneCallback);
 }
 
-$(document).on("ready", function () {
+$(function () {
 	var Europeana = $("#EuropeanaMatches");
 	$(Europeana)
 		.children("div")

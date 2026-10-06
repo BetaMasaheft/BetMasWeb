@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	$("#optionsList").append('<button class="w3-button w3-gray printgroup">PDF</button>');
 	var checkBoxes = $("input.pdf");
 	checkBoxes.change();
