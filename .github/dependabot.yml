@@ -47,7 +47,6 @@ updates:
       - dependency-name: "d3-v3"
       - dependency-name: "datatables.net"
       - dependency-name: "datatables.net-bs"
-      - dependency-name: "fuse.js"
       - dependency-name: "intro.js"
       - dependency-name: "jquery"
       - dependency-name: "jquery-migrate"
