@@ -37,7 +37,7 @@
 		"virtual-keyboard": "1.26.22"
 	},
 	"devDependencies": {
-		"cypress": "^16.1.0",
+		"cypress": "^16.1.1",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.6.0",
 		"prettier": "^3.9.9",
