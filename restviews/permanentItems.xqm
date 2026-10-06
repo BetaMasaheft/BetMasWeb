@@ -203,7 +203,7 @@ declare function PermRestItem:ITEM(
 				}
 				{
 					if ($type = "graph") then (
-						<script src="resources/js/external/d3/d3.min.js" />,
+						<script src="{ $config:appUrl }/resources/js/external/d3/d3.min.js" />,
 						<script src="resources/js/vendor/d3sparql/d3sparql.js" />
 					) else (
 					)

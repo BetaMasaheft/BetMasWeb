@@ -4856,7 +4856,7 @@ declare function viewItem:placeRoot($node as node(), $model as map(*)) {
 
 declare function viewItem:placeFigureScript($node as node(), $model as map(*)) {
 	if ($model("item")//t:figure) then
-		<script src="resources/js/external/openseadragon/openseadragon.min.js" type="text/javascript" />
+		<script src="{ $config:appUrl }/resources/js/external/openseadragon/openseadragon.min.js" type="text/javascript" />
 	else (
 	)
 };

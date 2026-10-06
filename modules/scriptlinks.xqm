@@ -108,18 +108,21 @@ declare function scriptlinks:scriptStyle() {
 		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
 		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
 		<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" type="text/css" />,
-		<link href="resources/css/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
+		<link
+			href="{ $config:appUrl }/resources/css/external/virtual-keyboard/keyboard-basic.min.css"
+			rel="stylesheet"
+			type="text/css" />,
 		(: introjs :)
-		<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
+		<link href="{ $config:appUrl }/resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
-		<link href="resources/css/external/alpheios/style-components.min.css" rel="stylesheet" />,
+		<link href="{ $config:appUrl }/resources/css/external/alpheios/style-components.min.css" rel="stylesheet" />,
 		(: d3 :)
 		<link href="{ $config:appUrl }/resources/css/d3.css" rel="stylesheet" type="text/css" />,
 		<link href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
 		(: w3 :)
 		<link href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
-		<script src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+		<script src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 	)
 };
 
@@ -136,12 +139,12 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/virtual-keyboard/keyboard-basic.min.css"
+			href="{ $config:appUrl }/resources/css/external/virtual-keyboard/keyboard-basic.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/intro.js/introjs.min.css"
+			href="{ $config:appUrl }/resources/css/external/intro.js/introjs.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
@@ -151,22 +154,22 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/jquery-ui/jquery-ui.min.css"
+			href="{ $config:appUrl }/resources/css/external/jquery-ui/jquery-ui.min.css"
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/bootstrap-slider/bootstrap-slider.min.css"
+			href="{ $config:appUrl }/resources/css/external/bootstrap-slider/bootstrap-slider.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/alpheios/style-components.min.css"
+			href="{ $config:appUrl }/resources/css/external/alpheios/style-components.min.css"
 			rel="stylesheet" />,
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
 		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/jquery/jquery.min.js"
+			src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -175,11 +178,11 @@ declare function scriptlinks:listScriptStyle() {
 		(: bootstrap-slider before jQuery UI: it warns when $.fn.slider is already taken by UI's slider :)
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
+			src="{ $config:appUrl }/resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/jquery-ui/jquery-ui.min.js"
+			src="{ $config:appUrl }/resources/js/external/jquery-ui/jquery-ui.min.js"
 			type="text/javascript" />
 	)
 };
@@ -205,30 +208,33 @@ declare function scriptlinks:ItemScriptStyle() {
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="resources/css/external/vis-timeline/vis-timeline-graph2d.min.css"
+		href="{ $config:appUrl }/resources/css/external/vis-timeline/vis-timeline-graph2d.min.css"
 		rel="stylesheet"
 		type="text/css" />,
-	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/external/leaflet/leaflet.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+		src="{ $config:appUrl }/resources/js/external/leaflet/leaflet.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
+		src="{ $config:appUrl }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+		type="text/javascript" />,
+	<script
+		xmlns="http://www.w3.org/1999/xhtml"
+		src="{ $config:appUrl }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 		type="text/javascript" />,
 	<script xmlns="http://www.w3.org/1999/xhtml" src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/openseadragon/openseadragon.min.js"
+		src="{ $config:appUrl }/resources/js/external/openseadragon/openseadragon.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/vis-timeline/vis-timeline-graph2d.min.js"
+		src="{ $config:appUrl }/resources/js/external/vis-timeline/vis-timeline-graph2d.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/vis-network/vis-network.peer.min.js"
+		src="{ $config:appUrl }/resources/js/external/vis-network/vis-network.peer.min.js"
 		type="text/javascript" />
 };
 
@@ -239,20 +245,24 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="resources/js/explain.js" type="text/javascript" />,
 	<script src="resources/js/dateConversions.js" type="text/javascript" />,
 	<script src="resources/js/w3.js" type="application/javascript" />,
-	<script src="resources/js/external/bootstrap-slider/bootstrap-slider.min.js" type="text/javascript" />,
-	<script src="resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
-	<script src="resources/js/external/virtual-keyboard/jquery.keyboard.js" type="text/javascript" />,
-	<script src="resources/js/external/virtual-keyboard/jquery.mousewheel.min.js" type="text/javascript" />,
 	<script
-		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-typing.min.js"
+		src="{ $config:appUrl }/resources/js/external/bootstrap-slider/bootstrap-slider.min.js"
+		type="text/javascript" />,
+	<script src="{ $config:appUrl }/resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
+	<script src="{ $config:appUrl }/resources/js/external/virtual-keyboard/jquery.keyboard.js" type="text/javascript" />,
+	<script
+		src="{ $config:appUrl }/resources/js/external/virtual-keyboard/jquery.mousewheel.min.js"
 		type="text/javascript" />,
 	<script
-		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
+		src="{ $config:appUrl }/resources/js/external/virtual-keyboard/jquery.keyboard.extension-typing.min.js"
+		type="text/javascript" />,
+	<script
+		src="{ $config:appUrl }/resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
 		type="text/javascript" />,
 	<script src="resources/js/diacriticskeyboard.js" type="text/javascript" />,
 	<script src="resources/js/analytics.js" type="text/javascript" />,
 	<script src="resources/js/listResponse.js" type="text/javascript" />,
-	<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />,
+	<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />,
 	<script src="resources/alpheios/alpheiosStart.js" type="text/javascript" />,
 	<script src="resources/js/introText.js" type="application/javascript" />,
 	<script src="resources/js/versions.js" type="text/javascript" />,

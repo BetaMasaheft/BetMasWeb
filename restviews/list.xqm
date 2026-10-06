@@ -836,7 +836,7 @@ then in apprest:listrest() all these need to be taken into account for the query
 					</div>
 					{ nav:footerNew() }
 					<script src="resources/js/w3.js" type="text/javascript" />
-					<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+					<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 					<script src="resources/js/printgroupbutton.js" type="text/javascript" />
 					<script src="resources/js/printgroup.js" type="text/javascript" />
 					<script src="resources/js/toogle.js" type="text/javascript" />
@@ -1238,19 +1238,19 @@ declare function list:getplacelist($request as map(*)) {
 					{ scriptlinks:listScriptStyle() }
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet/leaflet.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet/leaflet.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-search/leaflet-search.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-search/leaflet-search.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
+						src="{ $config:appUrl }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 						type="text/javascript" />
 				</head>
 				<body id="body">

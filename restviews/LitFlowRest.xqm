@@ -10,6 +10,7 @@ module namespace LitFlowRest = "https://www.betamasaheft.uni-hamburg.de/BetMasWe
 
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace scriptlinks = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/scriptlinks" at "xmldb:exist:///db/apps/BetMasWeb/modules/scriptlinks.xqm";
 import module namespace nav = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/nav" at "xmldb:exist:///db/apps/BetMasWeb/modules/nav.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
@@ -53,8 +54,14 @@ declare function LitFlowRest:compareSelected($request as map(*)) {
 					xmlns="http://www.w3.org/1999/xhtml"
 					content="Akademie der Wissenschaften in Hamburg, Hiob-Ludolf-Zentrum für Äthiopistik"
 					property="dcterms:publisher schema:publisher" />
-				<link href="resources/css/external/slick-carousel/slick.css" rel="stylesheet" type="text/css" />
-				<link href="resources/css/external/slick-carousel/slick-theme.css" rel="stylesheet" type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick.css"
+					rel="stylesheet"
+					type="text/css" />
+				<link
+					href="{ $config:appUrl }/resources/css/external/slick-carousel/slick-theme.css"
+					rel="stylesheet"
+					type="text/css" />
 				{ scriptlinks:scriptStyle() }
 				<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />
 			</head>
@@ -107,8 +114,8 @@ declare function LitFlowRest:compareSelected($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
-				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 				<script src="resources/js/titles.js" type="text/javascript" />
 				<script src="resources/js/slickoptions.js" type="text/javascript" />
 				<script src="resources/js/coloronhover.js" type="application/javascript" />

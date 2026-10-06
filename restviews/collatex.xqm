@@ -193,7 +193,7 @@ declare function collatex:collateSelected($request as map(*)) {
 					<div />
 				</div>
 				{ nav:footerNew() }
-				<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+				<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
 			</body>
 		</html>
 	)

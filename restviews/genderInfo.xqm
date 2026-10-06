@@ -599,7 +599,7 @@ declare function genderInfo:graph($request as map(*)) {
 				{ scriptlinks:scriptStyle() }
 				<script
 					xmlns="http://www.w3.org/1999/xhtml"
-					src="resources/js/external/vis-network/vis-network.min.js"
+					src="{ $config:appUrl }/resources/js/external/vis-network/vis-network.min.js"
 					type="text/javascript" />
 			</head>
 			<body id="body">
