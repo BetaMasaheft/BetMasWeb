@@ -148,7 +148,7 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+			href="resources/css/external/bootstrap/bootstrap.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
@@ -172,7 +172,7 @@ declare function scriptlinks:listScriptStyle() {
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js"
+			src="resources/js/external/bootstrap/bootstrap.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"

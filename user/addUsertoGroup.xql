@@ -62,11 +62,8 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 						<link href="resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 						<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-						<link
-							href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
-							rel="stylesheet"
-							type="text/css" />
-						<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+						<link href="../resources/css/external/bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css" />
+						<script src="../resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 						<title>Account data update confirmation</title>
 					</head>
 					<body>
@@ -106,11 +103,8 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 						<link href="resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 						<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-						<link
-							href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
-							rel="stylesheet"
-							type="text/css" />
-						<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+						<link href="../resources/css/external/bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css" />
+						<script src="../resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 						<title>Not Authenticated</title>
 					</head>
 					<body>
@@ -128,11 +122,8 @@ if (sm:is-authenticated() and sm:is-dba(sm:id()//sm:real/sm:username/string())) 
 				<link href="resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-				<link
-					href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
-					rel="stylesheet"
-					type="text/css" />
-				<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+				<link href="../resources/css/external/bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css" />
+				<script src="../resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 				<title>Not Authenticated</title>
 			</head>
 			<body><div id="confirmation"><p class="lead">Sorry, { concat($err:code, ": ", $err:description) }</p></div></body>
@@ -145,11 +136,8 @@ else (
 			<link href="resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			<link href="resources/images/minilogo.ico" rel="shortcut icon" />
-			<link
-				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
-				rel="stylesheet"
-				type="text/css" />
-			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+			<link href="../resources/css/external/bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css" />
+			<script src="../resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>Not Authenticated</title>
 		</head>
 		<body>
