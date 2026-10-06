@@ -78,25 +78,25 @@ let $Newid := $idResult?body?id
 return if ($idResult?status = 409) then (
 	<html>
 		<head>
-			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
+			<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link
-				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+				href="{ config:appBase() }/resources/css/external/bootstrap/bootstrap.min.css"
 				rel="stylesheet"
 				type="text/css" />
-			<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
-			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<link href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+			<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />
+			<script xmlns="" src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script
 				xmlns=""
-				src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+				src="{ config:appBase() }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
 				type="text/javascript" />
 			<script
 				xmlns=""
-				src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+				src="{ config:appBase() }/resources/js/external/slick-carousel/slick.min.js"
 				type="text/javascript" />
-			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+			<script src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>This id already exists!</title>
 		</head>
 		<body>
@@ -118,25 +118,25 @@ return if ($idResult?status = 409) then (
 ) else if ($idResult?status != 201) then (
 	<html>
 		<head>
-			<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
+			<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<link
-				href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+				href="{ config:appBase() }/resources/css/external/bootstrap/bootstrap.min.css"
 				rel="stylesheet"
 				type="text/css" />
-			<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
-			<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-			<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+			<link href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+			<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />
+			<script xmlns="" src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 			<script
 				xmlns=""
-				src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+				src="{ config:appBase() }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
 				type="text/javascript" />
 			<script
 				xmlns=""
-				src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+				src="{ config:appBase() }/resources/js/external/slick-carousel/slick.min.js"
 				type="text/javascript" />
-			<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+			<script src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 			<title>Save Confirmation</title>
 		</head>
 		<body>
@@ -528,25 +528,25 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 		let $setpermissions := sm:chmod(xs:anyURI($data-collection || "/" || $file), "rwxrwxr-x")
 		return <html>
 			<head>
-				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<link
-					href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+					href="{ config:appBase() }/resources/css/external/bootstrap/bootstrap.min.css"
 					rel="stylesheet"
 					type="text/css" />
-				<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
-				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<link href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+				<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />
+				<script xmlns="" src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 				<script
 					xmlns=""
-					src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+					src="{ config:appBase() }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
 					type="text/javascript" />
 				<script
 					xmlns=""
-					src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+					src="{ config:appBase() }/resources/js/external/slick-carousel/slick.min.js"
 					type="text/javascript" />
-				<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>
 			</head>
 			<body>
@@ -568,31 +568,31 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 						<a href="{ $config:appUrl }/newentry.html?collection={ $collection }">create another entry</a>
 					</div>
 				</div>
-				<script src="{ $config:appUrl }/resources/js/confirmonleave.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/confirmonleave.js" type="text/javascript" />
 			</body>
 		</html>
 	} catch * {
 		<html>
 			<head>
-				<link href="{ $config:appUrl }/resources/images/favicon.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<link
-					href="{ $config:appUrl }/resources/css/external/bootstrap/bootstrap.min.css"
+					href="{ config:appBase() }/resources/css/external/bootstrap/bootstrap.min.css"
 					rel="stylesheet"
 					type="text/css" />
-				<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
-				<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />
-				<script xmlns="" src="{ $config:appUrl }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+				<link href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" />
+				<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />
+				<script xmlns="" src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 				<script
 					xmlns=""
-					src="{ $config:appUrl }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
+					src="{ config:appBase() }/resources/js/external/jquery-migrate/jquery-migrate.min.js"
 					type="text/javascript" />
 				<script
 					xmlns=""
-					src="{ $config:appUrl }/resources/js/external/slick-carousel/slick.min.js"
+					src="{ config:appBase() }/resources/js/external/slick-carousel/slick.min.js"
 					type="text/javascript" />
-				<script src="{ $config:appUrl }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js" type="text/javascript" />
 				<title>Save Confirmation</title>
 			</head>
 			<body>

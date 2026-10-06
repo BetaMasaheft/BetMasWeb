@@ -217,8 +217,8 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 					}
 					{
 						if ($type = "graph") then (
-							<script src="{ $config:appUrl }/resources/js/external/d3/d3.min.js" />,
-							<script src="{ $config:appUrl }/resources/js/vendor/d3sparql/d3sparql.js" />
+							<script src="{ config:appBase() }/resources/js/external/d3/d3.min.js" />,
+							<script src="{ config:appBase() }/resources/js/vendor/d3sparql/d3sparql.js" />
 						) else (
 						)
 					}
@@ -238,10 +238,10 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
 								}
 							</style>,
 							<link
-								href="{ $config:appUrl }/resources/mirador/css/mirador-combined.css"
+								href="{ config:appBase() }/resources/mirador/css/mirador-combined.css"
 								rel="stylesheet"
 								type="text/css" />,
-							<script src="{ $config:appUrl }/resources/mirador/mirador.js" />
+							<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 						) else (
 						)
 					}
@@ -301,7 +301,7 @@ declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edi
    data-path="{restItem:capitalize-first(substring-after(base-uri($this), '/db/apps/expanded/'))}" 
    data-id="{$id}" data-type="{restItem:capitalize-first($collection)}"><a class="w3-btn w3-gray" id="LoadPermanentIDs{$id}">Permalinks</a></div>
    
-   <script  type="text/javascript" src="{ $config:appUrl }/resources/js/permanentID.js"></script>
+   <script  type="text/javascript" src="{ config:appBase() }/resources/js/permanentID.js"></script>
    </div>
    <div class="w3-third">
      <div class="w3-container w3-margin w3-gray w3-card-4"><b>Hypothes.is public annotations pointing here</b>
@@ -401,7 +401,7 @@ declare function restItem:mainContentAnalytic($this as element(), $collection as
                     <button id="clusterByHubsize" class="w3-button w3-gray">Cluster by hubsize</button>
                 </div>
                 <div id="BetMasRelView" class="w3-container" data-value="{$id}"/>
-                <script type="text/javascript"src="{ $config:appUrl }/resources/js/visgraphspec.js"/>
+                <script type="text/javascript"src="{ config:appBase() }/resources/js/visgraphspec.js"/>
             </div> -->
 			<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
 		</div>
@@ -599,7 +599,7 @@ declare function restItem:mainContentDefault($this as element(), $id as xs:strin
 
    </div>-->,
 			<script>{ 'var placeid = "' || $id || '"' }</script>,
-			<script src="{ $config:appUrl }/resources/geo/geojsonentitymap.js" type="text/javascript" />
+			<script src="{ config:appBase() }/resources/geo/geojsonentitymap.js" type="text/javascript" />
 		) else (
 		),
 		<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,

@@ -2713,10 +2713,10 @@ declare function item2:RestSeeAlso($this, $collection) {
 							else (
 							)
 						}
-						<script src="{ $config:appUrl }/resources/js/pelagios.js" type="text/javascript" />
+						<script src="{ config:appBase() }/resources/js/pelagios.js" type="text/javascript" />
 					</div>
 					<div class="w3-container" data-id="{ $id }" id="Chojnacki" />
-					<script src="{ $config:appUrl }/resources/js/gnisci.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/gnisci.js" type="text/javascript" />
 				</div>
 			else (
 			)
@@ -2744,7 +2744,7 @@ declare function item2:RestSeeAlso($this, $collection) {
 									>Click to see items in Corpus Vitrearum Medii Aevi </a>
 								</li>
 							</ul>
-							<script src="{ $config:appUrl }/resources/js/europeanaSparql.js" type="application/javascript" />
+							<script src="{ config:appBase() }/resources/js/europeanaSparql.js" type="application/javascript" />
 						</div>
 					}
 				</div>
@@ -2908,7 +2908,7 @@ declare function item2:mainContentGraphManuscripts($this as element(), $id as xs
 					</thead>
 					<tbody />
 				</table>
-				<script src="{ $config:appUrl }/resources/js/SdCtable.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/SdCtable.js" type="text/javascript" />
 			</div>
 		</div>
 		<div data-id="{ $id }" id="graph" />
@@ -2936,7 +2936,7 @@ declare function item2:mainContentGraphManuscripts($this as element(), $id as xs
 		<!--  <div class="w3-container">
    <div id="GraphResult"/>
  </div> -->
-		<script src="{ $config:appUrl }/resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
+		<script src="{ config:appBase() }/resources/js/d3sparqlsettingsManuscripts.js" type="text/javascript" />
 	</div>
 };
 
@@ -2985,7 +2985,7 @@ declare function item2:mainContentGraphPersons($id as xs:string*) {
 		<p>Graph view of the SNAP relations between persons.</p>
 		<div class="w3-container" id="AttestationsInWorks" />
 		<p>Annotated attestations in texts (works and manuscripts).</p>
-		<script src="{ $config:appUrl }/resources/js/SNAPGraph.js" type="text/javascript" />
+		<script src="{ config:appBase() }/resources/js/SNAPGraph.js" type="text/javascript" />
 		<div class="w3-container">{ charts:pieAttestations($id, "persName") }</div>
 	</div>
 };
@@ -3040,8 +3040,8 @@ declare function item2:mainContentGraphDefault($id as xs:string*, $collection as
 		<div data-id="{ $id }" data-rdf="/api/RDFJSON/{ $collection }/{ $id }" id="graph" />
 		<div id="mouseovervalue"><p class="w3-large MainTitle" /></div>
 		<div class="w3-container" id="GraphResultNotMS" />
-		<script src="{ $config:appUrl }/resources/js/external/colorbrewer/colorbrewer.js" />
-		<script src="{ $config:appUrl }/resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
+		<script src="{ config:appBase() }/resources/js/external/colorbrewer/colorbrewer.js" />
+		<script src="{ config:appBase() }/resources/js/d3sparqlsettingsITEM.js" type="text/javascript" />
 	</div>
 };
 

@@ -203,8 +203,8 @@ declare function PermRestItem:ITEM(
 				}
 				{
 					if ($type = "graph") then (
-						<script src="{ $config:appUrl }/resources/js/external/d3/d3.min.js" />,
-						<script src="{ $config:appUrl }/resources/js/vendor/d3sparql/d3sparql.js" />
+						<script src="{ config:appBase() }/resources/js/external/d3/d3.min.js" />,
+						<script src="{ config:appBase() }/resources/js/vendor/d3sparql/d3sparql.js" />
 					) else (
 					)
 				}
@@ -224,10 +224,10 @@ declare function PermRestItem:ITEM(
 							}
 						</style>,
 						<link
-							href="{ $config:appUrl }/resources/mirador/css/mirador-combined.css"
+							href="{ config:appBase() }/resources/mirador/css/mirador-combined.css"
 							rel="stylesheet"
 							type="text/css" />,
-						<script src="{ $config:appUrl }/resources/mirador/mirador.js" />
+						<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 					) else (
 					)
 				}
@@ -303,7 +303,7 @@ declare function PermRestItem:ITEM(
 									id="LoadPermanentIDs"
 								>See all permalinks.</a>
 							</div>
-							<script src="{ $config:appUrl }/resources/js/permanentID.js" type="text/javascript" />
+							<script src="{ config:appBase() }/resources/js/permanentID.js" type="text/javascript" />
 						</div>
 						{ item2:authorsSHA($id, $this, $collection, $sha) }
 					</div>
@@ -385,7 +385,7 @@ declare function PermRestItem:mainContentCorpusTemplate($node as node(), $model 
 
 declare function PermRestItem:mainContentAnalytic($this as element(), $id as xs:string*, $collection as xs:string*) {
 	<div class="w3-container">
-		<img id="loading" src="{ $config:appUrl }/resources/Loading.gif" style="display: none;" />
+		<img id="loading" src="{ config:appBase() }/resources/Loading.gif" style="display: none;" />
 		<div class="w3-container">
 			<div class="w3-half w3-padding" id="BetMasRel" style="display: none;">
 				<div class="input-group container">
@@ -393,7 +393,7 @@ declare function PermRestItem:mainContentAnalytic($this as element(), $id as xs:
 					<button class="w3-button w3-gray" id="clusterByHubsize">Cluster by hubsize</button>
 				</div>
 				<div class="w3-container" data-value="{ $id }" id="BetMasRelView" />
-				<script src="{ $config:appUrl }/resources/js/visgraphspec.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/visgraphspec.js" type="text/javascript" />
 			</div>
 			<div class="container w3-half w3-padding">{ item2:EntityRelsTable($this, $collection) }</div>
 		</div>
@@ -562,7 +562,7 @@ declare function PermRestItem:mainContentExtrasInstitutions($id as xs:string*) {
 		</div>,
 		<div id="entitymap" style="width: 100%; height: 400px" />,
 		<script>{ 'var placeid = "' || $id || '"' }</script>,
-		<script src="{ $config:appUrl }/resources/geo/geojsonentitymap.js" type="text/javascript" />
+		<script src="{ config:appBase() }/resources/geo/geojsonentitymap.js" type="text/javascript" />
 	)
 };
 
@@ -621,7 +621,7 @@ declare function PermRestItem:mainContentDefault($this as element(), $id as xs:s
 				</div>
 			</div>,
 			<script>{ 'var placeid = "' || $id || '"' }</script>,
-			<script src="{ $config:appUrl }/resources/geo/geojsonentitymap.js" type="text/javascript" />
+			<script src="{ config:appBase() }/resources/geo/geojsonentitymap.js" type="text/javascript" />
 		) else (
 		),
 		<div class="alpheios-enabled">{ item2:RestItem($this, $collection) }</div>,

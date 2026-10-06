@@ -36,9 +36,9 @@ declare function user:personalPage($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="{ $config:appUrl }/resources/js/analytics.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ scriptlinks:scriptStyle() }
 			</head>

@@ -825,7 +825,7 @@ declare function nav:footerNew() {
 						>
 							<img
 								alt="Akademie der Wissenschaften in Hamburg logo"
-								src="{ $config:appUrl }/resources/images/logo-adw.png"
+								src="{ config:appBase() }/resources/images/logo-adw.png"
 								style="border-width:0"
 								width="100%" />
 						</a>
@@ -837,7 +837,7 @@ declare function nav:footerNew() {
 						>
 							<img
 								alt="Beta maṣāḥǝft Project logo"
-								src="{ $config:appUrl }/resources/images/logo.png"
+								src="{ config:appBase() }/resources/images/logo.png"
 								style="border-width:0"
 								width="100%" />
 						</a>
@@ -857,41 +857,41 @@ declare function nav:footerNew() {
 				<div class="w3-margin">
 					<div class="w3-bar">
 						<a class="w3-bar-item" href="http://www.tei-c.org/">
-							<img alt="We use TEI" src="{ $config:appUrl }/resources/images/We-use-TEI.png" width="100" />
+							<img alt="We use TEI" src="{ config:appBase() }/resources/images/We-use-TEI.png" width="100" />
 						</a>
 						<a class="w3-bar-item" href="https://iiif.io/">
 							<img
 								alt="Providing and resuing images with IIIF presentation API 2.0"
-								src="{ $config:appUrl }/resources/images/iiif.png"
+								src="{ config:appBase() }/resources/images/iiif.png"
 								width="50" />
 						</a>
 						<a class=" w3-bar-item" href="http://exist-db.org">
-							<img alt="Powered by eXist-db" src="{ $config:appUrl }/resources/images/powered-by.svg" width="100" />
+							<img alt="Powered by eXist-db" src="{ config:appBase() }/resources/images/powered-by.svg" width="100" />
 						</a>
 					</div>
 					<div class="w3-bar">
 						<a class="w3-bar-item" href="https://www.zotero.org/groups/358366/ethiostudies/items">
 							<img
 								alt="All bibliography is managed with Zotero."
-								src="{ $config:appUrl }/resources/images/zotero_logo.png"
+								src="{ config:appBase() }/resources/images/zotero_logo.png"
 								width="40" />
 						</a>
 						<a class="w3-bar-item" href="https://github.com/BetaMasaheft">
 							<img
 								alt="Our data is all in GitHub!"
-								src="{ $config:appUrl }/resources/images/GitHub-Mark-120px-plus.png"
+								src="{ config:appBase() }/resources/images/GitHub-Mark-120px-plus.png"
 								width="40" />
 						</a>
 						<a class=" w3-bar-item" href="http://commons.pelagios.org/">
 							<img
 								alt="Proud members of the Linked Pasts Network"
-								src="{ $config:appUrl }/resources/images/Pelagios-logo.png"
+								src="{ config:appBase() }/resources/images/Pelagios-logo.png"
 								width="90" />
 						</a>
 						<a class="w3-bar-item" href="https://iipimage.sourceforge.io/">
 							<img
 								alt="We use the IIP Image Server"
-								src="{ $config:appUrl }/resources/images/iip_logo.png"
+								src="{ config:appBase() }/resources/images/iip_logo.png"
 								width="40" />
 						</a>
 					</div>

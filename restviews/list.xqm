@@ -55,7 +55,7 @@ declare function list:browseMS($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ scriptlinks:scriptStyle() }
 			</head>
@@ -164,8 +164,8 @@ declare function list:browseMS($request as map(*)) {
 					</div>
 				</div>
 				{ nav:footerNew() }
-				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
-				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -191,11 +191,11 @@ declare function list:browseUnits($request as map(*)) {
 				{ nav:modalsNew() }
 				<div class="w3-container w3-margin w3-padding-64">
 					<div class="w3-main" data-value="{ $unitType }" id="result" />
-					<script src="{ $config:appUrl }/resources/js/UnitList.js" type="application/javascript" />
+					<script src="{ config:appBase() }/resources/js/UnitList.js" type="application/javascript" />
 				</div>
 				{ nav:footerNew() }
-				<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
-				<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
+				<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />
 			</body>
 		</html>
 	)
@@ -206,7 +206,7 @@ declare function list:artthemes($request as map(*)) {
 	return <html xmlns="http://www.w3.org/1999/xhtml">
 		<head>
 			<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-			<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+			<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 			<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 			{ $list:app-meta }
 			{ scriptlinks:listScriptStyle() }
@@ -380,7 +380,7 @@ declare function list:artthemes($request as map(*)) {
 				</div>
 			</div>
 			{ nav:footerNew() }
-			<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+			<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
 		</body>
 	</html>
 };
@@ -497,7 +497,7 @@ then in apprest:listrest() all these need to be taken into account for the query
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
 					{ scriptlinks:listScriptStyle() }
@@ -835,14 +835,14 @@ then in apprest:listrest() all these need to be taken into account for the query
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/printgroupbutton.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/printgroup.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/toogle.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/clavisid.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/printgroupbutton.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/printgroup.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/toogle.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/clavisid.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/lookup.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -960,7 +960,7 @@ then in apprest:listrest() all these need to be taken into account for the query
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
 					{ scriptlinks:scriptStyle() }
@@ -1090,7 +1090,7 @@ declare function list:getrepolistchart($request as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
 					{ scriptlinks:scriptStyle() }
@@ -1222,15 +1222,15 @@ declare function list:getplacelist($request as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
-					<link href="{ $config:appUrl }/resources/css/mapbox.css" rel="stylesheet" type="text/css" />
-					<link href="{ $config:appUrl }/resources/css/leaflet.css" rel="stylesheet" type="text/css" />
-					<link href="{ $config:appUrl }/resources/css/leaflet.fullscreen.css" rel="stylesheet" type="text/css" />
+					<link href="{ config:appBase() }/resources/css/mapbox.css" rel="stylesheet" type="text/css" />
+					<link href="{ config:appBase() }/resources/css/leaflet.css" rel="stylesheet" type="text/css" />
+					<link href="{ config:appBase() }/resources/css/leaflet.fullscreen.css" rel="stylesheet" type="text/css" />
 					<link
 						xmlns="http://www.w3.org/1999/xhtml"
-						href="{ $config:appUrl }/resources/css/leaflet-search.css"
+						href="{ config:appBase() }/resources/css/leaflet-search.css"
 						rel="stylesheet"
 						type="text/css" />
 					{ scriptlinks:listScriptStyle() }
@@ -1240,19 +1240,19 @@ declare function list:getplacelist($request as map(*)) {
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="{ $config:appUrl }/resources/js/vendor/mapbox/mapbox.js"
+						src="{ config:appBase() }/resources/js/vendor/mapbox/mapbox.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="{ $config:appUrl }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+						src="{ config:appBase() }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="{ $config:appUrl }/resources/js/external/leaflet-search/leaflet-search.min.js"
+						src="{ config:appBase() }/resources/js/external/leaflet-search/leaflet-search.min.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="{ $config:appUrl }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
+						src="{ config:appBase() }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 						type="text/javascript" />
 				</head>
 				<body id="body">
@@ -1273,7 +1273,7 @@ declare function list:getplacelist($request as map(*)) {
 									width="100%" />
 								<div id="entitymap" style="width: 100%; height: 400px; margin-top:100px" />
 								<script>{ 'var placeid = "' || $place || '"' }</script>
-								<script src="{ $config:appUrl }/resources/geo/geojsonentitymap.js" type="text/javascript" />
+								<script src="{ config:appBase() }/resources/geo/geojsonentitymap.js" type="text/javascript" />
 							</div>
 							{ apprest:EntityRelsTable($file, "places") }
 						</div>
@@ -1378,15 +1378,15 @@ declare function list:getplacelist($request as map(*)) {
 						</div>
 					</div>
 					{ nav:footerNew() }
-					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/introText.js" type="application/javascript" />
-					<script src="{ $config:appUrl }/resources/js/printgroupbutton.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/printgroup.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/toogle.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/titles.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/clavisid.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/lookup.js" type="text/javascript" />
-					<script src="{ $config:appUrl }/resources/js/allattestations.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/introText.js" type="application/javascript" />
+					<script src="{ config:appBase() }/resources/js/printgroupbutton.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/printgroup.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/toogle.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/clavisid.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/lookup.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/allattestations.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1418,7 +1418,7 @@ declare function list:getregionchart($request as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
 					{ scriptlinks:scriptStyle() }
@@ -1498,7 +1498,7 @@ declare function list:getcatalogues($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title property="dcterms:title og:title schema:name">Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-				<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 				{ $list:app-meta }
 				{ scriptlinks:scriptStyle() }
@@ -1642,7 +1642,7 @@ declare function list:getcataloguelist($request as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ scriptlinks:listScriptStyle() }
 				</head>
@@ -1713,7 +1713,7 @@ declare function list:getcataloguelist($request as map(*)) {
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
@@ -1805,7 +1805,7 @@ declare function list:getcataloguelistChart($request as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
 					{ scriptlinks:scriptStyle() }
@@ -1859,7 +1859,7 @@ declare function list:getcataloguelistChart($request as map(*)) {
 						}
 					</div>
 					{ nav:footerNew() }
-					<script src="{ $config:appUrl }/resources/js/w3.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/w3.js" type="text/javascript" />
 				</body>
 			</html>
 		) else (
