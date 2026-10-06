@@ -3454,7 +3454,7 @@ declare function app:searchResMatches($model, $start, $per-page) {
 							)
 							return <div>
 								<div class="w3-twothird w3-padding match">
-									{ kwic:get-summary($match/parent::node(), $match, <config width="40" />) }
+									{ kwic:get-summary($match/parent::node(), $match, <config xmlns="" width="40" />) }
 								</div>
 								<div class="w3-third w3-padding">
 									<a
