@@ -190,17 +190,17 @@ declare function scriptlinks:listScriptStyle() {
 declare function scriptlinks:ItemScriptStyle() {
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="resources/css/external/leaflet/leaflet.css"
+		href="{ $config:appUrl }/resources/css/external/leaflet/leaflet.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
+		href="{ $config:appUrl }/resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="resources/css/external/leaflet-search/leaflet-search.min.css"
+		href="{ $config:appUrl }/resources/css/external/leaflet-search/leaflet-search.min.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
