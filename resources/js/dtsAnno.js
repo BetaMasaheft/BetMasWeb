@@ -5,7 +5,7 @@
 // host.
 function bmApi(u) {
 	var base = typeof BM_APP_URL !== "undefined" ? BM_APP_URL : "";
-	u = $.trim(String(u));
+	u = String(u).trim();
 	// already an absolute URL under our own app base (e.g. an appUrl-built
 	// @id on this same deployment): use it unchanged, do not re-prepend.
 	if (base && u.indexOf(base) === 0) {
@@ -99,7 +99,7 @@ $("body").on("click", ".indexItem", function () {
 	var indexItem = $(this);
 	var indexUrl = indexItem.data("source");
 	var dtsanno = indexItem.data("id");
-	var api = bmApi($.trim(indexUrl)) + "?id=" + $.trim(dtsanno);
+	var api = bmApi(String(indexUrl ?? "").trim()) + "?id=" + String(dtsanno ?? "").trim();
 	/*console.log(api)*/
 	$.getJSON(api, function (d) {
 		var members = d.member;

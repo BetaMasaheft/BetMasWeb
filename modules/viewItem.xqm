@@ -3270,7 +3270,7 @@ declare %private function viewItem:choice($node as element(t:choice)) {
 					{
 						"$('#" ||
 							$id ||
-							"').bind('click', function() {
+							"').on('click', function() {
             $(this).html($(this).html() == '" ||
 							string($corrHTML) ||
 							"' ? '" ||

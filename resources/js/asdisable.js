@@ -18,7 +18,7 @@ $("form :input").each(function () {
 	orig[$(this).attr("id")] = tmp;
 });
 
-$("form").bind("change keyup", function () {
+$("form").on("change keyup", function () {
 	var disable = true;
 	$("form :input").each(function () {
 		var type = $(this).getType();
