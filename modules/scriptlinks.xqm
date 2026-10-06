@@ -190,22 +190,17 @@ declare function scriptlinks:listScriptStyle() {
 declare function scriptlinks:ItemScriptStyle() {
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/mapbox.css"
+		href="resources/css/external/leaflet/leaflet.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet.css"
+		href="resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet.fullscreen.css"
-		rel="stylesheet"
-		type="text/css" />,
-	<link
-		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet-search.css"
+		href="resources/css/external/leaflet-search/leaflet-search.min.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
@@ -214,7 +209,6 @@ declare function scriptlinks:ItemScriptStyle() {
 		rel="stylesheet"
 		type="text/css" />,
 	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/external/leaflet/leaflet.js" type="text/javascript" />,
-	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/vendor/mapbox/mapbox.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
 		src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"

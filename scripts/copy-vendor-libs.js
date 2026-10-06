@@ -14,8 +14,6 @@
 // though, because there's no usable package for them - those live in
 // resources/js/vendor instead, committed directly since nothing can regenerate
 // them:
-//   - mapbox.js (legacy Mapbox.js 2.3.0): npm only publishes unbundled CommonJS
-//     source, not the browser bundle this app actually loads.
 //   - d3sparql.js, leaflet-fusesearch: never published to npm at all.
 //   - yui-min.js (YUI 3.8.1): only reference in the codebase is inside a
 //     commented-out block in collatex.js - looks dead, kept as-is, not managed.
@@ -70,16 +68,7 @@ const MANIFEST = {
 		[
 			["dist/leaflet.js", "leaflet.js"],
 			["dist/leaflet.css", "leaflet.css", "css"],
-		],
-	],
-	// Leaflet 1.x, used by newindex2.html/newpage.html; "leaflet" above stays on 0.7.7 for the
-	// mapbox.js-based item/list pages. leaflet.css finds its images/ through a relative url(), so
-	// the two stay together under css.
-	"leaflet-v1": [
-		"leaflet-v1",
-		[
-			["dist/leaflet.js", "leaflet.js"],
-			["dist/leaflet.css", "leaflet.css", "css"],
+			// leaflet.css reaches its marker/layer images through a relative url()
 			["dist/images", "images", "css"],
 		],
 	],

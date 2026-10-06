@@ -1225,22 +1225,20 @@ declare function list:getplacelist($request as map(*)) {
 					<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
-					<link href="{ $config:appUrl }/resources/css/mapbox.css" rel="stylesheet" type="text/css" />
-					<link href="{ $config:appUrl }/resources/css/leaflet.css" rel="stylesheet" type="text/css" />
-					<link href="{ $config:appUrl }/resources/css/leaflet.fullscreen.css" rel="stylesheet" type="text/css" />
+					<link href="resources/css/external/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
+					<link
+						href="resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
+						rel="stylesheet"
+						type="text/css" />
 					<link
 						xmlns="http://www.w3.org/1999/xhtml"
-						href="{ $config:appUrl }/resources/css/leaflet-search.css"
+						href="resources/css/external/leaflet-search/leaflet-search.min.css"
 						rel="stylesheet"
 						type="text/css" />
 					{ scriptlinks:listScriptStyle() }
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
 						src="resources/js/external/leaflet/leaflet.js"
-						type="text/javascript" />
-					<script
-						xmlns="http://www.w3.org/1999/xhtml"
-						src="resources/js/vendor/mapbox/mapbox.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
