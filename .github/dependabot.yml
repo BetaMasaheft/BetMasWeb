@@ -43,6 +43,11 @@ updates:
       # bootstrap 3 -> 5 needs a template-wide markup migration
       - dependency-name: "bootstrap"
         update-types: ["version-update:semver-major"]
+      # jQuery 4 breaks bootstrap 3 and slick-carousel (see package.json notes)
+      - dependency-name: "jquery"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jquery-migrate"
+        update-types: ["version-update:semver-major"]
       # d3 5 and the d3-v3 alias are both kept on purpose
       - dependency-name: "d3"
         update-types: ["version-update:semver-major"]
