@@ -890,10 +890,59 @@ declare function q:placeSearch($place) {
 		return map {"tei": $TEI, "qs": $place}
 };
 
-declare function q:bmid($q) {
-	let $TEI := $q:col//t:TEI[contains(@xml:id, $q)]
+(:~
+ : The id fragment a search was asked for, as a string, with an absent,
+ : empty or whitespace-only fragment collapsed to the empty string.
+ :
+ : contains() is not a filter until the string it tests against discriminates,
+ : and the empty string does not: contains($x, "") is true for every value and
+ : contains($x, ()) is true for every value too. Both shapes reach this
+ : function - an absent request parameter arrives as an empty sequence via the
+ : dispatcher's xs:string*, a submitted-but-blank field as "". Normalising
+ : them to one comparable value here is what lets callers test for "no
+ : fragment" without repeating the empty-sequence case.
+ :
+ : @param $q the fragment as the caller holds it: a string, or () for absent
+ : @return the trimmed fragment, or "" when there is nothing to search for
+ :)
+declare function q:id-fragment($q) as xs:string {
+	normalize-space(string-join($q, ""))
+};
 
-	return map {"tei": $TEI, "qs": $q}
+(:~
+ : Whether an id fragment is specific enough to search with, i.e. whether
+ : contains(@xml:id, $fragment) can be expected to exclude something.
+ :
+ : @param $fragment the fragment, as returned by q:id-fragment
+ : @return true() when the fragment can discriminate between records
+ :)
+declare function q:usable-id-fragment($fragment as xs:string) as xs:boolean {
+	string-length($fragment) gt 0
+};
+
+(:~
+ : Records whose xml:id contains the given fragment.
+ :
+ : The fragment may be any part of an id, not only a whole one, so this stays
+ : a substring match over the expanded collection rather than an index
+ : lookup. It is a paginated search-result source (q:results, 40 rows a page),
+ : not a typeahead, so the result set is deliberately not capped: a cap here
+ : would hide records the caller can page to. What bounds the work is refusing
+ : a fragment that selects nothing out, which for an empty fragment would mean
+ : every record in the collection.
+ :
+ : @param $q the fragment as the caller holds it: a string, or () for absent
+ : @return the matching t:TEI, empty when the fragment is absent or blank
+ : @see q:id-fragment
+ :)
+declare function q:bmid($q) {
+	let $fragment := q:id-fragment($q)
+	let $TEI := if (q:usable-id-fragment($fragment)) then
+		$q:col//t:TEI[contains(@xml:id, $fragment)]
+	else (
+	)
+
+	return map {"tei": $TEI, "qs": $fragment}
 };
 
 declare function q:linkeddata($q) {
@@ -915,22 +964,71 @@ declare function q:otherclavis($q) {
 	return map {"tei": $allTEI, "qs": $selector}
 };
 
+(:~
+ : A clavis number as the four-digit string it is matched against, or () when
+ : the fragment cannot be one.
+ :
+ : Clavis ids are numeric and zero-padded, so "50" and "0050" must find the
+ : same records. format-number($q, "0000") produced that normalisation and
+ : incidentally blocked non-numeric input, since it raised XPTY0004 rather
+ : than returning anything - but a raised type error is not a guard, it is a
+ : 400, and it also made the caller's own empty check unreachable. Deciding
+ : the shape here keeps both the normalisation and the rejection total.
+ :
+ : @param $q the fragment as the caller holds it: a string, or () for absent
+ : @return the zero-padded clavis number, or () when the fragment is absent,
+ : blank, or not numeric
+ :)
+declare function q:clavis-fragment($q) as xs:string? {
+	let $fragment := q:id-fragment($q)
+	return if ($fragment castable as xs:decimal) then
+		format-number(xs:decimal($fragment), "0000")
+	else (
+	)
+};
+
+(:~
+ : Works and withdrawn records carrying the given clavis number.
+ :
+ : Two indexes have to be combined here: the live works are found by a
+ : substring match on @xml:id in the expanded collection, and the withdrawn
+ : ones by a substring match on the id text in /db/apps/lists/deleted.xml.
+ : That list exists so a clavis number whose record was pulled still answers,
+ : so both kinds of hit are returned, labelled by their "type" key for the
+ : search page to render.
+ :
+ : A fragment that is not a clavis number matches nothing. Returning an empty
+ : result set rather than the unfiltered work list is deliberate: this is an
+ : id search, and answering "every work" to an empty query box is a different
+ : thing, one that should be asked for explicitly. See q:otherclavis, which
+ : takes a clavistype parameter and does implement an explicit browse.
+ :
+ : @param $q the fragment as the caller holds it: a string, or () for absent
+ : @return the hits, each map{"hit": node, "type": "match" | "deleted"},
+ : empty when the fragment is not a clavis number
+ : @see q:clavis-fragment
+ :)
 declare function q:clavis($q) {
-	let $q := format-number($q, "0000")
-	(: not eval-injectable (format-number rejects non-numeric $q) - converted for consistency, see BetMasWeb#3 :)
-	let $deletedClavis :=
-		for $d in doc("/db/apps/lists/deleted.xml")//t:item[contains(., $q)]
+	let $fragment := q:clavis-fragment($q)
+	(:
+	 : both lookups are skipped together: contains() against an empty sequence
+	 : is true for every value, and eXist's index rewrite raises on the empty
+	 : key rather than matching, so an absent fragment must not reach either
+	 :)
+	let $candidates := if (exists($fragment)) then (
+		$q:col//t:TEI[@type = "work"][contains(@xml:id, $fragment)][not(ends-with(@xml:id, "IHA"))],
+		doc("/db/apps/lists/deleted.xml")//t:item[contains(., $fragment)]
+	) else (
+	)
+	let $withdrawn :=
+		for $d in $candidates[self::t:item]
 		return map {"hit": $d, "type": "deleted"}
-	let $candidates := if ($q = "") then
-		$q:col//t:TEI[@type = "work"]
-	else
-		$q:col//t:TEI[@type = "work"][contains(@xml:id, $q)][not(ends-with(@xml:id, "IHA"))]
 	(: the following needs to group due to the two indexes :)
-	let $matches :=
-		for $m in $candidates
+	let $live :=
+		for $m in $candidates[self::t:TEI]
 		group by $TEI := $m
 		return map {"hit": $TEI, "type": "match"}
-	return map {"tei": ($deletedClavis, $matches), "qs": $q}
+	return map {"tei": ($withdrawn, $live), "qs": $fragment}
 };
 
 declare function q:xpath($q, $params) {
