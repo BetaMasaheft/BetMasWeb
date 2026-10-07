@@ -1225,22 +1225,23 @@ declare function list:getplacelist($request as map(*)) {
 					<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ $list:app-meta }
-					<link href="{ config:appBase() }/resources/css/mapbox.css" rel="stylesheet" type="text/css" />
-					<link href="{ config:appBase() }/resources/css/leaflet.css" rel="stylesheet" type="text/css" />
-					<link href="{ config:appBase() }/resources/css/leaflet.fullscreen.css" rel="stylesheet" type="text/css" />
+					<link
+						href="{ config:appBase() }/resources/css/external/leaflet/leaflet.css"
+						rel="stylesheet"
+						type="text/css" />
+					<link
+						href="{ config:appBase() }/resources/css/external/leaflet-fullscreen/leaflet.fullscreen.css"
+						rel="stylesheet"
+						type="text/css" />
 					<link
 						xmlns="http://www.w3.org/1999/xhtml"
-						href="{ config:appBase() }/resources/css/leaflet-search.css"
+						href="{ config:appBase() }/resources/css/external/leaflet-search/leaflet-search.min.css"
 						rel="stylesheet"
 						type="text/css" />
 					{ scriptlinks:listScriptStyle() }
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"
-						src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
-						type="text/javascript" />
-					<script
-						xmlns="http://www.w3.org/1999/xhtml"
-						src="{ config:appBase() }/resources/js/vendor/mapbox/mapbox.js"
+						src="{ config:appBase() }/resources/js/external/leaflet/leaflet.js"
 						type="text/javascript" />
 					<script
 						xmlns="http://www.w3.org/1999/xhtml"

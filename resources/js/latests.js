@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	$.getJSON(appBase + "/api/latest", function (data) {
 		var latest = $("#latest");
 		var length = data.length;

@@ -14,8 +14,6 @@
 // though, because there's no usable package for them - those live in
 // resources/js/vendor instead, committed directly since nothing can regenerate
 // them:
-//   - mapbox.js (legacy Mapbox.js 2.3.0): npm only publishes unbundled CommonJS
-//     source, not the browser bundle this app actually loads.
 //   - d3sparql.js, leaflet-fusesearch: never published to npm at all.
 //   - yui-min.js (YUI 3.8.1): only reference in the codebase is inside a
 //     commented-out block in collatex.js - looks dead, kept as-is, not managed.
@@ -70,6 +68,31 @@ const MANIFEST = {
 		[
 			["dist/leaflet.js", "leaflet.js"],
 			["dist/leaflet.css", "leaflet.css", "css"],
+			// leaflet.css reaches its marker/layer images through a relative url()
+			["dist/images", "images", "css"],
+		],
+	],
+	"bootstrap-slider": [
+		"bootstrap-slider",
+		[
+			["dist/bootstrap-slider.min.js", "bootstrap-slider.min.js"],
+			["dist/css/bootstrap-slider.min.css", "bootstrap-slider.min.css", "css"],
+		],
+	],
+	"vis-timeline": [
+		"vis-timeline",
+		[
+			["standalone/umd/vis-timeline-graph2d.min.js", "vis-timeline-graph2d.min.js"],
+			["styles/vis-timeline-graph2d.min.css", "vis-timeline-graph2d.min.css", "css"],
+		],
+	],
+	// peer/ expects vis-data/vis-util as globals (supplied by the vis-timeline standalone bundle,
+	// which must load first); standalone/ is self-contained.
+	"vis-network": [
+		"vis-network",
+		[
+			["peer/umd/vis-network.min.js", "vis-network.peer.min.js"],
+			["standalone/umd/vis-network.min.js", "vis-network.min.js"],
 		],
 	],
 	"leaflet-search": [
@@ -89,7 +112,6 @@ const MANIFEST = {
 		],
 	],
 	"leaflet-ajax": ["leaflet-ajax", [["dist/leaflet.ajax.min.js", "leaflet.ajax.min.js"]]],
-	"fuse.js": ["fuse", [["dist/fuse.min.js", "fuse.min.js"]]],
 	openseadragon: [
 		"openseadragon",
 		[

@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var id = $("#graph").data("id");
 	var rdf = $("#graph").data("rdf");
 

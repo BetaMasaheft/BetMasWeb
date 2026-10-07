@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	$(".searchthis").on("click", function () {
 		// clicking on one title copies it to a text input (so it can be modified)
 		var title = $(this).data("value");

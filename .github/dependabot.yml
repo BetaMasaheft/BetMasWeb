@@ -15,11 +15,13 @@ updates:
 
   # Maintain npm dependencies. Dependabot allows only one npm entry per directory
   # (and target-branch), so production and development are separate groups here.
-  # Production = frontend vendor libraries (copied into resources/js/external by the
-  # Ant "vendor" target - see scripts/copy-vendor-libs.js). They are pinned to exact,
-  # verified versions matching what's deployed, so that group is disabled by ignoring
-  # every production dependency below. To re-enable, delete the ignore list (keep it
-  # in sync with package.json "dependencies" if you add packages).
+  # Production = frontend vendor libraries (copied into resources/{js,css}/external by
+  # the Ant "vendor" target - see scripts/copy-vendor-libs.js; those folders are
+  # gitignored, so a bump only touches package.json and the lockfile). They are pinned
+  # to exact versions. Packages that are behind a major release for a known reason
+  # (see package.json "dependencies" notes) only have major updates ignored, so
+  # minor/patch bumps still come through. The alpheios packages use odd prerelease
+  # version strings and are ignored completely.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -36,27 +38,22 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      - dependency-name: "@fortawesome/fontawesome-free"
       - dependency-name: "alpheios-components"
       - dependency-name: "alpheios-embedded"
+      # bootstrap 3 -> 5 needs a template-wide markup migration
       - dependency-name: "bootstrap"
-      - dependency-name: "colorbrewer"
-      - dependency-name: "cookie-bar"
+        update-types: ["version-update:semver-major"]
+      # d3 5 and the d3-v3 alias are both kept on purpose
       - dependency-name: "d3"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "d3-v3"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "datatables.net"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "datatables.net-bs"
-      - dependency-name: "fuse.js"
-      - dependency-name: "intro.js"
-      - dependency-name: "jquery"
-      - dependency-name: "jquery-migrate"
-      - dependency-name: "jquery-ui-dist"
-      - dependency-name: "jquery.easing"
-      - dependency-name: "leaflet"
-      - dependency-name: "leaflet-ajax"
-      - dependency-name: "leaflet-fullscreen"
-      - dependency-name: "leaflet-search"
-      - dependency-name: "openseadragon"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "slick-carousel"
-      - dependency-name: "tinysort"
-      - dependency-name: "virtual-keyboard"
+        update-types: ["version-update:semver-major"]
+      # vis-data peer range conflicts with vis-timeline (see .npmrc legacy-peer-deps)
+      - dependency-name: "vis-network"
+        update-types: ["version-update:semver-major"]

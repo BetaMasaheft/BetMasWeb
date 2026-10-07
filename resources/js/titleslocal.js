@@ -1,5 +1,5 @@
 /* assumes a.MainTitle with data-value='ID' and calls the restxq api api:get-FormattedTitle() to retrive the correct citation text to be used*/
-$(document).on("ready", function () {
+$(function () {
 	checkfortitles();
 	checkforWordCounts();
 });

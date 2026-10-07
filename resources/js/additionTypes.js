@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	var formblock = $('<div  class="w3-container w3-margin"></div>');
 	$(formblock).append(
 		'<small class="form-text text-muted">Select one or more type of document or addition</small><br/>',

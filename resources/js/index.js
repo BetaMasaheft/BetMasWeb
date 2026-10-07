@@ -1,4 +1,4 @@
-$(document).on("ready", function () {
+$(function () {
 	/*(:displaies on the hompage the totals of the portal:)*/
 	$.getJSON(appBase + "/api/count", function (data) {
 		var count = $("#count");
