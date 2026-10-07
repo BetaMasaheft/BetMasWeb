@@ -38,7 +38,7 @@ declare function error:error($name as map(*)) {
 					<title
 						property="dcterms:title og:title schema:name"
 					>Beta maṣāḥǝft: Manuscripts of Ethiopia and Eritrea</title>
-					<link href="resources/images/favicon.ico" rel="shortcut icon" />
+					<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 					<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 					{ scriptlinks:scriptStyle() }
 				</head>

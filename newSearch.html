@@ -1092,8 +1092,9 @@
 									</div>
 								</fieldset>
 								<img
+									data-template="config:prefix-src"
+									data-template-src="/resources/images/giphy.gif"
 									id="loadingform"
-									src="resources/images/giphy.gif"
 									style="display: none; width: 20%"
 									alt="loading"
 								/>
@@ -1139,7 +1140,12 @@
 			</form>
 		</div>
 		<div class="w3-containter">
-			<img id="loading" src="resources/Loading.gif" style="display: none" />
+			<img
+				data-template="config:prefix-src"
+				data-template-src="/resources/Loading.gif"
+				id="loading"
+				style="display: none"
+			/>
 			<div data-template="q:query">
 				<div id="content">
 					<a href="." class="nav-link" data-template="app:copy-params" />
@@ -1226,8 +1232,16 @@
 	</div>
 
 	(: listResponse: normalises list-valued API fields - see listItems(). :)
-	<script type="text/javascript" src="resources/js/listResponse.js" />
-	<script type="application/javascript" src="resources/js/selectForm.js" />
-	<script type="application/javascript" src="resources/js/preventformsubmission.js" />
-	<script type="text/javascript" src="resources/js/filters.js" />
+	<script data-template="config:prefix-src" data-template-src="/resources/js/listResponse.js" type="text/javascript" />
+	<script
+		data-template="config:prefix-src"
+		data-template-src="/resources/js/selectForm.js"
+		type="application/javascript"
+	/>
+	<script
+		data-template="config:prefix-src"
+		data-template-src="/resources/js/preventformsubmission.js"
+		type="application/javascript"
+	/>
+	<script data-template="config:prefix-src" data-template-src="/resources/js/filters.js" type="text/javascript" />
 </div>

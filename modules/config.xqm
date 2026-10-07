@@ -83,9 +83,15 @@ declare variable $config:BMurl := "https://betamasaheft.eu/";
  : (direct eXist access, init, REST on an internal port), it can stick at
  : the mount-path value for later, differently-fronted requests too. Same
  : pattern as controller.xql's own local:get-uri().
+ :
+ : Returns "" when there is no request at all (XQSuite, post-install,
+ : scheduled jobs), where there is no mount path to speak of and
+ : request:get-header() would raise err:XPDY0002.
  :)
 declare function config:appBase() as xs:string {
-	if (request:get-header("nginx-request-uri")) then
+	if (not(request:exists())) then
+		""
+	else if (request:get-header("nginx-request-uri")) then
 		""
 	else
 		request:get-context-path() || "/apps/BetMasWeb"
@@ -197,11 +203,11 @@ declare function config:appBaseScript($node as node(), $model as map(*)) as elem
 
 (:~
  : Call like <a data-template="config:prefix-href"  data-template-href="/bladiblah"/>
- : Results in <a href="whatevertheprefixis/bladiblah"/>
+ : Results in <a href="<mount path>/bladiblah"/>
  :)
 declare function config:prefix-href($node as node(), $model as map(*), $href as xs:string) as element(*) {
 	element {name($node)} {
-		attribute href { $config:appUrl || $href },
+		attribute href { config:appBase() || $href },
 		$node/@* except ($node/@data-template, $node/@data-template-href),
 		$node/node()!templates:process(., $model)
 	}
@@ -213,7 +219,7 @@ declare function config:prefix-href($node as node(), $model as map(*), $href as 
  :)
 declare function config:prefix-src($node as node(), $model as map(*), $src as xs:string) as element(*) {
 	element {name($node)} {
-		attribute src { $config:appUrl || $src },
+		attribute src { config:appBase() || $src },
 		$node/@* except ($node/@data-template, $node/@data-template-src),
 		$node/node()!templates:process(., $model)
 	}

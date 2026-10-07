@@ -230,8 +230,8 @@ declare function apprest:catalogues() {
 				</div>
 			</div>
 		</div>
-		<img id="loading" src="resources/Loading.gif" style="display: none;" />
-		<script src="resources/js/loadcatalogues.js" type="application/javascript" />
+		<img id="loading" src="{ config:appBase() }/resources/Loading.gif" style="display: none;" />
+		<script src="{ config:appBase() }/resources/js/loadcatalogues.js" type="application/javascript" />
 	</form>
 };
 
@@ -563,7 +563,7 @@ declare function apprest:bottom($this, $collection) {
 					>
 						<a class="w3-btn" id="LoadPermanentIDs{ $id }">Load permalinks to see the revision history on GitHub</a>
 					</div>
-					<script src="{ $config:appUrl }/resources/js/permanentID.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/permanentID.js" type="text/javascript" />
 				</div>
 			</div>
 			<div class="w3-modal w3-card w3-margin" id="rdf">
@@ -1423,8 +1423,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 						<div class="w3-container">
 							<input class="w3-check" data-context="{ $context }" type="checkbox" value="authors" /> Authors<br />
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					)
 				case "places" return
@@ -1514,8 +1517,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 						<div class="w3-container">
 							<input class="w3-check" data-context="{ $context }" type="checkbox" value="tabots" /> Tābots<br />
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					) else (: form selectors relative to query :) (
 						<div class="w3-container">
@@ -1539,8 +1545,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 						<div class="w3-container">
 							<input class="w3-check" data-context="{ $context }" type="checkbox" value="tabots" /> Tābots<br />
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					)
 				case "institutions" return
@@ -1621,8 +1630,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 						<div class="w3-container">
 							<input class="w3-check" data-context="{ $context }" type="checkbox" value="tabots" /> Tābots<br />
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					) else (
 						(: form selectors relative to query :)
@@ -1633,8 +1645,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 						<div class="w3-container">
 							<input class="w3-check" data-context="{ $context }" type="checkbox" value="tabots" /> Tābots<br />
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					)
 				case "persons" return
@@ -1951,8 +1966,11 @@ declare function apprest:searchFilter-rest($collection, $model as map(*)) {
 								)
 							}
 						</div>,
-						<script src="resources/js/filtersRest.js" type="text/javascript" />,
-						<img id="loadingform" src="resources/images/giphy.gif" style="display: none; width: 20%;" />,
+						<script src="{ config:appBase() }/resources/js/filtersRest.js" type="text/javascript" />,
+						<img
+							id="loadingform"
+							src="{ config:appBase() }/resources/images/giphy.gif"
+							style="display: none; width: 20%;" />,
 						<div id="AddFilters" />
 					)
 		}

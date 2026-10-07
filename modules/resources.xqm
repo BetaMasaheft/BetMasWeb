@@ -2047,7 +2047,7 @@ declare %templates:wrap %templates:default("start", 1) %templates:default("per-p
 			<div class="w3-col" id="{ $target }" style="width:90%">{ zc:bibl-page-entry($target) }</div>
 			<div class="w3-col w3-center" style="width:10%">
 				<a href="https://www.zotero.org/groups/358366/ethiostudies/items/tag/{ $target }" target="_blank">
-					<img src="/resources/images/zotero_16x16x32.png" style="display:inline;" />
+					<img src="{ config:appBase() }/resources/images/zotero_16x16x32.png" style="display:inline;" />
 				</a>
 				<br />
 				<span class="w3-small w3-tag w3-gray w3-margin-top w3-hide-small" style="word-break: break-all;">

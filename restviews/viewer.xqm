@@ -39,15 +39,15 @@ declare function viewer:allmirador($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="resources/js/analytics.js" type="text/javascript" />
-				<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+				<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<title
 					xmlns="http://www.w3.org/1999/xhtml"
 					property="dcterms:title og:title schema:name"
 				>Mirador Manuscript viewer</title>
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
-				<script src="resources/mirador/mirador.js" />
+				<link href="{ config:appBase() }/resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
+				<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 			</head>
 			<body id="body">
 				<div class="w3-container w3-padding-64 w3-margin" id="content">
@@ -55,7 +55,7 @@ declare function viewer:allmirador($request as map(*)) {
 					<script type="text/javascript">
 						{ 'var data = [{collectionUri: "' || $config:appUrl || '/api/iiif/collections"}]' }
 					</script>
-					<script src="resources/js/miradorcoll.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/miradorcoll.js" type="text/javascript" />
 				</div>
 			</body>
 		</html>
@@ -69,15 +69,15 @@ declare function viewer:allinRepo($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="resources/js/analytics.js" type="text/javascript" />
-				<link href="resources/images/favicon.ico" rel="shortcut icon" />
+				<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
+				<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 				<title
 					xmlns="http://www.w3.org/1999/xhtml"
 					property="dcterms:title og:title schema:name"
 				>Mirador Manuscript viewer</title>
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
-				<script src="resources/mirador/mirador.js" />
+				<link href="{ config:appBase() }/resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
+				<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 			</head>
 			<body id="body">
 				<div class="w3-margin w3-container w3-padding-64" id="content">
@@ -85,7 +85,7 @@ declare function viewer:allinRepo($request as map(*)) {
 					<script type="text/javascript">
 						{ 'var data = [{collectionUri: "' || $config:appUrl || "/api/iiif/collection/" || $repoid || '"}]' }
 					</script>
-					<script src="resources/js/miradorcoll.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/miradorcoll.js" type="text/javascript" />
 				</div>
 			</body>
 		</html>
@@ -226,14 +226,17 @@ declare function viewer:mirador($request as map(*)) {
 				<html xmlns="http://www.w3.org/1999/xhtml">
 					<head>
 						<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-						<script src="resources/js/analytics.js" type="text/javascript" />
+						<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
 						{ scriptlinks:app-title($title) }
-						<link href="resources/images/favicon.ico" rel="shortcut icon" />
+						<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 						{ scriptlinks:app-meta($this) }
 						{ scriptlinks:scriptStyle() }
-						<link href="resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
-						<script src="resources/mirador/mirador.js" />
+						<link
+							href="{ config:appBase() }/resources/mirador/css/mirador-combined.css"
+							rel="stylesheet"
+							type="text/css" />
+						<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 					</head>
 					<body id="body">
 						{ nav:barNew() }
@@ -278,12 +281,12 @@ var canvasid = "' ||
 '
 									}
 								</script>
-								<script src="resources/js/mirador.js" type="text/javascript" />
+								<script src="{ config:appBase() }/resources/js/mirador.js" type="text/javascript" />
 							</div>
 							<div class="w3-panel w3-gray w3-card-2">
 								<p>
 									<a href="{ $manifest }" target="_blank">
-										<img src="/resources/images/iiif.png" width="20px" />
+										<img src="{ config:appBase() }/resources/images/iiif.png" width="20px" />
 										{ $manifest }
 									</a>
 								</p>
@@ -357,14 +360,17 @@ var canvasid = "' ||
 				<html xmlns="http://www.w3.org/1999/xhtml">
 					<head>
 						<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-						<script src="resources/js/analytics.js" type="text/javascript" />
+						<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
 						{ scriptlinks:app-title($title) }
-						<link href="resources/images/favicon.ico" rel="shortcut icon" />
+						<link href="{ config:appBase() }/resources/images/favicon.ico" rel="shortcut icon" />
 						<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 						{ scriptlinks:app-meta($this) }
 						{ scriptlinks:scriptStyle() }
-						<link href="resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
-						<script src="resources/mirador/mirador.js" />
+						<link
+							href="{ config:appBase() }/resources/mirador/css/mirador-combined.css"
+							rel="stylesheet"
+							type="text/css" />
+						<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 					</head>
 					<body id="body">
 						{ nav:barNew() }
@@ -403,7 +409,7 @@ var windowobjs =  [" ||
 "
 									}
 								</script>
-								<script src="resources/js/miradormultiple.js" type="text/javascript" />
+								<script src="{ config:appBase() }/resources/js/miradormultiple.js" type="text/javascript" />
 							</div>
 							<div class="w3-panel w3-gray w3-card-2">
 								{
@@ -411,7 +417,7 @@ var windowobjs =  [" ||
 									let $manifest := viewer:manifest($this, $id, $m)
 									return <p>
 										<a href="{ $manifest }" target="_blank">
-											<img src="/resources/images/iiif.png" width="20px" />
+											<img src="{ config:appBase() }/resources/images/iiif.png" width="20px" />
 											{ $manifest }
 										</a>
 									</p>
@@ -485,15 +491,15 @@ declare function viewer:allchojnacki($request as map(*)) {
 		<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-106148968-1" />
-				<script src="resources/js/analytics.js" type="text/javascript" />
-				<link href="resources/images/minilogo.ico" rel="shortcut icon" />
+				<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />
+				<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />
 				<title
 					xmlns="http://www.w3.org/1999/xhtml"
 					property="dcterms:title og:title schema:name"
 				>Mirador Chojnacki images viewer</title>
 				<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-				<link href="resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
-				<script src="resources/mirador/mirador.js" />
+				<link href="{ config:appBase() }/resources/mirador/css/mirador-combined.css" rel="stylesheet" type="text/css" />
+				<script src="{ config:appBase() }/resources/mirador/mirador.js" />
 			</head>
 			<body id="body">
 				<div class="w3-container w3-padding-64 w3-margin" id="content">
@@ -511,7 +517,7 @@ declare function viewer:allchojnacki($request as map(*)) {
 							return "var data = [" || $chmanif || "]"
 						}
 					</script>
-					<script src="resources/js/miradorcoll.js" type="text/javascript" />
+					<script src="{ config:appBase() }/resources/js/miradorcoll.js" type="text/javascript" />
 				</div>
 			</body>
 		</html>

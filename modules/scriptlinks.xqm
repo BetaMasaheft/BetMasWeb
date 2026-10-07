@@ -83,8 +83,14 @@ declare function scriptlinks:app-title($title) as element()* {
  :)
 declare function scriptlinks:footerjsSelector() as element()* {
 	if (contains(request:get-uri(), "analytic")) then (
-		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/datatable.js" type="text/javascript" />,
-		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/visgraphspec.js" type="text/javascript" />
+		<script
+			xmlns="http://www.w3.org/1999/xhtml"
+			src="{ config:appBase() }/resources/js/datatable.js"
+			type="text/javascript" />,
+		<script
+			xmlns="http://www.w3.org/1999/xhtml"
+			src="{ config:appBase() }/resources/js/visgraphspec.js"
+			type="text/javascript" />
 	) else (
 	)
 };
@@ -105,23 +111,35 @@ declare function scriptlinks:scriptStyle() {
 		   away; "/exist/apps/BetMasWeb" in dev/CI) - see BetMasWeb#32. :)
 		<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>,
 		(: listResponse: normalises list-valued API fields - see listItems(). :)
-		<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/listResponse.js" type="text/javascript" />,
-		<link href="{ $config:appUrl }/resources/images/minilogo.ico" rel="shortcut icon" />,
-		<link href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css" rel="stylesheet" type="text/css" />,
-		<link href="resources/css/external/virtual-keyboard/keyboard-basic.min.css" rel="stylesheet" type="text/css" />,
+		<script
+			xmlns="http://www.w3.org/1999/xhtml"
+			src="{ config:appBase() }/resources/js/listResponse.js"
+			type="text/javascript" />,
+		<link href="{ config:appBase() }/resources/images/minilogo.ico" rel="shortcut icon" />,
+		<link
+			href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css"
+			rel="stylesheet"
+			type="text/css" />,
+		<link
+			href="{ config:appBase() }/resources/css/external/virtual-keyboard/keyboard-basic.min.css"
+			rel="stylesheet"
+			type="text/css" />,
 		(: introjs :)
-		<link href="resources/css/external/intro.js/introjs.min.css" rel="stylesheet" type="text/css" />,
-		<link href="{ $config:appUrl }/resources/css/style.css" rel="stylesheet" type="text/css" />,
+		<link
+			href="{ config:appBase() }/resources/css/external/intro.js/introjs.min.css"
+			rel="stylesheet"
+			type="text/css" />,
+		<link href="{ config:appBase() }/resources/css/style.css" rel="stylesheet" type="text/css" />,
 		(: Alpheios :)
 		<link
 			href="https://cdn.jsdelivr.net/npm/alpheios-components@latest/dist/style/style-components.min.css"
 			rel="stylesheet" />,
 		(: d3 :)
-		<link href="{ $config:appUrl }/resources/css/d3.css" rel="stylesheet" type="text/css" />,
-		<link href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
+		<link href="{ config:appBase() }/resources/css/d3.css" rel="stylesheet" type="text/css" />,
+		<link href="{ config:appBase() }/resources/css/w3.css" rel="stylesheet" />,
 		(: w3 :)
-		<link href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
-		<script src="resources/js/external/jquery/jquery.min.js" type="text/javascript" />
+		<link href="{ config:appBase() }/resources/css/w3local.css" rel="stylesheet" />,
+		<script src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js" type="text/javascript" />
 	)
 };
 
@@ -133,27 +151,27 @@ declare function scriptlinks:listScriptStyle() {
 		<script type="text/javascript">{ 'var appBase = "' || config:appBase() || '";' }</script>,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="{ $config:appUrl }/resources/css/external/fontawesome/all.min.css"
+			href="{ config:appBase() }/resources/css/external/fontawesome/all.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/virtual-keyboard/keyboard-basic.min.css"
+			href="{ config:appBase() }/resources/css/external/virtual-keyboard/keyboard-basic.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/intro.js/introjs.min.css"
+			href="{ config:appBase() }/resources/css/external/intro.js/introjs.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="$shared/resources/css/bootstrap-3.0.3.min.css"
+			href="{ config:appBase() }/resources/css/external/bootstrap/bootstrap.min.css"
 			rel="stylesheet"
 			type="text/css" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
-			href="resources/css/external/jquery-ui/jquery-ui.min.css"
+			href="{ config:appBase() }/resources/css/external/jquery-ui/jquery-ui.min.css"
 			rel="stylesheet" />,
 		<link
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -164,19 +182,22 @@ declare function scriptlinks:listScriptStyle() {
 			xmlns="http://www.w3.org/1999/xhtml"
 			href="https://cdn.jsdelivr.net/npm/alpheios-components@rc/dist/style/style-components.min.css"
 			rel="stylesheet" />,
-		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3.css" rel="stylesheet" />,
-		<link xmlns="http://www.w3.org/1999/xhtml" href="{ $config:appUrl }/resources/css/w3local.css" rel="stylesheet" />,
+		<link xmlns="http://www.w3.org/1999/xhtml" href="{ config:appBase() }/resources/css/w3.css" rel="stylesheet" />,
+		<link
+			xmlns="http://www.w3.org/1999/xhtml"
+			href="{ config:appBase() }/resources/css/w3local.css"
+			rel="stylesheet" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/jquery/jquery.min.js"
+			src="{ config:appBase() }/resources/js/external/jquery/jquery.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="$shared/resources/scripts/bootstrap-3.0.3.min.js"
+			src="{ config:appBase() }/resources/js/external/bootstrap/bootstrap.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
-			src="resources/js/external/jquery-ui/jquery-ui.min.js"
+			src="{ config:appBase() }/resources/js/external/jquery-ui/jquery-ui.min.js"
 			type="text/javascript" />,
 		<script
 			xmlns="http://www.w3.org/1999/xhtml"
@@ -191,22 +212,22 @@ declare function scriptlinks:listScriptStyle() {
 declare function scriptlinks:ItemScriptStyle() {
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/mapbox.css"
+		href="{ config:appBase() }/resources/css/mapbox.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet.css"
+		href="{ config:appBase() }/resources/css/leaflet.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet.fullscreen.css"
+		href="{ config:appBase() }/resources/css/leaflet.fullscreen.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
 		xmlns="http://www.w3.org/1999/xhtml"
-		href="{ $config:appUrl }/resources/css/leaflet-search.css"
+		href="{ config:appBase() }/resources/css/leaflet-search.css"
 		rel="stylesheet"
 		type="text/css" />,
 	<link
@@ -218,19 +239,22 @@ declare function scriptlinks:ItemScriptStyle() {
 		xmlns="http://www.w3.org/1999/xhtml"
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
 		type="text/javascript" />,
-	<script xmlns="http://www.w3.org/1999/xhtml" src="resources/js/vendor/mapbox/mapbox.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+		src="{ config:appBase() }/resources/js/vendor/mapbox/mapbox.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
+		src="{ config:appBase() }/resources/js/external/leaflet-fullscreen/Leaflet.fullscreen.min.js"
+		type="text/javascript" />,
+	<script
+		xmlns="http://www.w3.org/1999/xhtml"
+		src="{ config:appBase() }/resources/js/external/leaflet-ajax/leaflet.ajax.min.js"
 		type="text/javascript" />,
 	<script xmlns="http://www.w3.org/1999/xhtml" src="https://www.gstatic.com/charts/loader.js" type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
-		src="resources/js/external/openseadragon/openseadragon.min.js"
+		src="{ config:appBase() }/resources/js/external/openseadragon/openseadragon.min.js"
 		type="text/javascript" />,
 	<script
 		xmlns="http://www.w3.org/1999/xhtml"
@@ -246,39 +270,43 @@ declare function scriptlinks:ItemScriptStyle() {
  : html page script and styles to be included specific for item
  :)
 declare function scriptlinks:ItemFooterScript() {
-	<script src="resources/js/explain.js" type="text/javascript" />,
-	<script src="resources/js/dateConversions.js" type="text/javascript" />,
-	<script src="resources/js/w3.js" type="application/javascript" />,
-	<script src="resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
-	<script src="resources/js/external/virtual-keyboard/jquery.keyboard.js" type="text/javascript" />,
-	<script src="resources/js/external/virtual-keyboard/jquery.mousewheel.min.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/explain.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/dateConversions.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/w3.js" type="application/javascript" />,
+	<script src="{ config:appBase() }/resources/js/external/jquery-ui/jquery-ui.min.js" type="text/javascript" />,
 	<script
-		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-typing.min.js"
+		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.keyboard.js"
 		type="text/javascript" />,
 	<script
-		src="resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
+		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.mousewheel.min.js"
+		type="text/javascript" />,
+	<script
+		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.keyboard.extension-typing.min.js"
+		type="text/javascript" />,
+	<script
+		src="{ config:appBase() }/resources/js/external/virtual-keyboard/jquery.keyboard.extension-altkeyspopup.min.js"
 		type="text/javascript" />,
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.1/bootstrap-slider.min.js"
 		type="text/javascript" />,
-	<script src="resources/js/diacriticskeyboard.js" type="text/javascript" />,
-	<script src="resources/js/analytics.js" type="text/javascript" />,
-	<script src="resources/js/listResponse.js" type="text/javascript" />,
-	<script src="resources/js/external/intro.js/intro.min.js" type="text/javascript" />,
-	<script src="resources/alpheios/alpheiosStart.js" type="text/javascript" />,
-	<script src="resources/js/introText.js" type="application/javascript" />,
-	<script src="resources/js/versions.js" type="text/javascript" />,
-	<script src="resources/js/quotations.js" type="text/javascript" />,
-	<script src="resources/js/samerole.js" type="text/javascript" />,
-	<script src="resources/js/allattestations.js" type="text/javascript" />,
-	<script src="resources/js/ugarit.js" type="text/javascript" />,
-	<script src="resources/js/highlight.js" type="text/javascript" />,
-	<script src="resources/js/titles.js" type="text/javascript" />,
-	<script src="resources/js/PointsHere.js" type="text/javascript" />,
-	<script src="resources/js/resp.js" type="text/javascript" />,
-	<script src="resources/js/relatedItems.js" type="text/javascript" />,
-	<script src="resources/js/citations.js" type="text/javascript" />,
-	<script src="resources/js/hypothesis.js" type="text/javascript" />
+	<script src="{ config:appBase() }/resources/js/diacriticskeyboard.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/analytics.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/listResponse.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/external/intro.js/intro.min.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/alpheios/alpheiosStart.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/introText.js" type="application/javascript" />,
+	<script src="{ config:appBase() }/resources/js/versions.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/quotations.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/samerole.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/allattestations.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/ugarit.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/highlight.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/PointsHere.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/resp.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/relatedItems.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/citations.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/hypothesis.js" type="text/javascript" />
 };
 
 (:~
