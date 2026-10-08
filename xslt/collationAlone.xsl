@@ -43,7 +43,15 @@
                         </tr>
                         <xsl:for-each select=".//t:item">
                             <xsl:sort select="position()"/>
-                            <xsl:variable name="dim" select="if (t:dim) then t:dim[@unit = 'leaf'] else  number(t:locus[@to]) - number(t:locus[@from]) + 1"/>
+                            <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
+                            <xsl:variable name="dim" select="
+                                if ($rawDim castable as xs:double) then 
+                                xs:double($rawDim)
+                                else if (t:locus/@to castable as xs:double and t:locus/@from castable as xs:double) then 
+                                number(t:locus/@to) - number(t:locus/@from) + 1
+                                else 
+                                0
+                                "/>
                             <tr>
                                 <td>
                                     <xsl:attribute name="id">
@@ -70,7 +78,15 @@
                 <xsl:variable name="dimensionandstubs">
                     <xsl:for-each select=".//t:list/t:item">
                         <xsl:variable name="text" select="string-join(./text(), ' ')"/>
-                        <xsl:variable name="dim" select="if (t:dim) then t:dim[@unit = 'leaf'] else  (number(t:locus[@to]) - number(t:locus[@from]) + 1)"/>
+                        <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
+                        <xsl:variable name="dim" select="
+                            if ($rawDim castable as xs:double) then 
+                            xs:double($rawDim)
+                            else if (t:locus/@to castable as xs:double and t:locus/@from castable as xs:double) then 
+                            number(t:locus/@to) - number(t:locus/@from) + 1
+                            else 
+                            0
+                            "/>
                         <xsl:variable name="stubs">
                             <xsl:analyze-string select="$text" regex="stub">
                                 <xsl:matching-substring>1</xsl:matching-substring>
@@ -93,13 +109,12 @@
                     </xsl:for-each>
                 </xsl:variable>
                 <xsl:choose>
-                    <xsl:when test="not(.//t:list/t:item/t:dim)">
-                        <div class="w3-panel w3-black">
+                    <xsl:when test=".//t:list/t:item/t:dim[@unit = 'leaf'][not(. castable as xs:double)]">
+                        <div class="w3-panel w3-amber">
                             <p>
-                                <b>It is unfortunately not possible with the information provided to
-                                    print the collation diagrams and formula. </b>
-                            </p>                            
-                            <p>The text information provided in the record is: <br/><xsl:value-of select="string-join(.//t:list/node())"/></p>
+                                <b>It is unfortunately not possible to print the collation diagrams and formula because one or more quire dimensions contain non-numeric values (e.g., "unknown").</b>
+                            </p>
+                            <p>The text information provided in the record is: <br/><xsl:value-of select="string-join(.//t:list/node(), ' ')"/></p>
                         </div>
                     </xsl:when>
                     <xsl:when test="$dimensionandstubs//item[child::dimensions[not(@xml:lang)][. mod 2 = 0]][child::stubs[. mod 2 != 0]]">
