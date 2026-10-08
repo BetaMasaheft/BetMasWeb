@@ -1833,7 +1833,7 @@ declare %private function q:dedupPreserveOrder($seq as node()*) as node()* {
 
 declare function q:text($q, $params) {
 	(: let $test := util:log('info', $q:allopts) :)
-	let $phrase := starts-with($q, '"') and ends-with($q, '"')
+	let $phrase := (starts-with($q, '"') and ends-with($q, '"')) or contains($q, '-')
 	let $mode := if (matches($q, "([A-Z]{1,3}-\d{3})") or $phrase) then
 		"phrase"
 	else
