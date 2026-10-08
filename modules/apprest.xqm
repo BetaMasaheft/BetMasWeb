@@ -54,10 +54,13 @@ declare function apprest:decidelink($link) {
 	if (contains($link, "http")) then
 		$link
 	else if (contains($link, ":")) then (
-		let $ns := if (substring-before($link, ':') != '') then substring-before($link, ':') else 'betmas'
+		let $ns := if (substring-before($link, ":") != "") then
+			substring-before($link, ":")
+		else
+			"betmas"
 		let $prefixDef := $apprest:prefixes//t:prefixDef[@ident eq $ns]
-		let $pattern := ($prefixDef/@matchPattern/string(), '^.*$')[1]
-		let $replacement := ($prefixDef/@replacementPattern/string(), '$0')[1]
+		let $pattern := ($prefixDef/@matchPattern/string(), "^.*$")[1]
+		let $replacement := ($prefixDef/@replacementPattern/string(), "$0")[1]
 		return replace(substring-after($link, ":"), $pattern, $replacement)
 	) else
 		concat($config:appUrl, "/", $link)
