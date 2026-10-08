@@ -3260,11 +3260,11 @@ declare %private function viewItem:space($node as element(t:space)) {
 
 declare %private function viewItem:choice($node as element(t:choice)) {
 	let $id := generate-id($node)
-	let $sic := $node/t:sic
-	let $corr := $node/t:corr
+	let $sic := $node/t:sic[1]
+	let $corr := $node/t:corr[1]
 	let $orig := $node/t:orig
 	let $sicHTML := viewItem:TEI2HTML($sic)
-	let $corrHTML := viewItem:TEI2HTML($corr)
+	let $corrHTML := string-join(viewItem:TEI2HTML($corr), "")
 	let $resp := ($node/@resp, $corr/@resp)[1]
 	return <span class="w3-tooltip">
 		{
@@ -3276,11 +3276,11 @@ declare %private function viewItem:choice($node as element(t:choice)) {
 							$id ||
 							"').on('click', function() {
             $(this).html($(this).html() == '" ||
-							string($corrHTML) ||
+							$corrHTML ||
 							"' ? '" ||
 							concat($sicHTML, "(!)") ||
 							"' : '" ||
-							string($corrHTML) ||
+							$corrHTML ||
 							"');
             });"
 					}
