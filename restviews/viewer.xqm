@@ -342,6 +342,8 @@ declare function viewer:facsSwitch($idnofacs) {
 declare function viewer:manifest($this, $id, $m) {
 	let $alt := if ($m/parent::t:altIdentifier) then (
 		"?alt=" || string($m/parent::t:altIdentifier/@xml:id)
+	) else if ($m/parent::t:altIdentifier) then (
+		"?alt=alt"
 	) else (
 	)
 	return (: BNF
@@ -372,7 +374,7 @@ declare function viewer:location($this) {
 	else if (contains($this//t:repository/@ref, "INS0339BML")) then
 		"Biblioteca Medicea Laurenziana"
 	(: vatican :)
-	else if (contains($this//t:repository/@ref, "INS0339BML")) then
+	else if (contains($this//t:repository/@ref, "INS0003BAV")) then
 		"Biblioteca Apostolica Vaticana"
 	else
 		string-join($this//t:idno, ", ")
