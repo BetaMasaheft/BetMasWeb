@@ -1136,17 +1136,28 @@ declare %private function q:parrequest($par) {
 	request:get-parameter($par, ())
 };
 
-declare %private function q:par-works-type($work-type) {
+(:~
+ : Build the work-types XPath predicate fragment (no request).
+ : Extracted for XQSuite; q:par-works-type is the request-facing wrapper.
+ :
+ : @param $work-type values of the work-types request parameter
+ : @return a predicate string such as [@type="work"][…]
+ :)
+declare function q:par-works-type-impl($work-type as xs:string*) as xs:string {
 	let $types :=
 		for $w in $work-type
 		return if ($w = "eth") then
 			'@type="pers"][starts-with(@xml:id, "' || upper-case($w) || '")'
-		(: IGNORES IHA in searches limited to works :)
+		(: IGNORES IHA and documentary corpora (BetMasWeb#193) in works search :)
 		else if ($w = "work") then
-			'@type="work"][not(ends-with(@xml:id, "IHA"))'
+			'@type="work"][not(ends-with(@xml:id, "IHA"))][not(starts-with(@xml:id, "corpus"))'
 		else
 			'@type="' || $w || '"'
 	return "[" || string-join($types, " or ") || "]"
+};
+
+declare %private function q:par-works-type($work-type) {
+	q:par-works-type-impl($work-type)
 };
 
 declare %private function q:par-allnames($names, $collection) {

@@ -28,12 +28,20 @@ function suggest(needle) {
 }
 
 it("a broad id shows a capped list that says it is truncated", () => {
-	// "ation" matches 388 ids - more than the cap, more than 4 characters
+	// "ation" matches well over the cap (count drifts with corpus growth);
+	// assert the truncation notice shape, not a frozen total.
 	suggest("ation");
 
 	cy.get("#gotohits option").should("have.length", CAP + 1);
 	cy.get("#gotohits option").first().should("have.attr", "disabled");
-	cy.get("#gotohits option").first().should("contain", "showing first 100 of 388 matches");
+	cy.get("#gotohits option")
+		.first()
+		.invoke("text")
+		.should("match", /^showing first 100 of \d+ matches/)
+		.and(($text) => {
+			const total = Number(($text.match(/of (\d+) matches/) || [])[1]);
+			expect(total, "reported total must exceed the cap").to.be.greaterThan(CAP);
+		});
 
 	// Every real suggestion must carry its id; the broken loop emitted
 	// "undefined" here, and an over-running loop throws outright.

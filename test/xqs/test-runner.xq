@@ -66,6 +66,7 @@ import module namespace tsexpandedscan = "https://www.betamasaheft.uni-hamburg.d
 import module namespace tsidlookup = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-idlookup" at "ts-idlookup.xqm";
 import module namespace tswikicache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-wikitable-cache" at "ts-wikitable-cache.xqm";
 import module namespace tsidscan = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-idscan" at "ts-queries-idscan.xqm";
+import module namespace tsworktypes = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-queries-worktypes" at "ts-queries-worktypes.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -128,6 +129,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-expanded-repository-scan-cache.xqm")),
 		inspect:module-functions(xs:anyURI("ts-idlookup.xqm")),
 		inspect:module-functions(xs:anyURI("ts-wikitable-cache.xqm")),
-		inspect:module-functions(xs:anyURI("ts-queries-idscan.xqm"))
+		inspect:module-functions(xs:anyURI("ts-queries-idscan.xqm")),
+		inspect:module-functions(xs:anyURI("ts-queries-worktypes.xqm"))
 	)
 )

@@ -214,10 +214,23 @@ declare function workmap:kmlfile($mss, $worktitle as xs:string, $type as xs:stri
 			)
 			let $id := string(root($ms)/t:TEI/@xml:id)
 			let $date := root($ms)//t:origDate
-			let $when := if (contains($date/@when, "-")) then
-				substring-before($date/@when, "-")
-			else
-				$date/@when
+			(:
+			 : Year-only for TimeSpan: partial values like notBefore="1438-02"
+			 : (BFmartini2) are not xs:double and used to 500 the KML route.
+			 :)
+			let $years := distinct-values(
+				for $attr in ($date/@when, $date/@notBefore, $date/@notAfter)
+				let $s := normalize-space(string($attr))
+				let $y := if ($s = "") then (
+				) else if (contains($s, "-")) then
+					substring-before($s, "-")
+				else
+					$s
+				return if ($y castable as xs:double) then
+					xs:double($y)
+				else (
+				)
+			)
 			let $getcoor := if (exists($place[1]/@ref)) then
 				try {
 					if (string-length(coord:invertCoord(coord:getCoords($place[1]/@ref))) lt 3) then
@@ -240,8 +253,10 @@ declare function workmap:kmlfile($mss, $worktitle as xs:string, $type as xs:stri
 				<name>{ $config:appUrl || "/" || $msID }</name>
 				<Point><coordinates>{ coord:invertCoord($getcoor) }</coordinates></Point>
 				{
-					let $all := ($when, $date/@notBefore, $date/@notAfter)
-					return <TimeSpan><begin>{ min($all) }</begin><end>{ max($all) }</end></TimeSpan>
+					if (exists($years)) then
+						<TimeSpan><begin>{ min($years) }</begin><end>{ max($years) }</end></TimeSpan>
+					else (
+					)
 				}
 			</Placemark>
 		}
