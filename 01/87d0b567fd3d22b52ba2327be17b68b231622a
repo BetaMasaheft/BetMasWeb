@@ -1,0 +1,27 @@
+restviews/workmap.xqm
+  s_e98fb2299e704f::t_393b7c204077e1 217-233,256-259
+test/cypress/e2e/as-gotoIdSuggestions.cy.js
+  s_e98fb2299e704f::t_4070b99e8fd391 31-32,37-39,41-44
+  s_e98fb2299e704f::t_cff6138ea6f68a 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0187d0b567fd3d22b52ba2327be17b68b231622a",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  },
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
