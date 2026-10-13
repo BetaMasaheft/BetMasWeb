@@ -55,29 +55,42 @@ declare variable $exptit:titleCache := doc("/db/apps/lists/titleCache.xml");
  : @return the resolved title as a string, or node content for elements
  :)
 declare function exptit:printTitle($titleMe) {
-	for $item in $titleMe
-	return if (empty($item) or $item = "") then (
+	if (count($titleMe) = 0 or $titleMe = "") then (
 	) else
-		typeswitch ($item)
-			case element() return
-				let $resource := root($item)
-				return $resource//t:title[@type = "full"]/text()
+		(: titleable could a node or a string, and the string could be anything... :)
+		typeswitch ($titleMe)
+			case element() (: could be TEI or any other node, just go back to the top :) return
+				let $resource := root($titleMe)
+				return (: this is added by expanded.xql exptit relies on that :) $resource//t:title[@type = "full"]/text()
 
 			default return
-				if (starts-with($item, $config:appUrl)) then
-					let $id := substring-after($item, concat($config:appUrl, "/"))
-					return exptit:printTitleID($id)
-				else if (contains($item, "betmas:")) then
-					let $id := substring-after($item, "betmas:")
-					return exptit:printTitleID($id)
-				else if (starts-with($item, "http")) then
-					$item
-				else
-					let $title := exptit:printTitleID($item)
+				(: the string could be really just anything, but in the expanded data, it will often be a URI, maybe prefixed with the official betmas URI. :)
+				if (starts-with($titleMe, $config:BMurl)) then
+					(: check if it is a local URI :)
+					let $id := substring-after($titleMe, $config:BMurl)
+					let $title := exptit:printTitleID($id)
 					return if (string-length(string-join($title)) ge 1) then
 						$title
 					else
-						$item
+						string($titleMe)
+				else if (contains($titleMe, "betmas:")) then
+					(: it is a prefixed http thing, replace and treat it accordingly :)
+					let $id := substring-after($titleMe, "betmas:")
+					let $title := exptit:printTitleID($id)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
+				else if (starts-with($titleMe, "http")) then
+					(: it is a URI, but not ours, best guess is just return it as is :)
+					string($titleMe)
+				(: perhaps it is just an identifier.... try to get the full title and if you do not find it, return what was submitted :)
+				else
+					let $title := exptit:printTitleID($titleMe)
+					return if (string-length(string-join($title)) ge 1) then
+						$title
+					else
+						string($titleMe)
 };
 
 (:~
