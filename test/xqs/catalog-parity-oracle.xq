@@ -72,7 +72,7 @@ declare function local:institution-map($backend as xs:string) as map(*) {
  : bad identifier cannot silence the whole run.
  :
  : @param $backend "legacy" or "catalog"
- : @param $kind "title" or "bibliography"
+ : @param $kind "title" or "bibliography" (institutions use local:institution-map, not this)
  : @param $key the id or bm: pointer
  : @return the normalized resolved value, or an ERROR string
  :)
