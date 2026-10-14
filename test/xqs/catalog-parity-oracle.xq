@@ -56,6 +56,16 @@ else (
 );
 
 (:~
+ : Normalized institution labels keyed by @xml:id, built once per backend.
+ :)
+declare function local:institution-map($backend as xs:string) as map(*) {
+	map:merge(
+		for $item in catalog:institutions($backend)
+		return map:entry(string($item/@xml:id), normalize-space(string($item)))
+	)
+};
+
+(:~
  : Resolves one case through one backend. legacy reaches the frozen
  : pre-Phase-2 chain in catalog-legacy.xqm. catalog uses this phase's own
  : resolution. A backend that raises is reported as an ERROR value so one
@@ -91,36 +101,16 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
  : @return true when @triage is better, worse, or neutral
  :)
 declare function local:valid-review($review as element(mismatch)?) as xs:boolean {
-	exists($review[@triage = ("better", "worse", "neutral")])
+	exists($review) and
+		(string($review/@triage) = "better" or string($review/@triage) = "worse" or string($review/@triage) = "neutral")
 };
 
-let $title-ids := distinct-values(
-	(
-		collection("/db/apps/expanded")/t:TEI/@xml:id/string(),
-		collection("/db/apps/expanded")//t:title[contains(@corresp, "#")]/@corresp/string(),
-		doc("/db/apps/lists/deleted.xml")//t:item/string()
-	)
-)
-let $bibliography-ids := distinct-values(
-	collection("/db/apps/expanded")//t:ptr[starts-with(@target, "bm:")]/@target/string()
-)
-let $all-cases := (
-	for $key in $title-ids
-	return map {"kind": "title", "key": $key},
-	for $key in $bibliography-ids
-	return map {"kind": "bibliography", "key": $key}
-)
-let $cases := if (exists($effective-limit) and $effective-limit gt 0) then
-	subsequence($all-cases, 1, $effective-limit)
-else
-	$all-cases
-let $mismatches :=
-	for $case in $cases
-	let $kind := $case?kind
-	let $key := $case?key
-	let $a := local:resolve($effective-backend-a, $kind, $key)
-	let $b := local:resolve($effective-backend-b, $kind, $key)
-	where $a ne $b
+declare function local:mismatch-entry(
+	$kind as xs:string,
+	$key as xs:string,
+	$a as xs:string,
+	$b as xs:string
+) as map(*) {
 	let $review := $reviewed[@kind = $kind][@key = $key][1]
 	return map {
 		"kind": $kind,
@@ -131,8 +121,59 @@ let $mismatches :=
 		"reviewed": local:valid-review($review),
 		"note": string($review/@note)
 	}
-let $unreviewed := $mismatches[not(.?reviewed)]
-let $invalid-reviewed-entries := $reviewed[not(local:valid-review(.))]
+};
+
+let $institutions-a := local:institution-map($effective-backend-a)
+let $institutions-b := local:institution-map($effective-backend-b)
+let $title-ids := distinct-values(
+	(
+		collection("/db/apps/expanded")/t:TEI/@xml:id/string(),
+		collection("/db/apps/expanded")//t:title[contains(@corresp, "#")]/@corresp/string(),
+		doc("/db/apps/lists/deleted.xml")//t:item/string()
+	)
+)
+let $bibliography-ids := distinct-values(
+	collection("/db/apps/expanded")//t:ptr[starts-with(@target, "bm:")]/@target/string()
+)
+let $institution-ids := distinct-values((map:keys($institutions-a), map:keys($institutions-b)))
+(: Institutions first so CATALOG_ORACLE_LIMIT smokes still cover HP2. :)
+let $all-cases := (
+	for $key in $institution-ids
+	return map {"kind": "institutions", "key": $key},
+	for $key in $title-ids
+	return map {"kind": "title", "key": $key},
+	for $key in $bibliography-ids
+	return map {"kind": "bibliography", "key": $key}
+)
+let $cases := if (exists($effective-limit) and $effective-limit gt 0) then
+	subsequence($all-cases, 1, $effective-limit)
+else
+	$all-cases
+let $mismatches-resolved :=
+	for $case in $cases[.?kind = ("title", "bibliography")]
+	let $kind := $case?kind
+	let $key := $case?key
+	let $a := local:resolve($effective-backend-a, $kind, $key)
+	let $b := local:resolve($effective-backend-b, $kind, $key)
+	where $a ne $b
+	return local:mismatch-entry($kind, $key, $a, $b)
+let $mismatches-institutions :=
+	for $case in $cases[.?kind = "institutions"]
+	let $key := $case?key
+	let $a := ($institutions-a($key), "")[1]
+	let $b := ($institutions-b($key), "")[1]
+	where $a ne $b
+	return local:mismatch-entry("institutions", $key, $a, $b)
+let $mismatches := ($mismatches-resolved, $mismatches-institutions)
+(: Filter with where — $mismatches[not(.?reviewed)] FORG0006s on boolean sequences in eXist 6. :)
+let $unreviewed :=
+	for $m in $mismatches
+	where $m?reviewed eq false()
+	return $m
+let $invalid-reviewed-entries :=
+	for $r in $reviewed
+	where not(local:valid-review($r))
+	return $r
 let $triage-validation-passed := every
 	$review in
 	(<mismatch triage="better" />, <mismatch triage="worse" />, <mismatch triage="neutral" />) satisfies
@@ -150,6 +191,7 @@ return serialize(
 			else (
 			),
 		"titleCases": count($title-ids),
+		"institutionCases": count($institution-ids),
 		"bibliographyCases": count($bibliography-ids),
 		"comparedCases": count($cases),
 		"resolutionCallsA": count($cases),

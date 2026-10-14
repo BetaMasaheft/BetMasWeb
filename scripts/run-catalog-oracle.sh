@@ -39,9 +39,10 @@ else
 	xst run --file "$QUERY" --bind "$bind" > "$OUT"
 fi
 jq -e '.unreviewedCount == 0 and .triageValidationPassed == true and .resolutionCallsA > 0 and .resolutionCallsB > 0' "$OUT" >/dev/null
-printf 'catalog oracle: compared=%s (titles universe=%s bibl universe=%s) mismatches=%s unreviewed=%s mode=%s\n' \
+printf 'catalog oracle: compared=%s (titles universe=%s institutions universe=%s bibl universe=%s) mismatches=%s unreviewed=%s mode=%s\n' \
 	"$(jq -r '.comparedCases // .resolutionCallsA' "$OUT")" \
 	"$(jq -r '.titleCases' "$OUT")" \
+	"$(jq -r '.institutionCases // 0' "$OUT")" \
 	"$(jq -r '.bibliographyCases' "$OUT")" \
 	"$(jq -r '.mismatchCount' "$OUT")" \
 	"$(jq -r '.unreviewedCount' "$OUT")" \
