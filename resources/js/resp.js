@@ -38,6 +38,7 @@ $(document).ajaxStop(function () {
 
 		//        gets the number of resps
 		var resp = $(this).data("value");
+		if (!resp) return;
 		var all = resp.split(" ");
 		var tot = all.length;
 		var name = [];
@@ -65,6 +66,7 @@ $(document).ajaxStop(function () {
 	$(".RdgRespMs").each(function () {
 		var el = this;
 		var resp = $(this).data("value");
+		if (!resp) return;
 		var all = resp.split(" ");
 		var tot = all.length;
 		var name = [];
@@ -88,7 +90,7 @@ $(document).ajaxStop(function () {
 
 		$(el).tooltip({
 			html: true,
-			title: content,
+			title: title,
 		});
 	});
 });
