@@ -1,0 +1,33 @@
+test/xqs/ts-catalog-contract.xqm
+  s_e98fb2299e704f::t_ab31ad6a3a60bd 27-44,141
+  s_e98fb2299e704f::t_d8e155e4568729 140
+  s_e98fb2299e704f::t_bedfd889ee6268 146-148,384-385,389
+test/xqs/ts-exptit-printtitle.xqm
+  s_e98fb2299e704f::t_747598d04bfbe0 88-90,93-112
+modules/titlesData.xqm
+  s_e98fb2299e704f::t_f6f4660704df06 232-234,237-256
+test/xqs/ts-expand-rng-residuals.xqm
+  s_e98fb2299e704f::t_fe8593703e56e7 225
+  s_e98fb2299e704f::t_acfd762c7eacfd 11-26
+  s_e98fb2299e704f::t_2ded8e4c4a9c03 10
+  s_e98fb2299e704f::t_d5fdc9285b49dd 222-224
+  s_e98fb2299e704f::t_2438064a6bdc62 212-214,218
+modules/expand.xqm
+  s_e98fb2299e704f::t_db126eaa05364c 1190-1193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3263145b4a457f5eb7639a20cb67cbf9b3dc17e4",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
