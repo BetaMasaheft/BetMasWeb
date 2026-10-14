@@ -64,8 +64,8 @@ declare function exptit:printTitle($titleMe) {
 				return $resource//t:title[@type = "full"]/text()
 
 			default return
-				if (starts-with($item, $config:BMUrl)) then
-					let $id := substring-after($item, concat($config:BMUrl, "/"))
+				if (starts-with($item, $config:appUrl)) then
+					let $id := substring-after($item, concat($config:appUrl, "/"))
 					return exptit:printTitleID($id)
 				else if (contains($item, "betmas:")) then
 					let $id := substring-after($item, "betmas:")
