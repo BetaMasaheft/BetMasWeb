@@ -220,8 +220,20 @@ declare function tl:resp($node) {
 		for $r in $node
 		where normalize-space(string($r)) ne ""
 		return for $singleRef in $r
+			where normalize-space(string($singleRef)) ne ""
 			return <r>
-				{ normalize-space(string-join(exptit:printTitle(collection($config:data-rootPr)/id($singleRef)[1]), " ")) }
+				{
+					normalize-space(
+						string-join(
+							let $target := collection($config:data-rootPr)/id(normalize-space(string($singleRef)))
+							return if ($target) then
+								exptit:printTitle($target[1])
+							else (
+							),
+							" "
+						)
+					)
+				}
 			</r>
 	return <resps>
 		{
