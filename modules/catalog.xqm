@@ -43,35 +43,69 @@ declare variable $catalog:bibliography := doc("/db/apps/lists/bibliography.xml")
 declare variable $catalog:artifacts := "/db/apps/catalogs";
 
 (:~
- : Map-once for list / artifact docs keyed by @corresp (or deleted item string).
- : Bare `//t:item[@corresp = $id]` over large lists is tens of ms per miss and
- : dominates HP1/HP3 when titleCache is absent.
+ : Map-once indexes keyed by @corresp. Bare `//t:item[@corresp = $id]` over
+ : large lists/artifacts is tens of ms per miss and dominated HP1/HP3.
+ : Built inline in variable initializers — eXist rejects %private function
+ : calls from module-var init when the module is imported by an external
+ : query (XPST0017; breaks app-image generate_artifacts.xq).
  :)
-declare %private function catalog:items-by-corresp($doc as document-node()?) as map(*) {
-	if (empty($doc)) then
-		map {}
-	else
-		map:merge(
-			for $item in $doc//t:item[@corresp]
-			return map:entry(string($item/@corresp), $item),
-			map {"duplicates": "use-last"}
-		)
-};
-
-declare variable $catalog:titles-by-corresp := catalog:items-by-corresp($catalog:titles);
-
-declare variable $catalog:textparts-by-corresp := catalog:items-by-corresp($catalog:textparts);
-
-declare variable $catalog:persons-by-corresp := catalog:items-by-corresp($catalog:persons);
-
-declare variable $catalog:deleted-by-id := if (empty($catalog:deleted)) then
+declare variable $catalog:titles-by-corresp := if (empty($catalog:titles)) then
 	map {}
 else
 	map:merge(
-		for $item in $catalog:deleted//t:item
-		let $id := normalize-space(string($item))
-		where $id ne ""
-		return map:entry($id, $item),
+		for $item in $catalog:titles//t:item[@corresp]
+		return map:entry(string($item/@corresp), $item),
+		map {"duplicates": "use-last"}
+	);
+
+declare variable $catalog:textparts-by-corresp := if (empty($catalog:textparts)) then
+	map {}
+else
+	map:merge(
+		for $item in $catalog:textparts//t:item[@corresp]
+		return map:entry(string($item/@corresp), $item),
+		map {"duplicates": "use-last"}
+	);
+
+declare variable $catalog:persons-by-corresp := if (empty($catalog:persons)) then
+	map {}
+else
+	map:merge(
+		for $item in $catalog:persons//t:item[@corresp]
+		return map:entry(string($item/@corresp), $item),
+		map {"duplicates": "use-last"}
+	);
+
+(:~
+ : Labels / place-labels artifacts. doc() only — do not call catalog:artifact
+ : here (private + freshness); generate_artifacts.xq imports this module
+ : before those files exist, and var-init must still succeed.
+ :)
+declare variable $catalog:labels-by-corresp := let $path := $catalog:artifacts || "/labels.xml"
+let $doc := if (doc-available($path)) then
+	doc($path)
+else (
+)
+return if (empty($doc)) then
+	map {}
+else
+	map:merge(
+		for $item in $doc//t:item[@corresp]
+		return map:entry(string($item/@corresp), $item),
+		map {"duplicates": "use-last"}
+	);
+
+declare variable $catalog:place-labels-by-corresp := let $path := $catalog:artifacts || "/place-labels.xml"
+let $doc := if (doc-available($path)) then
+	doc($path)
+else (
+)
+return if (empty($doc)) then
+	map {}
+else
+	map:merge(
+		for $item in $doc//t:item[@corresp]
+		return map:entry(string($item/@corresp), $item),
 		map {"duplicates": "use-last"}
 	);
 
@@ -86,19 +120,6 @@ declare variable $catalog:formerly-by-passive := map:merge(
 	group by $passive
 	return map:entry($passive, array { $rel })
 );
-
-(:~
- : Map-once indexes for catalog artifacts keyed by @corresp. A bare
- : `//t:item[@corresp = $id]` over labels.xml (~58k items) is ~100ms without
- : a usable range index; HP1/HP3 need O(1) lookups to stay within B≤A.
- :)
-declare %private function catalog:artifact-by-corresp($name as xs:string) as map(*) {
-	catalog:items-by-corresp(catalog:artifact($name))
-};
-
-declare variable $catalog:labels-by-corresp := catalog:artifact-by-corresp("labels.xml");
-
-declare variable $catalog:place-labels-by-corresp := catalog:artifact-by-corresp("place-labels.xml");
 
 declare function catalog:backend($consumer as xs:string) as xs:string {
 	let $name := "CATALOG_BACKEND_" || upper-case(replace($consumer, "[^A-Za-z0-9]", "_"))
@@ -221,8 +242,10 @@ declare %private function catalog:deleted-label($id as xs:string, $deleted as el
 };
 
 declare %private function catalog:resolve-label($id as xs:string) {
-	let $deleted := $catalog:deleted-by-id($id)
-	return if (exists($deleted)) then
+	(: Live predicate — deleted.xml is small (~1k) and must match `. = $id`
+	   atomization; a load-time map diverged from test/list fixtures. :)
+	let $deleted := ($catalog:deleted//t:item[. = $id])[1]
+	return if ($deleted) then
 		catalog:deleted-label($id, $deleted)
 	else if (starts-with($id, "sdc:")) then
 		"La Synthaxe du Codex " || substring-after($id, "sdc:")
