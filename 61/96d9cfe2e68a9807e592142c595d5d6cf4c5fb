@@ -1,0 +1,26 @@
+modules/catalog.xqm
+  s_e98fb2299e704f::t_386fd785118d19 46-77,97
+  s_e98fb2299e704f::t_177a0212b42424 45,91-96,98-102
+  s_e98fb2299e704f::t_db43d01e57735c 225,231-236
+  s_e98fb2299e704f::t_e07d8b1a4d3375 167
+  s_e98fb2299e704f::t_59fcd55e7c8506 90
+  s_e98fb2299e704f::t_7cc14eb4afd1e3 166
+  s_e98fb2299e704f::t_7f74cab20b1bc5 224
+  s_e98fb2299e704f::t_5105d4aaaaf247 240,242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6196d9cfe2e68a9807e592142c595d5d6cf4c5fb",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
