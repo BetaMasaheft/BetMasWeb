@@ -1,0 +1,41 @@
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_4403e3ba19687c 168-176
+  s_53ed1bc42b4d7b::t_af243d2b73a8dc 194
+  s_53ed1bc42b4d7b::t_5364153e7abb07 59-67,108-127,152-153,159-167
+  s_53ed1bc42b4d7b::t_c069296e47d17b 138,141-142
+  s_e98fb2299e704f::t_9f4c80cd2d7dbc 104-105
+  s_e98fb2299e704f::t_70ee420c76029d 139
+  s_53ed1bc42b4d7b::t_24df1a227b5fd3 58
+test/CATALOG_ORACLE.md
+  s_53ed1bc42b4d7b::t_69d26cbae76cb0 6-7
+  s_e98fb2299e704f::t_d41b6865a30243 18-22
+test/catalog-reviewed-mismatches.xml
+  s_53ed1bc42b4d7b::t_ba7b4c9a5eb94e 5
+  s_e98fb2299e704f::t_dc438eef4cb400 6,8-16
+scripts/run-catalog-oracle.sh
+  s_53ed1bc42b4d7b::t_5eb4bc1a528163 42,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff94ffe90f024389147a58ddaabf8e7e74290149",
+  "prompts": {},
+  "sessions": {
+    "s_53ed1bc42b4d7b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "74168a95-7a56-4a55-bd9d-e7133ef2b6d5",
+        "model": "composer-2.5-fast"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
