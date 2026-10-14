@@ -1,0 +1,19 @@
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_dbb788471ea774 75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed2d3ecdb3d3fc8d20e1ff4cf8e6600bd75bd2cd",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
