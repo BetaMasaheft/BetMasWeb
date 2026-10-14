@@ -212,9 +212,9 @@ declare function tl:link($date as node(), $mode as xs:string, $context as xs:str
 
 (: checks the name of resps and return a string join of them if more then one :)
 declare function tl:resp($node) {
-	let $first := ($node)[1]
-	let $resps := if (starts-with(string($first), "bm_")) then (
-		<span class="Zotero Zotero-citation">{ $node }</span>
+	let $resps := if (starts-with($node[1], "bm_") or starts-with($node[1], "bm:")) then (
+		let $tag := zc:normalize-tag(string($node))
+		return <span class="edition-citation" data-value="{ $tag }">{ (zc:short($tag), $tag)[1] }</span>
 	) else if ($node) then (
 		for $r in $node
 		return <r>{ normalize-space(string-join(exptit:printTitle(collection($config:data-rootPr)/id($r)), " ")) }</r>
@@ -222,7 +222,7 @@ declare function tl:resp($node) {
 	)
 	return <resps>
 		{
-			if (starts-with(string($first), "bm_")) then
+			if (starts-with($node[1], "bm_") or starts-with($node[1], "bm:")) then
 				$resps
 			else
 				string-join($resps, " and ")
