@@ -212,33 +212,28 @@ declare function tl:link($date as node(), $mode as xs:string, $context as xs:str
 
 (: checks the name of resps and return a string join of them if more then one :)
 declare function tl:resp($node) {
-	let $resps := if (empty($node)) then (
-	) else if (starts-with(string($node[1]), "bm_") or starts-with(string($node[1]), "bm:")) then
-		let $tag := zc:normalize-tag(string($node[1]))
-		return <span class="edition-citation" data-value="{ $tag }">{ (zc:short($tag), $tag)[1] }</span>
-	else
-		for $r in $node
-		where normalize-space(string($r)) ne ""
-		return for $singleRef in $r
-			where normalize-space(string($singleRef)) ne ""
-			return <r>
-				{
-					normalize-space(
-						string-join(
-							let $target := collection($config:data-rootPr)/id(normalize-space(string($singleRef)))
-							return if ($target) then
-								exptit:printTitle($target[1])
-							else (
-							),
-							" "
-						)
+	let $first := string($node[1])
+	let $resps := 
+		if (empty($node)) then (
+		) else if (starts-with($first, "bm_") or starts-with($first, "bm:")) then
+			let $tag := zc:normalize-tag($first)
+			return <span class="edition-citation" data-value="{ $tag }">{ (zc:short($tag), $tag)[1] }</span>
+		else if ($node) then 
+			for $r in $node
+			where normalize-space(string($r)) ne ""
+			return <r>{ 
+				normalize-space(
+					string-join(
+						exptit:printTitle(collection($config:data-rootPr)/id($r)[1]), 
+						" "
 					)
-				}
-			</r>
+				) 
+			}</r>
+		else ()
 	return <resps>
 		{
 			if (empty($node)) then (
-			) else if (starts-with(string($node[1]), "bm_") or starts-with(string($node[1]), "bm:")) then
+			) else if (starts-with($first, "bm_") or starts-with($first, "bm:")) then
 				$resps
 			else
 				string-join($resps, " and ")
