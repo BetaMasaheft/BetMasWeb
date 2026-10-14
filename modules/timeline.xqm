@@ -217,7 +217,7 @@ declare function tl:resp($node) {
 		return <span class="edition-citation" data-value="{ $tag }">{ (zc:short($tag), $tag)[1] }</span>
 	) else if ($node) then (
 		for $r in $node
-		return <r>{ normalize-space(string-join(exptit:printTitle(collection($config:data-rootPr)/id($r)), " ")) }</r>
+		return <r>{ normalize-space(exptit:printTitle(collection($config:data-rootPr)/id($r))) }</r>
 	) else (
 	)
 	return <resps>
