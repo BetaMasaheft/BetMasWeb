@@ -108,7 +108,11 @@ declare function catalog:artifact-available($name as xs:string) as xs:boolean {
 	exists(catalog:artifact($name))
 };
 
-declare %private function catalog:full-title($id as xs:string) as xs:string? {
+(:~
+ : First full title of an expanded record. Public: the app-image build
+ : generator writes labels.xml from this so artifact == fallback output.
+ :)
+declare function catalog:full-title($id as xs:string) as xs:string? {
 	($catalog:expanded/id($id)//t:title[@type = "full"]/text())[1]
 };
 

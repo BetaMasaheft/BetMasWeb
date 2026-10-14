@@ -431,3 +431,10 @@ declare %test:assertTrue function tscatalog:artifact-available-tracks-manifest-p
 			)
 			return catalog:sha-matches($want, $have) = catalog:artifact-available("retired-ids.xml")
 };
+
+(:~
+ : The generator (BetMas scripts/catalogs/generate_artifacts.xq) builds labels.xml from this.
+ :)
+declare %test:assertTrue function tscatalog:full-title-is-public-and-nonempty() as xs:boolean {
+	normalize-space(catalog:full-title("LIT1367Exodus")) ne ""
+};
