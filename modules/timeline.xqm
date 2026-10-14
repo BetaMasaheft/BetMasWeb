@@ -11,6 +11,7 @@ import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/
 
 declare option exist:serialize "method=text mediatype=text/javascript";
 
+
 (: Item timeline extracted  from all stated dates in item and related entities. first ids are listed with data in a temporary tree and then functions are used to output the javascript as text :)
 declare function tl:RestEntityTimeLine($this, $collection) {
 	let $itemid := $this/@xml:id
