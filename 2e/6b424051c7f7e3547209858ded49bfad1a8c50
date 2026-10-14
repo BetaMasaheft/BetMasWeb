@@ -1,0 +1,20 @@
+modules/catalog.xqm
+  s_e98fb2299e704f::t_72838fbd6eef89 46-50,52-59,61-68,70-77,79-96,98-103,107-108
+  s_e98fb2299e704f::t_b6af02984bd79e 245-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e6b424051c7f7e3547209858ded49bfad1a8c50",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
