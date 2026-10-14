@@ -85,18 +85,31 @@ function tsprinttitle:betmas-prefixed-unresolvable-id-falls-back-to-original() {
 };
 
 (:~
- : Deleted place with formerlyAlsoListedAs active=passive=self must not
- : recurse (StackOverflow), mirroring titles:printTitleID's guard.
+ : A live lists/deleted.xml id must not recurse (StackOverflow), mirroring
+ : titles:printTitleID's guard. Prefer a formerlyAlsoListedAs self-loop
+ : when one is still listed; else any tombstone.
  :)
 declare %test:assertTrue function tsprinttitle:printTitleID-self-formerly-no-recurse() {
-	let $t := exptit:printTitleID("LOC1464Ankoba")
-	return (
-		contains($t, "deleted") or
-			contains($t, "formerlyAlsoListedAs") or
-			contains($t, "permanently deleted") or
-			starts-with(normalize-space($t), "ʾAnkobar") or
-			starts-with($t, "No item:")
-	)
+	let $deleted := doc("/db/apps/lists/deleted.xml")
+	let $id := (
+		(
+			for $rel in collection("/db/apps/expanded")//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+			let $active := normalize-space($rel/@active)
+			let $passive := normalize-space($rel/@passive)
+			let $bare := replace($passive, "^https?://[^/]+/", "")
+			where $active ne "" and $active = $passive and $bare ne "" and exists($deleted//t:item[. = $bare])
+			return $bare
+		)[1],
+		($deleted//t:item/normalize-space(.))[. ne ""][1]
+	)[1]
+	let $t := exptit:printTitleID($id)
+	return exists($id) and
+		(
+			contains($t, "deleted") or
+				contains($t, "formerlyAlsoListedAs") or
+				contains($t, "permanently deleted") or
+				starts-with($t, "No item:")
+		)
 };
 
 (:~

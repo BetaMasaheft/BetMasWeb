@@ -8,6 +8,23 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "../../modules/expand.xqm";
 
 (:~
+ : Live lists/deleted.xml id. Prefer a formerlyAlsoListedAs self-loop still
+ : present in expanded; else any tombstone (permanent-deletion notice).
+ :)
+declare %private function tsexpandrng:lists-deleted-id() as xs:string? {
+	let $deleted := doc("/db/apps/lists/deleted.xml")
+	let $self-loop := (
+		for $rel in collection("/db/apps/expanded")//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+		let $active := normalize-space($rel/@active)
+		let $passive := normalize-space($rel/@passive)
+		let $id := replace($passive, "^https?://[^/]+/", "")
+		where $active ne "" and $active = $passive and $id ne "" and exists($deleted//t:item[. = $id])
+		return $id
+	)[1]
+	return ($self-loop, ($deleted//t:item/normalize-space(.))[. ne ""][1])[1]
+};
+
+(:~
  : Short fragment refs must keep a single leading "#".
  :)
 declare %test:assertEquals("#p2") function tsexpandrng:reflike-keeps-hash-fragment() {
@@ -192,19 +209,20 @@ declare %test:assertFalse function tsexpandrng:country-no-item-is-not-seg() {
 };
 
 (:~
- : titles:printTitleID's self-loop deletion notice must be wrapped in a
- : TEI seg (not leaked as plain title/placeName text) even though the
- : underlying record's title still resolves.
+ : titles:printTitleID deletion notices (self-loop or permanent) must be
+ : wrapped in a TEI seg, not leaked as plain title text. Target is a live
+ : lists/deleted.xml id — not a hardcoded corpus tombstone.
  : @see modules/titlesData.xqm titles:printTitleID
  :)
 declare %test:assertEquals("seg") function tsexpandrng:self-loop-deletion-notice-is-seg() {
-	let $out := expand:teiTitle("LOC1464Ankoba")
+	let $out := expand:teiTitle(tsexpandrng:lists-deleted-id())
 	return local-name($out)
 };
 
-declare %test:assertEquals("LOC1464Ankoba") function tsexpandrng:self-loop-deletion-notice-seg-has-corresp() {
-	let $out := expand:teiTitle("LOC1464Ankoba")
-	return string($out/@corresp)
+declare %test:assertTrue function tsexpandrng:self-loop-deletion-notice-seg-has-corresp() {
+	let $id := tsexpandrng:lists-deleted-id()
+	let $out := expand:teiTitle($id)
+	return exists($id) and local-name($out) = "seg" and string($out/@corresp) = $id
 };
 
 (:~
