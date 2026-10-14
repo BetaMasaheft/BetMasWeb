@@ -217,18 +217,7 @@ declare function tl:resp($node) {
 		<span class="Zotero Zotero-citation">{ $node }</span>
 	) else if ($node) then (
 		for $r in $node
-		let $targets := collection($config:data-rootPr)/id($r)
-		return <r>
-			{
-				normalize-space(
-					string-join(
-						for $t in $targets
-						return exptit:printTitle($t),
-						" "
-					)
-				)
-			}
-		</r>
+		return <r>{ normalize-space(string-join(exptit:printTitle(collection($config:data-rootPr)/id($r)), " ")) }</r>
 	) else (
 	)
 	return <resps>
