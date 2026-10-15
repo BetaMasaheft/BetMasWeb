@@ -1,0 +1,32 @@
+test/xqs/test-runner-catalog.xq
+  s_e98fb2299e704f::t_9d7b714eb1f368 4
+  s_e98fb2299e704f::t_1c7593ac83be0a 17-18
+test/CATALOG_ORACLE.md
+  s_e98fb2299e704f::t_def72acec51bf4 10-19,30-33,36-38,41,44
+test/xqs/ts-catalog-oracle.xqm
+  s_e98fb2299e704f::t_0f6d3a1a7e897b 1-27
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_a61ac97504dc9a 114
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_1d1b6fbaa314b4 94-95
+  s_e98fb2299e704f::t_73a1888cdf9e40 189
+  s_e98fb2299e704f::t_735365d6d57be2 16
+test/xqs/catalog-oracle-lib.xqm
+  s_e98fb2299e704f::t_4d44fe9a4bf212 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f21d65ea1bc999a218a01b7e25e27d28cab45a69",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
