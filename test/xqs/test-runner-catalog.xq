@@ -1,7 +1,7 @@
 xquery version "3.1";
 
 (:~
- : Focused XQSuite runner: catalog contract + selectors only.
+ : Focused XQSuite runner: catalog contract, selectors, and oracle helpers.
  :)
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
@@ -14,6 +14,7 @@ declare option output:media-type "application/json";
 test:suite(
 	(
 		inspect:module-functions(xs:anyURI("ts-catalog-contract.xqm")),
-		inspect:module-functions(xs:anyURI("ts-catalog-selectors.xqm"))
+		inspect:module-functions(xs:anyURI("ts-catalog-selectors.xqm")),
+		inspect:module-functions(xs:anyURI("ts-catalog-oracle.xqm"))
 	)
 )

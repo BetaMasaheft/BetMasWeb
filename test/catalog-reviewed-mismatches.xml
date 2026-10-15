@@ -4,6 +4,7 @@
 		Add entries only after review:
 		<mismatch kind="title|institutions|bibliography" key="..." triage="better|worse|neutral" note="..." />
 		Phase 5 HP2 Accepts: live image 2026-10-14 (9 diffs; supersedes Phase 3 seven).
+		Phase 5 full-oracle titles (2026-10-15 phase5 stack): placeholder stubs / deleted.
 	-->
 	<mismatch kind="institutions" key="INS0060GebbiGabriel" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
 	<mismatch kind="institutions" key="INS0984MLQM" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
@@ -14,4 +15,10 @@
 	<mismatch kind="institutions" key="INS1015BabahaAbbo" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
 	<mismatch kind="institutions" key="INS0996GGabriel" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
 	<mismatch kind="institutions" key="INS0358TanaDM" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="title" key="PRS00000" triage="neutral" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
+	<mismatch kind="title" key="PRS0000" triage="neutral" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
+	<mismatch kind="title" key="LIT5168MiracleFishermanRiver" triage="better" note="engineering Accept 2026-10-15; catalog permanent-deletion vs legacy still resolving a title" />
+	<mismatch kind="bibliography" key="bm:TaklaHaymanot1914Jacobis" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:ContiRossini1916Fonti" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:Haggai2005Gordon" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2 Accepted)" />
 </reviewed-mismatches>
