@@ -24,6 +24,24 @@ declare %private function tscatalog:text($label as item()*) as xs:string {
 	normalize-space(string-join($label!string(.), " "))
 };
 
+(:~
+ : First id from lists/deleted.xml. Prefer a tombstone that still has a
+ : formerlyAlsoListedAs self-loop in expanded (bare id or URL-suffixed);
+ : otherwise any deleted id — permanent-deletion notices still terminate.
+ :)
+declare %private function tscatalog:lists-deleted-id() as xs:string? {
+	let $deleted := doc("/db/apps/lists/deleted.xml")
+	let $self-loop := (
+		for $rel in collection("/db/apps/expanded")//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+		let $active := normalize-space($rel/@active)
+		let $passive := normalize-space($rel/@passive)
+		let $id := replace($passive, "^https?://[^/]+/", "")
+		where $active ne "" and $active = $passive and $id ne "" and exists($deleted//t:item[. = $id])
+		return $id
+	)[1]
+	return ($self-loop, ($deleted//t:item/normalize-space(.))[. ne ""][1])[1]
+};
+
 (: Same resolution as catalog:expanded-sha(), which is private. :)
 declare %private function tscatalog:live-expanded-sha() as xs:string? {
 	let $path := "/db/apps/catalogs/expanded-sha.txt"
@@ -119,13 +137,15 @@ function tscatalog:deleted-ids-explain-themselves($backend as xs:string) as xs:b
 
 (:~
  : A deleted id whose only formerlyAlsoListedAs successor is itself must
- : terminate instead of recursing (the LOC1464Ankoba stack overflow).
+ : terminate instead of recursing. Target is discovered from live
+ : deleted.xml + expanded (not a hardcoded corpus id that may leave lists).
  :)
 declare
 	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:self-referential-successor-terminates($backend as xs:string) as xs:boolean {
-	let $label := tscatalog:text(catalog:label("LOC1464Ankoba", $backend))
-	return contains($label, "deleted") or contains($label, "formerly also listed as")
+	let $id := tscatalog:lists-deleted-id()
+	let $label := tscatalog:text(catalog:label($id, $backend))
+	return exists($id) and (contains($label, "deleted") or contains($label, "formerly also listed as"))
 };
 
 (:~
@@ -361,14 +381,12 @@ declare %test:args("legacy") %test:assertTrue function tscatalog:bibl-legacy-sti
 declare
 	%test:args("legacy") %test:assertTrue %test:args("catalog") %test:assertTrue
 function tscatalog:retired-identifies-known-deletion($backend as xs:string) as xs:boolean {
-	(: lists/deleted.xml and retired-ids.xml are not the same set. LOC1464Ankoba
-	   is a lists tombstone and is absent from the artifact, so the catalog
-	   backend only returned true while a stale pin hid the file and fell
-	   through to lists. A fresh artifact must be tested with an id it contains. :)
+	(: lists/deleted.xml and retired-ids.xml are not the same set. Catalog
+	   must use an id the artifact contains; legacy uses a live lists tombstone. :)
 	let $id := if ($backend = "catalog" and catalog:artifact-available("retired-ids.xml")) then
 		string((doc("/db/apps/catalogs/retired-ids.xml")//*:issued-id/@id)[1])
 	else
-		"LOC1464Ankoba"
+		tscatalog:lists-deleted-id()
 	return $id ne "" and catalog:retired($id, $backend)
 };
 
@@ -430,4 +448,11 @@ declare %test:assertTrue function tscatalog:artifact-available-tracks-manifest-p
 			else (
 			)
 			return catalog:sha-matches($want, $have) = catalog:artifact-available("retired-ids.xml")
+};
+
+(:~
+ : The generator (BetMas scripts/catalogs/generate_artifacts.xq) builds labels.xml from this.
+ :)
+declare %test:assertTrue function tscatalog:full-title-is-public-and-nonempty() as xs:boolean {
+	normalize-space(catalog:full-title("LIT1367Exodus")) ne ""
 };

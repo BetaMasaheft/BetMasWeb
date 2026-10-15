@@ -1187,7 +1187,10 @@ declare function expand:asTeiTitle($value, $corresp as xs:string) {
 				   resolved title with an internal-jargon diagnostic suffix
 				   appended, not a pure placeholder — matched by suffix,
 				   unlike the prefix-only markers above. :)
-				contains($text, "; formerlyAlsoListedAs is self-referential or empty]")
+				contains($text, "; formerlyAlsoListedAs is self-referential or empty]") or
+				(: Permanent tombstone when formerlyAlsoListedAs is absent. :)
+				contains($text, " was permanently deleted") or
+				contains($text, " which was requested here but has been deleted on ")
 		)
 	return if ($isHtmlFallback or $isPlainFallback) then
 		<seg xmlns="http://www.tei-c.org/ns/1.0" corresp="{ $corresp }">{ $text }</seg>

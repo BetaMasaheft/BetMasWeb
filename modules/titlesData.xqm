@@ -229,20 +229,31 @@ function titles:printTitleID($id as xs:string) {
 };
 
 (:~
- : Deleted place with formerlyAlsoListedAs active=passive=self must not
- : recurse (StackOverflow). Returns a deleted/self-loop notice or a main
- : title string — assertTrue because the result is atomic (assertXPath
- : with "." needs a node context).
+ : A live lists/deleted.xml id must not recurse (StackOverflow) and must
+ : return a deletion notice. Prefer a formerlyAlsoListedAs self-loop when
+ : one is still listed; else any tombstone (permanent-deletion form).
  :)
 declare %test:assertTrue function titles:printTitleID-self-formerly-no-recurse() {
-	let $t := titles:printTitleID("LOC1464Ankoba")
-	return (
-		contains($t, "deleted") or
-			contains($t, "formerlyAlsoListedAs") or
-			contains($t, "permanently deleted") or
-			starts-with(normalize-space($t), "ʾAnkobar") or
-			starts-with($t, "No item:")
-	)
+	let $deleted := doc("/db/apps/lists/deleted.xml")
+	let $id := (
+		(
+			for $rel in collection("/db/apps/expanded")//t:relation[@name = "betmas:formerlyAlsoListedAs"]
+			let $active := normalize-space($rel/@active)
+			let $passive := normalize-space($rel/@passive)
+			let $bare := replace($passive, "^https?://[^/]+/", "")
+			where $active ne "" and $active = $passive and $bare ne "" and exists($deleted//t:item[. = $bare])
+			return $bare
+		)[1],
+		($deleted//t:item/normalize-space(.))[. ne ""][1]
+	)[1]
+	let $t := titles:printTitleID($id)
+	return exists($id) and
+		(
+			contains($t, "deleted") or
+				contains($t, "formerlyAlsoListedAs") or
+				contains($t, "permanently deleted") or
+				starts-with($t, "No item:")
+		)
 };
 
 declare function titles:printTitleMainID($id as xs:string, $c) {
