@@ -11,9 +11,9 @@ declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace exist = "http://exist.sourceforge.net/NS/exist";
 declare namespace request = "http://exist-db.org/xquery/request";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
-declare namespace b = "betmas.biblio";
 
 import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
+import module namespace oraclelib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog-oracle-lib" at "xmldb:exist:///db/apps/BetMasWeb/test/xqs/catalog-oracle-lib.xqm";
 
 declare option output:method "json";
 declare option output:media-type "application/json";
@@ -91,12 +91,8 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
 				)
 			else
 				(: Phase 4 D1: EthioStudies vs lists markup/citation text may differ;
-				   oracle gates presence (hit/miss), not full-entry serialize equality. :)
-				let $entry := catalog:bibl($key, $backend)
-				return if (empty($entry)) then
-					""
-				else
-					"hit"
+				   gate presence via non-empty b:citation — see oraclelib:bibl-presence. :)
+				oraclelib:bibl-presence(catalog:bibl($key, $backend))
 		} catch * { "ERROR " || $err:code || ": " || $err:description }
 };
 
@@ -190,7 +186,7 @@ return serialize(
 	map {
 		"backendA": $effective-backend-a,
 		"backendB": $effective-backend-b,
-		"comparisonMode": "resolved-values",
+		"comparisonMode": "resolved-values+bibl-presence",
 		"limit":
 			if (exists($effective-limit)) then
 				$effective-limit

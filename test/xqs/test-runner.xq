@@ -111,6 +111,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
 		inspect:module-functions(xs:anyURI("ts-catalog-contract.xqm")),
 		inspect:module-functions(xs:anyURI("ts-catalog-selectors.xqm")),
+		inspect:module-functions(xs:anyURI("ts-catalog-oracle.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/titlesData.xqm")),
 		inspect:module-functions(xs:anyURI("xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm")),
 		inspect:module-functions(xs:anyURI("ts-app-persrole.xqm")),

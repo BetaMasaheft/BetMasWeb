@@ -7,6 +7,16 @@ institution IDs (`catalog:institutions`, one-sided = mismatch), and distinct
 `bm:` pointers in expanded. Both backend resolvers run
 independently even when the backend names match.
 
+## Comparison mode
+
+JSON field `comparisonMode` is `resolved-values+bibl-presence`:
+
+| Kind           | Compared value                                                                                                                                                                                                                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`        | Normalized label string (`catalog:label`)                                                                                                                                                                                                                                                                                                 |
+| `institutions` | Institution label via maps built once per backend                                                                                                                                                                                                                                                                                         |
+| `bibliography` | Presence only: `"hit"` if `catalog:bibl` returns an entry with **non-empty** `b:citation`, else `""`. Full-entry `serialize()` equality is not used — EthioStudies vs lists markup/citation text may differ (Phase 4 D1). Shared rule: `oraclelib:bibl-presence` in `test/xqs/catalog-oracle-lib.xqm` (XQSuite: `ts-catalog-oracle.xqm`). |
+
 The runner fails when any of:
 
 - `unreviewedCount` is nonzero
@@ -17,17 +27,21 @@ Reviewed differences belong in `test/catalog-reviewed-mismatches.xml` with a
 `better`, `worse`, or `neutral` triage. Missing or invalid triage is
 unreviewed and therefore fails the gate. Phase 5 carries nine
 `kind="institutions"` `neutral` rows (HP2 engineering Accept on the live
-image, 2026-10-14; supersedes the Phase 3 seven); remove them if selectors
-are later aligned. Institution labels are compared via maps built once per
-backend (not per id). Bindings:
+image, 2026-10-14; supersedes the Phase 3 seven), plus title/bibl Accepts
+from the 2026-10-15 full-oracle pass after the institutions+titles flips;
+remove them if selectors or data are later aligned. Institution labels are
+compared via maps built once per backend (not per id). Bindings:
 `CATALOG_BACKEND_A` / `CATALOG_BACKEND_B`. Optional `CATALOG_ORACLE_LIMIT` for
 sampled runs. Transport: `CATALOG_ORACLE_TRANSPORT=rest` (curl; preferred in
-CI) or `xst` (default locally).
+CI and for full runs on `:8082`) or `xst` (default locally). Prefer
+`EXISTDB_SERVER=http://127.0.0.1:8082/exist` for long REST runs (nginx `:8080`
+XML-RPC timeouts).
 
 ```sh
-EXISTDB_SERVER=http://127.0.0.1:8080 \
+EXISTDB_SERVER=http://127.0.0.1:8082/exist \
 EXISTDB_USER=admin EXISTDB_PASS= \
 CATALOG_ORACLE_TRANSPORT=rest \
+CATALOG_ORACLE_TIMEOUT=14400 \
 CATALOG_BACKEND_A=legacy CATALOG_BACKEND_B=catalog \
 scripts/run-catalog-oracle.sh
 ```
