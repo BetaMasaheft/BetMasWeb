@@ -90,7 +90,13 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
 					)
 				)
 			else
-				normalize-space(serialize(catalog:bibl($key, $backend)))
+				(: Phase 4 D1: EthioStudies vs lists markup/citation text may differ;
+				   oracle gates presence (hit/miss), not full-entry serialize equality. :)
+				let $entry := catalog:bibl($key, $backend)
+				return if (empty($entry)) then
+					""
+				else
+					"hit"
 		} catch * { "ERROR " || $err:code || ": " || $err:description }
 };
 
@@ -127,10 +133,10 @@ let $institutions-a := local:institution-map($effective-backend-a)
 let $institutions-b := local:institution-map($effective-backend-b)
 let $title-ids := distinct-values(
 	(
-		collection("/db/apps/expanded")/t:TEI/@xml:id/string(),
-		collection("/db/apps/expanded")//t:title[contains(@corresp, "#")]/@corresp/string(),
-		doc("/db/apps/lists/deleted.xml")//t:item/string()
-	)
+		collection("/db/apps/expanded")/t:TEI/@xml:id/string()!normalize-space(.),
+		collection("/db/apps/expanded")//t:title[contains(@corresp, "#")]/@corresp/string()!normalize-space(.),
+		doc("/db/apps/lists/deleted.xml")//t:item/string()!normalize-space(.)
+	)[. ne ""]
 )
 let $bibliography-ids := distinct-values(
 	collection("/db/apps/expanded")//t:ptr[starts-with(@target, "bm:")]/@target/string()
