@@ -1,0 +1,23 @@
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_f7473032a79ba7 93-99
+  s_e98fb2299e704f::t_86a171c1accaff 136-139
+test/catalog-reviewed-mismatches.xml
+  s_e98fb2299e704f::t_e59c3b6af69bfa 20-23
+  s_e98fb2299e704f::t_83bd8b4b2fa7c8 7,18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a24f36f5f731ebec85b601417f871492c2fb0430",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
