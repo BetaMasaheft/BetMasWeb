@@ -21,4 +21,9 @@
 	<mismatch kind="bibliography" key="bm:TaklaHaymanot1914Jacobis" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
 	<mismatch kind="bibliography" key="bm:ContiRossini1916Fonti" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
 	<mismatch kind="bibliography" key="bm:Haggai2005Gordon" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2 Accepted)" />
+	<!-- CI exist image EthioStudies coverage (2026-10-16 #247 full oracle): same D2 class -->
+	<mismatch kind="bibliography" key="bm:IHABook182" triage="better" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook683" triage="better" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook616" triage="better" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook904" triage="better" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
 </reviewed-mismatches>
