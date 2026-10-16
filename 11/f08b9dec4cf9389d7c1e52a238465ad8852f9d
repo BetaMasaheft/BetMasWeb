@@ -1,0 +1,40 @@
+scripts/run-catalog-oracle.sh
+  s_e98fb2299e704f::t_067430e10d992e 19-29,53-54,61
+test/CATALOG_ORACLE.md
+  s_e98fb2299e704f::t_b33cb3148bc4e3 7-8,29-30,33-36,38-51,53-61,64-72
+test/catalog-reviewed-mismatches.xml
+  s_e98fb2299e704f::t_e3787c4b846358 5-10,13,15-26,28-30,32-35
+test/xqs/catalog-oracle-lib.xqm
+  s_e98fb2299e704f::t_ae731d36bc4bf4 25-55
+test/xqs/ts-catalog-oracle.xqm
+  s_e98fb2299e704f::t_0fe43f71b60402 28-47
+test/gate-catalog-oracle.bats
+  s_e98fb2299e704f::t_935c8aaf3e25cc 1-63
+.github/workflows/exist.yml
+  s_e98fb2299e704f::t_219c26d12a8bfd 18-19
+  s_e98fb2299e704f::t_ada2631e851bec 91-92,94,102,105-106
+docs/CATALOG.md
+  s_e98fb2299e704f::t_211eb3140bcc9f 46-47
+test/xqs/catalog-parity-oracle.xq
+  s_e98fb2299e704f::t_9d74633ae91066 113
+  s_e98fb2299e704f::t_26e3d8142b8a01 7-8
+  s_e98fb2299e704f::t_462d9c83e9481a 167,169-178
+.github/workflows/format-check.yml
+  s_e98fb2299e704f::t_e0dcc9664f0b49 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11f08b9dec4cf9389d7c1e52a238465ad8852f9d",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
