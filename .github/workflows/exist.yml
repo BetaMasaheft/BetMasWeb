@@ -15,7 +15,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Image + bats + XQSuite + oracle (≤55m) + Cypress; headroom if corpus grows.
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v7
@@ -87,8 +88,10 @@ jobs:
           XQS_URL: http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq
         run: npm run test:xqsuite
 
+      # REST on :8080 only (compose publishes that port). Curl max-time must stay
+      # under this step budget so the job fails with a gate result, not a hung curl.
       - name: Catalog parity oracle (legacy vs catalog)
-        timeout-minutes: 60
+        timeout-minutes: 55
         env:
           EXISTDB_SERVER: http://127.0.0.1:8080/exist
           EXISTDB_USER: admin
@@ -96,11 +99,11 @@ jobs:
           CATALOG_ORACLE_TRANSPORT: rest
           CATALOG_BACKEND_A: legacy
           CATALOG_BACKEND_B: catalog
-          CATALOG_ORACLE_TIMEOUT: 7200
+          CATALOG_ORACLE_TIMEOUT: 3300
         run: npm run gate:catalog-oracle
 
-      - name: Upload catalog oracle result on failure
-        if: failure()
+      - name: Upload catalog oracle result
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: catalog-oracle-result

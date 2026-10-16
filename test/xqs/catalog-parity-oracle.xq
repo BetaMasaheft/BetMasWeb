@@ -4,7 +4,8 @@ xquery version "3.1";
  : Parity oracle. Compares resolved labels and bibliography entries for
  : backend-a and backend-b over expanded ids and bm: pointers.
  : A mismatch is unreviewed unless catalog-reviewed-mismatches.xml triages it
- : better, worse, or neutral. Does not disable the optimizer.
+ : better, worse, or neutral (optional @backendA/@backendB pin live values).
+ : Does not disable the optimizer.
  :)
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
@@ -96,17 +97,6 @@ declare function local:resolve($backend as xs:string, $kind as xs:string, $key a
 		} catch * { "ERROR " || $err:code || ": " || $err:description }
 };
 
-(:~
- : Whether a reviewed-mismatch row has a triage the oracle accepts.
- :
- : @param $review one mismatch element from the reviewed file, or empty
- : @return true when @triage is better, worse, or neutral
- :)
-declare function local:valid-review($review as element(mismatch)?) as xs:boolean {
-	exists($review) and
-		(string($review/@triage) = "better" or string($review/@triage) = "worse" or string($review/@triage) = "neutral")
-};
-
 declare function local:mismatch-entry(
 	$kind as xs:string,
 	$key as xs:string,
@@ -120,7 +110,7 @@ declare function local:mismatch-entry(
 		"backendA": $a,
 		"backendB": $b,
 		"triage": string($review/@triage),
-		"reviewed": local:valid-review($review),
+		"reviewed": oraclelib:review-covers($review, $a, $b),
 		"note": string($review/@note)
 	}
 };
@@ -174,14 +164,18 @@ let $unreviewed :=
 	return $m
 let $invalid-reviewed-entries :=
 	for $r in $reviewed
-	where not(local:valid-review($r))
+	where not(oraclelib:valid-review($r))
 	return $r
-let $triage-validation-passed := every
-	$review in
-	(<mismatch triage="better" />, <mismatch triage="worse" />, <mismatch triage="neutral" />) satisfies
-	local:valid-review($review) and
-		not(local:valid-review(<mismatch />)) and
-		not(local:valid-review(<mismatch triage="invalid" />))
+(: Self-check valid-review helpers + fail closed on bad rows in the XML. :)
+let $triage-validation-passed := count($invalid-reviewed-entries) eq 0 and
+	(
+		every
+			$review in
+			(<mismatch triage="better" />, <mismatch triage="worse" />, <mismatch triage="neutral" />) satisfies
+			oraclelib:valid-review($review)
+	) and
+	not(oraclelib:valid-review(<mismatch />)) and
+	not(oraclelib:valid-review(<mismatch triage="invalid" />))
 return serialize(
 	map {
 		"backendA": $effective-backend-a,

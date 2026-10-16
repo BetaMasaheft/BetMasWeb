@@ -25,3 +25,23 @@ declare %test:assertEquals("") function tsoracle:bibl-presence-missing-citation-
 declare %test:assertEquals("") function tsoracle:bibl-presence-empty-sequence() as xs:string {
 	oraclelib:bibl-presence(())
 };
+
+declare %test:assertTrue function tsoracle:valid-review-neutral() as xs:boolean {
+	oraclelib:valid-review(<mismatch triage="neutral" />)
+};
+
+declare %test:assertFalse function tsoracle:valid-review-missing-triage() as xs:boolean {
+	oraclelib:valid-review(<mismatch />)
+};
+
+declare %test:assertTrue function tsoracle:review-covers-without-pins() as xs:boolean {
+	oraclelib:review-covers(<mismatch triage="better" />, "", "hit")
+};
+
+declare %test:assertTrue function tsoracle:review-covers-matching-pins() as xs:boolean {
+	oraclelib:review-covers(<mismatch backendA="" backendB="hit" triage="better" />, "", "hit")
+};
+
+declare %test:assertFalse function tsoracle:review-covers-inverted-pins() as xs:boolean {
+	oraclelib:review-covers(<mismatch backendA="" backendB="hit" triage="better" />, "hit", "")
+};
