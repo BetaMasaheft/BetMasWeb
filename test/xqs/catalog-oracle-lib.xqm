@@ -22,3 +22,34 @@ declare function oraclelib:bibl-presence($entry as element(b:entry)?) as xs:stri
 	else
 		"hit"
 };
+
+(:~
+ : Whether a reviewed-mismatch row has a triage the oracle accepts.
+ :
+ : @param $review one mismatch element from the reviewed file, or empty
+ : @return true when @triage is better, worse, or neutral
+ :)
+declare function oraclelib:valid-review($review as element(mismatch)?) as xs:boolean {
+	exists($review) and
+		(string($review/@triage) = "better" or string($review/@triage) = "worse" or string($review/@triage) = "neutral")
+};
+
+(:~
+ : Whether a reviewed row covers this live mismatch. Optional @backendA /
+ : @backendB pin resolved values so an Accept cannot hide an inverted or
+ : drifted diff (kind+key alone is not enough when pins are present).
+ :
+ : @param $review reviewed-mismatches/mismatch, or empty
+ : @param $backend-a live backend A value
+ : @param $backend-b live backend B value
+ : @return true when triage is valid and any present A/B pins match
+ :)
+declare function oraclelib:review-covers(
+	$review as element(mismatch)?,
+	$backend-a as xs:string,
+	$backend-b as xs:string
+) as xs:boolean {
+	oraclelib:valid-review($review) and
+		(empty($review/@backendA) or string($review/@backendA) eq $backend-a) and
+		(empty($review/@backendB) or string($review/@backendB) eq $backend-b)
+};

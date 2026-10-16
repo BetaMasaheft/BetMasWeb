@@ -42,6 +42,10 @@ Legacy backends still read/write `titleCache` for oracle Arm A. `titles:updateTi
 itself remains callable (tests / allow-listed); expand is the production writer
 that is gated.
 
+The **exist-db CI** job also runs the catalog parity oracle (`gate:catalog-oracle`)
+on PRs (REST `:8080`, Accept pins in `test/catalog-reviewed-mismatches.xml`) —
+see `test/CATALOG_ORACLE.md`.
+
 The CI no-writes gate rejects `update insert|value|delete|replace|rename` and
 `xmldb:store` outside an explicit allow-list (install, editors, expansion/
 admin entry points, tests). One **tracked serving-reachable exception** remains:

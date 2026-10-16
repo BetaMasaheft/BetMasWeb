@@ -2,23 +2,35 @@
 <reviewed-mismatches>
 	<!--
 		Add entries only after review:
-		<mismatch kind="title|institutions|bibliography" key="..." triage="better|worse|neutral" note="..." />
+		<mismatch kind="title|institutions|bibliography" key="..." triage="better|worse|neutral"
+		  backendA="..." backendB="..." note="..." />
+		Optional backendA/backendB pin the live resolved values (legacy vs catalog).
+		When present, an Accept covers only that exact A/B pair — inverted or drifted
+		diffs for the same key fail the gate again. Bibliography pins use presence
+		tokens ("" / "hit"), not full citations.
 		Phase 5 HP2 Accepts: live image 2026-10-14 (9 diffs; supersedes Phase 3 seven).
 		Phase 5 full-oracle titles (2026-10-15 phase5 stack): placeholder stubs / deleted.
+		Pins from CI exist full oracle 2026-10-16 (#247) unless noted.
 	-->
-	<mismatch kind="institutions" key="INS0060GebbiGabriel" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0984MLQM" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0818MSG" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0997QMA" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0515DabraSeyon" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0028BLG" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS1015BabahaAbbo" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0996GGabriel" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="institutions" key="INS0358TanaDM" triage="neutral" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
-	<mismatch kind="title" key="PRS00000" triage="neutral" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
-	<mismatch kind="title" key="PRS0000" triage="neutral" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
+	<mismatch kind="institutions" key="INS0060GebbiGabriel" triage="neutral" backendA="Gǝbbi Gabrǝʾel" backendB="Gǝbbi Gabrəʾel" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0984MLQM" triage="neutral" backendA="Manbara Lǝʿul Qəddus Mārqos" backendB="" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0818MSG" triage="neutral" backendA="Moṭā Giyorgis" backendB="" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0997QMA" triage="neutral" backendA="Qač̣ane Madḫāne ʿĀlam" backendB="" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0515DabraSeyon" triage="neutral" backendA="Dabra Ṣǝyon ʾAbuna ʾAbrǝhām" backendB="ደብረ፡ ጽዮን፡ አቡነ፡ አብርሃም፡" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0028BLG" triage="neutral" backendA="Beta Ləḥem" backendB="" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS1015BabahaAbbo" triage="neutral" backendA="Babaḥa ʾAbbo" backendB="" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0996GGabriel" triage="neutral" backendA="ʾAbun Bet Gabrǝʾel" backendB="Dabra Mǝḥrat ʾAbun Bet Qǝddus Gabrəʾel" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="institutions" key="INS0358TanaDM" triage="neutral" backendA="" backendB="Dabra Māryām" note="engineering Accept 2026-10-14; HP2 catalog vs lists/institutions.xml" />
+	<mismatch kind="title" key="PRS00000" triage="neutral" backendA="Placeholder" backendB="No item: PRS00000" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
+	<mismatch kind="title" key="PRS0000" triage="neutral" backendA="Placeholder" backendB="No item: PRS0000" note="engineering Accept 2026-10-15; legacy Placeholder stub vs catalog miss" />
+	<!-- LIT5168: no A/B pin yet (not in 2026-10-16 CI mismatch dump); kind+key Accept only -->
 	<mismatch kind="title" key="LIT5168MiracleFishermanRiver" triage="better" note="engineering Accept 2026-10-15; catalog permanent-deletion vs legacy still resolving a title" />
-	<mismatch kind="bibliography" key="bm:TaklaHaymanot1914Jacobis" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
-	<mismatch kind="bibliography" key="bm:ContiRossini1916Fonti" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
-	<mismatch kind="bibliography" key="bm:Haggai2005Gordon" triage="better" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2 Accepted)" />
+	<mismatch kind="bibliography" key="bm:TaklaHaymanot1914Jacobis" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:ContiRossini1916Fonti" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:Haggai2005Gordon" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-15; EthioStudies hit, lists miss (Phase 4 D2 Accepted)" />
+	<!-- CI exist image EthioStudies coverage (2026-10-16 #247 full oracle): same D2 class -->
+	<mismatch kind="bibliography" key="bm:IHABook182" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook683" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook616" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
+	<mismatch kind="bibliography" key="bm:IHABook904" triage="better" backendA="" backendB="hit" note="engineering Accept 2026-10-16; EthioStudies hit, lists miss (Phase 4 D2)" />
 </reviewed-mismatches>

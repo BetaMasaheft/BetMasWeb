@@ -15,14 +15,16 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Image + bats + XQSuite + oracle (≤55m) + Cypress; headroom if corpus grows.
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install bats
+      - name: Install bats and jq
         run: |
           sudo apt-get update
-          sudo apt-get -y install bats
+          sudo apt-get -y install bats jq
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -85,6 +87,28 @@ jobs:
           EXISTDB_PASS: ""
           XQS_URL: http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq
         run: npm run test:xqsuite
+
+      # REST on :8080 only (compose publishes that port). Curl max-time must stay
+      # under this step budget so the job fails with a gate result, not a hung curl.
+      - name: Catalog parity oracle (legacy vs catalog)
+        timeout-minutes: 55
+        env:
+          EXISTDB_SERVER: http://127.0.0.1:8080/exist
+          EXISTDB_USER: admin
+          EXISTDB_PASS: ""
+          CATALOG_ORACLE_TRANSPORT: rest
+          CATALOG_BACKEND_A: legacy
+          CATALOG_BACKEND_B: catalog
+          CATALOG_ORACLE_TIMEOUT: 3300
+        run: npm run gate:catalog-oracle
+
+      - name: Upload catalog oracle result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: catalog-oracle-result
+          path: test/catalog-oracle-result.json
+          if-no-files-found: ignore
 
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7

@@ -34,4 +34,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ripgrep
 
       - name: Reject database writes in serving modules
-        run: scripts/check-no-serving-writes.sh
+        run: npm run gate:no-writes
