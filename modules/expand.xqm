@@ -935,13 +935,22 @@ declare function expand:wholike($attribute) {
 };
 
 (:~
+ : Whether expand should still mutate lists/titleCache.xml for a given
+ : exptit backend name. False for "catalog" (Phase 5); true for "legacy".
+ : Test arity — production uses expand:writes-title-cache#0.
+ :)
+declare function expand:writes-title-cache($backend as xs:string) as xs:boolean {
+	$backend ne "catalog"
+};
+
+(:~
  : Whether expand should still mutate lists/titleCache.xml.
  : False when CATALOG_BACKEND_EXPTIT=catalog (Phase 5 flip): serving
  : resolves titles via catalog artifacts, so the mutable cache write is
  : retired. Legacy backend keeps the write for oracle Arm A / older stacks.
  :)
 declare function expand:writes-title-cache() as xs:boolean {
-	catalog:backend("exptit") ne "catalog"
+	expand:writes-title-cache(catalog:backend("exptit"))
 };
 
 (:~

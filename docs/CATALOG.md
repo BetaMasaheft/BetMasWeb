@@ -29,9 +29,18 @@ expect BetMas compose / `finish.xq` to set the flipped consumers to `catalog`
 explicitly. BetMasWeb's own `docker-compose.yml` has no betmas service env
 block.
 
-When `CATALOG_BACKEND_EXPTIT=catalog`, `expand:file` / `expand:backfillTitleCache`
-do **not** write `lists/titleCache.xml` (`expand:writes-title-cache()`). Serving
-uses catalog label artifacts instead.
+When `CATALOG_BACKEND_EXPTIT=catalog`:
+
+- `expand:file` / `expand:backfillTitleCache` do **not** write
+  `lists/titleCache.xml` (`expand:writes-title-cache()`).
+- `catalog:resolve-label` (catalog backend) ignores `titleCache.xml` and
+  prefers `/db/apps/catalogs/labels.xml`, then expanded `title[@type=full]`.
+- `lists:title-lookup-map()` returns empty so form/facet batch paths fall
+  through to `exptit` / catalog instead of serving a stale cache map.
+
+Legacy backends still read/write `titleCache` for oracle Arm A. `titles:updateTitleCache`
+itself remains callable (tests / allow-listed); expand is the production writer
+that is gated.
 
 The CI no-writes gate rejects `update insert|value|delete|replace|rename` and
 `xmldb:store` outside an explicit allow-list (install, editors, expansion/

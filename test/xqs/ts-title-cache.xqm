@@ -2,8 +2,10 @@ xquery version "3.1" encoding "UTF-8";
 
 (:~
  : XQSuite for the shared works/persons/places/institutions title cache:
- : titles:updateTitleCache (write side), exptit:printTitleID's cache-first
- : fast path (read side), and expand:file's cache-writing side effect.
+ : titles:updateTitleCache (write side), expand write gating, and catalog
+ : label resolution ignoring stale titleCache (Phase 5). Under legacy
+ : EXPTIT, exptit:printTitleID may still surface cache hits via the
+ : legacy backend; under catalog it must not.
  :)
 module namespace tstitlecache = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-title-cache";
 
@@ -22,6 +24,10 @@ declare variable $tstitlecache:write-id := "LITTESTtitleCacheWrite77";
 declare variable $tstitlecache:hit-id := "LITTESTtitleCacheHit77";
 
 declare variable $tstitlecache:hit-title := "a distinctive cached title no fallback path could produce";
+
+declare variable $tstitlecache:stale-id := "LIT1367Exodus";
+
+declare variable $tstitlecache:stale-title := "STALE_TITLE_CACHE_MUST_NOT_WIN";
 
 declare variable $tstitlecache:src-col := "/db/apps/BetMasData/works/_titleCacheTest";
 
@@ -107,6 +113,7 @@ declare %private function tstitlecache:cleanup() {
 	tstitlecache:remove-entry($tstitlecache:expand-id),
 	tstitlecache:remove-entry($tstitlecache:backfill-id),
 	tstitlecache:remove-entry($tstitlecache:backfill-blank-id),
+	tstitlecache:remove-entry($tstitlecache:stale-id),
 	if (xmldb:collection-available($tstitlecache:src-col)) then
 		try { xmldb:remove($tstitlecache:src-col) } catch * { () }
 	else (
@@ -150,15 +157,17 @@ declare %test:assertEquals("second title") function tstitlecache:update-replaces
 };
 
 (:~
- : printTitleID must prefer a cached entry over recomputing - proven by
- : seeding a title no live lookup could produce (the id has no backing
- : record at all).
+ : Under legacy EXPTIT, printTitleID still surfaces a cache hit for an id
+ : with no backing record. Under catalog, titleCache is ignored — expect
+ : empty / non-cache text.
  :)
-declare
-	%test:assertEquals("a distinctive cached title no fallback path could produce")
-function tstitlecache:printTitleID-prefers-cache() {
+declare %test:assertTrue function tstitlecache:printTitleID-cache-policy() {
 	let $_ := titles:updateTitleCache($tstitlecache:hit-id, $tstitlecache:hit-title)
-	return string(exptit:printTitleID($tstitlecache:hit-id))
+	let $got := string(exptit:printTitleID($tstitlecache:hit-id))
+	return if (catalog:backend("exptit") eq "catalog") then
+		$got ne $tstitlecache:hit-title
+	else
+		$got eq $tstitlecache:hit-title
 };
 
 (:~
@@ -169,6 +178,37 @@ declare %test:assertEmpty function tstitlecache:printTitleID-cache-miss-falls-th
 };
 
 (:~
+ : Hermetic: write gate is false for the catalog backend name (CI-safe).
+ :)
+declare %test:assertFalse function tstitlecache:writes-title-cache-false-for-catalog() {
+	expand:writes-title-cache("catalog")
+};
+
+(:~
+ : Hermetic: write gate is true for the legacy backend name (CI-safe).
+ :)
+declare %test:assertTrue function tstitlecache:writes-title-cache-true-for-legacy() {
+	expand:writes-title-cache("legacy")
+};
+
+(:~
+ : Hermetic: 0-arity mirrors catalog:backend("exptit").
+ :)
+declare %test:assertTrue function tstitlecache:writes-title-cache-mirrors-exptit-backend() {
+	expand:writes-title-cache() eq (catalog:backend("exptit") ne "catalog")
+};
+
+(:~
+ : catalog:label(..., "catalog") must not return a stale titleCache value
+ : when labels.xml / expanded full-title disagree with the cache.
+ :)
+declare %test:assertTrue function tstitlecache:catalog-label-ignores-stale-title-cache() {
+	let $_ := titles:updateTitleCache($tstitlecache:stale-id, $tstitlecache:stale-title)
+	let $got := normalize-space(string(catalog:label($tstitlecache:stale-id, "catalog")))
+	return $got ne "" and $got ne $tstitlecache:stale-title
+};
+
+(:~
  : expand:file writes the expanded document's own resolved title into the
  : cache when CATALOG_BACKEND_EXPTIT is legacy; skips the write under catalog
  : (Phase 5 gut of mutable titleCache).
@@ -176,10 +216,10 @@ declare %test:assertEmpty function tstitlecache:printTitleID-cache-miss-falls-th
 declare %test:assertTrue function tstitlecache:expand-file-title-cache-policy() {
 	let $_ := expand:file($tstitlecache:src-col || "/" || $tstitlecache:expand-id || ".xml")
 	let $hit := string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:expand-id][1])
-	return if (catalog:backend("exptit") eq "catalog") then
-		$hit eq ""
-	else
+	return if (expand:writes-title-cache()) then
 		$hit eq "title cache expand fixture"
+	else
+		$hit eq ""
 };
 
 (:~
