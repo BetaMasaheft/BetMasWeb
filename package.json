@@ -53,6 +53,8 @@
 		"test": "cypress run",
 		"test:xqsuite": "XQS_URL=${XQS_URL:-http://127.0.0.1:8080/exist/rest/db/apps/BetMasWeb/test/xqs/test-runner.xq} EXISTDB_USER=${EXISTDB_USER:-admin} EXISTDB_PASS=${EXISTDB_PASS:-} node --test test/xqs/xqSuite.js",
 		"test:regress": "npm run test:xqsuite",
+		"gate:no-writes": "scripts/check-no-serving-writes.sh",
+		"gate:catalog-oracle": "scripts/run-catalog-oracle.sh",
 		"vendor:copy": "node scripts/copy-vendor-libs.js",
 		"vendor": "npm install && npm run vendor:copy",
 		"deploy:dev": "ant && EXISTDB_SERVER=http://localhost:8080 EXISTDB_USER=admin EXISTDB_PASS= xst package install local-files build/*.xar",

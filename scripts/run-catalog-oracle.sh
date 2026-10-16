@@ -5,11 +5,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 QUERY="$ROOT/test/xqs/catalog-parity-oracle.xq"
 OUT="${CATALOG_ORACLE_OUT:-$ROOT/test/catalog-oracle-result.json}"
 
+# Defaults: legacy vs catalog parity (override via env). Local runs keep xst transport.
 : "${EXISTDB_SERVER:=http://127.0.0.1:8082/exist}"
 : "${EXISTDB_USER:=admin}"
 : "${EXISTDB_PASS:=}"
 : "${CATALOG_BACKEND_A:=legacy}"
-: "${CATALOG_BACKEND_B:=legacy}"
+: "${CATALOG_BACKEND_B:=catalog}"
 : "${CATALOG_ORACLE_TRANSPORT:=xst}"
 : "${CATALOG_ORACLE_LIMIT:=}"
 : "${CATALOG_ORACLE_TIMEOUT:=3600}"

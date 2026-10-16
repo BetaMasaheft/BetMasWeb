@@ -1,8 +1,13 @@
 # Catalog parity oracle
 
 `scripts/run-catalog-oracle.sh` runs `test/xqs/catalog-parity-oracle.xq` against
-the configured eXist-db. Phase 2 compares `legacy` vs `catalog` (or any pair
-via bindings) across record IDs, text-part `title/@corresp` IDs, retired IDs,
+the configured eXist-db. The **exist-db CI** workflow (`.github/workflows/exist.yml`)
+runs the full oracle on every PR to `main`/`master` after XQSuite and before
+Cypress (`npm run gate:catalog-oracle`, REST on `:8080`, no `CATALOG_ORACLE_LIMIT`).
+On failure, CI uploads `test/catalog-oracle-result.json` as an artifact.
+
+Phase 2 compares `legacy` vs `catalog` (or any pair via bindings) across record
+IDs, text-part `title/@corresp` IDs, retired IDs,
 institution IDs (`catalog:institutions`, one-sided = mismatch), and distinct
 `bm:` pointers in expanded. Both backend resolvers run
 independently even when the backend names match.
