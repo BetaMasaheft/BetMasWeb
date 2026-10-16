@@ -28,7 +28,11 @@ declare variable $catalog:expanded := collection($config:data-root);
 
 declare variable $catalog:raw := collection($config:bmdata-root);
 
-declare variable $catalog:titles := doc("/db/apps/lists/titleCache.xml");
+(:
+ : titleCache.xml is not consulted on the catalog backend — labels.xml /
+ : expanded full-title are the fact path (Phase 5). Legacy still reads
+ : titleCache via catalog-legacy.xqm.
+ :)
 
 declare variable $catalog:textparts := doc("/db/apps/lists/textpartstitles.xml");
 
@@ -49,15 +53,6 @@ declare variable $catalog:artifacts := "/db/apps/catalogs";
  : calls from module-var init when the module is imported by an external
  : query (XPST0017; breaks app-image generate_artifacts.xq).
  :)
-declare variable $catalog:titles-by-corresp := if (empty($catalog:titles)) then
-	map {}
-else
-	map:merge(
-		for $item in $catalog:titles//t:item[@corresp]
-		return map:entry(string($item/@corresp), $item),
-		map {"duplicates": "use-last"}
-	);
-
 declare variable $catalog:textparts-by-corresp := if (empty($catalog:textparts)) then
 	map {}
 else
@@ -251,8 +246,6 @@ declare %private function catalog:resolve-label($id as xs:string) {
 		"La Synthaxe du Codex " || substring-after($id, "sdc:")
 	else if ($id = "#") then
 		<span class="w3-tag w3-red">{ "no item yet with id " || $id }</span>
-	else if (map:contains($catalog:titles-by-corresp, $id)) then
-		$catalog:titles-by-corresp($id)/node()
 	else if (map:contains($catalog:textparts-by-corresp, $id)) then
 		$catalog:textparts-by-corresp($id)/node()
 	else if (map:contains($catalog:persons-by-corresp, $id)) then
@@ -284,7 +277,9 @@ declare %private function catalog:resolve-label($id as xs:string) {
 			normalize-space(catalog:resolve-label($main-id) || ": " || catalog:subtitle($node, $sub-id))
 	else
 		(: Unlike the legacy chain, dotted citation suffixes such as
-		   LIT1340EnochE.1.6-9 are stripped before the record lookup. :)
+		   LIT1340EnochE.1.6-9 are stripped before the record lookup.
+		   Prefer labels.xml artifact, then expanded full-title — never
+		   mutable lists/titleCache.xml (Phase 5). :)
 		catalog:raw-label(replace($id, "(\.[A-Za-z0-9\-]+)", ""))
 };
 

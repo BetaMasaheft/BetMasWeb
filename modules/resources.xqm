@@ -12,6 +12,7 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace templates = "http://exist-db.org/xquery/html-templating";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "xmldb:exist:///db/apps/BetMasWeb/modules/exptit.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
@@ -817,17 +818,19 @@ declare function lists:biblform($node as node(), $model as map(*)) {
 
 (:~
  : Loads the shared works/persons/places/institutions title cache
- : (populated by expand:file) into an in-memory lookup map. Building
- : this map has a real fixed cost, so only call it at a site with
- : enough distinct lookups to amortize it (e.g. additionsform/
- : decorationsform's dropdowns) - not unconditionally on every
- : templated page.
+ : (populated by expand:file under legacy) into an in-memory lookup map.
+ : When CATALOG_BACKEND_EXPTIT=catalog, returns empty so callers fall
+ : through to exptit/catalog (labels.xml) and cannot serve stale cache.
+ : Building this map has a real fixed cost under legacy — only call it at
+ : a site with enough distinct lookups to amortize it.
  :
- : @return a map from record id to cached title; empty if the cache
- : document doesn't exist yet
+ : @return a map from record id to cached title; empty under catalog or
+ : if the cache document doesn't exist yet
  :)
 declare function lists:title-lookup-map() as map(*) {
-	if (doc-available("/db/apps/lists/titleCache.xml")) then
+	if (catalog:backend("exptit") eq "catalog") then
+		map {}
+	else if (doc-available("/db/apps/lists/titleCache.xml")) then
 		map:merge(
 			for $item in doc("/db/apps/lists/titleCache.xml")//t:item
 			return map:entry(string($item/@corresp), string($item))
