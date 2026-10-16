@@ -1,0 +1,28 @@
+test/xqs/ts-title-cache.xqm
+  s_e98fb2299e704f::t_dd917bdc0729eb 16
+  s_e98fb2299e704f::t_5273c0b2f98f1b 173-174,176,178-182
+  s_e98fb2299e704f::t_4759776f5ff8ce 214-215,217-223,227-229,232-236,240-241
+modules/expand.xqm
+  s_e98fb2299e704f::t_4768813b97cd30 938-952
+  s_e98fb2299e704f::t_065b5308e88250 1064-1067,1070,1083-1084
+  s_e98fb2299e704f::t_580a8fb54c9a0e 12
+  s_e98fb2299e704f::t_6aa4300d7c0bb7 1026-1029
+docs/CATALOG.md
+  s_e98fb2299e704f::t_6b3ce2e1287128 19-21,26-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4af8c756695f7f51d334995ae8675d2f53413789",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
