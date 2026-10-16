@@ -13,6 +13,7 @@ declare namespace t = "http://www.tei-c.org/ns/1.0";
 import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas/titles" at "../../modules/titlesData.xqm";
 import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/exptit" at "../../modules/exptit.xqm";
 import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "../../modules/expand.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "../../modules/catalog.xqm";
 
 declare variable $tstitlecache:cache-path := "/db/apps/lists/titleCache.xml";
 
@@ -169,11 +170,16 @@ declare %test:assertEmpty function tstitlecache:printTitleID-cache-miss-falls-th
 
 (:~
  : expand:file writes the expanded document's own resolved title into the
- : cache, keyed by its own xml:id.
+ : cache when CATALOG_BACKEND_EXPTIT is legacy; skips the write under catalog
+ : (Phase 5 gut of mutable titleCache).
  :)
-declare %test:assertEquals("title cache expand fixture") function tstitlecache:expand-file-populates-cache() {
+declare %test:assertTrue function tstitlecache:expand-file-title-cache-policy() {
 	let $_ := expand:file($tstitlecache:src-col || "/" || $tstitlecache:expand-id || ".xml")
-	return string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:expand-id][1])
+	let $hit := string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:expand-id][1])
+	return if (catalog:backend("exptit") eq "catalog") then
+		$hit eq ""
+	else
+		$hit eq "title cache expand fixture"
 };
 
 (:~
@@ -205,24 +211,34 @@ declare %test:assertError("expand:MISSING") function tstitlecache:backfill-refus
 
 (:~
  : Harvests the title already present in an expanded document (no
- : re-expansion involved) into the cache, keyed by its own xml:id.
+ : re-expansion involved) into the cache under legacy; no-ops under
+ : CATALOG_BACKEND_EXPTIT=catalog.
  :)
-declare %test:assertEquals("backfill fixture title") function tstitlecache:backfill-populates-cache() {
-	let $_ := expand:backfillTitleCache($tstitlecache:backfill-col)
-	return string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:backfill-id][1])
+declare %test:assertTrue function tstitlecache:backfill-title-cache-policy() {
+	let $summary := expand:backfillTitleCache($tstitlecache:backfill-col)
+	let $hit := string(doc($tstitlecache:cache-path)//t:item[@corresp eq $tstitlecache:backfill-id][1])
+	return if (catalog:backend("exptit") eq "catalog") then
+		starts-with($summary, "skipped title-cache backfill") and $hit eq ""
+	else
+		$summary eq "backfilled 1 title(s)" and $hit eq "backfill fixture title"
 };
 
 (:~
- : Summary reports exactly one title backfilled - the fixture
- : collection also has a second document with a blank title, which
- : must be counted as skipped, not backfilled.
+ : Summary reports exactly one title backfilled under legacy - the fixture
+ : collection also has a blank-title document that must be skipped. Under
+ : catalog the whole backfill is skipped.
  :)
 declare %test:assertTrue function tstitlecache:backfill-summary-reports-one-title() {
-	matches(expand:backfillTitleCache($tstitlecache:backfill-col), "^backfilled 1 title\(s\)$")
+	let $summary := expand:backfillTitleCache($tstitlecache:backfill-col)
+	return if (catalog:backend("exptit") eq "catalog") then
+		starts-with($summary, "skipped title-cache backfill")
+	else
+		matches($summary, "^backfilled 1 title\(s\)$")
 };
 
 (:~
- : A document with a blank full title gets no cache entry at all.
+ : A document with a blank full title gets no cache entry at all (legacy
+ : write path). Under catalog there is no write either.
  :)
 declare %test:assertEmpty function tstitlecache:backfill-skips-blank-title() {
 	let $_ := expand:backfillTitleCache($tstitlecache:backfill-col)

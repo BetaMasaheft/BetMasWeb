@@ -9,6 +9,7 @@ import module namespace titles = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace expandnorm = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/expand-normalize-dimensions" at "xmldb:exist:///db/apps/BetMasWeb/modules/expand-normalize-dimensions.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $expand:zotero := collection("/db/apps/EthioStudies");
@@ -934,12 +935,21 @@ declare function expand:wholike($attribute) {
 };
 
 (:~
- : Expands one raw TEI source file into its full expanded form and, once
- : the expanded title is known, syncs this document's own entry in the
- : shared title cache (titles:updateTitleCache) that exptit:printTitleID
- : reads at render time. Does not mutate bibliography.xml. Does not
- : persist the expanded document itself - that's the caller's
- : responsibility (see batchExpand:expandOne).
+ : Whether expand should still mutate lists/titleCache.xml.
+ : False when CATALOG_BACKEND_EXPTIT=catalog (Phase 5 flip): serving
+ : resolves titles via catalog artifacts, so the mutable cache write is
+ : retired. Legacy backend keeps the write for oracle Arm A / older stacks.
+ :)
+declare function expand:writes-title-cache() as xs:boolean {
+	catalog:backend("exptit") ne "catalog"
+};
+
+(:~
+ : Expands one raw TEI source file into its full expanded form and, when
+ : expand:writes-title-cache() is true, syncs this document's own entry in
+ : the shared title cache (titles:updateTitleCache). Does not mutate
+ : bibliography.xml. Does not persist the expanded document itself - that's
+ : the caller's responsibility (see batchExpand:expandOne).
  :
  : @param $filepath db path to the raw source TEI file
  : @return the expanded document
@@ -1013,7 +1023,10 @@ declare function expand:file($filepath) {
 		let $result := document { expandnorm:normalize-tei($full) }
 		let $ownId := string($result/t:TEI/@xml:id)
 		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
-		let $_cache := titles:updateTitleCache($ownId, $ownTitle)
+		let $_cache := if (expand:writes-title-cache()) then
+			titles:updateTitleCache($ownId, $ownTitle)
+		else (
+		)
 		return $result
 };
 
@@ -1048,13 +1061,13 @@ declare function expand:caller-is-dba-or-editor() as xs:boolean {
  : One-time (or re-run as needed) migration: harvests the title
  : already present in each already-expanded document under
  : $collectionUri into the shared title cache, keyed by each
- : document's own xml:id. Does not re-expand anything - expand:file
- : already keeps the cache in sync for every document expanded from
- : here on; this only catches up documents expanded before the cache
- : existed, or backfills a freshly-provisioned environment.
+ : document's own xml:id. No-op when expand:writes-title-cache() is
+ : false (Phase 5 catalog exptit). Otherwise does not re-expand —
+ : expand:file keeps the cache in sync under legacy; this catches up
+ : documents expanded before the cache existed.
  :
  : @param $collectionUri a collection under /db/apps/expanded
- : @return a one-line summary, e.g. "backfilled 42 title(s)"
+ : @return a one-line summary, e.g. "backfilled 42 title(s)" or "skipped …"
  :)
 declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:string {
 	let $col := normalize-space($collectionUri)
@@ -1067,6 +1080,8 @@ declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:s
 		)
 	else if (not(xmldb:collection-available($col))) then
 		error(xs:QName("expand:MISSING"), "collection not found: " || $col)
+	else if (not(expand:writes-title-cache())) then
+		"skipped title-cache backfill (CATALOG_BACKEND_EXPTIT=catalog)"
 	else
 		let $docs := collection($col)//t:TEI[@xml:id]
 		let $resolved :=

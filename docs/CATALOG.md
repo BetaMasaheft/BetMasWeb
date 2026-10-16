@@ -16,21 +16,22 @@ Current consumers and variables:
 - API titles: `CATALOG_BACKEND_API_TITLES`
 - API repository list: `CATALOG_BACKEND_API_REST`
 - bibliography resolution: `CATALOG_BACKEND_BIBL` (Phase 4; set to `catalog` in deployment)
+- institutions / labels: `CATALOG_BACKEND_INSTITUTIONS`, `CATALOG_BACKEND_LABEL`,
+  `CATALOG_BACKEND_LABELS`, `CATALOG_BACKEND_EXPTIT`, … (Phase 5; set to
+  `catalog` in BetMas compose)
 
 `viewItem` / `list` / `zc:bibl-page-entry` resolve bibliography through the
 `bibl` consumer (`CATALOG_BACKEND_BIBL`), not `view-item` / `web-list`.
 
-Missing or unset `CATALOG_BACKEND_BIBL` still selects `legacy` (same as every
-other consumer: `catalog:backend` → `config:service-url(..., "legacy")`).
-Phase 4 expects the deployment initializer / compose env to set
-`CATALOG_BACKEND_BIBL=catalog` explicitly. That env is read by BetMas
-`db/apps/BetMasInitInstance/finish.xq` into `services.xml`; BetMasWeb's own
-`docker-compose.yml` has no betmas service env block. Until the BetMas
-compose / CI override sets the variable, instances keep lists-only bibl.
+Missing or unset `CATALOG_BACKEND_*` still selects `legacy` (same for every
+consumer: `catalog:backend` → `config:service-url(..., "legacy")`). Phase 4/5
+expect BetMas compose / `finish.xq` to set the flipped consumers to `catalog`
+explicitly. BetMasWeb's own `docker-compose.yml` has no betmas service env
+block.
 
-The deployment initializer copies configured environment variables into
-`services.xml`, following the same mechanism as other service configuration.
-Do not flip `CATALOG_BACKEND_VIEW_ITEM` / `WEB_LIST` / institutions here.
+When `CATALOG_BACKEND_EXPTIT=catalog`, `expand:file` / `expand:backfillTitleCache`
+do **not** write `lists/titleCache.xml` (`expand:writes-title-cache()`). Serving
+uses catalog label artifacts instead.
 
 The CI no-writes gate rejects `update insert|value|delete|replace|rename` and
 `xmldb:store` outside an explicit allow-list (install, editors, expansion/
