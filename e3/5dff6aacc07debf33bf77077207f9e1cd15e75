@@ -1,0 +1,29 @@
+scripts/run-catalog-oracle.sh
+  s_b8e08251ac2f8d::t_0b101b95302f73 8,13
+test/CATALOG_ORACLE.md
+  s_b8e08251ac2f8d::t_81dcaf1e87596b 4-10
+.github/workflows/exist.yml
+  s_b8e08251ac2f8d::t_084d0dde62c010 18
+  s_b8e08251ac2f8d::t_792a8a51d800f5 23,26
+  s_b8e08251ac2f8d::t_df9967d2da0e77 90-109
+package.json
+  s_b8e08251ac2f8d::t_29b3483c9ff66f 56-57
+docs/CATALOG.md
+  s_b8e08251ac2f8d::t_de310d207f53f6 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e35dff6aacc07debf33bf77077207f9e1cd15e75",
+  "prompts": {},
+  "sessions": {
+    "s_b8e08251ac2f8d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fcab4290-199b-4f93-bd32-d698e4536e01",
+        "model": "composer-2.5-fast"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
