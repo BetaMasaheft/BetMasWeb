@@ -39,21 +39,10 @@ $("span[id$='relations']").on("click", function () {
 						'relations-content" class="popuptext w3-hide w3-tiny w3-padding" style="width: 260px;background-color: black;\
                 color: white;text-align: center;border-radius: 6px;padding: 8px 0;position: absolute;left: 100%;top: 100%;margin-left: -130px;z-index: 999;overflow-y:auto">\
                 Search ' +
-						popText +
-						' :<br/>\
-            <a href="/newSearch.html?query=' +
-						popText +
-						'" target="_blank">in Beta maṣāḥǝft</a><br/>\
-            <a href="/morpho?query=' +
-						popText +
-						'" target="_blank">in the Gǝʿǝz Morphological Parser</a><br/>\
-            <a href="/morpho/corpus?query=' +
-						popText +
-						'&type=string" target="_blank">in the TraCES annotations</a><br/>\
-            <a href="/Dillmann?mode=fuzzy&q=' +
-						popText +
-						'" target="_blank">in the Online Lexicon</a><br/>\
-                <ul xmlns="http://www.w3.org/1999/xhtml" class="nodot"><head xmlns="http://www.w3.org/1999/xhtml" >This record, with ID: ' +
+						bmTipSearch.escapeHtml(popText) +
+						" :<br/>" +
+						bmTipSearch.links(popText) +
+						'<ul xmlns="http://www.w3.org/1999/xhtml" class="nodot"><head xmlns="http://www.w3.org/1999/xhtml" >This record, with ID: ' +
 						trimmedID +
 						" is linked to </head></div>",
 				);
