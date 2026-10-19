@@ -1,6 +1,7 @@
-<xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="#all" version="2.0">
+<xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:err="http://www.w3.org/2005/xqt-errors"  exclude-result-prefixes="#all" version="2.0">
     <xsl:variable name="mainID" select="ancestor-or-self::t:TEI/@xml:id"/>
     <xsl:template match="t:collation">
+        <xsl:try>
         <xsl:variable name="mspartID">
             <xsl:if test="./ancestor::t:msPart">
                 <xsl:value-of select="./ancestor::t:msPart[1]/@xml:id"/>
@@ -44,14 +45,24 @@
                         <xsl:for-each select=".//t:item">
                             <xsl:sort select="position()"/>
                             <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                            <xsl:variable name="dim" select="
-                                if ($rawDim castable as xs:double) then 
-                                xs:double($rawDim)
-                                else if (t:locus/@to castable as xs:double and t:locus/@from castable as xs:double) then 
-                                number(t:locus/@to) - number(t:locus/@from) + 1
-                                else 
-                                0
-                                "/>
+                            <xsl:variable name="dim">
+                                <xsl:choose>
+                                    <xsl:when test="$rawDim castable as xs:double">
+                                        <xsl:value-of select="xs:double($rawDim)"/>
+                                    </xsl:when>
+                                    <xsl:when test="t:locus/@to and t:locus/@from">
+                                        <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
+                                        <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
+                                        <xsl:choose>
+                                            <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
+                                                <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>0</xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:when>
+                                    <xsl:otherwise>0</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:variable>
                             <tr>
                                 <td>
                                     <xsl:attribute name="id">
@@ -79,14 +90,24 @@
                     <xsl:for-each select=".//t:list/t:item">
                         <xsl:variable name="text" select="string-join(./text(), ' ')"/>
                         <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                        <xsl:variable name="dim" select="
-                            if ($rawDim castable as xs:double) then 
-                            xs:double($rawDim)
-                            else if (t:locus/@to castable as xs:double and t:locus/@from castable as xs:double) then 
-                            number(t:locus/@to) - number(t:locus/@from) + 1
-                            else 
-                            0
-                            "/>
+                        <xsl:variable name="dim">
+                            <xsl:choose>
+                                <xsl:when test="$rawDim castable as xs:double">
+                                    <xsl:value-of select="xs:double($rawDim)"/>
+                                </xsl:when>
+                                <xsl:when test="t:locus/@to and t:locus/@from">
+                                    <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
+                                    <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
+                                    <xsl:choose>
+                                        <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
+                                            <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>0</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:otherwise>0</xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
                         <xsl:variable name="stubs">
                             <xsl:analyze-string select="$text" regex="stub">
                                 <xsl:matching-substring>1</xsl:matching-substring>
@@ -188,13 +209,31 @@
                                             <xsl:value-of select="@n"/>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <xsl:variable name="val" select="                                                     if (@n) then                                                         string(@n)                                                     else                                                         replace(@xml:id, 'q', '')"/>
-                                            <xsl:number value="$val" format="I"/>
+                                            <xsl:variable name="rawVal" select="if (@n) then string(@n) else replace(@xml:id, 'q', '')"/>
+                                            <xsl:variable name="val" select="if ($rawVal castable as xs:double) then xs:double($rawVal) else position()"/>
+                                            <xsl:number value="number($val)" format="I"/>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                     <xsl:text>(</xsl:text>
-                                <xsl:variable name="dim"
-                                    select="if (t:dim[@unit='leaf']) then t:dim[@unit='leaf'] else number(t:locus[@to]) - number(t:locus[@from]) + 1"/>
+                                <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
+                                <xsl:variable name="dim">
+                                    <xsl:choose>
+                                        <xsl:when test="$rawDim castable as xs:double">
+                                            <xsl:value-of select="xs:double($rawDim)"/>
+                                        </xsl:when>
+                                        <xsl:when test="t:locus/@to and t:locus/@from">
+                                            <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
+                                            <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
+                                            <xsl:choose>
+                                                <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
+                                                    <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
+                                                </xsl:when>
+                                                <xsl:otherwise>0</xsl:otherwise>
+                                            </xsl:choose>
+                                        </xsl:when>
+                                        <xsl:otherwise>0</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
                                     <xsl:choose>
                                         <xsl:when test="contains(string-join(text()), 'stub')">
                                             <xsl:variable name="text" select="string-join(text(), ' ')"/>
@@ -204,7 +243,7 @@
                                                 </xsl:analyze-string>
                                             </xsl:variable>
                                             <xsl:variable name="countstubs" select="string-length($stubs)"/>
-                                            <xsl:value-of select="number(t:dim[1]) - number($countstubs)"/>+<xsl:value-of select="$countstubs"/>
+                                            <xsl:value-of select="number($dim) - number($countstubs)"/>+<xsl:value-of select="$countstubs"/>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <xsl:value-of select="$dim"/>
@@ -303,6 +342,19 @@
 
             </div>
         </xsl:if>
+            <xsl:catch>
+                <!--  Fallback Error Panel -->
+                <div class="w3-panel w3-red" style="padding: 15px; margin: 10px 0;">
+                    <p>
+                        <b>⚠️ Collation Processing Error:</b> The collation block for this section could not be fully rendered due to an internal script or data inconsistency.
+                    </p>
+                    <p>
+                        <small><b>Error Message:</b> <xsl:value-of select="$err:description"/></small><br/>
+                        <small><b>Error Code:</b> <xsl:value-of select="$err:code"/></small>
+                    </p>
+                </div>
+            </xsl:catch>
+        </xsl:try>
     </xsl:template>
     <xsl:include href="ref.xsl"/>
     <xsl:include href="locus.xsl"/>
