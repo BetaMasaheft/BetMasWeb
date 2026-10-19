@@ -1,0 +1,64 @@
+modules/viewItem.xqm
+  s_e98fb2299e704f::t_6e31dae4be12d3 5497-5526
+  s_e98fb2299e704f::t_a002250746f323 5260
+  s_e98fb2299e704f::t_4b13a90fee8d7e 5478-5489
+modules/dtsclient.xqm
+  s_e98fb2299e704f::t_112d03500338e0 27,30,40,47,50-51,53-55
+  s_e98fb2299e704f::t_eb5f19d9a09429 56
+  s_e98fb2299e704f::t_f44f60c89c589f 61
+  s_e98fb2299e704f::t_91896607ed9cf2 62-63
+  s_e98fb2299e704f::t_856bdf2607e112 31-39,41-46,48-49,52,57-60,64-75,83
+  s_e98fb2299e704f::t_3537f09fd1ea41 19,22
+  s_e98fb2299e704f::t_87a0d0cd41c949 77-78,80-82
+  s_e98fb2299e704f::t_e6a466b1f61402 79,234,444
+test/xqs/ts-dtslib-document.xqm
+  s_e98fb2299e704f::t_092cdb7441750e 52-71
+modules/dtslib.xqm
+  s_e98fb2299e704f::t_f0f8ac92661f81 382-384,394-396,399
+test/xqs/ts-dtsclient-editionlink.xqm
+  s_e98fb2299e704f::t_1e9424f2467488 1-60
+  s_e98fb2299e704f::t_0975824c85efb9 61-62
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_99126b0f8cc5cd 86
+  s_e98fb2299e704f::t_4b7ec514ca7b24 20
+  s_e98fb2299e704f::t_02db626d757ca3 27
+  s_e98fb2299e704f::t_15945d1e7332a4 92
+  s_e98fb2299e704f::t_887bcad977988e 26
+  s_e98fb2299e704f::t_2807a3fdcc6599 93
+test/xqs/ts-collation-leafcount.xqm
+  s_e98fb2299e704f::t_90518b4b0126ab 1-118
+xslt/collationstep1.xsl
+  s_e98fb2299e704f::t_25629d2d60e543 1-16,21-23
+  s_e98fb2299e704f::t_2f69a8c7bc0d89 66,69
+test/xqs/ts-viewitem-textfragment.xqm
+  s_e98fb2299e704f::t_40d319b1392c4f 30,32
+  s_e98fb2299e704f::t_20a4a905d07294 1-29,31,33-68
+xslt/collationAlone.xsl
+  s_089e399b080439::t_349db5b1d029f6 1,58,73,96,99,181
+test/cypress/e2e/textEditions.cy.js
+  s_e98fb2299e704f::t_2569d765a8af7d 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4f494261d15b962c54813aca7f0543bfd25e7b0",
+  "prompts": {},
+  "sessions": {
+    "s_089e399b080439": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6ea2dc5-7281-4dde-a1e1-656688548076",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
