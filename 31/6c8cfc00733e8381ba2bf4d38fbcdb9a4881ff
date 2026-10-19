@@ -1,0 +1,26 @@
+modules/config.xqm
+  s_e98fb2299e704f::t_cf43810dae4ff8 52-79
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_4af41140933108 21
+  s_e98fb2299e704f::t_9d4ad9e7420f13 87
+modules/dtsclient.xqm
+  s_e98fb2299e704f::t_847e58b2cd8350 76
+test/xqs/ts-config-islocalhref.xqm
+  s_e98fb2299e704f::t_00b8d5f7729af4 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "316c8cfc00733e8381ba2bf4d38fbcdb9a4881ff",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
