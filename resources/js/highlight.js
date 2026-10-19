@@ -17,6 +17,7 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
 function popup(id) {
 	var x = document.getElementById(id);
+	if (!x) return;
 	if (x.className.indexOf("w3-show") == -1) {
 		x.className += " w3-show";
 	} else {
@@ -33,9 +34,6 @@ $(".word").each(function (wn) {
 	var countwords = words.length;
 	/*    delete all in the element*/
 	$(this).empty();
-	/*    build fuzzy query search string for lexicon*/
-	var url = "/Dillmann/?mode=fuzzy";
-	var parm = "&q=";
 	/*    for each item in the split sequence, which shoud be a word add to the emptied element the word with a link*/
 	$.each(words, function (i, v) {
 		/*initialize an empty object which will contain the word and the punctionation, to be able to print back all but use in the query the string without punctuation*/
@@ -51,82 +49,26 @@ $(".word").each(function (wn) {
 			nostops.w = v;
 			nostops.stop = "";
 		}
-		/*        if it is the last word in the span, then add it straight, if it is somewhere else in the span sequence, then add back a white space
-		 * onmouseover='popup("+'"p'+wn+i+'"'+")' onmouseout='popup("+'"p'+wn+i+'"'+")'
-		 * */
-		if (i == countwords - 1) {
-			$(word).append(
-				$(
-					"<span class='alpheios-word popup' data-value='p" +
-						wn +
-						i +
-						"'>" +
-						nostops.w +
-						nostops.stop +
-						"\
-            <span class='popuptext w3-hide w3-tiny w3-padding' id='p" +
-						wn +
-						i +
-						"'>\
-            Search " +
-						nostops.w +
-						" :<br/>\
-            <a href='/newSearch.html?query=" +
-						nostops.w +
-						"' target='_blank'>in Beta maṣāḥǝft</a><br/>\
-            <a href='/morpho?query=" +
-						nostops.w +
-						"' target='_blank'>in the Gǝʿǝz Morphological Parser</a><br/>\
-            <a href='/morpho/corpus?query=" +
-						nostops.w +
-						"&type=string' target='_blank'>in the TraCES annotations</a><br/>\
-            <a href='" +
-						url +
-						parm +
-						nostops.w +
-						"' target='_blank'>in the Online Lexicon</a><br/>\
-            Double click on the word to load the results of the morphological parsing with Alpheios.\
-            </span> </span>",
-				),
-			);
-		} else {
-			/*onmouseover='popup("+'"p'+wn+i+'"'+")' onmouseout='popup("+'"p'+wn+i+'"'+")'*/
-			$(word).append(
-				$(
-					"<span class='alpheios-word popup' data-value='p" +
-						wn +
-						i +
-						"'>" +
-						nostops.w +
-						nostops.stop +
-						"&nbsp;" +
-						"\
-            <span class='popuptext w3-hide w3-tiny w3-padding' id='p" +
-						wn +
-						i +
-						"'>\
-            Search " +
-						nostops.w +
-						" :<br/>\
-            <a href='/newSearch.html?query=" +
-						nostops.w +
-						"' target='_blank'>in Beta maṣāḥǝft</a><br/>\
-            <a href='/morpho?query=" +
-						nostops.w +
-						"' target='_blank'>in the Gǝʿǝz Morphological Parser</a><br/>\
-            <a href='/morpho/corpus?query=" +
-						nostops.w +
-						"&type=string' target='_blank'>in the TraCES annotations</a><br/>\
-            <a href='" +
-						url +
-						parm +
-						nostops.w +
-						"' target='_blank'>in the Online Lexicon</a><br/>\
-            Double click on the word to load the results of the morphological parsing with Alpheios.\
-            </span> </span>",
-				),
-			);
-		}
+		/*        every word but the last in the span gets its white space back*/
+		var id = "p" + wn + i;
+		var w = bmTipSearch.escapeHtml(nostops.w);
+		$(word).append(
+			$(
+				"<span class='alpheios-word popup' data-value='" +
+					id +
+					"'>" +
+					w +
+					nostops.stop +
+					(i == countwords - 1 ? "" : "&nbsp;") +
+					"<span class='popuptext w3-hide w3-tiny w3-padding' id='" +
+					id +
+					"'>Search " +
+					w +
+					" :<br/>" +
+					bmTipSearch.links(nostops.w) +
+					"Double click on the word to load the results of the morphological parsing with Alpheios.</span> </span>",
+			),
+		);
 	});
 });
 

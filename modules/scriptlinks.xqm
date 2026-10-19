@@ -290,6 +290,7 @@ declare function scriptlinks:ItemFooterScript() {
 	<script src="{ config:appBase() }/resources/js/samerole.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/allattestations.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/ugarit.js" type="text/javascript" />,
+	<script src="{ config:appBase() }/resources/js/tipSearch.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/highlight.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/titles.js" type="text/javascript" />,
 	<script src="{ config:appBase() }/resources/js/PointsHere.js" type="text/javascript" />,
