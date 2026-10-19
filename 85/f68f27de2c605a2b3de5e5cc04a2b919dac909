@@ -1,0 +1,42 @@
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_02db626d757ca3 26
+  s_e98fb2299e704f::t_15945d1e7332a4 89
+  s_e98fb2299e704f::t_887bcad977988e 25
+  s_e98fb2299e704f::t_2807a3fdcc6599 90
+test/xqs/ts-collation-leafcount.xqm
+  s_e98fb2299e704f::t_90518b4b0126ab 1-118
+xslt/collationstep1.xsl
+  s_e98fb2299e704f::t_25629d2d60e543 1-16,21-23
+  s_e98fb2299e704f::t_2f69a8c7bc0d89 66,69
+test/xqs/ts-viewitem-textfragment.xqm
+  s_e98fb2299e704f::t_40d319b1392c4f 30,32
+  s_e98fb2299e704f::t_20a4a905d07294 1-29,31,33-68
+xslt/collationAlone.xsl
+  s_089e399b080439::t_349db5b1d029f6 1,58,73,96,99,181
+modules/viewItem.xqm
+  s_e98fb2299e704f::t_4b13a90fee8d7e 5478-5489
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "85f68f27de2c605a2b3de5e5cc04a2b919dac909",
+  "prompts": {},
+  "sessions": {
+    "s_089e399b080439": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6ea2dc5-7281-4dde-a1e1-656688548076",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
