@@ -3,8 +3,27 @@
         <xsl:param name="porterified" tunnel="yes"/>
         <collation>
             <xsl:for-each select=".//t:item">
-                <xsl:sort select="position()"/>
-                <quire contoreale="{number(t:dim[@unit = 'leaf'][1])}" quireid="{@xml:id}">
+                <xsl:sort select="position()"/>                
+                <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
+                <xsl:variable name="dim">
+                    <xsl:choose>
+                        <xsl:when test="$rawDim castable as xs:double">
+                            <xsl:value-of select="xs:double($rawDim)"/>
+                        </xsl:when>
+                        <xsl:when test="t:locus/@to and t:locus/@from">
+                            <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
+                            <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
+                            <xsl:choose>
+                                <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
+                                    <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
+                                </xsl:when>
+                                <xsl:otherwise>0</xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:when>
+                        <xsl:otherwise>0</xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+                <quire contoreale="{number($dim)}" quireid="{@xml:id}">
                     <xsl:if test="@rend">
                         <xsl:attribute name="rend">
                             <xsl:value-of select="@rend"/>
