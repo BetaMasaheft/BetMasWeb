@@ -1,0 +1,24 @@
+test/xqs/ts-timeline-resp.xqm
+  s_e98fb2299e704f::t_9f1f6fe1cf97c5 1-52
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_1a78a48a141540 32
+  s_e98fb2299e704f::t_0d36c816e5a5f0 93
+modules/timeline.xqm
+  s_e98fb2299e704f::t_981dcae1124ec9 219-223,225-227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1075922ecd542139ac6d6e17f74b7788adf43938",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
