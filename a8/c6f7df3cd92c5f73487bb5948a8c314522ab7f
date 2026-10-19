@@ -1,0 +1,26 @@
+modules/queries.xqm
+  s_e98fb2299e704f::t_9bf89c97675cbf 1891
+  s_e98fb2299e704f::t_2239daf8ca01d4 1845-1878,1902-1903
+test/cypress/e2e/newSearch.cy.js
+  s_e98fb2299e704f::t_8dfc0a2ca6b041 20-30
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_dd6e339620bb26 71,137-138
+test/xqs/ts-queries-ftpredicate.xqm
+  s_e98fb2299e704f::t_0c0bbe25d8d50b 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a8c6f7df3cd92c5f73487bb5948a8c314522ab7f",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
