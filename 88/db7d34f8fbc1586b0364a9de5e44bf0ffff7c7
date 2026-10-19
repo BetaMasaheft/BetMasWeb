@@ -1,0 +1,28 @@
+test/CATALOG_ORACLE.md
+  s_e98fb2299e704f::t_3f1b79f86e27a8 26-35
+test/gate-catalog-oracle.bats
+  s_e98fb2299e704f::t_abd670a1d8af86 3-4,13-15,31,38-39,65-95
+  s_e98fb2299e704f::t_6e912d880b4c06 96
+docs/CATALOG.md
+  s_e98fb2299e704f::t_64686bebbabec2 94-96
+scripts/run-catalog-oracle.sh
+  s_e98fb2299e704f::t_0d0d5e06bac3e2 57-58,65-66,68-70
+  s_e98fb2299e704f::t_1af3cf95f8ff4c 17-18,21-22,25,32-56,59-64,67,71-73,77-78,80-99,123-137
+  s_e98fb2299e704f::t_cc8e781b6b22f1 74-76,79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "88db7d34f8fbc1586b0364a9de5e44bf0ffff7c7",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
