@@ -1,29 +1,26 @@
-<xsl:stylesheet xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="#all" version="2.0">
+<xsl:stylesheet xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:bm="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/collation" exclude-result-prefixes="#all" version="2.0">
+    <!--
+        Leaf count of a quire (collation t:item): its numeric t:dim[@unit='leaf'],
+        else the size of its folio range (locus 105r-112v gives 8), else empty.
+        Callers must treat empty as "unknown", never as a number.
+    -->
+    <xsl:function name="bm:leafCount" as="xs:double?">
+        <xsl:param name="item" as="element(t:item)"/>
+        <xsl:variable name="dim" select="$item/t:dim[@unit = 'leaf'][1]"/>
+        <xsl:variable name="from" select="replace(string($item/t:locus[1]/@from), '\D', '')"/>
+        <xsl:variable name="to" select="replace(string($item/t:locus[last()]/@to), '\D', '')"/>
+        <xsl:sequence select="
+            if ($dim castable as xs:double) then xs:double($dim)
+            else if ($from castable as xs:double and $to castable as xs:double) then xs:double($to) - xs:double($from) + 1
+            else ()"/>
+    </xsl:function>
     <xsl:template name="DotPorterIfy">
         <xsl:param name="porterified" tunnel="yes"/>
         <collation>
             <xsl:for-each select=".//t:item">
-                <xsl:sort select="position()"/>                
-                <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                <xsl:variable name="dim">
-                    <xsl:choose>
-                        <xsl:when test="$rawDim castable as xs:double">
-                            <xsl:value-of select="xs:double($rawDim)"/>
-                        </xsl:when>
-                        <xsl:when test="t:locus/@to and t:locus/@from">
-                            <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
-                            <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
-                            <xsl:choose>
-                                <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
-                                    <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
-                                </xsl:when>
-                                <xsl:otherwise>0</xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:when>
-                        <xsl:otherwise>0</xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                <quire contoreale="{number($dim)}" quireid="{@xml:id}">
+                <xsl:sort select="position()"/>
+                <xsl:variable name="dim" select="(bm:leafCount(.), 0)[1]"/>
+                <quire contoreale="{$dim}" quireid="{@xml:id}">
                     <xsl:if test="@rend">
                         <xsl:attribute name="rend">
                             <xsl:value-of select="@rend"/>
@@ -66,10 +63,10 @@
                         <xsl:with-param name="folio">1</xsl:with-param>
                         <xsl:with-param name="currentpos">1</xsl:with-param>
                         <xsl:with-param name="prec">
-                            <xsl:value-of select="sum(preceding::t:dim[@unit='leaf'])"/>
+                            <xsl:value-of select="sum(for $q in preceding::t:item[ancestor::t:collation] return bm:leafCount($q))"/>
                         </xsl:with-param>
                         <xsl:with-param name="count">
-                            <xsl:value-of select="number(t:dim[@unit='leaf'][1])"/>
+                            <xsl:value-of select="$dim"/>
                         </xsl:with-param>
                         <xsl:with-param name="singletons">
                             <xsl:value-of select="string-length($singletoncount)"/>

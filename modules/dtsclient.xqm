@@ -16,13 +16,70 @@ declare namespace http = "http://expath.org/ns/http-client";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace dts = "https://w3id.org/dts/api#";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
+declare namespace s = "http://www.w3.org/2005/xpath-functions";
 
 import module namespace functx = "http://www.functx.com";
+import module namespace dtslib = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/dtslib" at "xmldb:exist:///db/apps/BetMasWeb/modules/dtslib.xqm";
 import module namespace localdts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/localdts" at "xmldb:exist:///db/apps/BetMasWeb/modules/localdts.xqm";
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace rutil = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/rutil" at "xmldb:exist:///db/apps/BetMasWeb/modules/roaster-util.xqm";
+import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
+
+(:~
+ : Text tab URL on this deployment for a DTS edition or translation member.
+ :
+ : Members carry the canonical data URN ($config:BMurl || id || _ED_x), which
+ : points at production; link the local text tab with the edition selected
+ : instead, the same target the controller's `{id}_ED_x.ref` redirect uses.
+ :
+ : @param $memberId   DTS member @id, e.g. https://betamasaheft.eu/LIT1709Kebran_ED_traces
+ : @param $collection collection path segment (works, manuscripts, …); empty → derived from the id prefix
+ : @return `{appUrl}/{collection}/{id}/text[?edition=_ED_x]`; non-BM ids unchanged; empty for an empty id
+ :)
+declare function dtsc:editionHref($memberId as xs:string?, $collection as xs:string?) as xs:string? {
+	let $urn := dtslib:parseDTS(normalize-space($memberId))
+	let $id := string($urn//s:group[@nr = 3])
+	return if (not(normalize-space($memberId))) then (
+	) else if ($id = "" or string($urn//s:group[@nr = 1]) ne $config:BMurl) then
+		$memberId
+	else
+		let $edition := string($urn//s:group[@nr = 4])
+		let $collection := ($collection[normalize-space()], switch2:col(switch2:switchPrefix($id)))[1]
+		return $config:appUrl ||
+			"/" ||
+			$collection ||
+			"/" ||
+			$id ||
+			"/text" ||
+			(
+				if ($edition) then
+					"?edition=" || encode-for-uri($edition)
+				else
+					""
+			)
+};
+
+(:~
+ : Link for one entry of the "Editions and translations" bar. Local members
+ : stay in the current tab; external DTS members open a new one.
+ :
+ : @param $member     DTS collection member map (uses "@id" and "title")
+ : @param $collection collection path segment, passed to dtsc:editionHref
+ : @return xhtml:a
+ :)
+declare function dtsc:editionLink($member as map(*), $collection as xs:string?) as element() {
+	let $href := dtsc:editionHref($member?("@id"), $collection)
+	return <a href="{ $href }">
+		{
+			if (config:isLocalHref($href)) then (
+			) else
+				attribute target { "_blank" },
+			$member?title
+		}
+	</a>
+};
 
 (:~
  : HTML text view for a work, preferring in-process localdts for BM resources.
@@ -174,7 +231,7 @@ DTSannoCollectionLink">
 						<div class="w3-bar-item">Editions and translations: </div>
 						{
 							for $ed in $DTScol?member
-							return <div class="w3-bar-item"><a href="{ $ed?("@id") }" target="_blank">{ $ed?title }</a></div>
+							return <div class="w3-bar-item">{ dtsc:editionLink($ed, $collection) }</div>
 						}
 					</div>
 				) else (
@@ -384,7 +441,7 @@ declare function dtsc:DTStext($base, $id) {
 					<div class="w3-bar w3-border">
 						{
 							for $ed in $DTScol?member?*
-							return <div class="w3-bar-item"><a href="{ $ed?("@id") }" target="_blank">{ $ed?title }</a></div>
+							return <div class="w3-bar-item">{ dtsc:editionLink($ed, ()) }</div>
 						}
 					</div>
 				) else (

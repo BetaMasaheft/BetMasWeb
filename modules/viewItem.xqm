@@ -5257,7 +5257,7 @@ declare function viewItem:persWithRole($ms) {
 			let $roles := distinct-values($allpersons/@role)
 			let $person := $allpersons[1]
 			return (
-				<a xmlns="http://www.w3.org/1999/xhtml" class="persName" href="{ $ref }">
+				<a xmlns="http://www.w3.org/1999/xhtml" class="persName" href="{ $config:appUrl }/{ viewItem:URI2ID($ref) }">
 					{
 						viewItem:TEI2HTML($person/t:choice),
 						viewItem:TEI2HTML($person/t:roleName),
@@ -5475,36 +5475,55 @@ declare function viewItem:dates($date) {
 	return ($formatortext, $evidence, $cert, $resp)
 };
 
+(:~
+ : Text tab body: an edition (or DTS fragment) rendered with TEI2HTML, plus
+ : its help modal.
+ :
+ : Very large fragments are not rendered in full: a Transkribus
+ : transcription of more than 120 folia shows a notice only, and a text of
+ : more than 35 textparts and 2000 words (counted by ፡) shows its first 35
+ : textparts. The navigation bar narrows down to the rest.
+ :
+ : @param $frag t:div[@type='edition'], dts:fragment or t:ab
+ : @return xhtml:div
+ :)
 declare function viewItem:textfragment($frag) {
-	(: let $test := util:log('info', 'got to the textfragment' )
-return :)
 	<div>
 		<div id="transcription{ $frag/descendant-or-self::*[@xml:id][1]/@xml:id }" style="word-break: keep-all;">
 			{
 				if (count($frag/t:div) = 0) then
 					attribute class { "w3-container chapterText" }
 				else (
-				)
-			(: if($frag[@subtype="transkribus"] and (count($frag/t:div[@subtype='folio']) gt 120))
-            then  <div>This manuscript transcription has {count($frag/t:div[@subtype='folio'])} folia, which is too much to show.
-            Please, use the navigation bar on the left to narrow down.</div>
-            else (
-            let $textgez := normalize-space(string-join($frag/*//text()))
-            let $gezwords := if ($textgez) then count(tokenize($textgez, '፡')) else 0
-            return
-            if((count($frag/t:div[@type='textpart']) gt 35) and $gezwords gt 2000)
-            then  <div><span>This text is too long to show. Only the first 35 of {count($frag/t:div[@type='textpart'])} sections are shown.
-            Please, use the navigation bar on the left to narrow down.</span>
-            {for $item in subsequence($frag/t:div[@type='textpart'], 1, 35)
-            return
-                    viewItem:TEI2HTML($item)
-                }</div>
-            else
-                try {
-                    viewItem:TEI2HTML($frag)
-                } catch * {
-                    util:log('info', $err:description)
-                }) :)
+				),
+				if ($frag[@subtype = "transkribus"] and (count($frag/t:div[@subtype = "folio"]) gt 120)) then
+					<div>
+						This manuscript transcription has {
+							count($frag/t:div[@subtype = "folio"])
+						} folia,
+						which is too much to show. Please, use the navigation bar on the left to narrow down.
+					</div>
+				else
+					let $textgez := normalize-space(string-join($frag/*//text()))
+					let $gezwords := if ($textgez) then
+						count(tokenize($textgez, "፡"))
+					else
+						0
+					return if ((count($frag/t:div[@type = "textpart"]) gt 35) and $gezwords gt 2000) then
+						<div>
+							<span>
+								This text is too long to show. Only the first 35 of
+								{
+									count($frag/t:div[@type = "textpart"])
+								} sections are shown.
+								Please, use the navigation bar on the left to narrow down.
+							</span>
+							{
+								for $item in subsequence($frag/t:div[@type = "textpart"], 1, 35)
+								return viewItem:TEI2HTML($item)
+							}
+						</div>
+					else
+						try { viewItem:TEI2HTML($frag) } catch * { util:log("info", $err:description) }
 			}
 			<div class="w3-modal" id="textHelp{ $frag/descendant-or-self::*[@xml:id][1]/@xml:id }">
 				<div class="w3-modal-content">
