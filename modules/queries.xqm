@@ -1842,6 +1842,40 @@ declare %private function q:dedupPreserveOrder($seq as node()*) as node()* {
 	return $TEI
 };
 
+(:~
+ : Lucene predicate q:text appends to its query. A filter-only search still
+ : gets a match-all ft:query, otherwise ft:facets has no hits to count and
+ : the facet column stays empty (BetMasWeb#172).
+ :
+ : @param $q the raw query string, used verbatim (minus quotes) for phrases
+ : @param $qs the parsed query string, empty for filter-only searches
+ : @param $mode "phrase" or the search mode q:querystring was called with
+ : @return an XPath predicate string, evaluated with $qs in scope
+ :)
+declare function q:ftPredicate($q as xs:string?, $qs as xs:string?, $mode as xs:string) as xs:string {
+	if (empty($qs)) then
+		"[ft:query(., (), $q:allopts)]"
+	else if ($mode eq "phrase") then
+		"[ft:query(., '""" || translate($q, '"', "") || """', <options><default-operator>and</default-operator></options>)]"
+	else
+		"[ft:query(., $qs, $q:allopts)]"
+};
+
+(:~
+ : Whether q:text has to dedupe its hits. Only a free-text query, or a filter
+ : adding its own ft:query (q:parameters2arguments' "search" mode for
+ : origPlace, bmaterial, placetype, authors, ...), can land on the same TEI
+ : twice. The match-all predicate of a filter-only search cannot, and the
+ : group-by costs ~900ms on 20k results (BetMasWeb#3).
+ :
+ : @param $qs the parsed free-text query, empty for filter-only searches
+ : @param $filters the predicates built by q:parameters2arguments
+ : @return true if the results need q:dedupPreserveOrder
+ :)
+declare function q:needsDedup($qs as xs:string?, $filters as xs:string) as xs:boolean {
+	exists($qs) or contains($filters, "ft:query(")
+};
+
 declare function q:text($q, $params) {
 	(: let $test := util:log('info', $q:allopts) :)
 	let $phrase := (starts-with($q, '"') and ends-with($q, '"')) or contains($q, "-")
@@ -1854,15 +1888,7 @@ declare function q:text($q, $params) {
 	) else
 		$qscheck
 	let $querycontext := "$q:col//t:TEI"
-	let $ftquery := if (exists($qs)) then
-		if ($mode eq "phrase") then
-			"[ft:query(., '""" ||
-				translate($q, '"', "") ||
-				"""', <options><default-operator>and</default-operator></options>)]"
-		else
-			"[ft:query(., $qs, $q:allopts)]"
-	else (
-	)
+	let $ftquery := q:ftPredicate($q, $qs, $mode)
 	let $parmstoquery := q:parameters2arguments($params)
 	let $querytext := concat($querycontext, $parmstoquery, $ftquery)
 	let $test2 := util:log("info", ("query:", $q || " mode:", $mode))
@@ -1873,11 +1899,8 @@ declare function q:text($q, $params) {
 	(: let $query :=
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
-          return $r ~~ excluding bibl suppressed not to slow down :)(: group-by only dedupes ft:query() hits landing on the same doc - check the constructed query
-	text directly rather than $qs, since some filter params (q:parameters2arguments' "search" mode:
-	origPlace/bmaterial/placetype/authors/occtype/faithtype/period) add their own ft:query() too,
-	independent of the free-text box. See BetMasWeb#3 :)
-	let $needsDedup := contains($querytext, "ft:query(")
+          return $r ~~ excluding bibl suppressed not to slow down :)
+	let $needsDedup := q:needsDedup($qs, $parmstoquery)
 	let $sizeClass := if (count($query) gt 300) then
 		"large"
 	else if ($q:sort = "") then

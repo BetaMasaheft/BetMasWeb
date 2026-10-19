@@ -17,6 +17,17 @@ it("GET /newSearch.html?work-types=mss (type-filter only, no free-text) complete
 	});
 });
 
+// #172: without any free text q:text still attaches a match-all ft:query, so
+// ft:facets has hits to count and the facet column is populated.
+it("GET /newSearch.html?work-types=mss (type-filter only) populates the facets (#172)", () => {
+	cy.request("/newSearch.html?searchType=text&mode=any&work-types=mss").then((res) => {
+		const doc = new DOMParser().parseFromString(res.body, "text/html");
+		const types = doc.querySelectorAll("#type-facet-list input[name='type-facet']");
+		expect(types.length, "item-type facet values").to.be.greaterThan(0);
+		expect(doc.querySelector("#type-facet-list .w3-badge").textContent).to.match(/^[1-9]\d*$/);
+	});
+});
+
 // Regression #3: broad free-text searches ("Mary" across all work types) were
 // the slowest path in the app - facet rendering alone accounted for several
 // seconds via q:facetDiv's per-value exptit:printTitle() calls (a confirmed,
