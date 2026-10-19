@@ -1,0 +1,32 @@
+test/cypress/e2e/tipSearchLinks.cy.js
+  s_e98fb2299e704f::t_af15c442c7e45e 1-90,94-99
+  s_e98fb2299e704f::t_93645001c2f47f 91-93
+resources/js/highlight.js
+  s_e98fb2299e704f::t_4562b20c73238b 20,52-63,66-67,70
+  s_e98fb2299e704f::t_1757983753c734 64-65
+  s_e98fb2299e704f::t_8c28e2b2931431 68-69
+  s_e98fb2299e704f::t_3c591f3eeb48cf 71
+modules/scriptlinks.xqm
+  s_e98fb2299e704f::t_570f8c0daaa324 293
+resources/js/tipSearch.js
+  s_e98fb2299e704f::t_c822149e6ce7a0 1-54
+resources/js/PointsHere.js
+  s_e98fb2299e704f::t_e81537bbecdd37 42-44
+  s_e98fb2299e704f::t_475028372e18ca 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eaf95759d4c626300ed5ad200993b3e2e62be6bf",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  }
+}
