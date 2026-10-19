@@ -1,0 +1,49 @@
+modules/item.xqm
+  s_e98fb2299e704f::t_b78eae0822b310 1770
+  s_e98fb2299e704f::t_4bca1c108d4645 96,108,163,175,553,838-840,944-946,948-950,968-970,972-974,994-997,1001,1109,1113,1131-1133,1135-1137,1153,1222,1240,1283-1285,1353-1355,1365,1408-1410,1453-1455,1458,1524,1536,1623,1627,1729,2234
+test/xqs/ts-viewitem-entityhref.xqm
+  s_e98fb2299e704f::t_98f326d5a212cb 1-19,26-74,83-94,105-106
+  s_e98fb2299e704f::t_786cf5c8be0ce0 23
+  s_e98fb2299e704f::t_26d883c8cc7731 75-82
+  s_e98fb2299e704f::t_b064963ac4fd0c 21-22,25
+  s_e98fb2299e704f::t_1e77a3973c3f7d 95-104
+  s_e98fb2299e704f::t_cce2f5e559329c 20
+  s_e98fb2299e704f::t_6e4289bbdc731f 24
+modules/viewItem.xqm
+  s_e98fb2299e704f::t_7f4beacc9d1988 885
+  s_e98fb2299e704f::t_90d449f10b3f1e 884,886-887,890-891
+  s_e98fb2299e704f::t_837c6256c64bdb 877-883,888-889,892-900
+  s_e98fb2299e704f::t_bc839ebb5dfef1 186,197,212,1054-1058,1077,1230,1281,1366,1670,1942,3102,3194-3196,3650,3717,3866,3868,5290
+modules/apprest.xqm
+  s_e98fb2299e704f::t_6541176fffa6ea 55
+  s_e98fb2299e704f::t_03fa41e260d76e 83,85
+  s_e98fb2299e704f::t_11ed0f5e1871a0 82
+test/cypress/e2e/localEntityLinks.cy.js
+  s_e98fb2299e704f::t_ec7b75022b4609 1-26
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_4e3115caa2b3ac 26,92
+  s_e98fb2299e704f::t_4af41140933108 21
+  s_e98fb2299e704f::t_9d4ad9e7420f13 87
+modules/config.xqm
+  s_e98fb2299e704f::t_cf43810dae4ff8 52-79
+modules/dtsclient.xqm
+  s_e98fb2299e704f::t_847e58b2cd8350 76
+test/xqs/ts-config-islocalhref.xqm
+  s_e98fb2299e704f::t_00b8d5f7729af4 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0b69e897c5c563926a9640b61dec95f6e86a8a42",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
