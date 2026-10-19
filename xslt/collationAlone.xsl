@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:err="http://www.w3.org/2005/xqt-errors"  exclude-result-prefixes="#all" version="2.0">
+<xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:err="http://www.w3.org/2005/xqt-errors" xmlns:bm="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/collation" exclude-result-prefixes="#all" version="2.0">
     <xsl:variable name="mainID" select="ancestor-or-self::t:TEI/@xml:id"/>
     <xsl:template match="t:collation">
         <xsl:try>
@@ -44,25 +44,6 @@
                         </tr>
                         <xsl:for-each select=".//t:item">
                             <xsl:sort select="position()"/>
-                            <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                            <xsl:variable name="dim">
-                                <xsl:choose>
-                                    <xsl:when test="$rawDim castable as xs:double">
-                                        <xsl:value-of select="xs:double($rawDim)"/>
-                                    </xsl:when>
-                                    <xsl:when test="t:locus/@to and t:locus/@from">
-                                        <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
-                                        <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
-                                        <xsl:choose>
-                                            <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
-                                                <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>0</xsl:otherwise>
-                                        </xsl:choose>
-                                    </xsl:when>
-                                    <xsl:otherwise>0</xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:variable>
                             <tr>
                                 <td>
                                     <xsl:attribute name="id">
@@ -74,7 +55,7 @@
                                     <xsl:value-of select="@n"/>
                                 </td>
                                 <td>
-                                    <xsl:value-of select="$dim"/>
+                                    <xsl:value-of select="(bm:leafCount(.), t:dim[@unit = 'leaf'])[1]"/>
                                 </td>
                                 <td>
                                     <xsl:apply-templates select="t:locus[parent::t:item]"/>
@@ -89,25 +70,7 @@
                 <xsl:variable name="dimensionandstubs">
                     <xsl:for-each select=".//t:list/t:item">
                         <xsl:variable name="text" select="string-join(./text(), ' ')"/>
-                        <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                        <xsl:variable name="dim">
-                            <xsl:choose>
-                                <xsl:when test="$rawDim castable as xs:double">
-                                    <xsl:value-of select="xs:double($rawDim)"/>
-                                </xsl:when>
-                                <xsl:when test="t:locus/@to and t:locus/@from">
-                                    <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
-                                    <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
-                                    <xsl:choose>
-                                        <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
-                                            <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>0</xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:when>
-                                <xsl:otherwise>0</xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:variable>
+                        <xsl:variable name="dim" select="(bm:leafCount(.), 0)[1]"/>
                         <xsl:variable name="stubs">
                             <xsl:analyze-string select="$text" regex="stub">
                                 <xsl:matching-substring>1</xsl:matching-substring>
@@ -130,10 +93,10 @@
                     </xsl:for-each>
                 </xsl:variable>
                 <xsl:choose>
-                    <xsl:when test=".//t:list/t:item/t:dim[@unit = 'leaf'][not(. castable as xs:double)]">
+                    <xsl:when test=".//t:list/t:item[empty(bm:leafCount(.))]">
                         <div class="w3-panel w3-amber">
                             <p>
-                                <b>It is unfortunately not possible to print the collation diagrams and formula because one or more quire dimensions contain non-numeric values (e.g., "unknown").</b>
+                                <b>It is unfortunately not possible to print the collation diagrams and formula because the number of leaves is unknown for quire <xsl:value-of select="string-join(.//t:list/t:item[empty(bm:leafCount(.))]/(@n, @xml:id)[1], ', ')"/>: no numeric leaf dimension and no folio range to derive it from.</b>
                             </p>
                             <p>The text information provided in the record is: <br/><xsl:value-of select="string-join(.//t:list/node(), ' ')"/></p>
                         </div>
@@ -215,25 +178,7 @@
                                         </xsl:otherwise>
                                     </xsl:choose>
                                     <xsl:text>(</xsl:text>
-                                <xsl:variable name="rawDim" select="t:dim[@unit = 'leaf']"/>
-                                <xsl:variable name="dim">
-                                    <xsl:choose>
-                                        <xsl:when test="$rawDim castable as xs:double">
-                                            <xsl:value-of select="xs:double($rawDim)"/>
-                                        </xsl:when>
-                                        <xsl:when test="t:locus/@to and t:locus/@from">
-                                            <xsl:variable name="cleanFrom" select="replace(t:locus/@from, '[^\d]', '')"/>
-                                            <xsl:variable name="cleanTo" select="replace(t:locus/@to, '[^\d]', '')"/>
-                                            <xsl:choose>
-                                                <xsl:when test="($cleanFrom castable as xs:double) and ($cleanTo castable as xs:double)">
-                                                    <xsl:value-of select="xs:double($cleanTo) - xs:double($cleanFrom) + 1"/>
-                                                </xsl:when>
-                                                <xsl:otherwise>0</xsl:otherwise>
-                                            </xsl:choose>
-                                        </xsl:when>
-                                        <xsl:otherwise>0</xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:variable>
+                                <xsl:variable name="dim" select="(bm:leafCount(.), 0)[1]"/>
                                     <xsl:choose>
                                         <xsl:when test="contains(string-join(text()), 'stub')">
                                             <xsl:variable name="text" select="string-join(text(), ' ')"/>

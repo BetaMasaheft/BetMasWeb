@@ -379,6 +379,9 @@ declare function dtslib:redirectToHTML($id, $ref, $start) {
  : Resource `$id` values are data entities (canonical $config:BMurl prefix).
  : Link / Location paths under `/api/dts/...` are HTTP entities on this host.
  :
+ : `$ref`, `$start` and `$end` may each be "" or the empty sequence (Roaster
+ : omits optional query params without a default); both mean "not given".
+ :
  : @param $id    DTS resource id (canonical BM URI or empty → collections)
  : @param $ref   optional passage reference
  : @param $start optional range start (with $end)
@@ -388,9 +391,12 @@ declare function dtslib:redirectToHTML($id, $ref, $start) {
  : handled by dtslib:docs → redirectToCollections before this function.
  :)
 declare function dtslib:document-result($id as xs:string*, $ref as xs:string*, $start, $end) as map(*) {
+	let $ref := string($ref[1])
+	let $start := string($start[1])
+	let $end := string($end[1])
 	(: Empty id: HTTP uses dtslib:docs → redirectToCollections. In-process content
 	   cannot follow that redirect, so return a DTS error element instead. :)
-	if ($id = "") then
+	return if ($id = "") then
 		map {
 			"status": 400,
 			"body":

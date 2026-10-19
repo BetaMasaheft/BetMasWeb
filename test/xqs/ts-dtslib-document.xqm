@@ -49,6 +49,26 @@ declare %test:assertXPath("exists($result)") function tsdtsdoc:content-happy-pat
 	dtslib:document-content($tsdtsdoc:sample-id, "", "", "")//t:div[@type = "edition"]
 };
 
+(:~
+ : Roaster passes optional query params without a default (start, end are
+ : typed integer in routes.json) as the empty sequence, not "". An edition
+ : URN must still select only that edition, not the whole document.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/161
+ :)
+declare %test:assertEquals("traces") function tsdtsdoc:edition-urn-selects-edition-when-range-absent() {
+	string-join(
+		dtslib:document-content($tsdtsdoc:sample-id || "_ED_traces", "", (), ())//t:div[@type = "edition"]/@xml:id,
+		","
+	)
+};
+
+declare %test:assertEquals("rhced") function tsdtsdoc:edition-urn-selects-edition-when-all-params-absent() {
+	string-join(
+		dtslib:document-content($tsdtsdoc:sample-id || "_ED_rhced", (), (), ())//t:div[@type = "edition"]/@xml:id,
+		","
+	)
+};
+
 declare %test:assertTrue function tsdtsdoc:docs-happy-path-response-is-roaster-map() {
 	rutil:is-response(dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml"))
 };

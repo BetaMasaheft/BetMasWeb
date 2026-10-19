@@ -17,10 +17,15 @@ import module namespace tsrutil = "https://www.betamasaheft.uni-hamburg.de/BetMa
 import module namespace tsdtsdoc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-document" at "ts-dtslib-document.xqm";
 import module namespace tsdtsprev = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-prevnext" at "ts-dtslib-prevnext.xqm";
 import module namespace tsdtsregex = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-regexid" at "ts-dtslib-regexid.xqm";
+import module namespace tsdtscedlink = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtsclient-editionlink" at "ts-dtsclient-editionlink.xqm";
+import module namespace tslocalhref = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-config-islocalhref" at "ts-config-islocalhref.xqm";
 import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-mainrels" at "ts-item-mainrels.xqm";
 import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
 import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-place" at "ts-viewitem-place.xqm";
 import module namespace tsvireflink = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-reflink" at "ts-viewitem-reflink.xqm";
+import module namespace tsvientity = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-entityhref" at "ts-viewitem-entityhref.xqm";
+import module namespace tscollation = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-collation-leafcount" at "ts-collation-leafcount.xqm";
+import module namespace tsvitextfrag = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-textfragment" at "ts-viewitem-textfragment.xqm";
 import module namespace tsviauth = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-auth" at "ts-viewitem-auth.xqm";
 import module namespace tsvimss = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-manuscript" at "ts-viewitem-manuscript.xqm";
 import module namespace tsviwork = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-work" at "ts-viewitem-work.xqm";
@@ -79,10 +84,15 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-dtslib-document.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtslib-prevnext.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtslib-regexid.xqm")),
+		inspect:module-functions(xs:anyURI("ts-dtsclient-editionlink.xqm")),
+		inspect:module-functions(xs:anyURI("ts-config-islocalhref.xqm")),
 		inspect:module-functions(xs:anyURI("ts-item-mainrels.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-reflink.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-entityhref.xqm")),
+		inspect:module-functions(xs:anyURI("ts-collation-leafcount.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-textfragment.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-auth.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-manuscript.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-work.xqm")),

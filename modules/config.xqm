@@ -50,6 +50,34 @@ declare variable $config:appUrl := $loc:appUrl;
 declare variable $config:baseURI := $config:appUrl || "/";
 
 (:~
+ : Whether an href points at this instance, given the origin it is served
+ : from. With an empty $appUrl (dev/CI containers) local links are
+ : root-relative, and starts-with($href, "") would match every link.
+ :
+ : @param $href   the href to classify
+ : @param $appUrl the origin of this instance, usually $config:appUrl
+ : @return true for links on this instance
+ :)
+declare function config:isLocalHref($href as xs:string?, $appUrl as xs:string) as xs:boolean {
+	if (empty($href)) then
+		false()
+	else if ($appUrl = "") then
+		starts-with($href, "/") and not(starts-with($href, "//"))
+	else
+		$href = $appUrl or starts-with($href, $appUrl || "/")
+};
+
+(:~
+ : config:isLocalHref against $config:appUrl.
+ :
+ : @param $href the href to classify
+ : @return true for links on this instance
+ :)
+declare function config:isLocalHref($href as xs:string?) as xs:boolean {
+	config:isLocalHref($href, $config:appUrl)
+};
+
+(:~
  : Canonical Beta maṣāḥǝft URI prefix as baked into the expanded data by
  : expand.xqm (must match $expand:BMurl there). Use this to recognise and
  : strip the prefix from identifiers stored in the data (@ref, @corresp,

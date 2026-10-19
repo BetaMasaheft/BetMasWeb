@@ -52,7 +52,7 @@ declare function apprest:trim($arg as xs:string?) as xs:string {
 
 declare function apprest:decidelink($link) {
 	if (contains($link, "http")) then
-		$link
+		viewItem:entityHref($link)
 	else if (contains($link, ":")) then (
 		let $ns := if (substring-before($link, ":") != "") then
 			substring-before($link, ":")
@@ -79,10 +79,10 @@ declare function apprest:deciderelation($list) {
 
 					else if (starts-with($id/text(), "urn:")) then
 						<a href="{ $config:appUrl }/{ encode-for-uri($id/text()) }" target="_blank">{ $id/text() }</a>
-					else if (contains($link, "betamasaheft")) then
-						<a href="{ apprest:decidelink($id) }" target="_blank">{ exptit:printTitle($id/text()) }</a>
+					else if (config:isLocalHref($link) or contains($link, "betamasaheft")) then
+						<a href="{ $link }" target="_blank">{ exptit:printTitle($id/text()) }</a>
 					else
-						<a href="{ apprest:decidelink($id) }" target="_blank">{ $link }</a>
+						<a href="{ $link }" target="_blank">{ $link }</a>
 				}
 			</li>
 		}

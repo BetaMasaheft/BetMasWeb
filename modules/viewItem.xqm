@@ -183,7 +183,7 @@ declare %private function viewItem:locus($this) {
 				let $targets :=
 					for $t at $p in $targetSeq
 					return (
-						<a href="{ $t }">
+						<a href="{ viewItem:entityHref($t) }">
 							{ viewItem:choosefacsorlb(($this, $t), $ancID) }
 							{ viewItem:parseRef(concat(substring-after($t, "#"), " ")) }
 						</a>,
@@ -194,7 +194,7 @@ declare %private function viewItem:locus($this) {
 				return ($prefix, $targets)
 			else if ($this/@target) then (
 				$prefix,
-				<a href="{ $this/@target }">
+				<a href="{ viewItem:entityHref($this/@target) }">
 					{ viewItem:choosefacsorlb($this, $ancID) }
 					{ viewItem:parseRef(concat(substring-after($this/@target, "#"), " ")) }
 				</a>
@@ -209,7 +209,7 @@ declare %private function viewItem:locus($this) {
 			)
 		else (
 			if ($this/@target) then
-				<a href="{ $this/@target }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
+				<a href="{ viewItem:entityHref($this/@target) }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
 			else
 				<a href="#{ $this/@from }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
 		),
@@ -874,6 +874,30 @@ declare %private function viewItem:URI2ID($string) {
 		$string
 };
 
+(:~
+ : Link target on this deployment for an entity reference.
+ :
+ : Expanded data carries canonical data URIs ($config:BMurl || id), which
+ : point at production; those and bare BM ids resolve against
+ : $config:appUrl. Anything else (external URIs, CURIEs) is returned as is.
+ :
+ : A sequence is joined with spaces first, as the attribute value template
+ : `href="{ $x/@ref }"` would.
+ :
+ : @param $ref @ref/@corresp/@active/@passive value(s) or a bare BM id
+ : @return href for an html:a, or empty for an empty ref
+ :)
+declare function viewItem:entityHref($ref as item()*) as xs:string? {
+	let $ref := normalize-space(string-join($ref!string(.), " "))
+	return if ($ref = "") then (
+	) else if (starts-with($ref, $config:BMurl)) then
+		$config:appUrl || "/" || substring-after($ref, $config:BMurl)
+	else if (matches($ref, "^\w+(#\S*)?$")) then
+		$config:appUrl || "/" || $ref
+	else
+		$ref
+};
+
 declare %private function viewItem:ID2URI($string) {
 	if (starts-with($string, $config:BMurl)) then
 		$string
@@ -1027,7 +1051,11 @@ declare %private function viewItem:bibl($node, $t) {
 		</div>
 		<div class="w3-rest">
 			<span class="w3-bar-block w3-hide-small w3-hide-medium">
-				<a class="w3-bar-item w3-button w3-tiny" href="{ $node/@corresp }" target="_blank">Zotero</a>
+				<a
+					class="w3-bar-item w3-button w3-tiny"
+					href="{ viewItem:entityHref($node/@corresp) }"
+					target="_blank"
+				>Zotero</a>
 				<a
 					class="w3-bar-item w3-button w3-tiny"
 					href="{ $config:appUrl }/bibliography?pointer={ $t }"
@@ -1046,7 +1074,7 @@ declare %private function viewItem:bibliographyitem($node) {
 	else if ($node[@corresp and not(t:ptr[@target])]) then (
 		let $cors := viewItem:makeSequence($node/@corresp)
 		for $c in $cors
-		return <a href="{ $c }">{ exptit:printTitle($c) }</a>,
+		return <a href="{ viewItem:entityHref($c) }">{ exptit:printTitle($c) }</a>,
 		$node/text(),
 		viewItem:TEI2HTML($node/t:date),
 		viewItem:TEI2HTML($node/t:note)
@@ -1199,7 +1227,7 @@ declare %private function viewItem:ref($ref) {
 			else
 				$anchor || " not found in this file"
 		else if (starts-with($t, "http")) then
-			<a href="{ $t }">
+			<a href="{ viewItem:entityHref($t) }">
 				{
 					if ($text) then
 						$text
@@ -1250,7 +1278,7 @@ declare %private function viewItem:footnoteptr($node) {
 	let $target := $node/@target
 	let $t := substring-after($node/@target, "#")
 	let $note := $node/ancestor::t:TEI//t:note[@xml:id = $t]
-	return <sup><a href="{ $node/@target }" id="pointer{ $t }">{ string($note/@n) }</a></sup>
+	return <sup><a href="{ viewItem:entityHref($node/@target) }" id="pointer{ $t }">{ string($note/@n) }</a></sup>
 };
 
 declare %private function viewItem:footnote($node) {
@@ -1335,7 +1363,7 @@ declare %private function viewItem:witness($witness) {
 				if ($witness/@type = "external" and $witness/@facs) then
 					$witness/@facs
 				else
-					$witness/@corresp
+					viewItem:entityHref($witness/@corresp)
 			}"
 			property="http://purl.org/dc/elements/1.1/source"
 			resource="{ $witness/@corresp }"
@@ -1639,7 +1667,7 @@ declare function viewItem:namedEntityPlace($entity) {
 			<span
 				xmlns="http://www.w3.org/1999/xhtml"
 				class="pelagios popup"
-				data-href="https://betamasaheft.eu/{ $idref }"
+				data-href="{ viewItem:entityHref($idref) }"
 				data-pelagiosID="{ encode-for-uri(concat("http://betamasaheft.eu/places/", $idref)) }"
 				data-value="{ $idref }"
 			>↗</span>,
@@ -1911,7 +1939,7 @@ declare %private function viewItem:palaeography($node) {
 				{ <h4>Hand { substring-after($h/@xml:id, "h") }</h4> }
 				{
 					if ($h/@corresp) then
-						<p>Hand of <a href="{ string($h/@corresp) }">{ substring-after($h/@corresp, "#") }</a></p>
+						<p>Hand of <a href="{ viewItem:entityHref($h/@corresp) }">{ substring-after($h/@corresp, "#") }</a></p>
 					else (
 					)
 				}
@@ -3071,7 +3099,7 @@ declare %private function viewItem:qelement($node as element(t:q)) {
 declare %private function viewItem:repository($node as element(t:repository)) {
 	<a
 		class="w3-tag w3-gray w3-margin-top"
-		href="{ $node/@ref }"
+		href="{ viewItem:entityHref($node/@ref) }"
 		property="http://www.cidoc-crm.org/cidoc-crm/P55_has_current_location"
 		resource="{ $node/@ref }"
 		role="button"
@@ -3163,7 +3191,9 @@ declare %private function viewItem:term($node as element(t:term)) {
 		string($node/@key)
 	return <b>
 		{ $term }
-		<a href="{ string($node/@key) }" target="_blank"><sup><i aria-hidden="true" class="fas fa-info-circle" /></sup></a>
+		<a href="{ viewItem:entityHref($node/@key) }" target="_blank">
+			<sup><i aria-hidden="true" class="fas fa-info-circle" /></sup>
+		</a>
 	</b>
 };
 
@@ -3617,7 +3647,7 @@ declare %private function viewItem:wit($node) {
 			)
 		}
 		{ $trimmedid }
-		<span class="w3-text">{ <a href="{ string($witness/@corresp) }">{ $witness/t:idno/text() }</a> }</span>
+		<span class="w3-text">{ <a href="{ viewItem:entityHref($witness/@corresp) }">{ $witness/t:idno/text() }</a> }</span>
 	</span>
 };
 
@@ -3684,7 +3714,7 @@ declare function viewItem:div($node as element(t:div)) {
 			<head>
 				{
 					if ($node/@corresp) then
-						<a href="{ $node/@corresp }">
+						<a href="{ viewItem:entityHref($node/@corresp) }">
 							{ replace(substring-after($node/@corresp, "#"), "_", " ") }
 							{
 								if ($node/@subtype) then
@@ -3833,9 +3863,9 @@ declare %private function viewItem:titletemplate($div, $text) {
 							if (starts-with($div/@subtype, "#")) then (
 								let $id := substring-after($div/@subtype, "#")
 								let $match := $div/ancestor::t:TEI//t:*[@xml:id = $id]
-								return (viewItem:TEI2HTML($match/t:title), <a href="{ $div/@corresp }">{ $id }</a>)
+								return (viewItem:TEI2HTML($match/t:title), <a href="{ viewItem:entityHref($div/@corresp) }">{ $id }</a>)
 							) else (
-								<a href="{ $div/@corresp }">
+								<a href="{ viewItem:entityHref($div/@corresp) }">
 									{ exptit:printTitle(string($div/@corresp)) }
 									<span class="glyphicon glyphicon-share" />
 								</a>
@@ -5257,7 +5287,7 @@ declare function viewItem:persWithRole($ms) {
 			let $roles := distinct-values($allpersons/@role)
 			let $person := $allpersons[1]
 			return (
-				<a xmlns="http://www.w3.org/1999/xhtml" class="persName" href="{ $ref }">
+				<a xmlns="http://www.w3.org/1999/xhtml" class="persName" href="{ viewItem:entityHref($ref) }">
 					{
 						viewItem:TEI2HTML($person/t:choice),
 						viewItem:TEI2HTML($person/t:roleName),
@@ -5475,36 +5505,55 @@ declare function viewItem:dates($date) {
 	return ($formatortext, $evidence, $cert, $resp)
 };
 
+(:~
+ : Text tab body: an edition (or DTS fragment) rendered with TEI2HTML, plus
+ : its help modal.
+ :
+ : Very large fragments are not rendered in full: a Transkribus
+ : transcription of more than 120 folia shows a notice only, and a text of
+ : more than 35 textparts and 2000 words (counted by ፡) shows its first 35
+ : textparts. The navigation bar narrows down to the rest.
+ :
+ : @param $frag t:div[@type='edition'], dts:fragment or t:ab
+ : @return xhtml:div
+ :)
 declare function viewItem:textfragment($frag) {
-	(: let $test := util:log('info', 'got to the textfragment' )
-return :)
 	<div>
 		<div id="transcription{ $frag/descendant-or-self::*[@xml:id][1]/@xml:id }" style="word-break: keep-all;">
 			{
 				if (count($frag/t:div) = 0) then
 					attribute class { "w3-container chapterText" }
 				else (
-				)
-			(: if($frag[@subtype="transkribus"] and (count($frag/t:div[@subtype='folio']) gt 120))
-            then  <div>This manuscript transcription has {count($frag/t:div[@subtype='folio'])} folia, which is too much to show.
-            Please, use the navigation bar on the left to narrow down.</div>
-            else (
-            let $textgez := normalize-space(string-join($frag/*//text()))
-            let $gezwords := if ($textgez) then count(tokenize($textgez, '፡')) else 0
-            return
-            if((count($frag/t:div[@type='textpart']) gt 35) and $gezwords gt 2000)
-            then  <div><span>This text is too long to show. Only the first 35 of {count($frag/t:div[@type='textpart'])} sections are shown.
-            Please, use the navigation bar on the left to narrow down.</span>
-            {for $item in subsequence($frag/t:div[@type='textpart'], 1, 35)
-            return
-                    viewItem:TEI2HTML($item)
-                }</div>
-            else
-                try {
-                    viewItem:TEI2HTML($frag)
-                } catch * {
-                    util:log('info', $err:description)
-                }) :)
+				),
+				if ($frag[@subtype = "transkribus"] and (count($frag/t:div[@subtype = "folio"]) gt 120)) then
+					<div>
+						This manuscript transcription has {
+							count($frag/t:div[@subtype = "folio"])
+						} folia,
+						which is too much to show. Please, use the navigation bar on the left to narrow down.
+					</div>
+				else
+					let $textgez := normalize-space(string-join($frag/*//text()))
+					let $gezwords := if ($textgez) then
+						count(tokenize($textgez, "፡"))
+					else
+						0
+					return if ((count($frag/t:div[@type = "textpart"]) gt 35) and $gezwords gt 2000) then
+						<div>
+							<span>
+								This text is too long to show. Only the first 35 of
+								{
+									count($frag/t:div[@type = "textpart"])
+								} sections are shown.
+								Please, use the navigation bar on the left to narrow down.
+							</span>
+							{
+								for $item in subsequence($frag/t:div[@type = "textpart"], 1, 35)
+								return viewItem:TEI2HTML($item)
+							}
+						</div>
+					else
+						try { viewItem:TEI2HTML($frag) } catch * { util:log("info", $err:description) }
 			}
 			<div class="w3-modal" id="textHelp{ $frag/descendant-or-self::*[@xml:id][1]/@xml:id }">
 				<div class="w3-modal-content">
