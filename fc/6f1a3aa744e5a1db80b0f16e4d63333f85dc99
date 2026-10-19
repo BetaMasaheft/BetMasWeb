@@ -1,0 +1,27 @@
+resources/js/highlight.js
+  s_e98fb2299e704f::t_2aee0e990084ab 74,76-77,79-80,82-83,85,109,111-112,114-115,117-118,120
+  s_e98fb2299e704f::t_fea198144855f5 184-200
+  s_e98fb2299e704f::t_b1da8f3a6ccba2 182-183
+modules/queries.xqm
+  s_e98fb2299e704f::t_9bf89c97675cbf 1857-1858,1866-1867
+resources/js/PointsHere.js
+  s_e98fb2299e704f::t_9a557fdcf3e470 83-101
+  s_e98fb2299e704f::t_0029c85ae9e0c4 50
+  s_e98fb2299e704f::t_475028372e18ca 44,46-47,49,52-53,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fc6f1a3aa744e5a1db80b0f16e4d63333f85dc99",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
