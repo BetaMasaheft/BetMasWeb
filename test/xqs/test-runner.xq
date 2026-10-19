@@ -23,6 +23,7 @@ import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/Be
 import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
 import module namespace tsviplace = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-place" at "ts-viewitem-place.xqm";
 import module namespace tsvireflink = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-reflink" at "ts-viewitem-reflink.xqm";
+import module namespace tsvientity = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-entityhref" at "ts-viewitem-entityhref.xqm";
 import module namespace tscollation = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-collation-leafcount" at "ts-collation-leafcount.xqm";
 import module namespace tsvitextfrag = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-textfragment" at "ts-viewitem-textfragment.xqm";
 import module namespace tsviauth = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-auth" at "ts-viewitem-auth.xqm";
@@ -89,6 +90,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-place.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-reflink.xqm")),
+		inspect:module-functions(xs:anyURI("ts-viewitem-entityhref.xqm")),
 		inspect:module-functions(xs:anyURI("ts-collation-leafcount.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-textfragment.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-auth.xqm")),

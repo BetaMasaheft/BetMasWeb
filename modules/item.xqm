@@ -93,7 +93,7 @@ declare function item2:persList($item) {
 			{
 				for $pers in $item//t:persName[@role]
 				return <li class="nodot">
-					<a href="{ $pers/@ref }" target="_blank">{ string($pers/@role) }: { $pers/text() }</a>
+					<a href="{ viewItem:entityHref($pers/@ref) }" target="_blank">{ string($pers/@role) }: { $pers/text() }</a>
 				</li>
 			}
 		</ul>
@@ -105,7 +105,7 @@ declare function item2:witList($item) {
 		{
 			for $wit in $item//t:witness[not(@type)]
 			return <li class="nodot" id="{ string($wit/@xml:id) }">
-				<a href="{ $wit/@corresp }" target="_blank">
+				<a href="{ viewItem:entityHref($wit/@corresp) }" target="_blank">
 					{
 						if ($wit/@xml:id) then (
 							<b class="lead">{ string($wit/@xml:id) }</b>, ":"
@@ -160,7 +160,7 @@ declare function item2:witnesses($id) {
 				{
 					for $parallel in $versions
 					let $p := $parallel/@active
-					return <li><a href="{ $p }">{ exptit:printTitle($p) }</a></li>
+					return <li><a href="{ viewItem:entityHref($p) }">{ exptit:printTitle($p) }</a></li>
 				}
 			</ul>
 		) else (
@@ -172,7 +172,7 @@ declare function item2:witnesses($id) {
 				{
 					for $parallel in $versionsO
 					let $p := $parallel/@active
-					return <li><a href="{ $p }">{ exptit:printTitle($p) }</a></li>
+					return <li><a href="{ viewItem:entityHref($p) }">{ exptit:printTitle($p) }</a></li>
 				}
 			</ul>
 		) else (
@@ -550,7 +550,7 @@ declare function item2:RestItemHeader($this, $collection) {
 					),
 					if ($same) then
 						for $s in $same
-						return <p>This record is the same as <a href="{ string($s/@passive) }" target="_blank">
+						return <p>This record is the same as <a href="{ viewItem:entityHref($s/@passive) }" target="_blank">
 								{ exptit:printTitleID($s/@passive) }
 							</a>.</p>
 					else (
@@ -835,7 +835,9 @@ declare function item2:RestItemHeader($this, $collection) {
 							if ($document//t:titleStmt/t:author) then
 								<div class="w3-row">
 									<p class="w3-large">
-										<a href="{ $document//t:titleStmt/t:author[1]/@ref }">{ $document//t:titleStmt/t:author[1] }</a>
+										<a href="{ viewItem:entityHref($document//t:titleStmt/t:author[1]/@ref) }">
+											{ $document//t:titleStmt/t:author[1] }
+										</a>
 									</p>
 								</div>
 							else (
@@ -939,9 +941,13 @@ declare function item2:mainRelsPersons($this, $collection) {
 								for $p in $isSubjectof
 								return if (contains($p/@active, " ")) then
 									for $value in tokenize($p/@active, " ")
-									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+									return <li class="nodot">
+										<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle(string($value)) }</a>
+									</li>
 								else
-									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+									<li class="nodot">
+										<a href="{ viewItem:entityHref($p/@active) }">{ exptit:printTitle(string($p/@active)) }</a>
+									</li>
 							}
 						</ul>
 					</div>
@@ -959,9 +965,13 @@ declare function item2:mainRelsPersons($this, $collection) {
 								for $p in $isAuthorof
 								return if (contains($p/@active, " ")) then
 									for $value in tokenize($p/@active, " ")
-									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+									return <li class="nodot">
+										<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle(string($value)) }</a>
+									</li>
 								else
-									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+									<li class="nodot">
+										<a href="{ viewItem:entityHref($p/@active) }">{ exptit:printTitle(string($p/@active)) }</a>
+									</li>
 							}
 						</ul>
 					</div>
@@ -981,11 +991,14 @@ declare function item2:mainRelsPersons($this, $collection) {
 									"Successor: "
 								return if (contains($p/@passive, " ")) then
 									for $value in tokenize($p/@passive, " ")
-									return <li class="nodot">{ $rel }<a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+									return <li class="nodot">
+										{ $rel }
+										<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle(string($value)) }</a>
+									</li>
 								else
 									<li class="nodot">
 										{ $rel }
-										<a href="{ $p/@passive }">{ exptit:printTitle(string($p/@passive)) }</a>
+										<a href="{ viewItem:entityHref($p/@passive) }">{ exptit:printTitle(string($p/@passive)) }</a>
 									</li>
 							}
 						</ul>
@@ -1093,11 +1106,11 @@ declare function item2:mainRelsPlaces($this, $collection) {
 						<ul class="w3-ul w3-hoverable">
 							{
 								for $p in $same
-								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
+								return <li class="nodot"><a href="{ viewItem:entityHref($p/@passive) }">{ string($p/@passive) }</a></li>
 							}
 							{
 								for $p in $samep
-								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
+								return <li class="nodot"><a href="{ viewItem:entityHref($p/@passive) }">{ string($p/@active) }</a></li>
 							}
 						</ul>
 					</div>
@@ -1115,9 +1128,13 @@ declare function item2:mainRelsPlaces($this, $collection) {
 								for $p in $isSubjectof
 								return if (contains($p/@active, " ")) then
 									for $value in tokenize($p/@active, " ")
-									return <li class="nodot"><a href="{ $value }">{ exptit:printTitle(string($value)) }</a></li>
+									return <li class="nodot">
+										<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle(string($value)) }</a>
+									</li>
 								else
-									<li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle(string($p/@active)) }</a></li>
+									<li class="nodot">
+										<a href="{ viewItem:entityHref($p/@active) }">{ exptit:printTitle(string($p/@active)) }</a>
+									</li>
 							}
 						</ul>
 					</div>
@@ -1133,7 +1150,7 @@ declare function item2:mainRelsPlaces($this, $collection) {
 							{
 								for $p in $churchesAndMonasteries
 								let $root := string(root($p)/t:TEI/@xml:id)
-								return <li class="nodot"><a href="{ $root }">{ exptit:printTitle($root) }</a></li>
+								return <li class="nodot"><a href="{ viewItem:entityHref($root) }">{ exptit:printTitle($root) }</a></li>
 							}
 						</ul>
 					</div>
@@ -1202,7 +1219,7 @@ declare function item2:mainRelsWorks($this, $collection) {
 										return if (contains($normp, " ")) then
 											for $value in tokenize($normp, " ")
 											return <li class="nodot">
-												<a href="{ $value }">
+												<a href="{ viewItem:entityHref($value) }">
 													{
 														if (contains($p, "betamasaheft")) then
 															exptit:printTitle($p)
@@ -1220,7 +1237,7 @@ declare function item2:mainRelsWorks($this, $collection) {
 															{ () }
 														</a>
 													else
-														<a href="{ $p }">
+														<a href="{ viewItem:entityHref($p) }">
 															{
 																if (contains($p, "betamasaheft")) then
 																	exptit:printTitle($p)
@@ -1263,7 +1280,9 @@ declare function item2:mainRelsWorks($this, $collection) {
 								<ul class="w3-ul w3-hoverable">
 									{
 										for $p in $par
-										return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
+										return <li class="nodot">
+											<a href="{ viewItem:entityHref($p/@active) }">{ exptit:printTitle($p/@active) }</a>
+										</li>
 									}
 								</ul>
 							)
@@ -1331,7 +1350,9 @@ declare function item2:mainRelsStudies($this, $collection) {
 										let $normp := normalize-space($p)
 										return if (contains($normp, " ")) then
 											for $value in tokenize($normp, " ")
-											return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
+											return <li class="nodot">
+												<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle($value) }</a>
+											</li>
 										else
 											<li class="nodot">
 												{
@@ -1341,7 +1362,7 @@ declare function item2:mainRelsStudies($this, $collection) {
 															{ () }
 														</a>
 													else
-														<a href="{ $p }">
+														<a href="{ viewItem:entityHref($p) }">
 															{
 																if (contains($p, "betamasaheft")) then
 																	exptit:printTitle($p)
@@ -1384,7 +1405,9 @@ declare function item2:mainRelsStudies($this, $collection) {
 								<ul class="w3-ul w3-hoverable">
 									{
 										for $p in $par
-										return <li class="nodot"><a href="{ $p/@active }">{ exptit:printTitle($p/@active) }</a></li>
+										return <li class="nodot">
+											<a href="{ viewItem:entityHref($p/@active) }">{ exptit:printTitle($p/@active) }</a>
+										</li>
 									}
 								</ul>
 							)
@@ -1427,10 +1450,12 @@ declare function item2:mainRelsNarratives($this, $collection) {
 										let $normp := normalize-space($p)
 										return if (contains($normp, " ")) then
 											for $value in tokenize($normp, " ")
-											return <li class="nodot"><a href="{ $value }">{ exptit:printTitle($value) }</a></li>
+											return <li class="nodot">
+												<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle($value) }</a>
+											</li>
 										else if (starts-with($p, "http")) then
 											<li class="nodot">
-												<a href="{ $p }">
+												<a href="{ viewItem:entityHref($p) }">
 													{
 														if (contains($p, "betamasaheft")) then
 															exptit:printTitle($p)
@@ -1496,7 +1521,7 @@ declare function item2:mainRelsAuthorityFiles($this, $collection) {
 															href="{ $config:appUrl }/{ substring-after($value, "betmas:") }"
 														>{ exptit:printTitle(substring-after($value, "betmas:")) }</a>
 													else
-														<a href="{ $value }">{ exptit:printTitle($value) }</a>
+														<a href="{ viewItem:entityHref($value) }">{ exptit:printTitle($value) }</a>
 												}
 											</li>
 										else
@@ -1508,7 +1533,7 @@ declare function item2:mainRelsAuthorityFiles($this, $collection) {
 															{ () }
 														</a>
 													else
-														<a href="{ $p }">
+														<a href="{ viewItem:entityHref($p) }">
 															{
 																if (contains($p, "betamasaheft")) then
 																	exptit:printTitle($p)
@@ -1595,11 +1620,11 @@ declare function item2:mainRelsInstitutions($this, $collection) {
 						<ul class="w3-ul w3-hoverable">
 							{
 								for $p in $same
-								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@passive) }</a></li>
+								return <li class="nodot"><a href="{ viewItem:entityHref($p/@passive) }">{ string($p/@passive) }</a></li>
 							}
 							{
 								for $p in $samep
-								return <li class="nodot"><a href="{ $p/@passive }">{ string($p/@active) }</a></li>
+								return <li class="nodot"><a href="{ viewItem:entityHref($p/@passive) }">{ string($p/@active) }</a></li>
 							}
 						</ul>
 					</div>
@@ -1701,7 +1726,7 @@ declare function item2:RestPersRole($file, $collection) {
 								for $root in $role/ancestor::t:TEI[@xml:id != $id]
 								let $thisid := string($root/@xml:id)
 								return <li>
-									<a href="{ $thisid }">{ exptit:printTitle($thisid) }</a>
+									<a href="{ viewItem:entityHref($thisid) }">{ exptit:printTitle($thisid) }</a>
 									{
 										if ((count($root//t:origDate[@evidence = "internal-date"]) ge 1)) then
 											let $dates :=
@@ -1742,7 +1767,7 @@ declare function item2:RestPersRole($file, $collection) {
 			group by $ID := $p/@ref
 
 			return <div class="w3-panel w3-margin w3-gray w3-card-4">
-				<a href="{ $ID }">{ exptit:printTitle($ID) }</a>
+				<a href="{ viewItem:entityHref($ID) }">{ exptit:printTitle($ID) }</a>
     is <span class="w3-tag w3-red">
 					{
 						for $role in config:distinct-values($p/@role)
@@ -2206,7 +2231,7 @@ Scrolling in this box will also show you a summary of all the occurences.  <a
 					return if (count($witnesses) ge 1) then (
 						<div class="w3-small scrollwrap" id="Samepart2{ $string }">
 							<p>
-								{ $stringsubids } is listed as <a href="{ $c }" target="_blank">{ $c }</a> in <a
+								{ $stringsubids } is listed as <a href="{ viewItem:entityHref($c) }" target="_blank">{ $c }</a> in <a
 									href="{ $config:appUrl }/newSearch.html?searchType=text&amp;mode=any&amp;work-types=mss&amp;{ $c }"
 									target="_blank"
 								>{ count($countwitnesses) } manuscripts { count($witnesses) } times</a>:</p>
