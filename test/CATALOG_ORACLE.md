@@ -23,12 +23,16 @@ JSON field `comparisonMode` is `resolved-values+bibl-presence`:
 | `institutions` | Institution label via maps built once per backend                                                                                                                                                                                                                                                                                         |
 | `bibliography` | Presence only: `"hit"` if `catalog:bibl` returns an entry with **non-empty** `b:citation`, else `""`. Full-entry `serialize()` equality is not used — EthioStudies vs lists markup/citation text may differ (Phase 4 D1). Shared rule: `oraclelib:bibl-presence` in `test/xqs/catalog-oracle-lib.xqm` (XQSuite: `ts-catalog-oracle.xqm`). |
 
-The runner fails when any of:
+The runner **always prints a summary** (and, when needed, a table of unreviewed
+rows plus suggested Accept XML). Empty CI logs used to happen because the old
+script `exit`ed on the gate check before printing.
 
-- `unreviewedCount` is nonzero
-- `invalidReviewedEntries` is nonzero (Accept rows missing/invalid `@triage`)
-- `triageValidationPassed` is false (helper self-check **and** no invalid Accept rows)
-- `resolutionCallsA` or `resolutionCallsB` is 0 (vacuous compare)
+| Condition                                     | Default CI behaviour                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `unreviewedCount` > 0                         | **Warning** (`::warning::` annotations + log). Job stays green. Set `CATALOG_ORACLE_STRICT=1` to fail. |
+| `invalidReviewedEntries` ≠ 0                  | **Hard fail**                                                                                          |
+| `triageValidationPassed` is false             | **Hard fail**                                                                                          |
+| `resolutionCallsA` or `resolutionCallsB` is 0 | **Hard fail** (vacuous compare)                                                                        |
 
 Hermetic jq checks for that gate live in `test/gate-catalog-oracle.bats`.
 

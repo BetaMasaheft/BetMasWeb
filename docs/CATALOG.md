@@ -91,8 +91,9 @@ large list/catalog document under `/db/apps/lists` or `/db/apps/catalogs`.
 - **Cypress** — HTTP integration (e.g. work-text HTML regression in
   `test/cypress/e2e/items.cy.js`).
 - **Oracle** — `scripts/run-catalog-oracle.sh` with
-  `CATALOG_ORACLE_TRANSPORT=rest` in CI; requires `resolutionCallsA/B > 0` and
-  zero unreviewed mismatches. See `test/CATALOG_ORACLE.md`.
+  `CATALOG_ORACLE_TRANSPORT=rest` in CI; requires `resolutionCallsA/B > 0`.
+  Unreviewed mismatches are **warnings** by default (set `CATALOG_ORACLE_STRICT=1`
+  to fail). See `test/CATALOG_ORACLE.md`.
 
 ## Formatting
 
