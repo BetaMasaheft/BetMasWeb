@@ -1,0 +1,27 @@
+xslt/collationAlone.xsl
+  s_e98fb2299e704f::t_b02585637301f6 133-134
+modules/viewItem.xqm
+  s_e98fb2299e704f::t_6e31dae4be12d3 5487-5516
+  s_e98fb2299e704f::t_a002250746f323 5260
+modules/dtsclient.xqm
+  s_e98fb2299e704f::t_112d03500338e0 25,28-59,62
+  s_e98fb2299e704f::t_eb5f19d9a09429 60-61
+  s_e98fb2299e704f::t_f44f60c89c589f 63-65
+  s_e98fb2299e704f::t_91896607ed9cf2 66-67,218-220,430-432
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24bcb815385e20a21ae35e96646aa3573df3d89b",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
