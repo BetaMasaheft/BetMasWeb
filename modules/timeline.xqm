@@ -216,8 +216,15 @@ declare function tl:resp($node) {
 		let $tag := zc:normalize-tag(string($node))
 		return <span class="edition-citation" data-value="{ $tag }">{ (zc:short($tag), $tag)[1] }</span>
 	) else if ($node) then (
+		(: Resolve via catalog:label (printTitleID), never collection()/id($r).
+		   Editor tokens like "DN" match hundreds of respStmt/@xml:id values;
+		   passing that sequence into printTitle → printTitleID raises XPTY0004
+		   (Documentation#3401 / BNFet116). String form is catalog-aware and
+		   one-valued. :)
 		for $r in $node
-		return <r>{ normalize-space(exptit:printTitle(collection($config:data-rootPr)/id($r))) }</r>
+		let $id := normalize-space(string($r))
+		where $id ne ""
+		return <r>{ normalize-space(string(exptit:printTitleID($id))) }</r>
 	) else (
 	)
 	return <resps>
