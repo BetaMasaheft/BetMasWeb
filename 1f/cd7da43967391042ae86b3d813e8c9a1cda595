@@ -1,0 +1,28 @@
+test/xqs/ts-dtsclient-editionlink.xqm
+  s_e98fb2299e704f::t_1e9424f2467488 1-60
+  s_e98fb2299e704f::t_0975824c85efb9 61-62
+modules/dtsclient.xqm
+  s_e98fb2299e704f::t_856bdf2607e112 31-39,41-46,48-49,52,57-60,64-75,83
+  s_e98fb2299e704f::t_3537f09fd1ea41 19,22
+  s_e98fb2299e704f::t_87a0d0cd41c949 76-78,80-82
+  s_e98fb2299e704f::t_e6a466b1f61402 79,234,444
+test/xqs/test-runner.xq
+  s_e98fb2299e704f::t_99126b0f8cc5cd 82
+  s_e98fb2299e704f::t_4b7ec514ca7b24 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1fcd7da43967391042ae86b3d813e8c9a1cda595",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
