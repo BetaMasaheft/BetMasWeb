@@ -553,10 +553,11 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
 				<div class="container" id="confirmation">
 					<div class="jumbotron">
 						<p class="lead">Thank you very much { sm:id()//sm:real/sm:username/string() }!</p>
-						<p><span class="lead">{ $Newid }</span> has been saved!</p>
-						<p>But <span class="label label-warning confirmationwarning">WAIT!</span> you are <span
-								class="label label-warning confirmationwarning"
-							>not yet done</span>...</p>
+						<p><span class="lead">{ $Newid }</span> has been created.</p>
+						<p>
+							<span class="label label-warning confirmationwarning">IMPORTANT!</span>
+							<br />
+							<span class="label label-warning confirmationwarning">DOWNLOAD AND SYNC!</span>.</p>
 						<p>Download the file in your BetMas project folder <span class="lead">{ $collection }/new</span>.<br />
 							<a class="btn btn-primary" download="{ $file }" href="{ $config:appUrl }/{ $file }" id="downloaded">
 								<i aria-hidden="true" class="fas fa-download" /> Download</a>
@@ -564,7 +565,8 @@ type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"'
                                 open it up and check it is valid and complete. <br />
 							<span class="label label-warning confirmationwarning">DO THIS!</span>
 							<br />
-							<b>synchronize to GitHub through commit/pull request/merge</b>.</p>
+							<b
+							>synchronize to GitHub through commit/pull request/merge TODAY</b>. (You can continue editing the file after it has been validated and merged to the master branch).</p>
 						<a href="{ $config:appUrl }/newentry.html?collection={ $collection }">create another entry</a>
 					</div>
 				</div>
