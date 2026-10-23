@@ -3475,8 +3475,12 @@ declare %private function viewItem:add($node as element(t:add)) {
 						concat("by ", substring-after($node/@hand, "#"))
 					else
 						""
-				}
-                    at { upper-case(string($node/@place)) } according to TEI definitions.</span>
+				} at {
+					if ($node/@place) then
+						upper-case(string($node/@place))
+					else
+						"unknown location"
+				} according to TEI definitions.</span>
 		</span>
 	)
 };
