@@ -3441,18 +3441,7 @@ declare %private function viewItem:orig($node as element(t:orig)) {
 
 declare %private function viewItem:add($node as element(t:add)) {
 	let $id := generate-id($node)
-	return if ($node/@hand and $node/@place) then (
-		<span class="w3-tooltip">
-			{ viewItem:TEI2HTML($node/node()) }
-			<span class="w3-text">Note added {
-					if ($node/@hand) then
-						concat("by ", substring-after($node/@hand, "#"))
-					else
-						""
-				}
-                    at { upper-case(string($node/@place)) } according to TEI definitions.</span>
-		</span>
-	) else if ($node/@place = "overstrike" and $node/preceding-sibling::t:del) then (
+	return if ($node/@place = "overstrike" and $node/preceding-sibling::t:del) then (
 		"{", viewItem:TEI2HTML($node/node()), "}"
 	) else if ($node/@hand and not($node/@place)) then (
 		"/",
@@ -3479,6 +3468,20 @@ declare %private function viewItem:add($node as element(t:add)) {
                                 at { upper-case(string($node/@place)) } according to TEI definitions.</span>
 		</span>
 	) else (
+		<span class="w3-tooltip">
+			{ viewItem:TEI2HTML($node/node()) }
+			<span class="w3-text">Note added {
+					if ($node/@hand) then
+						concat("by ", substring-after($node/@hand, "#"))
+					else
+						""
+				} at {
+					if ($node/@place) then
+						upper-case(string($node/@place))
+					else
+						"unknown location"
+				} according to TEI definitions.</span>
+		</span>
 	)
 };
 
