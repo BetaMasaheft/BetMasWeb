@@ -588,42 +588,46 @@ declare %private function viewItem:locusrv($att) {
 declare %private function viewItem:choosefacsorlb($locus, $ancID) {
 	let $actualElement := $locus[1]
 	let $TEI := $actualElement/ancestor::t:TEI
-	let $explicitPageToken := if (count($locus) gt 1) then
-		string($locus[2])
-	else (
-	)
-	return if ($actualElement/@facs and empty($explicitPageToken)) then
-		attribute onclick { viewItem:imagesID($actualElement, "call", $actualElement/@facs, $ancID) }
-	else if ($TEI//t:div[contains(@xml:id, "ranskribus")]) then
-		attribute onclick { viewItem:imagesID($actualElement, "call", $actualElement/@*, "") }
-	else if ($TEI//t:idno/@facs) then
-		let $pageMS := if (string-length($explicitPageToken) gt 0) then
-			viewItem:locusrv($explicitPageToken)
-		else if ($actualElement/@from) then
-			viewItem:locusrv($actualElement/@from)
-		else if ($actualElement/@to) then
-			viewItem:locusrv($actualElement/@to)
-		else if ($actualElement/@target) then
-			viewItem:locusrv($actualElement/@target)
-		else
-			"1"
-		let $page := if (empty($pageMS) or normalize-space(string($pageMS)) eq "") then
-			"1"
-		else
-			string($pageMS)
-		let $MainFacs := string($TEI//t:msIdentifier/t:idno/@facs)
-		let $id := $TEI/@xml:id
-		let $canvas := try {
-			if (starts-with($MainFacs, "http")) then
-				iiifut:calculate-canvas($MainFacs, $page, $id, "https://betamasaheft.eu")
+	let $msItemsCount := count($TEI//t:msItem)
+	return if ($msItemsCount gt 100) then (
+		attribute title { "Image link disabled for performance" }, attribute class { "w3-tooltip" }
+	) else
+		let $explicitPageToken := if (count($locus) gt 1) then
+			string($locus[2])
+		else (
+		)
+		return if ($actualElement/@facs and empty($explicitPageToken)) then
+			attribute onclick { viewItem:imagesID($actualElement, "call", $actualElement/@facs, $ancID) }
+		else if ($TEI//t:div[contains(@xml:id, "ranskribus")]) then
+			attribute onclick { viewItem:imagesID($actualElement, "call", $actualElement/@*, "") }
+		else if ($TEI//t:idno/@facs) then
+			let $pageMS := if (string-length($explicitPageToken) gt 0) then
+				viewItem:locusrv($explicitPageToken)
+			else if ($actualElement/@from) then
+				viewItem:locusrv($actualElement/@from)
+			else if ($actualElement/@to) then
+				viewItem:locusrv($actualElement/@to)
+			else if ($actualElement/@target) then
+				viewItem:locusrv($actualElement/@target)
 			else
-				"https://betamasaheft.eu/api/iiif/" || $id || "/canvas/p" || $page
-		} catch * { <error>{ $err:description }</error> }
-		let $viewer := concat("https://betamasaheft.eu/manuscripts/", $id, "/viewer?FirstCanv=", $canvas)
-		return (attribute title { "See viewer" }, attribute {"data-viewerurl"} { $viewer }, attribute target { "_blank" })
-	else (
-		attribute title { "No image available" }, attribute class { "w3-tooltip" }
-	)
+				"1"
+			let $page := if (empty($pageMS) or normalize-space(string($pageMS)) eq "") then
+				"1"
+			else
+				string($pageMS)
+			let $MainFacs := string($TEI//t:msIdentifier/t:idno/@facs)
+			let $id := $TEI/@xml:id
+			let $canvas := try {
+				if (starts-with($MainFacs, "http")) then
+					iiifut:calculate-canvas($MainFacs, $page, $id, "https://betamasaheft.eu")
+				else
+					"https://betamasaheft.eu/api/iiif/" || $id || "/canvas/p" || $page
+			} catch * { <error>{ $err:description }</error> }
+			let $viewer := concat("https://betamasaheft.eu/manuscripts/", $id, "/viewer?FirstCanv=", $canvas)
+			return (attribute title { "See viewer" }, attribute {"data-viewerurl"} { $viewer }, attribute target { "_blank" })
+		else (
+			attribute title { "No image available" }, attribute class { "w3-tooltip" }
+		)
 };
 
 declare %private function viewItem:VisColl($collation) {
