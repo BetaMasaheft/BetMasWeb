@@ -1779,6 +1779,7 @@ declare %private function viewItem:msItem($msItem) {
 				{
 					let $countChildren := count($msItem/t:msItem)
 					return if (($msItemsCount gt 100) and ($countChildren gt 10)) then (
+						viewItem:TEI2HTML($msItem/node()[not(name() = "msItem")]),
 						<div>
 							<a
 								class="w3-button msitemloader w3-yellow"
