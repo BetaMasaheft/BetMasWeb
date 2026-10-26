@@ -90,8 +90,7 @@ declare function iiifut:calculate-canvas(
 			xs:integer($cleanPage)
 		else
 			1
-		return (: --- STATIC FALLBACKS --- :)
-		if (contains($cleanUrl, "digi.vat") or contains($cleanUrl, "vatlib")) then
+		return (: --- STATIC FALLBACKS --- :) if (contains($cleanUrl, "digi.vat") or contains($cleanUrl, "vatlib")) then
 			replace(
 				substring-before($cleanUrl, "/manifest.json") || "/canvas/p" || format-number($pageNum, "0000"),
 				"http:",
