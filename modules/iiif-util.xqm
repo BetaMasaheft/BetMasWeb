@@ -76,67 +76,75 @@ declare function iiifut:calculate-canvas(
 		""
 	else if (not(starts-with($idnoFacs, "http"))) then
 		$appUrl || "/api/iiif/" || $id || "/canvas/p" || $page
-
-	(: UNIVERSAL LIVE LOOKUP FOR EXTERNAL MANIFESTS :)
 	else if (starts-with($idnoFacs, "http")) then
 		let $cleanUrl := if (contains($idnoFacs, "cudl")) then
 			replace($idnoFacs, "//iiif", "/iiif")
 		else
 			$idnoFacs
-		let $dynamicCanvas := iiifut:get-first-canvas($cleanUrl)
 		let $safePage := if (empty($page) or normalize-space($page) eq "") then
 			"1"
 		else
 			$page
 		let $cleanPage := replace($safePage, "[a-z\s#]", "")
-		return if (string-length($dynamicCanvas) gt 0 and ($cleanPage eq "1" or $cleanPage eq "")) then
-			$dynamicCanvas
-		else (: --- STATIC SAFETY NET FALLBACKS --- :) if (
-			contains($idnoFacs, "digi.vat") or contains($idnoFacs, "vatlib")
-		) then
-			replace(substring-before($idnoFacs, "/manifest.json") || "/canvas/p0001", "http:", "https:")
-		else if (contains($idnoFacs, "loc.gov")) then
+		let $pageNum := if (string-length($cleanPage) gt 0 and $cleanPage castable as xs:integer) then
+			xs:integer($cleanPage)
+		else
+			1
+		return (: --- STATIC FALLBACKS --- :) if (contains($cleanUrl, "digi.vat") or contains($cleanUrl, "vatlib")) then
+			replace(
+				substring-before($cleanUrl, "/manifest.json") || "/canvas/p" || format-number($pageNum, "0000"),
+				"http:",
+				"https:"
+			)
+		else if (contains($cleanUrl, "loc.gov")) then
 			"https://tile.loc.gov/image-services/iiif/service:amed:amedmonastery:" ||
-				substring-before(substring-after($idnoFacs, "item/"), "/manifest.json") ||
-				":0001"
-		else if (contains($idnoFacs, "https://rct.resourcespace.com/iiif/1005081")) then
-			$idnoFacs || "canvas/P000"
-		else if (contains($idnoFacs, "https://rct.resourcespace.com/iiif/1005079")) then
-			$idnoFacs || "canvas/ 003"
-		else if (contains($idnoFacs, "https://rct.resourcespace.com/iiif/1005084")) then
-			$idnoFacs || "canvas/ _P002-hpr.jpg"
-		else if (contains($idnoFacs, "https://rct.resourcespace.com/iiif/1005085")) then
-			$idnoFacs || "canvas/1005085.a (1)-hpr.jpg"
-		else if (contains($idnoFacs, "rct.")) then
-			$idnoFacs || "canvas/001"
-		else if (contains($idnoFacs, "eap.")) then
-			replace($idnoFacs, "manifest", "canvas") || "/" || $cleanPage
-		else if (contains($idnoFacs, "bl.digirati")) then
-			let $n1 := number(substring-before(substring-after($idnoFacs, "vdc_"), ".0x"))
-			let $facs := replace($idnoFacs, string($n1), string($n1 + 2))
+				substring-before(substring-after($cleanUrl, "item/"), "/manifest.json") ||
+				":" ||
+				format-number($pageNum, "0004")
+		else if (contains($cleanUrl, "https://rct.resourcespace.com/iiif/1005081")) then
+			$cleanUrl || "canvas/P" || format-number($pageNum, "000")
+		else if (contains($cleanUrl, "https://rct.resourcespace.com/iiif/1005079")) then
+			$cleanUrl || "canvas/ " || format-number($pageNum, "003")
+		else if (contains($cleanUrl, "https://rct.resourcespace.com/iiif/1005084")) then
+			$cleanUrl || "canvas/ _P002-hpr.jpg"
+		else if (contains($cleanUrl, "https://rct.resourcespace.com/iiif/1005085")) then
+			$cleanUrl || "canvas/1005085.a (1)-hpr.jpg"
+		else if (contains($cleanUrl, "rct.")) then
+			$cleanUrl || "canvas/" || format-number($pageNum, "003")
+		else if (contains($cleanUrl, "eap.")) then
+			replace($cleanUrl, "manifest", "canvas") || "/" || $cleanPage
+		else if (contains($cleanUrl, "bl.digirati")) then
+			let $n1 := number(substring-before(substring-after($cleanUrl, "vdc_"), ".0x"))
+			let $facs := replace($cleanUrl, string($n1), string($n1 + 2))
 			let $newfacs := substring-before($facs, "000001")
 			return replace($newfacs, "iiif", "images") || "000001/canvas/c/" || $cleanPage
-		else if (contains($idnoFacs, "staatsbib")) then
-			substring-before($idnoFacs, "/manifest") || "-" || format-number(xs:integer($cleanPage), "0000") || "/canvas"
-		else if (contains($idnoFacs, "le.ac.uk")) then
+		else if (contains($cleanUrl, "staatsbib")) then
+			substring-before($cleanUrl, "/manifest") || "-" || format-number($pageNum, "0000") || "/canvas"
+		else if (contains($cleanUrl, "le.ac.uk")) then
 			"https://cdm16445.contentdm.oclc.org/iiif/" ||
-				substring-before(substring-after($idnoFacs, "iiif/"), "coll6") ||
-				"coll6:19840/canvas/c0"
-		else if (contains($idnoFacs, "tuebingen")) then
-			replace($idnoFacs, "/manifest", "/") || "canvas/" || $cleanPage
-		else if (contains($idnoFacs, "cbl.ie")) then
-			substring-before($idnoFacs, "/manifest") || "/pages/" || $cleanPage || "/canvas/"
-		else if (contains($idnoFacs, "uni-hamburg")) then
-			substring-before($idnoFacs, "/manifest") || "/canvas/PHYS_" || format-number(xs:integer($cleanPage), "0000")
-		else if (contains($idnoFacs, "cudl")) then
-			replace($idnoFacs, "//iiif", "/iiif") || "/canvas/" || $cleanPage
-		else if (contains($idnoFacs, "gallica")) then
-			replace($idnoFacs, "ark:", "iiif/ark:") || "/canvas/f" || $cleanPage
-		else if (contains($idnoFacs, "manchester")) then
-			$idnoFacs || "/canvas/" || $cleanPage
+				substring-before(substring-after($cleanUrl, "iiif/"), "coll6") ||
+				"coll6:19840/canvas/c" ||
+				format-number($pageNum, "00")
+		else if (contains($cleanUrl, "tuebingen")) then
+			replace($cleanUrl, "/manifest", "/") || "canvas/" || $cleanPage
+		else if (contains($cleanUrl, "cbl.ie")) then
+			substring-before($cleanUrl, "/manifest") || "/pages/" || $cleanPage || "/canvas/"
+		else if (contains($cleanUrl, "uni-hamburg")) then
+			substring-before($cleanUrl, "/manifest") || "/canvas/PHYS_" || format-number($pageNum, "0000")
+		else if (contains($cleanUrl, "cudl")) then
+			$cleanUrl || "/canvas/" || $cleanPage
+		else if (contains($cleanUrl, "gallica")) then
+			replace($cleanUrl, "ark:", "iiif/ark:") || "/canvas/f" || $cleanPage
+		else if (contains($cleanUrl, "manchester")) then
+			$cleanUrl || "/canvas/" || $cleanPage
 
+		(: --- DYNAMIC LOOKUP (Fallback for unknown external manifests) --- :)
 		else
-			$appUrl || "/api/iiif/" || $id || "/canvas/p1"
+			let $dynamicCanvas := try { iiifut:get-first-canvas($cleanUrl) } catch * { () }
+			return if (string-length($dynamicCanvas) gt 0 and ($cleanPage eq "1" or $cleanPage eq "")) then
+				$dynamicCanvas
+			else
+				$appUrl || "/api/iiif/" || $id || "/canvas/p1"
 	else
 		$appUrl || "/api/iiif/" || $id || "/canvas/p1"
 };
