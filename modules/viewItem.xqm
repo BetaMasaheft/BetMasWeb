@@ -1757,10 +1757,12 @@ declare function viewItem:reflink($ref) {
 		string($ref)
 };
 
-declare %private function viewItem:msItem($msItem) {
+declare function viewItem:msItem($msItem as element()) {
 	let $mainID := viewItem:mainID($msItem)
 	let $id := string($msItem/@xml:id)
-	let $msItemsCount := count($msItem/ancestor::t:TEI//t:msItem)
+	let $root := root($msItem)
+	let $msItemsCount := count($root//t:msItem)
+
 	let $trimid := if ($msItem/parent::t:msContents) then
 		concat(replace($id, "\.", "-"), "N", $msItem/position())
 	else
@@ -1795,9 +1797,11 @@ declare %private function viewItem:msItem($msItem) {
 				<hr class="msItems w3-left-align" />
 				{
 					let $anchor := concat("#", $id)
-					return if ($msItem//ancestor::t:TEI//t:div[@corresp = $anchor]) then
-						let $number := if ($msItem/ancestor::t:TEI//t:div[@corresp = $anchor]/@n) then
-							$msItem/ancestor::t:TEI//t:div[@corresp = $anchor]/@n
+					(: FAST: Direct root lookup instead of $msItem//ancestor::t:TEI//t:div :)
+					let $matchingDiv := $root//t:div[@corresp = $anchor]
+					return if ($matchingDiv) then
+						let $number := if ($matchingDiv/@n) then
+							$matchingDiv/@n
 						else
 							1
 						return <a
@@ -1809,8 +1813,8 @@ declare %private function viewItem:msItem($msItem) {
 					)
 				}
 				{
-					let $countChildren := count($msItem/t:msItem)
-					return if (($msItemsCount gt 100) and ($countChildren gt 10)) then (
+					let $hasManyChildren := exists($msItem/t:msItem[11])
+					return if (($msItemsCount gt 100) and ($hasManyChildren)) then (
 						viewItem:TEI2HTML($msItem/node()[not(name() = "msItem")]),
 						<div>
 							<a
@@ -1819,13 +1823,11 @@ declare %private function viewItem:msItem($msItem) {
 								data-msitem="{ replace($msItem/@xml:id, "\.", "-") }"
 								data-start="1"
 							>
-                             Click here to load the first 10 of {
-									$countChildren
-								} items.
-                          </a>
+                                 Click here to load content items.
+                              </a>
 							<div id="msitemloadcontainer{ replace($msItem/@xml:id, "\.", "-") }" />
 						</div>
-					) else if ($countChildren gt 0) then (
+					) else if (count($msItem/t:msItem) gt 0) then (
 						viewItem:TEI2HTML($msItem/node()[not(name() = "msItem")]),
 						for $m in $msItem/t:msItem
 						let $innerMsItem := viewItem:msItem($m)
