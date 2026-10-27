@@ -1757,7 +1757,7 @@ declare function viewItem:reflink($ref) {
 		string($ref)
 };
 
-declare function viewItem:msItem($msItem as element()) {
+declare function viewItem:msItem($msItem) {
 	let $mainID := viewItem:mainID($msItem)
 	let $id := string($msItem/@xml:id)
 	let $root := root($msItem)
@@ -1797,7 +1797,6 @@ declare function viewItem:msItem($msItem as element()) {
 				<hr class="msItems w3-left-align" />
 				{
 					let $anchor := concat("#", $id)
-					(: FAST: Direct root lookup instead of $msItem//ancestor::t:TEI//t:div :)
 					let $matchingDiv := $root//t:div[@corresp = $anchor]
 					return if ($matchingDiv) then
 						let $number := if ($matchingDiv/@n) then
@@ -1822,9 +1821,7 @@ declare function viewItem:msItem($msItem as element()) {
 								data-mainid="{ $mainID }"
 								data-msitem="{ replace($msItem/@xml:id, "\.", "-") }"
 								data-start="1"
-							>
-                                 Click here to load content items.
-                              </a>
+							>Click here to load content items.</a>
 							<div id="msitemloadcontainer{ replace($msItem/@xml:id, "\.", "-") }" />
 						</div>
 					) else if (count($msItem/t:msItem) gt 0) then (
