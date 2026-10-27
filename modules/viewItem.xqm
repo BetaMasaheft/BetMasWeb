@@ -133,37 +133,8 @@ declare %private function viewItem:mainID($node) {
 };
 
 declare %private function viewItem:locus($this) {
-	let $parent := $this/parent::t:*
-	let $mainID := viewItem:mainID($this)
-	let $anc := ($this/ancestor::t:*[@xml:id])[1]
-	let $ancID := replace($anc/@xml:id, "\.", "_")
-	let $prevTextNode := $this/preceding-sibling::text()
-	let $clean := replace(string-join($prevTextNode), "\s", "")
-	let $lowerPrefix := matches($clean, "[^\.]$") or
-		matches($clean, " ca.") or
-		matches($clean, " e.g.") or
-		matches($clean, " cp.") or
-		matches($clean, " esp.")
-	let $unit := string(($this/ancestor::t:TEI//t:extent/t:measure[@type != "blank"]/@unit)[1])
-	let $plural := contains(string($this/@target), " ") or $this/@to
-	let $base := if ($unit = "page") then (
-		if ($plural) then
-			"pp."
-		else
-			"p."
-	) else (
-		if ($plural) then
-			"ff."
-		else
-			"f."
-	)
-	let $prefix := if ($lowerPrefix) then
-		concat($base, " ")
-	else
-		concat(upper-case(substring($base, 1, 1)), substring($base, 2), " ")
-	let $excerpt := $parent[self::t:ab][not(@type = ("CruxAnsata", "ChiRho", "coronis", "ruling", "pricking"))]
-	let $targetSeq := viewItem:makeSequence($this/@target)
-	return if ((count($this/ancestor::t:msItem) gt 2) and (count($this/ancestor::t:TEI//t:msItem) gt 100)) then
+	let $tei := $this/ancestor::t:TEI
+	return if ((count($this/ancestor::t:msItem) gt 2) and (count($tei//t:msItem) gt 100)) then
 		"f." ||
 			string($this/@from) ||
 			(
@@ -173,80 +144,137 @@ declare %private function viewItem:locus($this) {
 				)
 			) ||
 			substring-after($this/@target, "#")
-	else (
-		if ($excerpt) then
-			"(Excerpt from "
-		else (
-		),
-		if ($this[not(text())]) then
-			if (contains(string($this/@target), " ")) then
-				let $targets :=
-					for $t at $p in $targetSeq
-					return (
-						<a href="{ viewItem:entityHref($t) }">
-							{ viewItem:choosefacsorlb(($this, $t), $ancID) }
-							{ viewItem:parseRef(concat(substring-after($t, "#"), " ")) }
-						</a>,
-						if ($p = count($targetSeq)) then (
-						) else
-							", "
-					)
-				return ($prefix, $targets)
-			else if ($this/@target) then (
-				$prefix,
-				<a href="{ viewItem:entityHref($this/@target) }">
-					{ viewItem:choosefacsorlb($this, $ancID) }
-					{ viewItem:parseRef(concat(substring-after($this/@target, "#"), " ")) }
-				</a>
-			) else (
-				$prefix,
-				<a href="#{ $this/@from }">{ viewItem:choosefacsorlb($this, $ancID) }{ viewItem:parseRef($this/@from) }</a>,
-				"–",
-				<a href="#{ $this/@to }">
-					{ viewItem:choosefacsorlb(($this, string($this/@to)), $ancID) }
-					{ viewItem:parseRef($this/@to) }
-				</a>
-			)
-		else (
-			if ($this/@target) then
-				<a href="{ viewItem:entityHref($this/@target) }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
+	else
+		let $parent := $this/parent::t:*
+		let $mainID := viewItem:mainID($this)
+		let $anc := ($this/ancestor::t:*[@xml:id])[1]
+		let $ancID := replace($anc/@xml:id, "\.", "_")
+		let $prevTextNode := $this/preceding-sibling::text()
+		let $clean := replace(string-join($prevTextNode), "\s", "")
+		let $lowerPrefix := matches($clean, "[^\.]$") or
+			matches($clean, " ca.") or
+			matches($clean, " e.g.") or
+			matches($clean, " cp.") or
+			matches($clean, " esp.")
+		let $isInNote := exists($this/ancestor::t:note)
+
+		let $unit := string(($tei/t:teiHeader//t:extent/t:measure[@type != "blank"]/@unit)[1])
+		(: do not generate links in note :)
+		let $hasTranskribus := if ($isInNote) then
+			false()
+		else
+			exists($tei/t:text/t:div[contains(@xml:id, "ranskribus")])
+		let $hasEdition := if ($isInNote) then
+			false()
+		else
+			exists($tei/t:text/t:div[@type = "edition"][descendant::t:ab[descendant::text()]])
+		let $plural := contains(string($this/@target), " ") or $this/@to
+		let $base := if ($unit = "page") then (
+			if ($plural) then
+				"pp."
 			else
-				<a href="#{ $this/@from }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
-		),
-		if ($this/@cert = "low") then
-			" (?)"
-		else (
-		),
-		(: and not($text = 'only')"  ????? :)
-		if ($this/@facs) then
-			try { viewItem:matchingFacs($this) } catch * { util:log("info", $err:description) }
-		else if ($this/ancestor::t:TEI//t:div[contains(@xml:id, "ranskribus")]) then
-			(: 'matches lb' :)
-			viewItem:matchinglb($this)
-		else (
-		),
-		if ($this/ancestor::t:TEI//t:div[@type = "edition"][descendant::t:ab[descendant::text()]]) then
-			let $to := if ($this/@to) then (
-				"-" || string($this/@to)
-			) else (
-			)
-			let $refs := (
-				concat(string($this/@from), $to),
-				for $t in $targetSeq
-				return substring-after($t, "#")
-			)
-			for $r in $refs[not(. = "")]
-			return <a class="locusReference" href="{ $config:appUrl }/{ $mainID }.{ $r }" target="_blank">
-				<i aria-hidden="true" class="far fa-file-lines" />
-			</a>
-		else (
-		),
-		if ($excerpt) then (
-			")", <br />
+				"p."
 		) else (
-		),
-		" "
-	)
+			if ($plural) then
+				"ff."
+			else
+				"f."
+		)
+		let $prefix := if ($lowerPrefix) then
+			concat($base, " ")
+		else
+			concat(upper-case(substring($base, 1, 1)), substring($base, 2), " ")
+		let $targetSeq := viewItem:makeSequence($this/@target)
+		return if ($isInNote) then (
+			$prefix,
+			if ($this/@target) then
+				string-join($targetSeq, ", ")
+			else if ($this/@from and $this/@to) then
+				concat($this/@from, "–", $this/@to)
+			else if ($this/@from) then
+				string($this/@from)
+			else
+				string($this)
+		) else
+			let $excerpt := $parent[self::t:ab][not(@type = ("CruxAnsata", "ChiRho", "coronis", "ruling", "pricking"))]
+
+			return (
+				if ($excerpt) then
+					"(Excerpt from "
+				else (
+				),
+				if ($this[not(text())]) then
+					if (contains(string($this/@target), " ")) then
+						let $targets :=
+							for $t at $p in $targetSeq
+							return (
+								<a href="{ viewItem:entityHref($t) }">
+									{ viewItem:choosefacsorlb(($this, $t), $ancID) }
+									{ viewItem:parseRef(concat(substring-after($t, "#"), " ")) }
+								</a>,
+								if ($p = count($targetSeq)) then (
+								) else
+									", "
+							)
+						return ($prefix, $targets)
+					else if ($this/@target) then (
+						$prefix,
+						<a href="{ viewItem:entityHref($this/@target) }">
+							{ viewItem:choosefacsorlb($this, $ancID) }
+							{ viewItem:parseRef(concat(substring-after($this/@target, "#"), " ")) }
+						</a>
+					) else (
+						$prefix,
+						<a href="#{ $this/@from }">{ viewItem:choosefacsorlb($this, $ancID) }{ viewItem:parseRef($this/@from) }</a>,
+						"–",
+						<a href="#{ $this/@to }">
+							{ viewItem:choosefacsorlb(($this, string($this/@to)), $ancID) }
+							{ viewItem:parseRef($this/@to) }
+						</a>
+					)
+				else (
+					if ($this/@target) then
+						<a href="{ viewItem:entityHref($this/@target) }">
+							{ viewItem:choosefacsorlb($this, $ancID) }
+							{ $this/text() }
+						</a>
+					else
+						<a href="#{ $this/@from }">{ viewItem:choosefacsorlb($this, $ancID) }{ $this/text() }</a>
+				),
+				if ($this/@cert = "low") then
+					" (?)"
+				else (
+				),
+				(: and not($text = 'only')"  ????? :)
+				if ($this/@facs) then
+					try { viewItem:matchingFacs($this) } catch * { util:log("info", $err:description) }
+				else if ($hasTranskribus) then
+					(: 'matches lb' :)
+					viewItem:matchinglb($this)
+				else (
+				),
+				if ($hasEdition) then
+					let $to := if ($this/@to) then (
+						"-" || string($this/@to)
+					) else (
+					)
+					let $refs := (
+						concat(string($this/@from), $to),
+						for $t in $targetSeq
+						return substring-after($t, "#")
+					)
+					for $r in $refs[not(. = "")]
+					return <a class="locusReference" href="{ $config:appUrl }/{ $mainID }.{ $r }" target="_blank">
+						<i aria-hidden="true" class="far fa-file-lines" />
+					</a>
+				else (
+				),
+				if ($excerpt) then (
+					")", <br />
+				) else (
+				),
+				" "
+			)
 };
 
 declare %private function viewItem:gallery($item) {
@@ -1729,10 +1757,12 @@ declare function viewItem:reflink($ref) {
 		string($ref)
 };
 
-declare %private function viewItem:msItem($msItem) {
+declare function viewItem:msItem($msItem as element()) {
 	let $mainID := viewItem:mainID($msItem)
 	let $id := string($msItem/@xml:id)
-	let $msItemsCount := count($msItem/ancestor::t:TEI//t:msItem)
+	let $root := root($msItem)
+	let $msItemsCount := count($root//t:msItem)
+
 	let $trimid := if ($msItem/parent::t:msContents) then
 		concat(replace($id, "\.", "-"), "N", $msItem/position())
 	else
@@ -1767,9 +1797,11 @@ declare %private function viewItem:msItem($msItem) {
 				<hr class="msItems w3-left-align" />
 				{
 					let $anchor := concat("#", $id)
-					return if ($msItem//ancestor::t:TEI//t:div[@corresp = $anchor]) then
-						let $number := if ($msItem/ancestor::t:TEI//t:div[@corresp = $anchor]/@n) then
-							$msItem/ancestor::t:TEI//t:div[@corresp = $anchor]/@n
+					(: FAST: Direct root lookup instead of $msItem//ancestor::t:TEI//t:div :)
+					let $matchingDiv := $root//t:div[@corresp = $anchor]
+					return if ($matchingDiv) then
+						let $number := if ($matchingDiv/@n) then
+							$matchingDiv/@n
 						else
 							1
 						return <a
@@ -1781,8 +1813,8 @@ declare %private function viewItem:msItem($msItem) {
 					)
 				}
 				{
-					let $countChildren := count($msItem/t:msItem)
-					return if (($msItemsCount gt 100) and ($countChildren gt 10)) then (
+					let $hasManyChildren := exists($msItem/t:msItem[11])
+					return if (($msItemsCount gt 100) and ($hasManyChildren)) then (
 						viewItem:TEI2HTML($msItem/node()[not(name() = "msItem")]),
 						<div>
 							<a
@@ -1791,13 +1823,11 @@ declare %private function viewItem:msItem($msItem) {
 								data-msitem="{ replace($msItem/@xml:id, "\.", "-") }"
 								data-start="1"
 							>
-                             Click here to load the first 10 of {
-									$countChildren
-								} items.
-                          </a>
+                                 Click here to load content items.
+                              </a>
 							<div id="msitemloadcontainer{ replace($msItem/@xml:id, "\.", "-") }" />
 						</div>
-					) else if ($countChildren gt 0) then (
+					) else if (count($msItem/t:msItem) gt 0) then (
 						viewItem:TEI2HTML($msItem/node()[not(name() = "msItem")]),
 						for $m in $msItem/t:msItem
 						let $innerMsItem := viewItem:msItem($m)
