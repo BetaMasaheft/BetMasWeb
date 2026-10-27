@@ -184,7 +184,6 @@ declare %private function viewItem:locus($this) {
 			concat($base, " ")
 		else
 			concat(upper-case(substring($base, 1, 1)), substring($base, 2), " ")
-		let $excerpt := $parent[self::t:ab][not(@type = ("CruxAnsata", "ChiRho", "coronis", "ruling", "pricking"))]
 		let $targetSeq := viewItem:makeSequence($this/@target)
 		return if ($isInNote) then (
 			$prefix,
