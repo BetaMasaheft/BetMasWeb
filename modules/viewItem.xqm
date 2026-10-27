@@ -158,10 +158,8 @@ declare %private function viewItem:locus($this) {
 			matches($clean, " esp.")
 		let $isInNote := exists($this/ancestor::t:note)
 
-		let $unit := if ($isInNote) then
-			"page"
-		else
-			string(($tei/t:teiHeader//t:extent/t:measure[@type != "blank"]/@unit)[1])
+		let $unit := string(($tei/t:teiHeader//t:extent/t:measure[@type != "blank"]/@unit)[1])
+		(: do not generate links in note :)
 		let $hasTranskribus := if ($isInNote) then
 			false()
 		else
@@ -169,7 +167,7 @@ declare %private function viewItem:locus($this) {
 		let $hasEdition := if ($isInNote) then
 			false()
 		else
-			exists($tei/t:text/t:div[@type = "edition"])
+			exists($tei/t:text/t:div[@type = "edition"][descendant::t:ab[descendant::text()]])
 		let $plural := contains(string($this/@target), " ") or $this/@to
 		let $base := if ($unit = "page") then (
 			if ($plural) then
@@ -251,12 +249,12 @@ declare %private function viewItem:locus($this) {
 				(: and not($text = 'only')"  ????? :)
 				if ($this/@facs) then
 					try { viewItem:matchingFacs($this) } catch * { util:log("info", $err:description) }
-				else if ($this/ancestor::t:TEI//t:div[contains(@xml:id, "ranskribus")]) then
+				else if ($hasTranskribus) then
 					(: 'matches lb' :)
 					viewItem:matchinglb($this)
 				else (
 				),
-				if ($this/ancestor::t:TEI//t:div[@type = "edition"][descendant::t:ab[descendant::text()]]) then
+				if ($hasEdition) then
 					let $to := if ($this/@to) then (
 						"-" || string($this/@to)
 					) else (
