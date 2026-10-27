@@ -31,7 +31,15 @@ declare function compare:compare($request as map(*)) {
 	let $log := log:add-log-message($fullurl, sm:id()//sm:real/sm:username/string(), "compare")
 	let $w := collection($config:data-root)/id($workid)
 
-	let $Cmap := map {"type": "item", "name": $workid, "path": base-uri($w)}
+	let $Cmap := map {
+		"type": "item",
+		"name": $workid,
+		"path":
+			if (exists($w)) then
+				base-uri($w[1])
+			else
+				""
+	}
 
 	return if (exists($w) or $workid = "") then (
 		<html xmlns="http://www.w3.org/1999/xhtml">
