@@ -156,7 +156,7 @@ declare %private function viewItem:locus($this) {
 			matches($clean, " e.g.") or
 			matches($clean, " cp.") or
 			matches($clean, " esp.")
-		let $isInNote := exists($this/ancestor::t:note)
+		let $isInNote := exists($this/ancestor::t:note[parent::t:msItem])
 
 		let $unit := string(($tei/t:teiHeader//t:extent/t:measure[@type != "blank"]/@unit)[1])
 		(: do not generate links in note :)
@@ -188,7 +188,11 @@ declare %private function viewItem:locus($this) {
 		return if ($isInNote) then (
 			$prefix,
 			if ($this/@target) then
-				string-join($targetSeq, ", ")
+				string-join(
+					for $t in $targetSeq
+					return substring-after($t, "#"),
+					", "
+				)
 			else if ($this/@from and $this/@to) then
 				concat($this/@from, "–", $this/@to)
 			else if ($this/@from) then
@@ -1506,18 +1510,16 @@ declare %private function viewItem:summary($node) {
 };
 
 declare %private function viewItem:summaryitems($item) {
-	<li>
+	let $totalItems := count($item/ancestor::t:TEI//t:msItem)
+	return <li>
 		<a class="page-scroll" href="#{ $item/@xml:id }">{ string($item/@xml:id) }</a>
-        ({
+            ({
 			viewItem:TEI2HTML($item/t:locus)
 		}),
-        { string-join($item/t:title//text(), " ") }
+            { string-join($item/t:title//text(), " ") }
 		{
-			if ((count($item/ancestor::t:TEI//t:msItem) gt 100) and (count($item/ancestor::t:msItem) gt 1)) then
-				<p>There are {
-						count($item/ancestor::t:TEI//t:msItem)
-					} items in this description, to show this page we have to stop here.</p>
-			else if ($item/t:msItem) then
+			if ($totalItems gt 100 and $item/ancestor::t:msItem) then (
+			) else if ($item/t:msItem) then
 				<ol class="summary">
 					{
 						for $subitem in $item/t:msItem
@@ -2579,29 +2581,7 @@ declare %private function viewItem:extent($node as element(t:extent)) {
 
 declare %private function viewItem:decoDesc($node) {
 	<div id="deco" rel="http://purl.org/dc/terms/hasPart">
-		<h2>
-			<span class="w3-tooltip">Decoration { viewItem:headercontext($node) }
-				<span class="w3-text">
-                    In this unit there are in total {
-						let $types :=
-							for $type in distinct-values($node/t:decoNote/@type)
-							let $count := count($node/t:decoNote[@type = $type])
-							return (
-								$count ||
-									" " ||
-									viewItem:categoryname($node/ancestor::t:TEI, $type) ||
-									(
-										if ($count gt 2) then
-											"s"
-										else
-											""
-									)
-							)
-						return string-join($types, ", ")
-					}.
-                </span>
-			</span>
-		</h2>
+		<h2>Decoration { viewItem:headercontext($node) }</h2>
 		<p>{ viewItem:TEI2HTML($node/t:summary) }</p>
 		{
 			if ($node/t:decoNote[@type = "rubrication"]) then (
@@ -2779,29 +2759,7 @@ declare %private function viewItem:revisionDesc($node) {
 
 declare %private function viewItem:additions($node) {
 	<div id="additiones" rel="http://purl.org/dc/terms/hasPart">
-		<h2>
-			<span class="w3-tooltip">Additions { viewItem:headercontext($node) }
-				<span class="w3-text">
-                    In this unit there are in total {
-						let $types :=
-							for $type in distinct-values($node//t:item/t:desc/@type)
-							let $count := count($node//t:item/t:desc[@type = $type])
-							return (
-								$count ||
-									" " ||
-									viewItem:categoryname($node/ancestor::t:TEI, $type) ||
-									(
-										if ($count gt 2) then
-											"s"
-										else
-											""
-									)
-							)
-						return string-join($types, ", ")
-					}.
-                </span>
-			</span>
-		</h2>
+		<h2>Additions { viewItem:headercontext($node) }</h2>
 		{
 			if ($node/t:note) then
 				viewItem:TEI2HTML($node/t:note)
