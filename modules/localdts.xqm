@@ -288,20 +288,11 @@ declare function localdts:Navigation(
 		else if (normalize-space($level) and ($cdepth gt 3)) then
 			dtslib:pasLev($level, $text, "unit", "mss", $manifest, $BMid)
 		else if (normalize-space($level) and ($cdepth = 3)) then (
-			if (
-				$level = "2"
-			) (: the pages of folios have been requested :)
-			then
+			if ($level = "2") (: the pages of folios have been requested :) then
 				dtslib:pasS($text//t:pb[@n], "page", "mss", $manifest, $BMid)
-			else if (
-				$level = "3"
-			) (: the columns of a pages have been requested :)
-			then
+			else if ($level = "3") (: the columns of a pages have been requested :) then
 				dtslib:pasS($text//(t:cb[@n]), "column", "mss", $manifest, $BMid)
-			else if (
-				$level = "4"
-			) (: the columns of a pages have been requested :)
-			then
+			else if ($level = "4") (: the columns of a pages have been requested :) then
 				dtslib:pasS($text//(t:lb[@n]), "line", "mss", $manifest, $BMid)
 			(: in theory there is no such case which will not be matched by cdepth gt 3... :)
 			else (
