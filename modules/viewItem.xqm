@@ -156,7 +156,7 @@ declare %private function viewItem:locus($this) {
 			matches($clean, " e.g.") or
 			matches($clean, " cp.") or
 			matches($clean, " esp.")
-		let $isInNote := exists($this/ancestor::t:note)
+		let $isInNote := exists($this/ancestor::t:note[parent::t:msItem])
 
 		let $unit := string(($tei/t:teiHeader//t:extent/t:measure[@type != "blank"]/@unit)[1])
 		(: do not generate links in note :)
@@ -188,7 +188,11 @@ declare %private function viewItem:locus($this) {
 		return if ($isInNote) then (
 			$prefix,
 			if ($this/@target) then
-				string-join($targetSeq, ", ")
+				string-join(
+					for $t in $targetSeq
+					return substring-after($t, "#"),
+					", "
+				)
 			else if ($this/@from and $this/@to) then
 				concat($this/@from, "–", $this/@to)
 			else if ($this/@from) then
