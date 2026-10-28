@@ -2583,29 +2583,7 @@ declare %private function viewItem:extent($node as element(t:extent)) {
 
 declare %private function viewItem:decoDesc($node) {
 	<div id="deco" rel="http://purl.org/dc/terms/hasPart">
-		<h2>
-			<span class="w3-tooltip">Decoration { viewItem:headercontext($node) }
-				<span class="w3-text">
-                    In this unit there are in total {
-						let $types :=
-							for $type in distinct-values($node/t:decoNote/@type)
-							let $count := count($node/t:decoNote[@type = $type])
-							return (
-								$count ||
-									" " ||
-									viewItem:categoryname($node/ancestor::t:TEI, $type) ||
-									(
-										if ($count gt 2) then
-											"s"
-										else
-											""
-									)
-							)
-						return string-join($types, ", ")
-					}.
-                </span>
-			</span>
-		</h2>
+		<h2>Decoration { viewItem:headercontext($node) }</h2>
 		<p>{ viewItem:TEI2HTML($node/t:summary) }</p>
 		{
 			if ($node/t:decoNote[@type = "rubrication"]) then (
@@ -2783,29 +2761,7 @@ declare %private function viewItem:revisionDesc($node) {
 
 declare %private function viewItem:additions($node) {
 	<div id="additiones" rel="http://purl.org/dc/terms/hasPart">
-		<h2>
-			<span class="w3-tooltip">Additions { viewItem:headercontext($node) }
-				<span class="w3-text">
-                    In this unit there are in total {
-						let $types :=
-							for $type in distinct-values($node//t:item/t:desc/@type)
-							let $count := count($node//t:item/t:desc[@type = $type])
-							return (
-								$count ||
-									" " ||
-									viewItem:categoryname($node/ancestor::t:TEI, $type) ||
-									(
-										if ($count gt 2) then
-											"s"
-										else
-											""
-									)
-							)
-						return string-join($types, ", ")
-					}.
-                </span>
-			</span>
-		</h2>
+		<h2>Additions { viewItem:headercontext($node) }</h2>
 		{
 			if ($node/t:note) then
 				viewItem:TEI2HTML($node/t:note)
