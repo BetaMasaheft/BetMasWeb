@@ -262,27 +262,32 @@ declare function localdts:Navigation(
 		(: manuscripts :)
 
 		(: THERE IS A REF :)
-		if ($ref != "") then
-			let $l := if ($level = "") then
-				1
-			else
+		if (normalize-space($ref)) then
+			let $l := if (normalize-space($level)) then
 				$level
+			else
+				1
 
 			return dtslib:pasRef($l, $text, $ref, "unit", "mss", $manifest, $BMid)
 		(: $ref can be a NAR, but how does one know that this is a possibility within this text? :)
 
 		(: start and end :)
-		else if ($start != "") then
+		else if (normalize-space($start)) then
 			dtslib:startend($level, $text, $start, $end, "part", "mss", $manifest, $BMid)
 		(: no ref specified, list all main divs, assuming by the guidelines they are folios :)
-		else if ($ref = "" and $level = "" and $start = "" and $end = "" and $groupBy = "" and $max = "") then
+		else if (
+			not(normalize-space($ref)) and
+				not(normalize-space($level)) and
+				not(normalize-space($start)) and
+				not(normalize-space($end)) and
+				not(normalize-space($groupBy)) and
+				not(normalize-space($max))
+		) then
 			dtslib:pasS($text/t:div[@n], "folio", "mss", $manifest, $BMid)
 		(: if the level is not empty, than it has been specified to be either the second or third level, pages and columns :)
-		else if (($level != "") and ($cdepth gt 3)) then
-			(: the citation depth is higer than 3 :)
-			(: let $t := console:log($level) return :)
+		else if (normalize-space($level) and ($cdepth gt 3)) then
 			dtslib:pasLev($level, $text, "unit", "mss", $manifest, $BMid)
-		else if (($level != "") and ($cdepth = 3)) then (
+		else if (normalize-space($level) and ($cdepth = 3)) then (
 			if ($level = "2") (: the pages of folios have been requested :) then
 				dtslib:pasS($text//t:pb[@n], "page", "mss", $manifest, $BMid)
 			else if ($level = "3") (: the columns of a pages have been requested :) then
@@ -297,23 +302,28 @@ declare function localdts:Navigation(
 	) else (: works and inscriptions.
                         textual units have different structures
                         some are encoded with a basic nested divs structure, some instaed, especially bible texts use l, while inscriptions have lb :) if (
-		$ref = "" and $level = "" and $start = "" and $end = "" and $groupBy = "" and $max = ""
+		not(normalize-space($ref)) and
+			not(normalize-space($level)) and
+			not(normalize-space($start)) and
+			not(normalize-space($end)) and
+			not(normalize-space($groupBy)) and
+			not(normalize-space($max))
 	) (: if no  parameter is specified, go through the child elements of div type edition, whatever they are :) then
 		dtslib:pasS($text/(t:ab | .)/t:*, "unit", "work", $witnesses, $BMid)
 	(: if a ref is specified show that navigation point :)
-	else if ($ref != "" and $start = "") (: e.g. LIT1546Genesi&ref=2.3 :) then
+	else if (normalize-space($ref) and not(normalize-space($start))) (: e.g. LIT1546Genesi&ref=2.3 :) then
 		dtslib:pasRef(1, $text, $ref, "unit", "work", $witnesses, $BMid)
 	(: if a level is specified that use that information, and check for ref
 e.g. LIT1546Genesi&level=2
  :)
-	else if ($level != "" and $start = "") then
+	else if (normalize-space($level) and not(normalize-space($start))) then
 		(: e.g. LIT1546Genesi&level=2&ref=4 :)
-		if ($ref != "") then
+		if (normalize-space($ref)) then
 			dtslib:pasRef($level, $text, $ref, "unit", "work", $witnesses, $BMid)
 		(: e.g. LIT1546Genesi&level=2 (max level is value of citeDepth!) :)
 		else
 			dtslib:pasLev($level, $text, "unit", "work", $witnesses, $BMid)
-	else if ($start != "" and $end != "") (: needs to make a sequence of possible
+	else if (normalize-space($start) and normalize-space($end)) (: needs to make a sequence of possible
 refs at the given level and limit it by the positions in $start and $end
 LIT1546Genesi&start=3&end=4 :) then
 		dtslib:startend($level, $text, $start, $end, "texpart", "work", $witnesses, $BMid)
