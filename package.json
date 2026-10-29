@@ -38,7 +38,7 @@
 		"tinysort": "3.2.8",
 		"virtual-keyboard": "1.30.4",
 		"vis-network": "7.10.2",
-		"vis-timeline": "8.5.4"
+		"vis-timeline": "8.5.6"
 	},
 	"devDependencies": {
 		"cypress": "^16.1.1",
