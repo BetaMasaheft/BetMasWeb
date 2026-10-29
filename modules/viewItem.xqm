@@ -2017,7 +2017,7 @@ declare %private function viewItem:palaeography($node) {
 };
 
 declare %private function viewItem:layoutdimensionunit($dim) {
-	(<span class="lead">{ $dim/text() }</span>, string($dim/parent::t:*/@unit))
+	(<span class="lead">{ $dim/text() }</span>, string-join($dim/parent::t:*/@unit))
 };
 
 declare %private function viewItem:layout($node) {
