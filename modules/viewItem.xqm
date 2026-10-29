@@ -5517,8 +5517,8 @@ declare function viewItem:textfragment($frag) {
 				if (count($frag/t:div) = 0) then
 					attribute class { "w3-container chapterText" }
 				else (
-				),
-				if ($frag[@subtype = "transkribus"] and (count($frag/t:div[@subtype = "folio"]) gt 120)) then
+				)
+			(: ,	if ($frag[@subtype = "transkribus"] and (count($frag/t:div[@subtype = "folio"]) gt 120)) then
 					<div>
 						This manuscript transcription has {
 							count($frag/t:div[@subtype = "folio"])
@@ -5545,9 +5545,8 @@ declare function viewItem:textfragment($frag) {
 								return viewItem:TEI2HTML($item)
 							}
 						</div>
-					else
-						try { viewItem:TEI2HTML($frag) } catch * { util:log("info", $err:description) }
-			}
+					else :) }
+			{ try { viewItem:TEI2HTML($frag) } catch * { util:log("info", $err:description) } }
 			<div class="w3-modal" id="textHelp{ $frag/descendant-or-self::*[@xml:id][1]/@xml:id }">
 				<div class="w3-modal-content">
 					<header class="w3-container w3-red">
