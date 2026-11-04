@@ -1,0 +1,23 @@
+test/xqs/ts-viewitem-place.xqm
+  s_e98fb2299e704f::t_ed5d1111edb799 133
+  s_e98fb2299e704f::t_4c363083296ebe 118-132,134-142
+modules/viewItem.xqm
+  s_e98fb2299e704f::t_423d5c687226d1 1678
+  s_e98fb2299e704f::t_7803339a6fa0d0 1668-1676,1679-1682,1689-1690,1695-1698
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba0580afb142815a828e7dd50aea2b8d11ce0ea9",
+  "prompts": {},
+  "sessions": {
+    "s_e98fb2299e704f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe63e19d-7812-4cd3-8078-f384be04c806",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
