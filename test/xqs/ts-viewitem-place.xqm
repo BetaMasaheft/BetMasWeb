@@ -115,3 +115,28 @@ declare
 function tsviplace:sameas-link-present-when-item-has-sameas() {
 	tsviplace:render(tsviplace:doc("LOC3994Kampal", "places"))
 };
+
+(:~
+ : LOC2380's normalized @corresp placeName nests t:country / t:region.
+ : namedEntityPlace used to TEI2HTML those as children of the outer <a>,
+ : which re-entered namedEntityPlace and StackOverflow'd on the in-document
+ : node (#273). Assert the place page renders, the nested labels survive,
+ : and geo links are not nested anchors.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/273
+ :)
+declare %test:assertTrue function tsviplace:loc2380-fixture-has-nested-geo-in-corresp() {
+	let $pn := tsviplace:doc("LOC2380DabraS", "places")//t:place/t:placeName[@corresp][*]
+	return exists($pn/t:country) and exists($pn/t:region)
+};
+
+declare
+	%test:assertXPath("contains($result, 'id=&quot;MainData&quot;') and contains($result, 'Ethiopia')")
+function tsviplace:loc2380-place-renders-without-stackoverflow() {
+	tsviplace:render(tsviplace:doc("LOC2380DabraS", "places"))
+};
+
+declare %test:assertTrue function tsviplace:loc2380-corresp-namedentity-no-nested-anchors() {
+	let $pn := tsviplace:doc("LOC2380DabraS", "places")//t:place/t:placeName[@corresp][t:country]
+	let $html := <wrap>{ viewItem:namedEntityPlace($pn) }</wrap>
+	return exists($html//*:a) and empty($html//*:a/*:a)
+};
