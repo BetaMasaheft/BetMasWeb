@@ -1237,7 +1237,34 @@ div.chapterText {
 .alpheios-word {
 	word-break: inherit;
 }
+.word,
+.alpheios-word {
+	display: inline-block !important;
+	vertical-align: baseline; /* Ensures Ge'ez text characters sit perfectly on the reading line */
+	margin: 0 !important;
+	padding: 0 !important;
+}
 
+.word {
+	margin-right: 0.35em !important; /* Adds a relative space after every word */
+}
+
+/* except when A Word splits when Rubric ENDS*/
+.rubric .word:last-child {
+	margin-right: 0 !important;
+}
+
+.rubric + .word {
+	margin-left: 0 !important;
+}
+
+/* or when B Word splits when Rubric OPENS*/
+.word + .rubric {
+	margin-left: -0.35em;
+}
+.rubric:first-child .word:first-child {
+	margin-left: 0;
+}
 .version {
 	background-color: #e5e6f7;
 }
