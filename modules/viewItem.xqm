@@ -1665,20 +1665,37 @@ declare %private function viewItem:namedEntityPersonNoLink($entity) {
 	)
 };
 
+(:~
+ : Render a place-like named entity (placeName, country, region, settlement).
+ : Nested geo elements that themselves go through namedEntityPlace are rendered
+ : as *siblings* of the link, not inside it: feeding them through TEI2HTML of
+ : `$entity/node()` while already inside namedEntityPlace StackOverflows on
+ : in-document nodes (eXist re-entrant `$entity/node()` includes self), and
+ : nested `<a>` would be invalid HTML anyway.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/273
+ :)
 declare function viewItem:namedEntityPlace($entity) {
-	(
+	let $nested := $entity/(t:country | t:region | t:settlement | t:placeName)
+	let $inline := $entity/node()[not(self::t:note)][not(self::t:certainty)][not(
+		self::t:country | self::t:region | self::t:settlement | self::t:placeName
+	)]
+	return (
 		if ($entity/@type and not($entity/ancestor::t:div[@type = "edition"])) then
 			concat($entity/@type, ": ")
 		else (
 		),
 		<a xmlns="http://www.w3.org/1999/xhtml" href="{ viewItem:reflink($entity/@ref) }">
 			{
-				if (count($entity/node()) ge 1) then
-					viewItem:TEI2HTML($entity/node()[not(self::t:note)][not(self::t:certainty)])
+				if (exists($inline)) then
+					viewItem:TEI2HTML($inline)
 				else (
 				)
 			}
 		</a>,
+		if (exists($nested)) then (
+			" ", viewItem:TEI2HTML($nested)
+		) else (
+		),
 		let $idref := viewItem:URI2ID($entity/@ref)
 		return if (contains($idref, "pleiades")) then
 			let $pleiadesid := substring-after($idref, "pleiades:")
