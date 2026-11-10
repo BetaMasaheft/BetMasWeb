@@ -830,7 +830,8 @@
 						"in": "query",
 						"required": false,
 						"schema": {
-							"type": "integer"
+							"type": "string",
+							"default": ""
 						}
 					},
 					{
