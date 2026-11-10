@@ -5615,7 +5615,7 @@ declare function viewItem:textfragment($frag) {
 			if ($frag//t:pb[@facs]) then (
 				<div class="w3-container" />,
 				<script type="text/javascript">
-					{ "var data = [{collectionUri: '" || concat("/api/iiif/witnesses/", $frag//ancestor::t:TEI/@xml:id) || "'}]" }
+					{ "var data = [{collectionUri: '" || concat("/api/iiif/witnesses/", $frag/ancestor::t:TEI/@xml:id) || "'}]" }
 				</script>,
 				<script src="{ config:appBase() }/resources/js/editionmirador.js" type="text/javascript" />
 			) else (
