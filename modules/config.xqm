@@ -165,15 +165,12 @@ declare variable $config:collatexUrl := config:service-url(
 (:~
  : betmas-id-manager base URL (env: ID_MANAGER_URL). No production
  : deployment predates this service, so unlike collatexUrl/fusekisparql the
- : default isn't a real prod endpoint - it's the id-manager's own standalone
- : dev compose (see betmas-id-manager/docker-compose.yml, host port 8081).
+ : default isn't a real prod endpoint - it's the id-manager run locally as a
+ : standalone Node service (PORT=8081), serving at the root path.
  : Containerised deployments (BetMas/docker-compose.yml) override this to
  : the sibling service's own container port on the compose network.
  :)
-declare variable $config:idManagerUrl := config:service-url(
-	"ID_MANAGER_URL",
-	"http://localhost:8081/exist/apps/betmas-id-manager"
-);
+declare variable $config:idManagerUrl := config:service-url("ID_MANAGER_URL", "http://localhost:8081");
 
 declare variable $config:DOI := "10.25592/BetaMasaheft";
 
