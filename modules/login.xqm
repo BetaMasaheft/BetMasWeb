@@ -7,16 +7,28 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace locallogin = "https://www.betamasaheft.eu/login";
 
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+
 (:~
  : login function to be called from navigation template. if the user is guest, then show login, if not it is a logged user, then show logout
  :)
 
 declare function locallogin:loginNew() {
-	if (sm:id()//sm:username/text() = "guest") then
+	let $base := replace($config:appUrl, "/$", "")
+	return if (sm:id()//sm:username/text() = "guest") then
 		<div class="w3-dropdown-hover w3-hide-small" id="logging">
 			<button class="w3-button" title="Login">Login <i class="fas fa-caret-down" /></button>
 			<div class="w3-dropdown-content w3-bar-block w3-card-4" style="width:400px;">
-				<form accept-charset="UTF-8" class="w3-bar-item" id="login-nav" method="post" role="form">
+				<form
+					accept-charset="UTF-8"
+					action="{ $base }/"
+					class="w3-bar-item"
+					id="login-nav"
+					method="post"
+					onsubmit="this.redirect.value = window.location.href;"
+					role="form"
+				>
+					<input name="redirect" type="hidden" value="" />
 					<label for="user">User:</label>
 					<input class="w3-input" name="user" required="required" type="text" />
 					<label for="password">Password:</label>
@@ -28,13 +40,15 @@ declare function locallogin:loginNew() {
 	else
 		<form
 			accept-charset="UTF-8"
-			action=""
+			action="{ $base }/"
 			class="w3-bar-item w3-hide-small"
 			id="logout-nav"
 			method="post"
+			onsubmit="this.redirect.value = window.location.href;"
 			role="form"
 			style="margin:0;padding:0"
 		>
+			<input name="redirect" type="hidden" value="" />
 			<button class=" w3-button w3-red" type="submit"><i class="fas fa-sign-out-alt" /></button>
 			<input name="logout" type="hidden" value="true" />
 		</form>

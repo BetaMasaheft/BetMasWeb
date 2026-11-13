@@ -336,21 +336,28 @@ else if (ends-with($exist:path, ".rdf")) then
 (: ALSO INTERNAL CALLS of XSLT ARE THUS PROCESSED! :)
 else if (starts-with($exist:path, "/")) then
 	if ($exist:path eq "/") then
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward url="{ $exist:controller }/index.html">
-				{ login:set-user($domain, (), false()) }
-				<set-header name="Cache-Control" value="no-cache" />
-			</forward>
-			<view>
-				<forward url="{ $exist:controller }/modules/view.xql">
-					<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/index.html") }" />
+		let $login := login:set-user($domain, (), false())
+		let $redirect := request:get-parameter("redirect", ())
+		let $is-safe-redirect := $redirect and
+			((starts-with($redirect, "/") and not(starts-with($redirect, "//"))) or starts-with($redirect, $config:appUrl))
+		return if (request:get-method() = "POST" and $is-safe-redirect) then
+			<dispatch xmlns="http://exist.sourceforge.net/NS/exist"><redirect url="{ $redirect }" /></dispatch>
+		else
+			<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+				<forward url="{ $exist:controller }/index.html">
+					{ $login }
+					<set-header name="Cache-Control" value="no-cache" />
 				</forward>
-			</view>
-			<error-handler>
-				<forward method="get" url="{ $exist:controller }/error/error-page.html" />
-				<forward url="{ $exist:controller }/modules/view.xql" />
-			</error-handler>
-		</dispatch>
+				<view>
+					<forward url="{ $exist:controller }/modules/view.xql">
+						<add-parameter name="uri" value="{ ("/db/apps/BetMasWeb/index.html") }" />
+					</forward>
+				</view>
+				<error-handler>
+					<forward method="get" url="{ $exist:controller }/error/error-page.html" />
+					<forward url="{ $exist:controller }/modules/view.xql" />
+				</error-handler>
+			</dispatch>
 
 	(: redirects uris of subpart URI like
 https://betamasaheft.eu/BDLaethe8/addition/a1
