@@ -6,7 +6,7 @@ module namespace log = "http://www.betamasaheft.eu/log";
 declare namespace test = "http://exist-db.org/xquery/xqsuite";
 
 declare function log:add-log-message($message as xs:string) as empty-sequence() {
-	util:log("info", $message)
+	util:log("info", replace($message, "([?&amp;](?:password|pass|pwd)=)[^&amp;]*", "$1***", "i"))
 };
 
 declare function log:add-log-message($url as xs:string, $user as xs:string, $type as xs:string) as empty-sequence() {
@@ -15,7 +15,7 @@ declare function log:add-log-message($url as xs:string, $user as xs:string, $typ
 		<logentry xmlns="http://log.log" timestamp="{ current-dateTime() }">
 			<user>{ $user }</user>
 			<type>{ $type }</type>
-			<url>{ $url }</url>
+			<url>{ replace($url, "([?&amp;](?:password|pass|pwd)=)[^&amp;]*", "$1***", "i") }</url>
 		</logentry>
 	)
 };
