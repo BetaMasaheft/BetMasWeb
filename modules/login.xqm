@@ -27,9 +27,9 @@ declare function locallogin:loginNew() {
 					role="form"
 				>
 					<label for="user">User:</label>
-					<input class="w3-input" name="user" required="required" type="text" />
+					<input class="w3-input" id="user" name="user" required="required" type="text" />
 					<label for="password">Password:</label>
-					<input class="w3-input" name="password" type="password" />
+					<input class="w3-input" id="password" name="password" type="password" />
 					<button class="w3-button w3-small w3-red" type="submit">Login</button>
 				</form>
 			</div>
