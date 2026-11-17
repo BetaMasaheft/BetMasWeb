@@ -1,62 +1,72 @@
 $(function () {
 	var url = $("#search");
 	var jsonlisturl = $("#jsonlist");
-	var baseurl = url.attr("href");
-	var jsonlistbaseurl = jsonlisturl.attr("href");
+	var baseurl = url.attr("href") || "";
+	var jsonlistbaseurl = jsonlisturl.attr("href") || "";
 
 	var colselection = "";
 	var scriptselection = "";
 	var materialselection = "";
 	var keywordselection = "";
-	var selectors = colselection + scriptselection + materialselection + keywordselection;
+
+	function exampleLabel(path) {
+		if (!path) return "";
+		if (/^https?:\/\//i.test(path)) return path;
+		return "https://betamasaheft.eu" + path;
+	}
+
+	function setExampleLink($a, path) {
+		if (!$a.length) return;
+		$a.attr("href", path);
+		$a.text(exampleLabel(path));
+	}
 
 	$("#collectionjson").on("change", function () {
 		var value = $(this).val();
-
 		var newurl = jsonlistbaseurl.replace("works", value);
-
-		jsonlisturl.text(newurl);
+		jsonlistbaseurl = newurl;
+		setExampleLink(jsonlisturl, newurl);
 		getJdata();
 	});
 
 	$("#query").on("change paste", function () {
 		var value = $(this).val();
 		var newq = baseurl.replace("Pierre", value);
-		console.log(newq);
-		url.text(newq + colselection + scriptselection + materialselection + keywordselection);
-
+		var path = newq + colselection + scriptselection + materialselection + keywordselection;
+		setExampleLink(url, path);
 		getJdata();
 	});
+
 	$("#collection").on("change", function () {
 		var value = $(this).val();
 		colselection = "&collection=" + value;
-		url.text(baseurl + colselection + scriptselection + materialselection + keywordselection);
-
+		var path = baseurl + colselection + scriptselection + materialselection + keywordselection;
+		setExampleLink(url, path);
 		getJdata();
 	});
 
 	$("#script").on("change", function () {
 		var value = $(this).val();
 		scriptselection = "&script=" + value;
-		url.text(baseurl + colselection + scriptselection + materialselection + keywordselection);
-
+		var path = baseurl + colselection + scriptselection + materialselection + keywordselection;
+		setExampleLink(url, path);
 		getJdata();
 	});
 
 	$("#material").on("change", function () {
 		var value = $(this).val();
 		materialselection = "&material=" + value;
-		url.text(baseurl + colselection + scriptselection + materialselection + keywordselection);
-
+		var path = baseurl + colselection + scriptselection + materialselection + keywordselection;
+		setExampleLink(url, path);
 		getJdata();
 	});
 
 	$("#keyword").on("change", function () {
 		var value = $(this).val();
 		keywordselection = "&keyword=" + value;
-		url.text(baseurl + colselection + scriptselection + materialselection + keywordselection);
-
-		getdata();
+		var path = baseurl + colselection + scriptselection + materialselection + keywordselection;
+		setExampleLink(url, path);
+		getJdata();
 	});
 
 	getJdata();
@@ -65,26 +75,65 @@ $(function () {
 
 function getJdata() {
 	$(".APIexampleJSON").each(function () {
-		var el = this;
-		var j = "";
-		var urlid = $(this).data("value");
-		var apicall = $("#" + urlid).text();
-		$.getJSON(apicall, function (data) {
-			var str = JSON.stringify(data, undefined, 4);
+		var $el = $(this);
+		var urlid = $el.data("value");
+		var apicall = (function () {
+			var $a = $("#" + urlid);
+			if (!$a.length) return null;
+			return $a.attr("href") || null;
+		})();
 
-			j += str;
+		if (!apicall) {
+			$el.text("Example unavailable (missing href)");
+			return;
+		}
 
-			$(el).html(j);
-		});
+		$.getJSON(apicall)
+			.done(function (data) {
+				$el.text(JSON.stringify(data, undefined, 4));
+			})
+			.fail(function (jqXHR, textStatus) {
+				if (textStatus === "parsererror") {
+					$el.text("Example unavailable (invalid JSON)");
+					return;
+				}
+				if (jqXHR && jqXHR.status) {
+					$el.text("Example unavailable (HTTP " + jqXHR.status + ")");
+					return;
+				}
+				$el.text("Example unavailable (network error)");
+			});
 	});
 }
+
 function getXdata() {
 	$(".APIexample").each(function () {
-		var el = this;
-		var urlid = $(this).data("value");
-		var apicall = $("#" + urlid).text();
-		$.get(apicall, function (data) {
-			$(el).append(data);
-		});
+		var $el = $(this);
+		var urlid = $el.data("value");
+		var apicall = (function () {
+			var $a = $("#" + urlid);
+			if (!$a.length) return null;
+			return $a.attr("href") || null;
+		})();
+
+		if (!apicall) {
+			$el.text("Example unavailable (missing href)");
+			return;
+		}
+
+		$.ajax({
+			url: apicall,
+			dataType: "text",
+		})
+			.done(function (data) {
+				$el.text(data);
+			})
+			.fail(function (jqXHR) {
+				if (jqXHR && jqXHR.status) {
+					$el.text("Example unavailable (HTTP " + jqXHR.status + ")");
+					return;
+				}
+				$el.text("Example unavailable (network error)");
+			});
 	});
 }
