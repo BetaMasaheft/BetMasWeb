@@ -1,0 +1,25 @@
+resources/js/APIexamples.js
+  s_d98d8d456c1032::t_2576422059b0c8 117-118
+  s_d98d8d456c1032::t_3698f5832c839e 123-127
+  s_d98d8d456c1032::t_d44f92db8b7cd6 114
+  s_d98d8d456c1032::t_a97687b560b7e2 4-5,11-22,27-28,35-36,39,43-44,51-52,59-60,67-69,78-102,104-105,108,111-113,115-116,119-122,128,130,132-134,136-137
+  s_d98d8d456c1032::t_d5d3617c7936c5 131
+  s_d98d8d456c1032::t_72db484c6a9045 129
+  s_d98d8d456c1032::t_e988b374277e8f 103,135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1e9abfd08000afb092224013e5fa1b27da5ac5cd",
+  "prompts": {},
+  "sessions": {
+    "s_d98d8d456c1032": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f62ff132-5a45-4be7-a529-d811bc58f425",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
