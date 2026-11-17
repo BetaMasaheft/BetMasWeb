@@ -5537,6 +5537,7 @@ declare function viewItem:textfragment($frag) {
 				),
 				if ($frag[@subtype = "transkribus"] and (count($frag/t:div[@subtype = "folio"]) gt 120)) then
 					<div>
+						{ viewItem:TEI2HTML($frag/t:note) }
 						This manuscript transcription has {
 							count($frag/t:div[@subtype = "folio"])
 						} folia,
@@ -5550,6 +5551,7 @@ declare function viewItem:textfragment($frag) {
 						0
 					return if ((count($frag/t:div[@type = "textpart"]) gt 35) and $gezwords gt 2000) then
 						<div>
+							{ viewItem:TEI2HTML($frag/t:note) }
 							<span>
 								This text is too long to show. Only the first 35 of
 								{

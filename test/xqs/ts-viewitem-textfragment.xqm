@@ -66,3 +66,28 @@ declare %test:assertTrue function tsvitextfrag:large-transkribus-shows-notice-on
 	let $html := tsvitextfrag:render($frag)
 	return contains($html, "121 folia") and not(contains($html, "folio1<"))
 };
+
+(:~
+ : The guards only render div children; the note (e.g. the Transkribus
+ : "not revised" disclaimer) must still be shown.
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/268
+ :)
+declare %test:assertTrue function tsvitextfrag:large-transkribus-still-shows-note() {
+	let $frag := <div xmlns="http://www.tei-c.org/ns/1.0" subtype="transkribus" type="edition">
+		<note>NOTEMARKER not revised</note>
+		{
+			for $i in 1 to 121
+			return <div n="{ $i }" subtype="folio"><ab>folio{ $i }</ab></div>
+		}
+	</div>
+	return contains(tsvitextfrag:render($frag), "NOTEMARKER")
+};
+
+declare %test:assertTrue function tsvitextfrag:long-text-still-shows-note() {
+	let $ed := tsvitextfrag:edition(40, 60)
+	let $frag := <div xmlns="http://www.tei-c.org/ns/1.0" type="edition" xml:id="tsed">
+		<note>NOTEMARKER</note>
+		{ $ed/node() }
+	</div>
+	return contains(tsvitextfrag:render($frag), "NOTEMARKER")
+};
