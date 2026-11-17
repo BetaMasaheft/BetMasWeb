@@ -32,7 +32,7 @@ declare variable $seed:chunk-size := 2000;
  : this rewrite - kept here (the one place that still needs it) rather than
  : in the request-path module.
  :)
-declare %private function local:max-sequence($type as xs:string) as xs:integer {
+declare %private function seed:max-sequence($type as xs:string) as xs:integer {
 	let $ids := switch2:collectionVar($type)//t:TEI/@xml:id
 	let $parsed :=
 		for $id in $ids
@@ -43,7 +43,7 @@ declare %private function local:max-sequence($type as xs:string) as xs:integer {
 	return (max($numericValues), 0)[1]
 };
 
-declare %private function local:all-ids($type as xs:string) as xs:string* {
+declare %private function seed:all-ids($type as xs:string) as xs:string* {
 	switch2:collectionVar($type)//t:TEI/@xml:id/string()
 };
 
@@ -52,21 +52,21 @@ declare %private function local:all-ids($type as xs:string) as xs:string* {
  : a plain `for ... return subsequence(...)` would flatten straight back
  : into one sequence and silently lose the chunk boundaries.
  :)
-declare %private function local:chunk($seq as item()*, $size as xs:integer) as array(*)* {
+declare %private function seed:chunk($seq as item()*, $size as xs:integer) as array(*)* {
 	for $i in 1 to xs:integer(ceiling(count($seq) div $size))
 	return array { subsequence($seq, ($i - 1) * $size + 1, $size) }
 };
 
-declare %private function local:seed-auto-type($type as xs:string, $buffer as xs:integer) as map(*) {
-	let $max := local:max-sequence($type)
+declare %private function seed:seed-auto-type($type as xs:string, $buffer as xs:integer) as map(*) {
+	let $max := seed:max-sequence($type)
 	let $target := $max + $buffer
 	let $result := idmanager:reset-counter($type, $target)
 	return map {"type": $type, "mode": "auto", "corpusMax": $max, "seededTo": $target, "status": $result?status}
 };
 
-declare %private function local:seed-manual-type($type as xs:string) as map(*) {
-	let $ids := local:all-ids($type)
-	let $chunks := local:chunk($ids, $seed:chunk-size)
+declare %private function seed:seed-manual-type($type as xs:string) as map(*) {
+	let $ids := seed:all-ids($type)
+	let $chunks := seed:chunk($ids, $seed:chunk-size)
 	let $results :=
 		for $chunk in $chunks
 		return idmanager:seed-manual($type, $chunk?*)
@@ -116,7 +116,7 @@ declare function seed:run($buffer as xs:integer) as map(*)* {
 	let $mode := $t?mode
 	order by $type
 	return if ($mode eq "auto") then
-		local:seed-auto-type($type, $buffer)
+		seed:seed-auto-type($type, $buffer)
 	else
-		local:seed-manual-type($type)
+		seed:seed-manual-type($type)
 };
