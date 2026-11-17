@@ -7,6 +7,8 @@ xquery version "3.1" encoding "UTF-8";
  :)
 module namespace locallogin = "https://www.betamasaheft.eu/login";
 
+import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
+
 (:~
  : login function to be called from navigation template. if the user is guest, then show login, if not it is a logged user, then show logout
  :)
