@@ -133,7 +133,7 @@ declare function app:logging($node as node(), $model as map(*)) {
 	let $url := request:get-uri()
 
 	let $paramstobelogged :=
-		for $p in $app:params[not(lower-case(.) = ("password", "logout", "redirect"))]
+		for $p in $app:params
 		for $value in request:get-parameter($p, ())
 		return ($p || "=" || $value)
 	let $logparams := if (count($paramstobelogged) >= 1) then
@@ -3136,10 +3136,7 @@ declare function app:hit-count($node as node()*, $model as map(*)) {
 declare function app:hit-params($node as node()*, $model as map(*)) {
 	<div>
 		{
-			for $param in
-				distinct-values($app:params)[not(
-					lower-case(.) = ("password", "user", "username", "pass", "pwd", "logout", "redirect")
-				)]
+			for $param in distinct-values($app:params)
 			let $values := request:get-parameter($param, ())
 			return if (count($values) = 2 and ((string-join($values, ",") != "0,2000") or (string-join($values) = ""))) then (
 				<span class="w3-tag w3-gray w3-round ">

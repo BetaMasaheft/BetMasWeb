@@ -14,11 +14,18 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
  :)
 
 declare function locallogin:loginNew() {
-	if (not(sm:is-authenticated())) then
+	if (sm:id()//sm:username/text() = "guest") then
 		<div class="w3-dropdown-hover w3-hide-small" id="logging">
 			<button class="w3-button" title="Login">Login <i class="fas fa-caret-down" /></button>
 			<div class="w3-dropdown-content w3-bar-block w3-card-4" style="width:400px;">
-				<form accept-charset="UTF-8" action="" class="w3-bar-item" id="login-nav" method="post" role="form">
+				<form
+					accept-charset="UTF-8"
+					action="{ $config:appUrl }"
+					class="w3-bar-item"
+					id="login-nav"
+					method="post"
+					role="form"
+				>
 					<label for="user">User:</label>
 					<input class="w3-input" id="user" name="user" required="required" type="text" />
 					<label for="password">Password:</label>
@@ -30,7 +37,7 @@ declare function locallogin:loginNew() {
 	else
 		<form
 			accept-charset="UTF-8"
-			action=""
+			action="{ $config:appUrl }"
 			class="w3-bar-item w3-hide-small"
 			id="logout-nav"
 			method="post"

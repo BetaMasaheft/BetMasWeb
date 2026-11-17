@@ -54,8 +54,8 @@ declare function nav:barNew() {
 				<div class="w3-dropdown-hover w3-hide-small" id="introductory">
 					<button class=" w3-button" onclick="window.location.href='{ $config:appUrl }/about.html'" title="About">
 						{
-							if (sm:is-authenticated()) then (
-								"Hi " || sm:id()//sm:real/sm:username/string() || "!"
+							if (string-length($url) gt 1) then (
+								"Hi " || sm:id()//sm:username/text() || "!"
 							) else (
 								"About"
 							)
