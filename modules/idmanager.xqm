@@ -18,7 +18,7 @@ import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMas
  : (service unreachable, timeout) surface as status 503 rather than an
  : uncaught error, so callers only need to branch on $result?status.
  :)
-declare %private function local:send($method as xs:string, $path as xs:string, $body as map(*)?) as map(*) {
+declare %private function idmanager:send($method as xs:string, $path as xs:string, $body as map(*)?) as map(*) {
 	let $href := $config:idManagerUrl || $path
 	let $bodyJson := if (exists($body)) then
 		serialize($body, map {"method": "json"})
@@ -60,7 +60,7 @@ declare %private function local:send($method as xs:string, $path as xs:string, $
  : service unreachable) and read the issued id from ?body?id.
  :)
 declare function idmanager:reserve-auto($type as xs:string, $suffix as xs:string?) as map(*) {
-	local:send("POST", "/ids/" || encode-for-uri($type), map {"suffix": $suffix})
+	idmanager:send("POST", "/ids/" || encode-for-uri($type), map {"suffix": $suffix})
 };
 
 (:~
@@ -69,7 +69,7 @@ declare function idmanager:reserve-auto($type as xs:string, $suffix as xs:string
  : already registered, 503 service unreachable.
  :)
 declare function idmanager:register-manual($type as xs:string, $id as xs:string?) as map(*) {
-	local:send("POST", "/ids/" || encode-for-uri($type), map {"id": $id})
+	idmanager:send("POST", "/ids/" || encode-for-uri($type), map {"id": $id})
 };
 
 (:~
@@ -77,7 +77,7 @@ declare function idmanager:register-manual($type as xs:string, $id as xs:string?
  : service unreachable.
  :)
 declare function idmanager:get-id($id as xs:string) as map(*) {
-	local:send("GET", "/id/" || encode-for-uri($id), ())
+	idmanager:send("GET", "/id/" || encode-for-uri($id), ())
 };
 
 (:~
@@ -86,14 +86,14 @@ declare function idmanager:get-id($id as xs:string) as map(*) {
  : hardcoding it a second time here.
  :)
 declare function idmanager:list-types() as map(*) {
-	local:send("GET", "/types", ())
+	idmanager:send("GET", "/types", ())
 };
 
 (:~
  : Admin/seeding operation: set a type's counter (auto types only).
  :)
 declare function idmanager:reset-counter($type as xs:string, $value as xs:integer?) as map(*) {
-	local:send(
+	idmanager:send(
 		"POST",
 		"/types/" || encode-for-uri($type) || "/reset",
 		if (exists($value)) then
@@ -108,5 +108,5 @@ declare function idmanager:reset-counter($type as xs:string, $value as xs:intege
  : (manual types only). Idempotent - safe to re-run/resume.
  :)
 declare function idmanager:seed-manual($type as xs:string, $ids as xs:string*) as map(*) {
-	local:send("POST", "/types/" || encode-for-uri($type) || "/seed", map {"ids": array { $ids }})
+	idmanager:send("POST", "/types/" || encode-for-uri($type) || "/seed", map {"ids": array { $ids }})
 };
