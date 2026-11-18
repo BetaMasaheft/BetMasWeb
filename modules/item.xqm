@@ -1777,9 +1777,15 @@ declare function item2:RestPersRole($file, $collection) {
 				{ " of this manuscript" }.
 
     {
-					let $tei := $exptit:col//t:TEI[@xml:id != $id]
-					let $persons := $tei//t:persName[@ref eq string($ID)]
-					for $role in $persons[@role]
+					(: Select the persName nodes first and exclude this manuscript through
+					   the ancestor axis. The previous form bound
+					   $exptit:col//t:TEI[@xml:id != $id] first: a `!=` predicate cannot use
+					   an index, so it materialised every TEI document (~58k), and the
+					   following //t:persName step then sorted and de-duplicated that whole
+					   node set in document order, once per person role on the page. :)
+					let $refid := string($ID)
+					let $persons := $exptit:col//t:persName[@ref eq $refid][@role][ancestor::t:TEI/@xml:id != $id]
+					for $role in $persons
 
 					group by $r := $role/@role
 
