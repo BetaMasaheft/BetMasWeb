@@ -47,74 +47,36 @@ declare variable $catalog:bibliography := doc("/db/apps/lists/bibliography.xml")
 declare variable $catalog:artifacts := "/db/apps/catalogs";
 
 (:~
- : Map-once indexes keyed by @corresp. Bare `//t:item[@corresp = $id]` over
- : large lists/artifacts is tens of ms per miss and dominated HP1/HP3.
- : Built inline in variable initializers — eXist rejects %private function
- : calls from module-var init when the module is imported by an external
- : query (XPST0017; breaks app-image generate_artifacts.xq).
+ : Text of the item whose @corresp is $id, or empty; the last match wins (a few
+ : ids are listed twice). The lists and catalogs collections have range indexes
+ : on @corresp (see their collection.xconf), so this is an index lookup, not a scan.
+ :
+ : Keep the predicate as the whole path and apply the position to the bound
+ : result. Writing `($list//t:item[@corresp = $id])[last()]` defeats the index
+ : and makes every lookup a full scan: about 220 ms each instead of about 1.5 ms.
+ :
+ : Do not replace this with a map or cache: a module-level map was rebuilt for
+ : every query, and a cached map shared between requests returned other ids'
+ : labels under concurrency.
  :)
-declare variable $catalog:textparts-by-corresp := if (empty($catalog:textparts)) then
-	map {}
-else
-	map:merge(
-		for $item in $catalog:textparts//t:item[@corresp]
-		return map:entry(string($item/@corresp), $item),
-		map {"duplicates": "use-last"}
-	);
-
-declare variable $catalog:persons-by-corresp := if (empty($catalog:persons)) then
-	map {}
-else
-	map:merge(
-		for $item in $catalog:persons//t:item[@corresp]
-		return map:entry(string($item/@corresp), $item),
-		map {"duplicates": "use-last"}
-	);
+declare %private function catalog:corresp-label($list as document-node()?, $id as xs:string) as xs:string? {
+	let $matches := $list//t:item[@corresp = $id]
+	return if (exists($matches)) then
+		string($matches[last()])
+	else (
+	)
+};
 
 (:~
- : Labels / place-labels artifacts. doc() only — do not call catalog:artifact
- : here (private + freshness); generate_artifacts.xq imports this module
- : before those files exist, and var-init must still succeed.
+ : Labels / place-labels artifacts: doc() only, do not call catalog:artifact (private + freshness).
  :)
-declare variable $catalog:labels-by-corresp := let $path := $catalog:artifacts || "/labels.xml"
-let $doc := if (doc-available($path)) then
-	doc($path)
-else (
-)
-return if (empty($doc)) then
-	map {}
-else
-	map:merge(
-		for $item in $doc//t:item[@corresp]
-		return map:entry(string($item/@corresp), $item),
-		map {"duplicates": "use-last"}
-	);
-
-declare variable $catalog:place-labels-by-corresp := let $path := $catalog:artifacts || "/place-labels.xml"
-let $doc := if (doc-available($path)) then
-	doc($path)
-else (
-)
-return if (empty($doc)) then
-	map {}
-else
-	map:merge(
-		for $item in $doc//t:item[@corresp]
-		return map:entry(string($item/@corresp), $item),
-		map {"duplicates": "use-last"}
-	);
-
-(:~
- : betmas:formerlyAlsoListedAs relations in expanded, grouped by @passive.
- : One scan. A deleted id then looks up its group instead of walking the corpus.
- :)
-declare variable $catalog:formerly-by-passive := map:merge(
-	for $rel in $catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"]
-	let $passive := string($rel/@passive)
-	where $passive ne ""
-	group by $passive
-	return map:entry($passive, array { $rel })
-);
+declare %private function catalog:artifact-doc($file as xs:string) as document-node()? {
+	let $path := $catalog:artifacts || "/" || $file
+	return if (doc-available($path)) then
+		doc($path)
+	else (
+	)
+};
 
 declare function catalog:backend($consumer as xs:string) as xs:string {
 	let $name := "CATALOG_BACKEND_" || upper-case(replace($consumer, "[^A-Za-z0-9]", "_"))
@@ -179,9 +141,9 @@ declare function catalog:full-title($id as xs:string) as xs:string? {
 };
 
 declare %private function catalog:raw-label($id as xs:string) {
-	let $artifact := $catalog:labels-by-corresp($id)
-	return if (exists($artifact)) then
-		$artifact/node()
+	let $label := catalog:corresp-label(catalog:artifact-doc("labels.xml"), $id)
+	return if (exists($label)) then
+		text { $label }
 	else
 		catalog:full-title($id)
 };
@@ -201,10 +163,7 @@ declare %private function catalog:subtitle($node as node(), $sub-id as xs:string
  : @return the relation elements, or empty
  :)
 declare %private function catalog:formerly($id as xs:string) as element(t:relation)* {
-	let $found := $catalog:formerly-by-passive($id)
-	return if (empty($found)) then (
-	) else
-		$found?*
+	$catalog:expanded//t:relation[@name = "betmas:formerlyAlsoListedAs"][@passive = $id]
 };
 
 (:~
@@ -246,16 +205,16 @@ declare %private function catalog:resolve-label($id as xs:string) {
 		"La Synthaxe du Codex " || substring-after($id, "sdc:")
 	else if ($id = "#") then
 		<span class="w3-tag w3-red">{ "no item yet with id " || $id }</span>
-	else if (map:contains($catalog:textparts-by-corresp, $id)) then
-		$catalog:textparts-by-corresp($id)/node()
-	else if (map:contains($catalog:persons-by-corresp, $id)) then
-		$catalog:persons-by-corresp($id)/node()
+	else if (exists(catalog:corresp-label($catalog:textparts, $id))) then
+		text { catalog:corresp-label($catalog:textparts, $id) }
+	else if (exists(catalog:corresp-label($catalog:persons, $id))) then
+		text { catalog:corresp-label($catalog:persons, $id) }
 	else if (ends-with($id, "#")) then
 		catalog:resolve-label(substring($id, 1, string-length($id) - 1))
 	else if (places:external($id)) then
-		let $artifact := $catalog:place-labels-by-corresp($id)
-		return if (exists($artifact)) then
-			$artifact/text()
+		let $place-label := catalog:corresp-label(catalog:artifact-doc("place-labels.xml"), $id)
+		return if (exists($place-label)) then
+			text { $place-label }
 		else
 			places:label($id)
 	else if ($id = "") then
