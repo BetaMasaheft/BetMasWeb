@@ -67,10 +67,20 @@ declare function apprest:decidelink($link) {
 };
 
 declare function apprest:deciderelation($list) {
+	apprest:deciderelation($list, map {})
+};
+
+(:~
+ : Renders a list of related ids as links.
+ :
+ : @param $list the <id> elements to render
+ : @param $titles a map from id string to its already resolved title (see
+ : apprest:EntityRelsTable); ids not in the map are resolved with exptit:printTitle
+ :)
+declare function apprest:deciderelation($list, $titles as map(*)) {
 	<ul class="nodot">
 		{
 			for $id in $list
-			let $t := util:log("info", $id)
 			let $link := apprest:decidelink($id/text())
 			return <li>
 				{
@@ -80,7 +90,12 @@ declare function apprest:deciderelation($list) {
 					else if (starts-with($id/text(), "urn:")) then
 						<a href="{ $config:appUrl }/{ encode-for-uri($id/text()) }" target="_blank">{ $id/text() }</a>
 					else if (config:isLocalHref($link) or contains($link, "betamasaheft")) then
-						<a href="{ $link }" target="_blank">{ exptit:printTitle($id/text()) }</a>
+						<a href="{ $link }" target="_blank">{
+								if (map:contains($titles, string($id))) then
+									$titles(string($id))
+								else
+									exptit:printTitle($id/text())
+							}</a>
 					else
 						<a href="{ $link }" target="_blank">{ $link }</a>
 				}
@@ -102,6 +117,11 @@ declare function apprest:EntityRelsTable($this, $collection) {
 	let $oth := $otherrels[ancestor::t:TEI[not(@xml:id eq $id)]][@name]
 	(: the three variables here assume that there will be relations in the requested file, and that if a relation somewhere else has this id in active it will not have it in passive :)
 	let $allrels := ($rels, $oth)
+	(: resolve each distinct id once: the entity itself is repeated in every row :)
+	let $titles := map:merge(
+		for $i in distinct-values($allrels/(@active, @passive) ! tokenize(normalize-space(.), " "))
+		return map { $i : exptit:printTitle($i) }
+	)
 	return (
 		<div class="w3-panel w3-small w3-red"><span class="w3-tag w3-gray">{ count($allrels) }</span> relations found</div>,
 		<div style="word-break:break-all;">
@@ -125,7 +145,7 @@ declare function apprest:EntityRelsTable($this, $collection) {
 										}
 									</list>
 
-									return apprest:deciderelation($list//id)
+									return apprest:deciderelation($list//id, $titles)
 								}
 							</td>
 							<td><a href="{ apprest:decidelink(data($relation/@name)) }">{ data($relation/@name) }</a></td>
@@ -142,7 +162,7 @@ declare function apprest:EntityRelsTable($this, $collection) {
 											)
 										}
 									</list>
-									return apprest:deciderelation($list//id)
+									return apprest:deciderelation($list//id, $titles)
 								}
 							</td>
 							<td>
