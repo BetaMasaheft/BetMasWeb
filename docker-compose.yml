@@ -8,6 +8,9 @@ services:
         - seed
     image: betmasweb-exist:local
     container_name: exist
+    stop_grace_period: 2m
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms4g -Xmx6g
     ports:
       - "8080:8080"
     # Tighter timing than Docker's defaults (30s interval, 0s start_period) -
@@ -27,9 +30,9 @@ services:
           "--xpath",
           "system:get-version()",
         ]
-      interval: 2s
+      interval: 15s
       timeout: 5s
-      start_period: 8s
+      start_period: 15s
       retries: 3
 
   # in-memory SPARQL store used by fuseki.xqm for the RDF/SPARQL-backed
