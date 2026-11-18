@@ -9,8 +9,6 @@ services:
     image: betmasweb-exist:local
     container_name: exist
     stop_grace_period: 2m
-    environment:
-      - JAVA_TOOL_OPTIONS=-Xms4g -Xmx6g
     ports:
       - "8080:8080"
     # Tighter timing than Docker's defaults (30s interval, 0s start_period) -
