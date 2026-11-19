@@ -163,11 +163,13 @@ declare %private function viewItem:locus($this) {
 		let $hasTranskribus := if ($isInNote) then
 			false()
 		else
-			exists($tei/t:text/t:div[contains(@xml:id, "ranskribus")])
+			(: Quantified form on purpose: as a predicate the optimizer rewrote this into a
+			   collection-wide range lookup, run once per locus element. :)
+			some $d in $tei/t:text/t:div satisfies contains($d/@xml:id, "ranskribus")
 		let $hasEdition := if ($isInNote) then
 			false()
 		else
-			exists($tei/t:text/t:div[@type = "edition"][descendant::t:ab[descendant::text()]])
+			some $d in $tei/t:text/t:div satisfies ($d/@type = "edition" and exists($d/descendant::t:ab[descendant::text()]))
 		let $plural := contains(string($this/@target), " ") or $this/@to
 		let $base := if ($unit = "page") then (
 			if ($plural) then
