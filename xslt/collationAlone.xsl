@@ -1,5 +1,5 @@
 <xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:err="http://www.w3.org/2005/xqt-errors" xmlns:bm="https://www.betamasaheft.uni-hamburg.de/BetMasWeb/collation" exclude-result-prefixes="#all" version="2.0">
-    <xsl:variable name="mainID" select="ancestor-or-self::t:TEI/@xml:id"/>
+    <xsl:param name="mainID" select="ancestor-or-self::t:TEI/@xml:id"/>
     <xsl:template match="t:collation">
         <xsl:try>
         <xsl:variable name="mspartID">
