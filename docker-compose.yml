@@ -29,9 +29,9 @@ services:
           "--xpath",
           "system:get-version()",
         ]
-      interval: 15s
+      interval: 2s
       timeout: 5s
-      start_period: 15s
+      start_period: 8s
       retries: 3
 
   # in-memory SPARQL store used by fuseki.xqm for the RDF/SPARQL-backed
