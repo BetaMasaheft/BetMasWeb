@@ -61,7 +61,10 @@ declare function apprest:decidelink($link) {
 		let $prefixDef := $apprest:prefixes//t:prefixDef[@ident eq $ns]
 		let $pattern := ($prefixDef/@matchPattern/string(), "^.*$")[1]
 		let $replacement := ($prefixDef/@replacementPattern/string(), "$0")[1]
-		return replace(substring-after($link, ":"), $pattern, $replacement)
+		return try { replace(substring-after($link, ":"), $pattern, $replacement) } catch * {
+			let $betmas := $apprest:prefixes//t:prefixDef[@ident eq "betmas"]
+			return replace(substring-after($link, ":"), $betmas/@matchPattern, $betmas/@replacementPattern)
+		}
 	) else
 		concat($config:appUrl, "/", $link)
 };
