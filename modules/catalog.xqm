@@ -342,7 +342,7 @@ declare %private function catalog:bibl-from-lists($id as xs:string) as element(b
  :)
 declare %private function catalog:bibl-from-ethio($id as xs:string) as element(b:entry)? {
 	try {
-		let $cit := (doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $id])[1]
+		let $cit := head(doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $id])
 		let $div := ($cit//*:div[@class = "csl-entry"])[1]
 		return if (empty($div)) then (
 		) else
