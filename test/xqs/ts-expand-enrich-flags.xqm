@@ -10,8 +10,11 @@ declare namespace test = "http://exist-db.org/xquery/xqsuite";
 declare namespace t = "http://www.tei-c.org/ns/1.0";
 
 import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas/expand" at "../../modules/expand.xqm";
+import module namespace batchExpand = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/batchExpand" at "../../modules/batchExpand.xqm";
 
 declare variable $tsexpenrich:src-col := "/db/apps/BetMasData/works/_enrichFlagsTest";
+
+declare variable $tsexpenrich:out-col := "/db/apps/expanded/works/_enrichFlagsTest";
 
 declare variable $tsexpenrich:id := "LITTESTenrichFlags77";
 
@@ -111,4 +114,30 @@ declare %test:assertTrue function tsexpenrich:titles-on-keeps-full-title() {
 		map { "enrich-titles": true() }
 	)
 	return exists($out/t:title[@type = "full"])
+};
+
+(:~ Absent ?enrich= → empty map → expand module defaults. :)
+declare %test:assertTrue function tsexpenrich:enrich-opts-absent-empty() {
+	empty(map:keys(batchExpand:enrich-opts(())))
+};
+
+(:~ ?enrich=bibl → bibl on, titles off (Task 2 CI shape). :)
+declare %test:assertTrue function tsexpenrich:enrich-opts-bibl-only() {
+	let $o := batchExpand:enrich-opts("bibl")
+	return map:get($o, "enrich-bibl") eq true() and map:get($o, "enrich-titles") eq false()
+};
+
+(:~ ?enrich= (present, empty allowlist) → both off. :)
+declare %test:assertTrue function tsexpenrich:enrich-opts-empty-allowlist-both-off() {
+	let $o := batchExpand:enrich-opts("")
+	return map:get($o, "enrich-bibl") eq false() and map:get($o, "enrich-titles") eq false()
+};
+
+(:~ batchExpand forwards enrich-bibl false into the mirrored store. :)
+declare %test:assertTrue function tsexpenrich:batch-bibl-off-stores-ptr-only() {
+	let $_src := tsexpenrich:ensure-src()
+	let $_ := batchExpand:expandCollection($tsexpenrich:src-col, map { "enrich-bibl": false() })
+	let $bibl := doc($tsexpenrich:out-col || "/" || $tsexpenrich:id || ".xml")
+		//t:bibl[t:ptr/@target = "bm:Heldman1993AfrZion"][1]
+	return exists($bibl/t:ptr) and empty($bibl/(t:title | t:author | t:editor | t:pubPlace | t:publisher | t:date | t:series | t:biblScope | t:note))
 };
