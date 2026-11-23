@@ -43,7 +43,8 @@ declare variable $expand:calendarDesc := doc($config:app-root || "/calendars/cal
 declare variable $expand:enrich-bibl as xs:boolean := true();
 
 (:~
- : When true (default), inject title[@type=full] and fill empty @ref text.
+ : When true (default), inject title[@type=full], fill empty @ref text, and
+ : fill empty authFile / @corresp t:ref text. URL rewrite of @ref/@corresp stays.
  : Override via map { "enrich-titles": false() } on expand:file / tei2fulltei.
  :)
 declare variable $expand:enrich-titles as xs:boolean := true();
@@ -411,11 +412,21 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as m
 						expand:printTitleMainID(string($node/@ref))
 					else (
 					),
-					if ($node/@type = "authFile" and (string-length($node/text()) = 0)) then
+					(: authFile + empty @corresp fills are title/label bake — same flag as @ref. :)
+					if (
+						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and
+						$node/@type = "authFile" and
+						(string-length($node/text()) = 0)
+					) then
 						expand:printTitleMainID(string($node/@corresp))
 					else (
 					),
-					if ($node[not(text())] and $node/@corresp and $node/@type[not(. = "authFile")]) then
+					if (
+						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and
+						$node[not(text())] and
+						$node/@corresp and
+						$node/@type[not(. = "authFile")]
+					) then
 						let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
 						return if ($corrnode) then
 							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||

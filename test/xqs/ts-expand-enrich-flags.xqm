@@ -43,6 +43,33 @@ declare variable $tsexpenrich:tei := <TEI
 	<text><body><div type="edition"><ab>x</ab></div></body></text>
 </TEI>;
 
+(:~
+ : Minimal TEI for t:ref enrich-titles gates (authFile + empty @corresp).
+ :)
+declare variable $tsexpenrich:ref-tei := <TEI
+	xmlns="http://www.tei-c.org/ns/1.0"
+	type="work"
+	xml:id="LITTESTenrichFlagsRef"
+>
+	<teiHeader>
+		<titleStmt><title xml:lang="en">ref enrich fixture</title></titleStmt>
+		<publicationStmt><p>test</p></publicationStmt>
+		<sourceDesc><p>seed</p></sourceDesc>
+		<encodingDesc><p>seed</p></encodingDesc>
+	</teiHeader>
+	<text>
+		<body>
+			<div type="edition">
+				<ab xml:id="enrichFlagsRefAb">
+					<ref type="authFile" corresp="PRS1111" />
+					(: @type required for the non-authFile @corresp fill branch :)
+					<ref type="internal" corresp="#missingAnchor" />
+				</ab>
+			</div>
+		</body>
+	</text>
+</TEI>;
+
 declare %private function tsexpenrich:ensure-src() {
 	if (not(xmldb:collection-available("/db/apps/BetMasData/works"))) then
 		xmldb:create-collection("/db/apps/BetMasData", "works")
@@ -114,6 +141,50 @@ declare %test:assertTrue function tsexpenrich:titles-on-keeps-full-title() {
 		map { "enrich-titles": true() }
 	)
 	return exists($out/t:title[@type = "full"])
+};
+
+(:~ enrich-titles false → authFile ref stays empty (URL rewrite of @corresp may remain). :)
+declare %test:assertTrue function tsexpenrich:titles-off-leaves-authFile-empty() {
+	let $out := expand:tei2fulltei(
+		$tsexpenrich:ref-tei,
+		(),
+		map { "enrich-titles": false() }
+	)
+	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[@type = "authFile"][1]
+	return exists($ref) and normalize-space(string($ref)) eq ""
+};
+
+(:~ enrich-titles false → empty @corresp ref stays empty (attr URL rewrite may remain). :)
+declare %test:assertTrue function tsexpenrich:titles-off-leaves-corresp-ref-empty() {
+	let $out := expand:tei2fulltei(
+		$tsexpenrich:ref-tei,
+		(),
+		map { "enrich-titles": false() }
+	)
+	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[not(@type = "authFile")][1]
+	return exists($ref) and normalize-space(string($ref)) eq ""
+};
+
+(:~ enrich-titles true still fills authFile text. :)
+declare %test:assertTrue function tsexpenrich:titles-on-fills-authFile() {
+	let $out := expand:tei2fulltei(
+		$tsexpenrich:ref-tei,
+		(),
+		map { "enrich-titles": true() }
+	)
+	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[@type = "authFile"][1]
+	return normalize-space(string($ref)) ne ""
+};
+
+(:~ enrich-titles true still fills empty @corresp ref text. :)
+declare %test:assertTrue function tsexpenrich:titles-on-fills-corresp-ref() {
+	let $out := expand:tei2fulltei(
+		$tsexpenrich:ref-tei,
+		(),
+		map { "enrich-titles": true() }
+	)
+	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[not(@type = "authFile")][1]
+	return normalize-space(string($ref)) ne ""
 };
 
 (:~ Absent ?enrich= → empty map → expand module defaults. :)
