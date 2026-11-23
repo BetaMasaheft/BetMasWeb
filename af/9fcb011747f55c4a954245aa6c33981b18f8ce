@@ -1,0 +1,24 @@
+modules/expand.xqm
+  s_b9450a356bc06f::t_2bf2270aa3c595 208
+  s_b9450a356bc06f::t_914dcd0dce38b2 1283
+  s_b9450a356bc06f::t_587b0a57faa051 71-207,209-215
+  s_b9450a356bc06f::t_3906cf1f56927a 1199-1200,1204,1206,1210-1224
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_2d55335fc071a9 241-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af9fcb011747f55c4a954245aa6c33981b18f8ce",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
