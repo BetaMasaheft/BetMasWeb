@@ -45,7 +45,8 @@ declare variable $expand:enrich-bibl as xs:boolean := true();
 (:~
  : When true (default), inject title[@type=full], fill empty @ref text, and
  : fill empty authFile / @corresp t:ref text. URL rewrite of @ref/@corresp stays.
- : Override via map { "enrich-titles": false() } on expand:file / tei2fulltei.
+ : When false, title[@type=full] is omitted (not left empty). Override via
+ : map { "enrich-titles": false() } on expand:file / tei2fulltei.
  :)
 declare variable $expand:enrich-titles as xs:boolean := true();
 
@@ -81,7 +82,7 @@ declare function expand:with-enrich-defaults($opts as map(*)) as map(*) {
 				"enrich-titles": expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles)
 			}
 		),
-		map { "duplicates": "use-last" }
+		map {"duplicates": "use-last"}
 	)
 };
 
@@ -96,15 +97,16 @@ declare function expand:citation-by-tag($ptr as xs:string) as element()? {
  : TEI biblStruct for a bm: ptr — single head() lookup (no double if-scan).
  :)
 declare function expand:biblStruct-by-bm($ptr as xs:string) as element(t:biblStruct)? {
-	head(
-		$expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr]
-	)
+	head($expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr])
 };
 
 (:~
  : Build expand bibl children from a Zotero/EthioStudies biblStruct.
  :)
-declare %private function expand:bibl-element-from-struct($ptr as xs:string, $z as element(t:biblStruct)) as element(t:bibl) {
+declare %private function expand:bibl-element-from-struct(
+	$ptr as xs:string,
+	$z as element(t:biblStruct)
+) as element(t:bibl) {
 	<bibl xmlns="http://www.tei-c.org/ns/1.0">
 		{
 			if ($z/@corresp) then
@@ -184,22 +186,13 @@ declare function expand:bibl-enrich-entry($ptr as xs:string) as element(t:bibl)?
 	else
 		try {
 			let $remote := head(
-				doc(
-					concat(
-						"https://api.zotero.org/groups/358366/items?tag=",
-						$ptr,
-						"&amp;format=tei"
-					)
-				)//t:biblStruct
+				doc(concat("https://api.zotero.org/groups/358366/items?tag=", $ptr, "&amp;format=tei"))//t:biblStruct
 			)
 			return if (exists($remote)) then
 				expand:bibl-element-from-struct($ptr, $remote)
 			else (
 			)
-		} catch * {
-			console:log($err:description),
-			()
-		}
+		} catch * { console:log($err:description), () }
 };
 
 (:~
@@ -207,10 +200,7 @@ declare function expand:bibl-enrich-entry($ptr as xs:string) as element(t:bibl)?
  :)
 declare %private function expand:ckpt($filepath as xs:string, $step as xs:string, $t0 as item()) {
 	let $ms := ((util:system-time() - $t0) div xs:dayTimeDuration("PT1S")) * 1000
-	return util:log(
-		"info",
-		"expand:file CKPT " || $step || " " || $ms || "ms path=" || $filepath
-	)
+	return util:log("info", "expand:file CKPT " || $step || " " || $ms || "ms path=" || $filepath)
 };
 
 (:~
@@ -449,6 +439,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as m
 		case element(t:titleStmt) return
 			<titleStmt xmlns="http://www.tei-c.org/ns/1.0">
 				{
+					(: enrich-titles false → omit title[@type=full] entirely (not an empty element). :)
 					if (expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles)) then
 						<title type="full">
 							{
@@ -505,7 +496,9 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as m
 				}
 			</titleStmt>
 		case element(t:revisionDesc) return
-			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} { expand:tei2fulltei($node/node(), $bibliography, $opts) }
+			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
+				expand:tei2fulltei($node/node(), $bibliography, $opts)
+			}
 		case element(t:change) return
 			<change xmlns="http://www.tei-c.org/ns/1.0" when="{ $node/@when }" who="#{ $node/@who }">
 				<!--{let $resp := $node/@who return $expand:editorslist//t:item[@xml:id = string($resp)]/text()}: -->
@@ -571,10 +564,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as m
 			(: enrich-bibl false: keep source ptr/children; do not swap in Zotero/EthioStudies. :)
 			if (not(expand:opt-boolean($opts, "enrich-bibl", $expand:enrich-bibl))) then
 				element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
-					(
-						$node/@*,
-						expand:tei2fulltei($node/node(), $bibliography, $opts)
-					)
+					($node/@*, expand:tei2fulltei($node/node(), $bibliography, $opts))
 				}
 			else
 				let $target := $node/t:ptr/@target
@@ -991,9 +981,7 @@ declare function expand:refel($node, $bibliography, $opts as map(*)) {
 				expand:reflike($node/@ref)
 			else (
 			),
-			if (
-				expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and $node/@ref and not($node/text())
-			) then
+			if (expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and $node/@ref and not($node/text())) then
 				(: repository/settlement/region/country content is macro.xtext
 				   (text|g only) — unwrap expand:asTeiTitle's <seg> fallback to
 				   plain text for these elements. :)
@@ -1101,19 +1089,14 @@ declare %private function expand:ref-link-attrs($node as element(t:ref)) {
  : in expand:ref-link-attrs. authFile and typed @corresp fills share this flag.
  :)
 declare %private function expand:ref-enrich-text($node as element(t:ref), $opts as map(*)) {
-	if (not(expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles))) then
-		()
-	else
+	if (not(expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles))) then (
+	) else
 		switch (true())
 			case ($node/@ref and not($node/text())) return
 				expand:printTitleMainID(string($node/@ref))
 			case ($node/@type = "authFile" and string-length($node/text()) = 0) return
 				expand:printTitleMainID(string($node/@corresp))
-			case (
-				$node[not(text())] and
-				$node/@corresp and
-				exists($node/@type[not(. = "authFile")])
-			) return
+			case ($node[not(text())] and $node/@corresp and exists($node/@type[not(. = "authFile")])) return
 				let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
 				return switch (true())
 					case exists($corrnode) return
@@ -1202,12 +1185,10 @@ declare function expand:file($filepath as xs:string, $opts as map(*)) {
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
 	let $expanded := util:expand($doc/t:TEI)
 	let $_ckpt1 := expand:ckpt($filepath, "after-util-expand", $t0)
-	let $zotero :=
-		if (not(map:get($opts, "enrich-bibl"))) then
-			()
-		else
-			for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
-			return expand:bibl-enrich-entry($ptr)
+	let $zotero := if (not(map:get($opts, "enrich-bibl"))) then (
+	) else
+		for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
+		return expand:bibl-enrich-entry($ptr)
 	let $_ckpt2 := expand:ckpt($filepath, "after-bibl-enrich", $t0)
 	(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
 	let $full := expand:tei2fulltei($expanded, $zotero, $opts)[self::t:TEI]
