@@ -1,0 +1,33 @@
+modules/expand.xqm
+  s_b9450a356bc06f::t_3b3a9724da9aaa 1092-1093,1099
+  s_b9450a356bc06f::t_3906cf1f56927a 1188,1191
+  s_b9450a356bc06f::t_7b6ce8eb131e72 48-49
+  s_b9450a356bc06f::t_524d7ad99ee2ec 567
+  s_b9450a356bc06f::t_b7fe65c4b143e8 442
+  s_b9450a356bc06f::t_587b0a57faa051 85,100,106-109,189,195,203
+  s_b9450a356bc06f::t_3845db3001aa66 499-501,984,1189-1190
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_0d3e65092044c1 60
+  s_b9450a356bc06f::t_16c70a77a20df2 126-128,130
+  s_b9450a356bc06f::t_19c71e8aa48e9f 31,33,35
+  s_b9450a356bc06f::t_c93864a876ba83 61
+  s_b9450a356bc06f::t_d11b268f5749db 209
+  s_b9450a356bc06f::t_278afee1357308 92,96,115,123,132-133,137,139-140,148-149,157-159,167-168,176-178,182,188,195
+  s_b9450a356bc06f::t_2d55335fc071a9 213-215,217,231,236,242,248,262,264,275,281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a8731b8d5c0cf0c4bcfb0fc91a0cc86f708d47fc",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
