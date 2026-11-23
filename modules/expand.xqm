@@ -37,6 +37,37 @@ declare variable $expand:listPrefixDef := doc("/db/apps/lists/listPrefixDef.xml"
 declare variable $expand:calendarDesc := doc($config:app-root || "/calendars/calendarDesc.xml")/t:calendarDesc;
 
 (:~
+ : When true (default), expand:file embeds EthioStudies/Zotero biblStruct for bm: ptrs.
+ : Override per call via expand:file($path, map { "enrich-bibl": false() }).
+ :)
+declare variable $expand:enrich-bibl as xs:boolean := true();
+
+(:~
+ : When true (default), inject title[@type=full] and fill empty @ref text.
+ : Override via map { "enrich-titles": false() } on expand:file / tei2fulltei.
+ :)
+declare variable $expand:enrich-titles as xs:boolean := true();
+
+declare function expand:enrich-bibl() as xs:boolean {
+	$expand:enrich-bibl
+};
+
+declare function expand:enrich-titles() as xs:boolean {
+	$expand:enrich-titles
+};
+
+(:~
+ : Option map override helper. Missing key → $default.
+ :)
+declare function expand:opt-boolean($opts as map(*), $key as xs:string, $default as xs:boolean) as xs:boolean {
+	let $v := map:get($opts, $key)
+	return if (exists($v)) then
+		boolean($v)
+	else
+		$default
+};
+
+(:~
  : Recursively creates new collections if necessary.
  : improved from former gitsync:create-collections
  : to avoid issues with parts of a uri which are the same
@@ -154,6 +185,10 @@ declare function expand:token($val) {
 };
 
 declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
+	expand:tei2fulltei($nodes, $bibliography, map {})
+};
+
+declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as map(*)) {
 	(: refactoring of post.xslt :)
 	for $node in $nodes
 	return typeswitch ($node)
@@ -166,20 +201,20 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 					$node/@type,
 					$node/@xml:lang,
 					$node/@xml:id,
-					expand:tei2fulltei($node/t:teiHeader, $bibliography),
+					expand:tei2fulltei($node/t:teiHeader, $bibliography, $opts),
 					if (count($node//t:listRelation) ge 1) then
 						<standOff xmlns="http://www.tei-c.org/ns/1.0">
 							<listRelation>
 								{
 									for $relations in $node//t:listRelation
-									return expand:tei2fulltei($relations/node(), $bibliography)
+									return expand:tei2fulltei($relations/node(), $bibliography, $opts)
 								}
 							</listRelation>
 						</standOff>
 					else (
 					),
-					expand:tei2fulltei($node/t:facsimile, $bibliography),
-					expand:tei2fulltei($node/t:text, $bibliography)
+					expand:tei2fulltei($node/t:facsimile, $bibliography, $opts),
+					expand:tei2fulltei($node/t:text, $bibliography, $opts)
 				}
 			</TEI>
 		case element(t:listRelation) return
@@ -188,7 +223,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 			()
 		case element(t:publicationStmt) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
-				($node/@*, expand:tei2fulltei($node/node(), $bibliography), expand:dateidno($node))
+				($node/@*, expand:tei2fulltei($node/node(), $bibliography, $opts), expand:dateidno($node))
 			}
 		case element(t:encodingDesc) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
@@ -208,7 +243,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						)
 					else (
 					)
-					return expand:tei2fulltei($node/node()[not(local-name() = "source-url")], $bibliography)
+					return expand:tei2fulltei($node/node()[not(local-name() = "source-url")], $bibliography, $opts)
 				),
 				<p xmlns="http://www.tei-c.org/ns/1.0">Encoded according
                         to the <ref
@@ -262,19 +297,24 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				{
 					for $attribute in ($node/@active | $node/@passive | $node/@mutual)
 					return attribute {$attribute/name()} { expand:token(normalize-space($attribute)) },
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				}
 			</relation>
 		case element(t:titleStmt) return
 			<titleStmt xmlns="http://www.tei-c.org/ns/1.0">
-				<title type="full">
-					{
-						try { expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) } catch * {
-							util:log("INFO", concat("no full title added for ", string($node/ancestor-or-self::t:TEI/@xml:id)))
-						}
-					}
-				</title>
-				{ expand:tei2fulltei($node/node(), $bibliography) }
+				{
+					if (expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles)) then
+						<title type="full">
+							{
+								try { expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id)) } catch * {
+									util:log("INFO", concat("no full title added for ", string($node/ancestor-or-self::t:TEI/@xml:id)))
+								}
+							}
+						</title>
+					else (
+					)
+				}
+				{ expand:tei2fulltei($node/node(), $bibliography, $opts) }
 				{
 					let $gened := $node//t:editor[@role = "generalEditor"]/@key
 					for $resp in distinct-values($gened)
@@ -319,7 +359,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				}
 			</titleStmt>
 		case element(t:revisionDesc) return
-			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} { expand:tei2fulltei($node/node(), $bibliography) }
+			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} { expand:tei2fulltei($node/node(), $bibliography, $opts) }
 		case element(t:change) return
 			<change xmlns="http://www.tei-c.org/ns/1.0" when="{ $node/@when }" who="#{ $node/@who }">
 				<!--{let $resp := $node/@who return $expand:editorslist//t:item[@xml:id = string($resp)]/text()}: -->
@@ -328,7 +368,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 		case element(t:profileDesc) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 				(
-					expand:tei2fulltei($node/node(), $bibliography),
+					expand:tei2fulltei($node/node(), $bibliography, $opts),
 					(: Inject calendarDesc once — multiple profileDesc siblings
 					   would otherwise repeat the same xml:ids (world, …). :)
 					if (empty($node/preceding-sibling::t:profileDesc)) then
@@ -338,23 +378,23 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 				)
 			}
 		case element(t:title) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:persName) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:placeName) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:origPlace) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:repository) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:msIdentifier) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:settlement) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:region) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:country) return
-			expand:refel($node, $bibliography)
+			expand:refel($node, $bibliography, $opts)
 		case element(t:ref) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 				(
@@ -365,7 +405,9 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						expand:reflike($node/@corresp)
 					else (
 					),
-					if ($node/@ref and not($node/text())) then
+					if (
+						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and $node/@ref and not($node/text())
+					) then
 						expand:printTitleMainID(string($node/@ref))
 					else (
 					),
@@ -391,7 +433,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 							expand:teiTitle(string($node/@corresp))
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:editor) return
@@ -408,48 +450,57 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 							$k
 					},
 					$expand:editorslist//t:item[@xml:id = string($k)]/text(),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:bibl) return
-			let $target := $node/t:ptr/@target
-			let $matchingbibl := $bibliography[t:ptr/@target = $target]
-			return element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
-				(
-					$node/@*[not(name() = "corresp")],
-					$matchingbibl/@*[not(name() = "type")],
-					if ($node/@corresp or $matchingbibl/@type) then
-						<seg xmlns="http://www.tei-c.org/ns/1.0">
-							{
-								if ($node/@corresp) then
-									attribute corresp { $node/@corresp }
-								else (
-								),
-								if ($matchingbibl/@type) then
-									attribute type { $matchingbibl/@type }
-								else (
-								)
-							}
-							<!-- attributes from original bibl-->
-						</seg>
-					else (
-					),
-					$matchingbibl/element(),
-					expand:tei2fulltei($node/t:citedRange, $bibliography),
-					if ($node/@corresp) then
-						expand:biblCorresp($node/@corresp, $node)
-					else (
-					),
-					expand:tei2fulltei($node/t:note, $bibliography),
-					expand:tei2fulltei($node/t:ref, $bibliography)
-				)
-			}
+			(: enrich-bibl false: keep source ptr/children; do not swap in Zotero/EthioStudies. :)
+			if (not(expand:opt-boolean($opts, "enrich-bibl", $expand:enrich-bibl))) then
+				element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
+					(
+						$node/@*,
+						expand:tei2fulltei($node/node(), $bibliography, $opts)
+					)
+				}
+			else
+				let $target := $node/t:ptr/@target
+				let $matchingbibl := $bibliography[t:ptr/@target = $target]
+				return element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
+					(
+						$node/@*[not(name() = "corresp")],
+						$matchingbibl/@*[not(name() = "type")],
+						if ($node/@corresp or $matchingbibl/@type) then
+							<seg xmlns="http://www.tei-c.org/ns/1.0">
+								{
+									if ($node/@corresp) then
+										attribute corresp { $node/@corresp }
+									else (
+									),
+									if ($matchingbibl/@type) then
+										attribute type { $matchingbibl/@type }
+									else (
+									)
+								}
+								<!-- attributes from original bibl-->
+							</seg>
+						else (
+						),
+						$matchingbibl/element(),
+						expand:tei2fulltei($node/t:citedRange, $bibliography, $opts),
+						if ($node/@corresp) then
+							expand:biblCorresp($node/@corresp, $node)
+						else (
+						),
+						expand:tei2fulltei($node/t:note, $bibliography, $opts),
+						expand:tei2fulltei($node/t:ref, $bibliography, $opts)
+					)
+				}
 		case element(t:handNote) return
-			expand:attributes($node, $bibliography)
+			expand:attributes($node, $bibliography, $opts)
 		case element(t:div) return
-			expand:attributes($node, $bibliography)
+			expand:attributes($node, $bibliography, $opts)
 		case element(t:witness) return
-			expand:attributes($node, $bibliography)
+			expand:attributes($node, $bibliography, $opts)
 		case element(t:term) return
 			let $k := $node/@key
 			return element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
@@ -460,7 +511,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						$expand:canontax//t:category[@xml:id = $k]/t:catDesc/text()
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		(: case element(t:locus)
@@ -560,7 +611,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
                             )
                         else
                             (),
-                        expand:tei2fulltei($node/node(), $bibliography))
+                        expand:tei2fulltei($node/node(), $bibliography, $opts))
                     } :)
 		case element(t:idno) return
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
@@ -594,7 +645,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						}
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:material) return
@@ -605,7 +656,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						string($node/@key)
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:condition) return
@@ -616,7 +667,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						string($node/@key)
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:custEvent) return
@@ -627,19 +678,19 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						string($node/@type)
 					else (
 					),
-					expand:tei2fulltei($node/node(), $bibliography)
+					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
 		case element(t:origDate) return
-			expand:datelike($node, $bibliography)
+			expand:datelike($node, $bibliography, $opts)
 		case element(t:date) return
-			expand:datelike($node, $bibliography)
+			expand:datelike($node, $bibliography, $opts)
 		case element(t:birth) return
-			expand:datelike($node, $bibliography)
+			expand:datelike($node, $bibliography, $opts)
 		case element(t:death) return
-			expand:datelike($node, $bibliography)
+			expand:datelike($node, $bibliography, $opts)
 		case element(t:floruit) return
-			expand:datelike($node, $bibliography)
+			expand:datelike($node, $bibliography, $opts)
 		(: any other not named element goes through :)
 		case element() return
 			try {
@@ -648,7 +699,7 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography) {
 						$node/@*,
 						(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
                                  else :)
-						expand:tei2fulltei($node/node(), $bibliography)
+						expand:tei2fulltei($node/node(), $bibliography, $opts)
 					)
 				}
 			} catch * { util:log("INFO", $err:description), util:log("INFO", (concat("error in the node ", name($node)))) }
@@ -777,6 +828,10 @@ declare function expand:dateidno($node) {
 };
 
 declare function expand:datelike($node, $bibliography) {
+	expand:datelike($node, $bibliography, map {})
+};
+
+declare function expand:datelike($node, $bibliography, $opts as map(*)) {
 	element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 		(
 			$node/@*,
@@ -805,12 +860,16 @@ declare function expand:datelike($node, $bibliography) {
 			),
 			(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
                                  else :)
-			expand:tei2fulltei($node/node(), $bibliography)
+			expand:tei2fulltei($node/node(), $bibliography, $opts)
 		)
 	}
 };
 
 declare function expand:refel($node, $bibliography) {
+	expand:refel($node, $bibliography, map {})
+};
+
+declare function expand:refel($node, $bibliography, $opts as map(*)) {
 	element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 		(
 			$node/@*[not(name() = "ref")],
@@ -818,7 +877,9 @@ declare function expand:refel($node, $bibliography) {
 				expand:reflike($node/@ref)
 			else (
 			),
-			if ($node/@ref and not($node/text())) then
+			if (
+				expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and $node/@ref and not($node/text())
+			) then
 				(: repository/settlement/region/country content is macro.xtext
 				   (text|g only) — unwrap expand:asTeiTitle's <seg> fallback to
 				   plain text for these elements. :)
@@ -832,12 +893,16 @@ declare function expand:refel($node, $bibliography) {
 			else (
 			),
 			(: if($node[t:subst|t:choice]) then expand:optionsexpand($node, $bibliography)
-                                 else :) expand:tei2fulltei($node/node(), $bibliography)
+                                 else :) expand:tei2fulltei($node/node(), $bibliography, $opts)
 		)
 	}
 };
 
 declare function expand:attributes($node, $bibliography) {
+	expand:attributes($node, $bibliography, map {})
+};
+
+declare function expand:attributes($node, $bibliography, $opts as map(*)) {
 	element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 		(
 			$node/@*[not(name() = "corresp")][not(name() = "resp")][not(name() = "who")][not(name() = "ref")][not(
@@ -890,7 +955,7 @@ declare function expand:attributes($node, $bibliography) {
 				expand:reflike($node/@sameAs)
 			else (
 			),
-			expand:tei2fulltei($node/node(), $bibliography)
+			expand:tei2fulltei($node/node(), $bibliography, $opts)
 		),
 		if ($node/name() = "witness" and $node[not(@type = "external")] and not($node/text())) then (
 			let $filename := if (contains($node/@corresp, "#")) then
@@ -964,12 +1029,19 @@ declare function expand:writes-title-cache() as xs:boolean {
  : @return the expanded document
  :)
 declare function expand:file($filepath) {
+	expand:file($filepath, map {})
+};
+
+declare function expand:file($filepath as xs:string, $opts as map(*)) {
 	let $doc := doc($filepath)
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
 	let $expanded := util:expand($doc/t:TEI)
 
 	let $zotero :=
-		for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
+		if (not(expand:opt-boolean($opts, "enrich-bibl", $expand:enrich-bibl))) then
+			()
+		else
+			for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
 		let $z := if ($expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr]) then
 			$expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr][1]
 		else
@@ -1028,7 +1100,7 @@ declare function expand:file($filepath) {
 			}
 		</bibl>
 	(: let $test := console:log($zotero) :)(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
-	return let $full := expand:tei2fulltei($expanded, $zotero)[self::t:TEI]
+	return let $full := expand:tei2fulltei($expanded, $zotero, $opts)[self::t:TEI]
 		let $result := document { expandnorm:normalize-tei($full) }
 		let $ownId := string($result/t:TEI/@xml:id)
 		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
@@ -1108,14 +1180,14 @@ declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:s
 declare function expand:optionsexpand($model, $bibliography){
 if($model/t:choice[t:corr][t:sic]) then
 <choice xmlns="http://www.tei-c.org/ns/1.0"><corr>{$model//t:corr/@resp}{
-for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:corr/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</corr>
-<sic>{$model//t:sic/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:sic/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</sic></choice>
+for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:corr/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</corr>
+<sic>{$model//t:sic/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:sic/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</sic></choice>
 else if ($model/t:choice[t:reg][t:orig]) then
-<choice xmlns="http://www.tei-c.org/ns/1.0"><reg>{$model//t:reg/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:reg/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</reg>
-<orig>{$model//t:orig/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:orig/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</orig></choice>
+<choice xmlns="http://www.tei-c.org/ns/1.0"><reg>{$model//t:reg/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:reg/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</reg>
+<orig>{$model//t:orig/@resp}{for $n in $model/node() return if ($n/self::t:choice) then expand:tei2fulltei($n/t:orig/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</orig></choice>
 else
-<subst xmlns="http://www.tei-c.org/ns/1.0"><del>{$model//t:del/@*}{for $n in $model/node() return if ($n/self::t:subst) then expand:tei2fulltei($n/t:del/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</del>
-<add>{$model//t:add/@*}{for $n in $model/node() return if ($n/self::t:subst) then expand:tei2fulltei($n/t:add/node(), $bibliography) else expand:tei2fulltei($n, $bibliography)}</add></subst>
+<subst xmlns="http://www.tei-c.org/ns/1.0"><del>{$model//t:del/@*}{for $n in $model/node() return if ($n/self::t:subst) then expand:tei2fulltei($n/t:del/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</del>
+<add>{$model//t:add/@*}{for $n in $model/node() return if ($n/self::t:subst) then expand:tei2fulltei($n/t:add/node(), $bibliography, $opts) else expand:tei2fulltei($n, $bibliography, $opts)}</add></subst>
 };
  :)
 
