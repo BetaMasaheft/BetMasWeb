@@ -1,0 +1,22 @@
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_16c70a77a20df2 145,147
+modules/expand.xqm
+  s_b9450a356bc06f::t_7b6ce8eb131e72 48-49
+  s_b9450a356bc06f::t_b7fe65c4b143e8 453
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2580f14631fd1d1ea514c9ac29c9e7bfbe309ce8",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
