@@ -3,6 +3,11 @@ xquery version "3.1" encoding "UTF-8";
 (:~
  : XQSuite for expand enrich flags (BetMasWeb#312).
  : Defaults on preserve today's bake; options map can turn bibl/titles off.
+ :
+ : Prefer assertEmpty / assertExists / assertEquals / assertXPath on the
+ : value under test so failures show expected vs $result (not opaque
+ : assertTrue on a boolean computed inside the function).
+ : @see https://exist-db.org/exist/apps/doc/xqsuite
  :)
 module namespace tsexpenrich = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-enrich-flags";
 
@@ -17,6 +22,8 @@ declare variable $tsexpenrich:src-col := "/db/apps/BetMasData/works/_enrichFlags
 declare variable $tsexpenrich:out-col := "/db/apps/expanded/works/_enrichFlagsTest";
 
 declare variable $tsexpenrich:id := "LITTESTenrichFlags77";
+
+declare variable $tsexpenrich:bm-ptr := "bm:Heldman1993AfrZion";
 
 (:~
  : Fixture with a bm: bibl ptr and an empty @ref persName.
@@ -35,7 +42,7 @@ declare variable $tsexpenrich:tei := <TEI
 		<sourceDesc>
 			<p>
 				<persName ref="PRS1111" />
-				<bibl><ptr target="bm:Heldman1993AfrZion" /></bibl>
+				<bibl><ptr target="{ $tsexpenrich:bm-ptr }" /></bibl>
 			</p>
 		</sourceDesc>
 		<encodingDesc><p>seed</p></encodingDesc>
@@ -45,6 +52,7 @@ declare variable $tsexpenrich:tei := <TEI
 
 (:~
  : Minimal TEI for t:ref enrich-titles gates (authFile + empty @corresp).
+ : Non-authFile @corresp fill requires @type (historical branch predicate).
  :)
 declare variable $tsexpenrich:ref-tei := <TEI
 	xmlns="http://www.tei-c.org/ns/1.0"
@@ -62,7 +70,6 @@ declare variable $tsexpenrich:ref-tei := <TEI
 			<div type="edition">
 				<ab xml:id="enrichFlagsRefAb">
 					<ref type="authFile" corresp="PRS1111" />
-					(: @type required for the non-authFile @corresp fill branch :)
 					<ref type="internal" corresp="#missingAnchor" />
 				</ab>
 			</div>
@@ -86,129 +93,148 @@ declare %private function tsexpenrich:path() as xs:string {
 	return $tsexpenrich:src-col || "/" || $tsexpenrich:id || ".xml"
 };
 
-(:~ Defaults match today's bake-on behaviour. :)
-declare %test:assertTrue function tsexpenrich:default-enrich-bibl-on() {
+declare %private function tsexpenrich:heldman-bibl($doc as node()) as element(t:bibl)? {
+	$doc//t:bibl[t:ptr/@target = $tsexpenrich:bm-ptr][1]
+};
+
+declare %private function tsexpenrich:ref-ab($doc as node()) as element(t:ab)? {
+	$doc//t:ab[@xml:id = "enrichFlagsRefAb"][1]
+};
+
+declare
+	%test:name("default enrich-bibl is on")
+	%test:assertTrue
+function tsexpenrich:default-enrich-bibl-on() {
 	expand:enrich-bibl()
 };
 
-declare %test:assertTrue function tsexpenrich:default-enrich-titles-on() {
+declare
+	%test:name("default enrich-titles is on")
+	%test:assertTrue
+function tsexpenrich:default-enrich-titles-on() {
 	expand:enrich-titles()
 };
 
-(:~ Default expand:file still embeds EthioStudies/Zotero bibl children. :)
-declare %test:assertTrue function tsexpenrich:bibl-on-embeds-struct() {
-	let $doc := expand:file(tsexpenrich:path())
-	let $bibl := $doc//t:bibl[t:ptr/@target = "bm:Heldman1993AfrZion"][1]
-	return exists($bibl/t:ptr) and exists($bibl/t:title)
+declare
+	%test:name("default expand:file embeds biblStruct title for bm: ptr")
+	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
+	%test:assertXPath("exists($result/title)")
+function tsexpenrich:bibl-on-embeds-struct() {
+	tsexpenrich:heldman-bibl(expand:file(tsexpenrich:path()))
 };
 
-(:~
- : Options override: enrich-bibl false → no embedded bibl children beyond the ptr.
- :)
-declare %test:assertTrue function tsexpenrich:bibl-off-keeps-ptr-only() {
-	let $doc := expand:file(tsexpenrich:path(), map { "enrich-bibl": false() })
-	let $bibl := $doc//t:bibl[t:ptr/@target = "bm:Heldman1993AfrZion"][1]
-	return exists($bibl/t:ptr) and empty($bibl/(t:title | t:author | t:editor | t:pubPlace | t:publisher | t:date | t:series | t:biblScope | t:note))
-};
-
-(:~
- : Options override: enrich-titles false → empty @ref stays empty; no title[@type=full].
- :)
-declare %test:assertTrue function tsexpenrich:titles-off-leaves-empty-ref() {
-	let $out := expand:tei2fulltei(
-		$tsexpenrich:tei,
-		(),
-		map { "enrich-titles": false() }
+declare
+	%test:name("enrich-bibl false keeps ptr only (no embedded bibl children)")
+	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
+	%test:assertXPath(
+		"empty($result/(title | author | editor | pubPlace | publisher | date | series | biblScope | note))"
 	)
-	let $pers := $out//t:persName[@ref][1]
-	return exists($pers) and not($pers/node()[normalize-space(.) ne ""])
+function tsexpenrich:bibl-off-keeps-ptr-only() {
+	tsexpenrich:heldman-bibl(expand:file(tsexpenrich:path(), map { "enrich-bibl": false() }))
 };
 
-declare %test:assertTrue function tsexpenrich:titles-off-omits-full-title() {
-	let $out := expand:tei2fulltei(
+declare
+	%test:name("enrich-titles false leaves empty @ref persName without text")
+	%test:assertExists
+	%test:assertXPath("normalize-space(string($result)) = ''")
+function tsexpenrich:titles-off-leaves-empty-ref() {
+	expand:tei2fulltei($tsexpenrich:tei, (), map { "enrich-titles": false() })
+		//t:persName[@ref][1]
+};
+
+declare
+	%test:name("enrich-titles false omits title[@type=full]")
+	%test:assertEmpty
+function tsexpenrich:titles-off-omits-full-title() {
+	expand:tei2fulltei(
 		$tsexpenrich:tei/t:teiHeader/t:titleStmt,
 		(),
 		map { "enrich-titles": false() }
-	)
-	return empty($out/t:title[@type = "full"])
+	)/t:title[@type = "full"]
 };
 
-(:~ Flags on (explicit) still injects title[@type=full]. :)
-declare %test:assertTrue function tsexpenrich:titles-on-keeps-full-title() {
-	let $out := expand:tei2fulltei(
+declare
+	%test:name("enrich-titles true keeps title[@type=full]")
+	%test:assertExists
+function tsexpenrich:titles-on-keeps-full-title() {
+	expand:tei2fulltei(
 		$tsexpenrich:tei/t:teiHeader/t:titleStmt,
 		(),
 		map { "enrich-titles": true() }
-	)
-	return exists($out/t:title[@type = "full"])
+	)/t:title[@type = "full"]
 };
 
-(:~ enrich-titles false → authFile ref stays empty (URL rewrite of @corresp may remain). :)
-declare %test:assertTrue function tsexpenrich:titles-off-leaves-authFile-empty() {
-	let $out := expand:tei2fulltei(
-		$tsexpenrich:ref-tei,
-		(),
-		map { "enrich-titles": false() }
-	)
-	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[@type = "authFile"][1]
-	return exists($ref) and normalize-space(string($ref)) eq ""
+declare
+	%test:name("enrich-titles false leaves authFile ref text empty")
+	%test:assertExists
+	%test:assertXPath("normalize-space(string($result)) = ''")
+function tsexpenrich:titles-off-leaves-authFile-empty() {
+	tsexpenrich:ref-ab(
+		expand:tei2fulltei($tsexpenrich:ref-tei, (), map { "enrich-titles": false() })
+	)/t:ref[@type = "authFile"][1]
 };
 
-(:~ enrich-titles false → empty @corresp ref stays empty (attr URL rewrite may remain). :)
-declare %test:assertTrue function tsexpenrich:titles-off-leaves-corresp-ref-empty() {
-	let $out := expand:tei2fulltei(
-		$tsexpenrich:ref-tei,
-		(),
-		map { "enrich-titles": false() }
-	)
-	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[not(@type = "authFile")][1]
-	return exists($ref) and normalize-space(string($ref)) eq ""
+declare
+	%test:name("enrich-titles false leaves typed @corresp ref text empty")
+	%test:assertExists
+	%test:assertXPath("normalize-space(string($result)) = ''")
+function tsexpenrich:titles-off-leaves-corresp-ref-empty() {
+	tsexpenrich:ref-ab(
+		expand:tei2fulltei($tsexpenrich:ref-tei, (), map { "enrich-titles": false() })
+	)/t:ref[not(@type = "authFile")][1]
 };
 
-(:~ enrich-titles true still fills authFile text. :)
-declare %test:assertTrue function tsexpenrich:titles-on-fills-authFile() {
-	let $out := expand:tei2fulltei(
-		$tsexpenrich:ref-tei,
-		(),
-		map { "enrich-titles": true() }
-	)
-	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[@type = "authFile"][1]
-	return normalize-space(string($ref)) ne ""
+declare
+	%test:name("enrich-titles true fills authFile ref text")
+	%test:assertExists
+	%test:assertXPath("normalize-space(string($result)) != ''")
+function tsexpenrich:titles-on-fills-authFile() {
+	tsexpenrich:ref-ab(
+		expand:tei2fulltei($tsexpenrich:ref-tei, (), map { "enrich-titles": true() })
+	)/t:ref[@type = "authFile"][1]
 };
 
-(:~ enrich-titles true still fills empty @corresp ref text. :)
-declare %test:assertTrue function tsexpenrich:titles-on-fills-corresp-ref() {
-	let $out := expand:tei2fulltei(
-		$tsexpenrich:ref-tei,
-		(),
-		map { "enrich-titles": true() }
-	)
-	let $ref := $out//t:ab[@xml:id = "enrichFlagsRefAb"]/t:ref[not(@type = "authFile")][1]
-	return normalize-space(string($ref)) ne ""
+declare
+	%test:name("enrich-titles true fills typed @corresp ref text")
+	%test:assertExists
+	%test:assertXPath("normalize-space(string($result)) != ''")
+function tsexpenrich:titles-on-fills-corresp-ref() {
+	tsexpenrich:ref-ab(
+		expand:tei2fulltei($tsexpenrich:ref-tei, (), map { "enrich-titles": true() })
+	)/t:ref[not(@type = "authFile")][1]
 };
 
-(:~ Absent ?enrich= → empty map → expand module defaults. :)
-declare %test:assertTrue function tsexpenrich:enrich-opts-absent-empty() {
-	empty(map:keys(batchExpand:enrich-opts(())))
+declare
+	%test:name("enrich-opts absent → empty map (module defaults)")
+	%test:assertEmpty
+function tsexpenrich:enrich-opts-absent-empty() {
+	map:keys(batchExpand:enrich-opts(()))
 };
 
-(:~ ?enrich=bibl → bibl on, titles off (Task 2 CI shape). :)
-declare %test:assertTrue function tsexpenrich:enrich-opts-bibl-only() {
+declare
+	%test:name("enrich-opts bibl → enrich-bibl true, enrich-titles false")
+	%test:assertEquals("true", "false")
+function tsexpenrich:enrich-opts-bibl-only() {
 	let $o := batchExpand:enrich-opts("bibl")
-	return map:get($o, "enrich-bibl") eq true() and map:get($o, "enrich-titles") eq false()
+	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
 };
 
-(:~ ?enrich= (present, empty allowlist) → both off. :)
-declare %test:assertTrue function tsexpenrich:enrich-opts-empty-allowlist-both-off() {
+declare
+	%test:name("enrich-opts empty allowlist → both false")
+	%test:assertEquals("false", "false")
+function tsexpenrich:enrich-opts-empty-allowlist-both-off() {
 	let $o := batchExpand:enrich-opts("")
-	return map:get($o, "enrich-bibl") eq false() and map:get($o, "enrich-titles") eq false()
+	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
 };
 
-(:~ batchExpand forwards enrich-bibl false into the mirrored store. :)
-declare %test:assertTrue function tsexpenrich:batch-bibl-off-stores-ptr-only() {
+declare
+	%test:name("batchExpand enrich-bibl false stores ptr-only bibl")
+	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
+	%test:assertXPath(
+		"empty($result/(title | author | editor | pubPlace | publisher | date | series | biblScope | note))"
+	)
+function tsexpenrich:batch-bibl-off-stores-ptr-only() {
 	let $_src := tsexpenrich:ensure-src()
 	let $_ := batchExpand:expandCollection($tsexpenrich:src-col, map { "enrich-bibl": false() })
-	let $bibl := doc($tsexpenrich:out-col || "/" || $tsexpenrich:id || ".xml")
-		//t:bibl[t:ptr/@target = "bm:Heldman1993AfrZion"][1]
-	return exists($bibl/t:ptr) and empty($bibl/(t:title | t:author | t:editor | t:pubPlace | t:publisher | t:date | t:series | t:biblScope | t:note))
+	return tsexpenrich:heldman-bibl(doc($tsexpenrich:out-col || "/" || $tsexpenrich:id || ".xml"))
 };

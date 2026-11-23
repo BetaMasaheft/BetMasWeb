@@ -400,50 +400,8 @@ declare function expand:tei2fulltei($nodes as node()*, $bibliography, $opts as m
 			element {fn:QName("http://www.tei-c.org/ns/1.0", name($node))} {
 				(
 					$node/@*[not(name() = "ref")][not(name() = "corresp")],
-					if ($node/@ref) then
-						expand:reflike($node/@ref)
-					else if ($node/@corresp) then
-						expand:reflike($node/@corresp)
-					else (
-					),
-					if (
-						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and $node/@ref and not($node/text())
-					) then
-						expand:printTitleMainID(string($node/@ref))
-					else (
-					),
-					(: authFile + empty @corresp fills are title/label bake — same flag as @ref. :)
-					if (
-						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and
-						$node/@type = "authFile" and
-						(string-length($node/text()) = 0)
-					) then
-						expand:printTitleMainID(string($node/@corresp))
-					else (
-					),
-					if (
-						expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles) and
-						$node[not(text())] and
-						$node/@corresp and
-						$node/@type[not(. = "authFile")]
-					) then
-						let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
-						return if ($corrnode) then
-							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
-								" element " ||
-								$corrnode/name() ||
-								" with id " ||
-								string($node/@corresp)
-							return $buildID
-						else if (starts-with($node/@corresp, "#")) then
-							let $buildID := string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
-								" id " ||
-								string($node/@corresp)
-							return $buildID
-						else
-							expand:teiTitle(string($node/@corresp))
-					else (
-					),
+					expand:ref-link-attrs($node),
+					expand:ref-enrich-text($node, $opts),
 					expand:tei2fulltei($node/node(), $bibliography, $opts)
 				)
 			}
@@ -978,6 +936,55 @@ declare function expand:attributes($node, $bibliography, $opts as map(*)) {
 		) else (
 		)
 	}
+};
+
+(:~
+ : Rewrite t:ref @ref / @corresp to URL form (always; not enrich-titles).
+ :)
+declare %private function expand:ref-link-attrs($node as element(t:ref)) {
+	switch (true())
+		case exists($node/@ref) return
+			expand:reflike($node/@ref)
+		case exists($node/@corresp) return
+			expand:reflike($node/@corresp)
+		default return
+			()
+};
+
+(:~
+ : Label/text bake for empty t:ref. Gated by enrich-titles. URL rewrite stays
+ : in expand:ref-link-attrs. authFile and typed @corresp fills share this flag.
+ :)
+declare %private function expand:ref-enrich-text($node as element(t:ref), $opts as map(*)) {
+	if (not(expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles))) then
+		()
+	else
+		switch (true())
+			case ($node/@ref and not($node/text())) return
+				expand:printTitleMainID(string($node/@ref))
+			case ($node/@type = "authFile" and string-length($node/text()) = 0) return
+				expand:printTitleMainID(string($node/@corresp))
+			case (
+				$node[not(text())] and
+				$node/@corresp and
+				exists($node/@type[not(. = "authFile")])
+			) return
+				let $corrnode := $node/ancestor-or-self::t:TEI/id($node/@corresp)
+				return switch (true())
+					case exists($corrnode) return
+						string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
+							" element " ||
+							$corrnode/name() ||
+							" with id " ||
+							string($node/@corresp)
+					case starts-with($node/@corresp, "#") return
+						string(expand:printTitleMainID(string($node/ancestor-or-self::t:TEI/@xml:id))) ||
+							" id " ||
+							string($node/@corresp)
+					default return
+						expand:teiTitle(string($node/@corresp))
+			default return
+				()
 };
 
 declare function expand:reflike($attribute) {
