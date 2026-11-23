@@ -69,6 +69,151 @@ declare function expand:opt-boolean($opts as map(*), $key as xs:string, $default
 };
 
 (:~
+ : Resolve enrich-bibl / enrich-titles once so tei2fulltei does not re-default
+ : per node. Other keys in $opts are preserved; enrich keys win as booleans.
+ :)
+declare function expand:with-enrich-defaults($opts as map(*)) as map(*) {
+	map:merge(
+		(
+			$opts,
+			map {
+				"enrich-bibl": expand:opt-boolean($opts, "enrich-bibl", $expand:enrich-bibl),
+				"enrich-titles": expand:opt-boolean($opts, "enrich-titles", $expand:enrich-titles)
+			}
+		),
+		map { "duplicates": "use-last" }
+	)
+};
+
+(:~
+ : Indexed EthioStudies citation by bm: @tag (new-range Full). Catalog-aligned.
+ :)
+declare function expand:citation-by-tag($ptr as xs:string) as element()? {
+	head(doc("/db/apps/EthioStudies/citations.xml")//*[@tag = $ptr])
+};
+
+(:~
+ : TEI biblStruct for a bm: ptr — single head() lookup (no double if-scan).
+ :)
+declare function expand:biblStruct-by-bm($ptr as xs:string) as element(t:biblStruct)? {
+	head(
+		$expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr]
+	)
+};
+
+(:~
+ : Build expand bibl children from a Zotero/EthioStudies biblStruct.
+ :)
+declare %private function expand:bibl-element-from-struct($ptr as xs:string, $z as element(t:biblStruct)) as element(t:bibl) {
+	<bibl xmlns="http://www.tei-c.org/ns/1.0">
+		{
+			if ($z/@corresp) then
+				attribute corresp { $z/@corresp }
+			else (
+			)
+		}
+		{
+			if ($z/@type) then
+				attribute type { $z/@type }
+			else (
+			)
+		}
+		<ptr target="{ $ptr }" />
+		{
+			for $t in $z//t:title
+			return <title>{ $t/@* }{ $t/node() }</title>
+		}
+		{
+			for $a in $z//t:author
+			return <author>{ $a/@* }{ $a/node() }</author>
+		}
+		{
+			for $a in $z//t:editor
+			return <editor>{ $a/@* }{ $a/node() }</editor>
+		}
+		{
+			for $a in $z//t:pubPlace
+			return <pubPlace>{ $a/@* }{ $a/node() }</pubPlace>
+		}
+		{
+			for $a in $z//t:publisher
+			return <publisher>{ $a/@* }{ $a/node() }</publisher>
+		}
+		{
+			for $a in $z//t:date
+			return <date>{ $a/@* }{ $a/node() }</date>
+		}
+		{
+			for $a in $z//t:series
+			return <series>{ $a/@* }{ $a/node() }</series>
+		}
+		{
+			for $a in $z//t:biblScope
+			return <biblScope>{ $a/@* }{ $a/node() }</biblScope>
+		}
+		{
+			for $a in $z//t:note
+			return <note>{ $a/@* }{ $a/node() }</note>
+		}
+	</bibl>
+};
+
+(:~
+ : Citation-only fallback when biblStruct is missing but @tag hit (rare).
+ :)
+declare %private function expand:bibl-element-from-citation($ptr as xs:string, $cit as element()) as element(t:bibl) {
+	<bibl xmlns="http://www.tei-c.org/ns/1.0">
+		<ptr target="{ $ptr }" />
+		<title>{ normalize-space(string-join($cit//text(), " ")) }</title>
+	</bibl>
+};
+
+(:~
+ : Resolve one bm: ptr to an enrich bibl element.
+ : Prefer indexed citations.xml @tag (catalog-aligned); materialize TEI from
+ : biblStruct when present (same shape as today's bake); citation title
+ : fallback; else live Zotero TEI.
+ :)
+declare function expand:bibl-enrich-entry($ptr as xs:string) as element(t:bibl)? {
+	let $cit := expand:citation-by-tag($ptr)
+	let $z := expand:biblStruct-by-bm($ptr)
+	return if (exists($z)) then
+		expand:bibl-element-from-struct($ptr, $z)
+	else if (exists($cit)) then
+		expand:bibl-element-from-citation($ptr, $cit)
+	else
+		try {
+			let $remote := head(
+				doc(
+					concat(
+						"https://api.zotero.org/groups/358366/items?tag=",
+						$ptr,
+						"&amp;format=tei"
+					)
+				)//t:biblStruct
+			)
+			return if (exists($remote)) then
+				expand:bibl-element-from-struct($ptr, $remote)
+			else (
+			)
+		} catch * {
+			console:log($err:description),
+			()
+		}
+};
+
+(:~
+ : Wall-clock CKPT line for expand:file (docker logs: grep 'expand:file CKPT').
+ :)
+declare %private function expand:ckpt($filepath as xs:string, $step as xs:string, $t0 as item()) {
+	let $ms := ((util:system-time() - $t0) div xs:dayTimeDuration("PT1S")) * 1000
+	return util:log(
+		"info",
+		"expand:file CKPT " || $step || " " || $ms || "ms path=" || $filepath
+	)
+};
+
+(:~
  : Recursively creates new collections if necessary.
  : improved from former gitsync:create-collections
  : to avoid issues with parts of a uri which are the same
@@ -1051,82 +1196,32 @@ declare function expand:file($filepath) {
 };
 
 declare function expand:file($filepath as xs:string, $opts as map(*)) {
+	let $opts := expand:with-enrich-defaults($opts)
+	let $t0 := util:system-time()
 	let $doc := doc($filepath)
 	(: util:expand needs to go to a node, therefore the processing instructions need to be added back :)
 	let $expanded := util:expand($doc/t:TEI)
-
+	let $_ckpt1 := expand:ckpt($filepath, "after-util-expand", $t0)
 	let $zotero :=
-		if (not(expand:opt-boolean($opts, "enrich-bibl", $expand:enrich-bibl))) then
+		if (not(map:get($opts, "enrich-bibl"))) then
 			()
 		else
 			for $ptr in distinct-values($expanded//t:ptr/@target[starts-with(., "bm:")])
-		let $z := if ($expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr]) then
-			$expand:zotero//t:biblStruct[t:note[@type = "tags"]/t:note[@type = "tag"] = $ptr][1]
-		else
-			try {
-				doc(concat("https://api.zotero.org/groups/358366/items?tag=", $ptr, "&amp;format=tei"))//t:biblStruct
-			} catch * { console:log($err:description) }
-		return <bibl xmlns="http://www.tei-c.org/ns/1.0">
-			{
-				if ($z/@corresp) then
-					attribute corresp { $z/@corresp }
-				else (
-				)
-			}
-			{
-				if ($z/@type) then
-					attribute type { $z/@type }
-				else (
-				)
-			}
-			<ptr target="{ $ptr }" />
-			{
-				for $t in $z//t:title
-				return <title>{ $t/@* }{ $t/node() }</title>
-			}
-			{
-				for $a in $z//t:author
-				return <author>{ $a/@* }{ $a/node() }</author>
-			}
-			{
-				for $a in $z//t:editor
-				return <editor>{ $a/@* }{ $a/node() }</editor>
-			}
-			{
-				for $a in $z//t:pubPlace
-				return <pubPlace>{ $a/@* }{ $a/node() }</pubPlace>
-			}
-			{
-				for $a in $z//t:publisher
-				return <publisher>{ $a/@* }{ $a/node() }</publisher>
-			}
-			{
-				for $a in $z//t:date
-				return <date>{ $a/@* }{ $a/node() }</date>
-			}
-			{
-				for $a in $z//t:series
-				return <series>{ $a/@* }{ $a/node() }</series>
-			}
-			{
-				for $a in $z//t:biblScope
-				return <biblScope>{ $a/@* }{ $a/node() }</biblScope>
-			}
-			{
-				for $a in $z//t:note
-				return <note>{ $a/@* }{ $a/node() }</note>
-			}
-		</bibl>
-	(: let $test := console:log($zotero) :)(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
-	return let $full := expand:tei2fulltei($expanded, $zotero, $opts)[self::t:TEI]
-		let $result := document { expandnorm:normalize-tei($full) }
-		let $ownId := string($result/t:TEI/@xml:id)
-		let $ownTitle := $result/t:TEI//t:title[@type = "full"][1]/string()
-		let $_cache := if (expand:writes-title-cache()) then
-			titles:updateTitleCache($ownId, $ownTitle)
-		else (
-		)
-		return $result
+			return expand:bibl-enrich-entry($ptr)
+	let $_ckpt2 := expand:ckpt($filepath, "after-bibl-enrich", $t0)
+	(: Computed dimensions/layout: only this entry point — tei2fulltei alone does not normalize. :)
+	let $full := expand:tei2fulltei($expanded, $zotero, $opts)[self::t:TEI]
+	let $_ckpt3 := expand:ckpt($filepath, "after-tei2fulltei", $t0)
+	let $result := document { expandnorm:normalize-tei($full) }
+	let $_ckpt4 := expand:ckpt($filepath, "after-normalize", $t0)
+	let $ownId := string($result/t:TEI/@xml:id)
+	let $ownTitle := string(head($result/t:TEI//t:title[@type = "full"]))
+	let $_cache := if (expand:writes-title-cache()) then
+		titles:updateTitleCache($ownId, $ownTitle)
+	else (
+	)
+	let $_ckpt5 := expand:ckpt($filepath, "done", $t0)
+	return $result
 };
 
 (:~
@@ -1185,7 +1280,7 @@ declare function expand:backfillTitleCache($collectionUri as xs:string?) as xs:s
 		let $docs := collection($col)//t:TEI[@xml:id]
 		let $resolved :=
 			for $doc in $docs
-			let $title := $doc//t:title[@type = "full"][1]/string()
+			let $title := string(head($doc//t:title[@type = "full"]))
 			where normalize-space($title) != ""
 			return map {"id": string($doc/@xml:id), "title": $title}
 		let $_ :=

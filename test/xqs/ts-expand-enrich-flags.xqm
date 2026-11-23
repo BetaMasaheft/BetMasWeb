@@ -238,3 +238,85 @@ function tsexpenrich:batch-bibl-off-stores-ptr-only() {
 	let $_ := batchExpand:expandCollection($tsexpenrich:src-col, map { "enrich-bibl": false() })
 	return tsexpenrich:heldman-bibl(doc($tsexpenrich:out-col || "/" || $tsexpenrich:id || ".xml"))
 };
+
+(:~ Task 2 CI shape: ?enrich=titles → bibl off, titles on. :)
+declare
+	%test:name("enrich-opts titles → enrich-bibl false, enrich-titles true")
+	%test:assertEquals("false", "true")
+function tsexpenrich:enrich-opts-titles-only() {
+	let $o := batchExpand:enrich-opts("titles")
+	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
+};
+
+declare
+	%test:name("batchExpand ?enrich=titles stores ptr-only bibl")
+	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
+	%test:assertXPath(
+		"empty($result/(title | author | editor | pubPlace | publisher | date | series | biblScope | note))"
+	)
+function tsexpenrich:batch-enrich-titles-allowlist-bibl-off() {
+	let $_src := tsexpenrich:ensure-src()
+	let $_ := batchExpand:expandCollection(
+		$tsexpenrich:src-col,
+		batchExpand:enrich-opts("titles")
+	)
+	return tsexpenrich:heldman-bibl(doc($tsexpenrich:out-col || "/" || $tsexpenrich:id || ".xml"))
+};
+
+declare
+	%test:name("citation-by-tag hits EthioStudies citations.xml")
+	%test:assertExists
+function tsexpenrich:citation-by-tag-hit() {
+	expand:citation-by-tag($tsexpenrich:bm-ptr)
+};
+
+declare
+	%test:name("biblStruct-by-bm uses single head() hit")
+	%test:assertExists
+function tsexpenrich:biblStruct-by-bm-hit() {
+	expand:biblStruct-by-bm($tsexpenrich:bm-ptr)
+};
+
+declare
+	%test:name("citation-by-tag uses new-range Full (optimization=2)")
+	%test:assertXPath("xs:integer($result) ge 1")
+function tsexpenrich:citation-by-tag-new-range-full() {
+	let $_ := try { system:clear-trace() } catch * { () }
+	let $_en := try { system:enable-tracing(true()) } catch * { () }
+	let $cit := expand:citation-by-tag($tsexpenrich:bm-ptr)
+	let $tr := try { system:trace() } catch * { () }
+	let $_off := try { system:enable-tracing(false()) } catch * { () }
+	return if (empty($cit)) then
+		0
+	else
+		count($tr//*:index[@type = "new-range"][@optimization = "2"])
+};
+
+declare
+	%test:name("with-enrich-defaults materializes both enrich booleans")
+	%test:assertEquals("true", "false")
+function tsexpenrich:with-enrich-defaults-overrides() {
+	let $o := expand:with-enrich-defaults(map { "enrich-titles": false() })
+	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
+};
+
+declare variable $tsexpenrich:ag00001 := "/db/apps/BetMasData/manuscripts/AbbaGarima/AG00001.xml";
+
+(:~
+ : AG00001-class assemble-only smoke (flags off). Loose ceiling — guards
+ : against regressing back to multi-second enrich on this path.
+ :)
+declare
+	%test:name("AG00001 enrich both-off under 2000ms")
+	%test:assertXPath("xs:double($result) lt 2000")
+function tsexpenrich:ag00001-both-off-fast() {
+	if (not(doc-available($tsexpenrich:ag00001))) then
+		0
+	else
+		let $t0 := util:system-time()
+		let $_ := expand:file(
+			$tsexpenrich:ag00001,
+			map { "enrich-bibl": false(), "enrich-titles": false() }
+		)
+		return ((util:system-time() - $t0) div xs:dayTimeDuration("PT1S")) * 1000
+};
