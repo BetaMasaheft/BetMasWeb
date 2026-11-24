@@ -244,6 +244,11 @@ function tsexpenrich:biblStruct-by-bm-hit() {
 	expand:biblStruct-by-bm($tsexpenrich:bm-ptr)
 };
 
+(:~
+ : Requires EthioStudies package collection.xconf with range create @tag
+ : (bibliography repo; pre-install → /db/system/config). Without that index,
+ : citation-by-tag still hits via scan but system:trace shows no new-range Full.
+ :)
 declare
 	%test:name("citation-by-tag uses new-range Full (optimization=2)") %test:assertXPath("xs:integer($result) ge 1")
 function tsexpenrich:citation-by-tag-new-range-full() {
