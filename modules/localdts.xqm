@@ -144,7 +144,7 @@ declare function localdts:Coll($id, $page, $nav, $version) {
 };
 
 declare function localdts:CollMember($id, $edition, $bmID, $page, $nav, $version) {
-	let $doc := $dtslib:collection-root//id($bmID)
+	let $doc := $dtslib:collection-root/id($bmID)
 	let $eds := if ($edition/node()) then
 		dtslib:pickDivText($doc, $edition)
 	else (

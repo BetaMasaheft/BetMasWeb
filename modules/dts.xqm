@@ -2102,7 +2102,7 @@ declare function dts:ItemAnnotationsEntries($name) {
 
 declare function dts:ItemAnnoCount($id) {
 	count(
-		$titles:collection-root//id($id)[descendant::t:persName[@ref[. != "PRS00000" and . != "PRS0000"]] or
+		$titles:collection-root/id($id)[descendant::t:persName[@ref[. != "PRS00000" and . != "PRS0000"]] or
 			descendant::t:placeName[@ref] or
 			descendant::t:title[@ref] or
 			descendant::t:term[@key][not(parent::t:keywords)] or

@@ -250,7 +250,7 @@ declare %private function batchExpand:expandOne($file as element(t:TEI)) {
 };
 
 declare %private function batchExpand:removeDuplicates($collection-uri as xs:string, $xmlid) {
-	let $existings := collection($collection-uri)//id($xmlid)[self::t:TEI or ancestor-or-self::t:TEI]
+	let $existings := collection($collection-uri)/id($xmlid)[self::t:TEI or ancestor-or-self::t:TEI]
 	let $teis := $existings/ancestor-or-self::t:TEI
 	return if (empty($teis)) then
 		util:log("info", " no other file with id " || $xmlid)

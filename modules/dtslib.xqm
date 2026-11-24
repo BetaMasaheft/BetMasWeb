@@ -1248,7 +1248,7 @@ declare function dtslib:pickDivText($doc, $parsedID) {
  : given the URN in the id parameter and the plain Beta Masahaeft id if any, produces the list of members of the collection filtering only the entities which do have a div[@type eq 'edition']
  :)
 declare function dtslib:CollMember($id, $edition, $bmID, $page, $nav, $version) {
-	let $doc := $exptit:col//id($bmID)
+	let $doc := $exptit:col/id($bmID)
 	let $eds := if ($edition/node()) then
 		dtslib:pickDivText($doc, $edition)
 	else (
@@ -2873,7 +2873,7 @@ declare function dtslib:ItemAnnotationsEntries($name) {
 
 declare %private function dtslib:ItemAnnoCount($id) {
 	count(
-		$exptit:col//id($id)[descendant::t:persName[@ref[. != "PRS00000" and . != "PRS0000"]] or
+		$exptit:col/id($id)[descendant::t:persName[@ref[. != "PRS00000" and . != "PRS0000"]] or
 			descendant::t:placeName[@ref] or
 			descendant::t:title[@ref] or
 			descendant::t:term[@key][not(parent::t:keywords)] or

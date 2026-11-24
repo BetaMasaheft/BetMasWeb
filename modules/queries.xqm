@@ -856,7 +856,7 @@ declare function q:placeSearch($place) {
 		map {"qs": "sorry, this is not a valid place identifier, it should start with LOC"}
 	) else
 		let $placeuri := ($config:appUrl || "/" || $place)
-		let $file := $q:col//id($place)[self::t:TEI]
+		let $file := $q:col/id($place)[self::t:TEI]
 		let $sameAs := string($file//t:place/@sameAs)
 		let $allrepositories :=
 			for $repo in
@@ -4370,7 +4370,7 @@ let $t2 := util:log('info', $count) :)
 declare function q:formatOption($rangeindexname, $key, $count) {
 	let $keywordsindexes := $q:paramargs/rangeindex[@keywords = "yes"]/@name/string()
 	return if ($rangeindexname = "ident") then
-		<option value="{ $key }">{ $q:languages//id($key)/text() } ({ $count[2] })</option>
+		<option value="{ $key }">{ $q:languages/id($key)/text() } ({ $count[2] })</option>
 	else if ($rangeindexname = "changewho") then
 		<option value="{ $key }">{ editors:editorKey(substring-after($key, "#")) } ({ $count[2] })</option>
 

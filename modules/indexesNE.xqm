@@ -15,6 +15,7 @@ import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace switch = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
+import module namespace refs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/refs" at "xmldb:exist:///db/apps/BetMasWeb/modules/refs.xqm";
 
 declare
 	%templates:default("collection", "") %templates:default("entity", "") %templates:default("pointer", "")
@@ -134,7 +135,7 @@ declare
 	%templates:wrap %templates:default("start", 1) %templates:default("per-page", 10)
 function indexesNE:placeNamesRes($node as node(), $model as map(*), $start as xs:integer, $per-page as xs:integer) {
 	for $target at $p in subsequence($model("hits"), $start, $per-page)
-	let $ptrs := $exptit:col//t:placeName[@ref eq $target]
+	let $ptrs := refs:placeName($exptit:col, $target)
 	let $count := count($ptrs)
 	return <div class="w3-container w3-margin">
 		<div class="w3-col" id="{ $target }" style="width:15%">
@@ -180,7 +181,7 @@ declare
 	%templates:wrap %templates:default("start", 1) %templates:default("per-page", 10)
 function indexesNE:persNamesRes($node as node(), $model as map(*), $start as xs:integer, $per-page as xs:integer) {
 	for $target at $p in subsequence($model("hits"), $start, $per-page)
-	let $ptrs := $exptit:col//t:persName[@ref eq $target]
+	let $ptrs := refs:persName($exptit:col, $target)
 	let $count := count($ptrs)
 	return <div class="w3-margin">
 		<div class="w3-col" id="{ $target }" style="width:15%">

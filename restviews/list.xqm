@@ -1083,7 +1083,7 @@ declare function list:getrepolistchart($request as map(*)) {
 			"contents": $contents,
 			"origPlace": $origPlace
 		}
-		let $file := $apprest:collection-rootIn//id($repoID)[self::t:TEI]
+		let $file := $apprest:collection-rootIn/id($repoID)[self::t:TEI]
 		return if ($file) then (
 			<html xmlns="http://www.w3.org/1999/xhtml">
 				<head>
@@ -1214,7 +1214,7 @@ declare function list:getplacelist($request as map(*)) {
 			"contents": $contents,
 			"origPlace": $origPlace
 		}
-		let $file := $apprest:collection-rootPlIn//id($place)[self::t:TEI]
+		let $file := $apprest:collection-rootPlIn/id($place)[self::t:TEI]
 		let $sameAs := string($file//t:place/@sameAs)
 		return if ($file or starts-with($place, "wd:")) then (
 			<html xmlns="http://www.w3.org/1999/xhtml">
@@ -1412,7 +1412,7 @@ declare function list:getregionchart($request as map(*)) {
 		let $log := log:add-log-message("/manuscripts/region/listChart", sm:id()//sm:real/sm:username/string(), "list")
 		let $Cmap := map {"type": "reporegion", "name": $place, "path": $repos}
 
-		let $file := $apprest:collection-rootPlIn//id($place)[self::t:TEI]
+		let $file := $apprest:collection-rootPlIn/id($place)[self::t:TEI]
 		return if ($file or starts-with($place, "wd:")) then (
 			<html xmlns="http://www.w3.org/1999/xhtml">
 				<head>

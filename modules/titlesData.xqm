@@ -199,7 +199,7 @@ function titles:printTitleID($id as xs:string) {
 	else if (contains($id, "#")) then (
 		let $mainID := substring-before($id, "#")
 		let $SUBid := substring-after($id, "#")
-		let $node := $titles:collection-root//id($mainID)
+		let $node := titles:tei-by-main-id($mainID)
 		return if ($node) then (
 			if (starts-with($SUBid, "t")) then (
 				let $subtitles := $node//t:title[contains(@corresp, $SUBid)]
@@ -256,6 +256,25 @@ declare %test:assertTrue function titles:printTitleID-self-formerly-no-recurse()
 		)
 };
 
+(:~
+ : Main TEI record for a betmas id from a collection root, via structural id().
+ : Prefer this over //@xml:id descendant scans (directional ~10× warm @:8082;
+ : reconfirm on fresh eXist before treating as proven).
+ : @param $mainID betmas id without "#subid"
+ : @param $col collection() nodes (e.g. $titles:collection-root)
+ :)
+declare function titles:tei-by-main-id($mainID as xs:string, $col as node()*) as element(t:TEI)* {
+	($col/id($mainID))[self::t:TEI]
+};
+
+(:
+ : Use $titles:collection-root in-body — passing the module collection as an
+ : argument re-materializes it and was slower than //@xml:id on @:8082.
+ :)
+declare function titles:tei-by-main-id($mainID as xs:string) as element(t:TEI)* {
+	($titles:collection-root/id($mainID))[self::t:TEI]
+};
+
 declare function titles:printTitleMainID($id as xs:string, $c) {
 	if (matches($id, "wd:Q\d+") or starts-with($id, "gn:") or starts-with($id, "pleiades:")) then (
 		titles:decidePlaceNameSource($id)
@@ -265,7 +284,7 @@ eventually added result is added to the place list names :) else (: always look 
 			substring-before($id, "#")
 		else
 			$id
-		let $resource := collection($c)//t:TEI[@xml:id = $mainID]
+		let $resource := titles:tei-by-main-id($mainID, collection($c))
 		return if (count($resource) = 0) then
 			"No item: " || $id
 		else if (count($resource) > 1) then
@@ -301,8 +320,7 @@ function titles:printTitleMainID($id as xs:string) {
 			substring-before($id, "#")
 		else
 			$id
-		(: let $catchID := collection($config:bmdata-root)/id($mainID) :)
-		let $resource := collection($config:bmdata-root)//t:TEI[@xml:id = $mainID]
+		let $resource := titles:tei-by-main-id($mainID)
 		return if (count($resource) = 0) then
 			"No item: " || $id
 		else if (count($resource) > 1) then

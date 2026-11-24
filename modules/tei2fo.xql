@@ -448,7 +448,7 @@ declare function fo:tei2fo($nodes as node()*) {
 												$cor
 										let $correspsEl :=
 											for $c in $corresps
-											let $ref := $file//id($c)
+											let $ref := $file/id($c)
 											return (
 												(
 													if ($ref/text()) then
@@ -501,7 +501,7 @@ declare function fo:tei2fo($nodes as node()*) {
 									$cor
 							let $correspsEl :=
 								for $c in $corresps
-								let $ref := $file//id($c)
+								let $ref := $file/id($c)
 								return (
 									(
 										if ($ref/text()) then

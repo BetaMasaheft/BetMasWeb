@@ -341,7 +341,7 @@ declare function PermRestItem:mainContentCorpus($id as xs:string*) {
 			let $msid := substring-before($rootid, "#")
 			return <div class="w3-row documentcorpus w3-panel w3-leftbar">
 				{
-					let $doc := doc(base-uri($document))//id($itemid)
+					let $doc := doc(base-uri($document))/id($itemid)
 					return (
 						<div class="w3-col" style="width:15%">
 							<a href="{ $msid }">{ exptit:printTitle($msid) }</a>

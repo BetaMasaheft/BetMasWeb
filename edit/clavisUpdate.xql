@@ -28,7 +28,7 @@ declare variable $cpg := request:get-parameter("cpg", ());
 if (contains(sm:get-user-groups(sm:id()//sm:real/sm:username/string()), "Editors")) then
 	let $editor := editors:editorNames(sm:id()//sm:real/sm:username/string())
 
-	let $getItem := collection($config:data-rootW)//id($WorkID)
+	let $getItem := collection($config:data-rootW)/id($WorkID)
 	let $uri := base-uri($getItem)
 	let $item := doc($uri)
 	let $changes := $item//t:revisionDesc
