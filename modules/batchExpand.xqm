@@ -15,6 +15,32 @@ import module namespace expand = "https://www.betamasaheft.uni-hamburg.de/BetMas
 declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
 (:~
+ : Parse makeExpand ?enrich= allowlist into an expand:file options map.
+ : Absent / empty sequence → map {} (module defaults stay on).
+ : Present (including empty string) → only listed enrichments are true;
+ : unknown tokens ignored. Tokens: bibl, titles (aliases enrich-bibl /
+ : enrich-titles accepted).
+ : @param $enrich request:get-parameter("enrich", ()) value(s), or ()
+ : @return options map for expand:file / expandCollection
+ : @see https://github.com/BetaMasaheft/BetMasWeb/issues/312
+ :)
+declare function batchExpand:enrich-opts($enrich as item()*) as map(*) {
+	if (empty($enrich)) then
+		map {}
+	else
+		let $tokens :=
+			for $raw in $enrich
+			for $t in tokenize(string($raw), ",")
+			let $tok := lower-case(normalize-space($t))
+			where $tok ne ""
+			return $tok
+		return map {
+			"enrich-bibl": ($tokens = "bibl" or $tokens = "enrich-bibl"),
+			"enrich-titles": ($tokens = "titles" or $tokens = "enrich-titles")
+		}
+};
+
+(:~
  : Trims $collectionUri and refuses empty, out-of-tree, or missing input
  : (no silent full-corpus run). Shared preamble for expandCollection and
  : expandUnmirrored.
@@ -50,13 +76,21 @@ declare %private function batchExpand:validated-collection($collectionUri as xs:
  : @see https://github.com/BetaMasaheft/expanded/issues/11
  :)
 declare function batchExpand:expandCollection($collectionUri as xs:string?) as xs:string {
+	batchExpand:expandCollection($collectionUri, map {})
+};
+
+(:~
+ : Same as expandCollection#1 with an expand:file options map
+ : (enrich-bibl / enrich-titles overrides).
+ :)
+declare function batchExpand:expandCollection($collectionUri as xs:string?, $opts as map(*)) as xs:string {
 	let $col := batchExpand:validated-collection($collectionUri)
 	return let $context := collection($col)//t:TEI
 		let $expanded-col := batchExpand:expanded-mirror($col)
 		let $t0 := util:system-time()
 		let $_ :=
 			for $file in $context
-			return batchExpand:expandOne($file)
+			return batchExpand:expandOne($file, $opts)
 		(: Fresh, not a pre-loop snapshot - avoids pruning a file a
 		   concurrent writer stored here while this batch was expanding. :)
 		let $pruned := batchExpand:prune-mirror($expanded-col, batchExpand:expected-relative-paths($col))
@@ -78,6 +112,13 @@ declare function batchExpand:expandCollection($collectionUri as xs:string?) as x
  : @see https://github.com/BetaMasaheft/expanded/issues/40
  :)
 declare function batchExpand:expandUnmirrored($collectionUri as xs:string?) as xs:string {
+	batchExpand:expandUnmirrored($collectionUri, map {})
+};
+
+(:~
+ : Same as expandUnmirrored#1 with an expand:file options map.
+ :)
+declare function batchExpand:expandUnmirrored($collectionUri as xs:string?, $opts as map(*)) as xs:string {
 	let $col := batchExpand:validated-collection($collectionUri)
 	return let $missing :=
 			for $file in collection($col)//t:TEI
@@ -87,7 +128,7 @@ declare function batchExpand:expandUnmirrored($collectionUri as xs:string?) as x
 		let $t0 := util:system-time()
 		let $_ :=
 			for $file in $missing
-			return batchExpand:expandOne($file)
+			return batchExpand:expandOne($file, $opts)
 		let $secs := (util:system-time() - $t0) div xs:dayTimeDuration("PT1S")
 		return "expanded " || count($missing) || " file(s) in " || $secs || " seconds"
 };
@@ -221,11 +262,11 @@ declare %private function batchExpand:descendant-resources($col as xs:string) as
 	)
 };
 
-declare %private function batchExpand:expandOne($file as element(t:TEI)) {
+declare %private function batchExpand:expandOne($file as element(t:TEI), $opts as map(*)) {
 	let $xmlid := $file/@xml:id
 	let $start-time := util:system-time()
 	let $filepath := base-uri($file)
-	let $expanded := expand:file($filepath)
+	let $expanded := expand:file($filepath, $opts)
 	let $file-name := tokenize($filepath, "/")[last()]
 	let $collection := replace(
 		replace(

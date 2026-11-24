@@ -41,6 +41,7 @@ import module namespace tszc = "https://www.betamasaheft.uni-hamburg.de/BetMasWe
 import module namespace tstlresp = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-timeline-resp" at "ts-timeline-resp.xqm";
 import module namespace tsexpandtax = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-taxonomy" at "ts-expand-taxonomy.xqm";
 import module namespace tsexpandtit = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-titles" at "ts-expand-titles.xqm";
+import module namespace tsexpenrich = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-enrich-flags" at "ts-expand-enrich-flags.xqm";
 import module namespace tsexpedids = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-edition-ids" at "ts-expand-edition-ids.xqm";
 import module namespace tsexpcite = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-citeunit" at "ts-expand-citeunit.xqm";
 import module namespace tsexpandrng = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-expand-rng-residuals" at "ts-expand-rng-residuals.xqm";
@@ -113,6 +114,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-timeline-resp.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-taxonomy.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-titles.xqm")),
+		inspect:module-functions(xs:anyURI("ts-expand-enrich-flags.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-edition-ids.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-citeunit.xqm")),
 		inspect:module-functions(xs:anyURI("ts-expand-rng-residuals.xqm")),
