@@ -1,0 +1,32 @@
+modules/refs.xqm
+  s_b9450a356bc06f::t_2c1f0cc66d5116 4,6-8,17-19,22-27,29-30,32
+  s_b9450a356bc06f::t_dd3e899495f623 33-34
+modules/item.xqm
+  s_b9450a356bc06f::t_94629f8c917968 1716-1717,1727
+  s_b9450a356bc06f::t_bd0cbbede9980e 1781-1783,1785,1809
+modules/apprest.xqm
+  s_b9450a356bc06f::t_e2b0d06c92994c 340-342,344-355
+test/xqs/ts-refs.xqm
+  s_b9450a356bc06f::t_519799cecb2b11 4,13,15-17,20-21,25-26,29-31,34-36,38-41,45-46,49-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1ccfaf4d0fe52173d7b0c94571717198ba8a6c3",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  },
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
