@@ -1,0 +1,35 @@
+modules/dtsclient.xqm
+  s_b9450a356bc06f::t_ce42b292e3cba8 30-32,35-36,39
+  s_b9450a356bc06f::t_369d5b4622d87c 208
+  s_b9450a356bc06f::t_5202e38f9e54dc 333
+  s_b9450a356bc06f::t_7f7c8b3d14596c 34,37-38,40-41
+  s_b9450a356bc06f::t_9c7382912d6cc7 33
+test/xqs/test-runner.xq
+  s_b9450a356bc06f::t_d4b03203b4df29 21
+  s_b9450a356bc06f::t_47c2418e793fbc 90
+test/xqs/ts-dtsclient-expanded-tei.xqm
+  s_b9450a356bc06f::t_db3887cd511423 1-41
+test/xqs/run-dtsclient-expanded-tei.xq
+  s_b9450a356bc06f::t_be7ac5c0a8c68b 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "53f986b2d56a8762d496328a1158937a69b041fa",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  },
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
