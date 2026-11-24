@@ -1,0 +1,69 @@
+restviews/permanentItems.xqm
+  s_b9450a356bc06f::t_673fed8c407e11 344
+test/xqs/test-runner.xq
+  s_b9450a356bc06f::t_59591c8f8d4d66 94
+  s_b9450a356bc06f::t_091a1bc4d43a0b 23
+modules/dtslib.xqm
+  s_b9450a356bc06f::t_cfe5febdfbd468 2876
+  s_b9450a356bc06f::t_ecf19421e86301 1251
+modules/queries.xqm
+  s_b9450a356bc06f::t_b7b64572816032 859
+  s_b9450a356bc06f::t_c1ca6faba23cf8 4373
+modules/apprest.xqm
+  s_b9450a356bc06f::t_192740c3fc6adb 2496
+  s_b9450a356bc06f::t_8fe42aab9580cb 361
+modules/titlesData.xqm
+  s_b9450a356bc06f::t_604033f2c29fe1 202
+modules/dts.xqm
+  s_b9450a356bc06f::t_88193a4c42a41f 2105
+modules/tei2fo.xql
+  s_b9450a356bc06f::t_2350a29d26e53d 451,504
+modules/localdts.xqm
+  s_b9450a356bc06f::t_fb8c1f85202708 147
+modules/catalog-legacy.xqm
+  s_b9450a356bc06f::t_166152c3028cf2 141
+modules/resources.xqm
+  s_b9450a356bc06f::t_6057825f9fcc5b 526
+  s_b9450a356bc06f::t_436ebcdb277a7f 529
+  s_b9450a356bc06f::t_3b74bea95b8516 2296
+restviews/items.xqm
+  s_b9450a356bc06f::t_9fe3b73ce7f663 157
+  s_b9450a356bc06f::t_2d106dc7aa1df8 350
+modules/catalog-selectors.xqm
+  s_b9450a356bc06f::t_c3546edeb2e26a 116
+restviews/list.xqm
+  s_b9450a356bc06f::t_16a37853b05e2e 1217,1415
+  s_b9450a356bc06f::t_3abf9654c9ea52 1086
+edit/clavisUpdate.xql
+  s_b9450a356bc06f::t_b6374bd1e51730 31
+test/xqs/run-restitem-tei-by-id.xq
+  s_b9450a356bc06f::t_98fba27176b6cf 1-2,5,10-11
+  s_b9450a356bc06f::t_13684cd73dfbc1 3-4,6-9
+modules/gitsync.xqm
+  s_b9450a356bc06f::t_f71fe1a277c563 129
+  s_b9450a356bc06f::t_34235eccb6ff28 147
+  s_b9450a356bc06f::t_a8414d32f93caa 165
+modules/batchExpand.xqm
+  s_b9450a356bc06f::t_a2738cadebaccc 253
+modules/item.xqm
+  s_b9450a356bc06f::t_5503aa8dbfa2fc 2107
+  s_b9450a356bc06f::t_da7845fb5a3bff 150
+test/xqs/ts-restitem-tei-by-id.xqm
+  s_b9450a356bc06f::t_b48215842d7e70 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3f5aa8d580ef216b941f05e44640394f574303a3",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
