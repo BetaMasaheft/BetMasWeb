@@ -1,0 +1,23 @@
+modules/expand.xqm
+  s_b9450a356bc06f::t_bf17ab5cab25ec 39-69,188-191,204,210,216-217,226,246,300,305-317,362,371,381,383,385,387,389,391,393,395,397,408-410,436,453,457-497,499,501,503,514,614,648,659,670,681,685,687,689,691,693,702,831-834,863,869-872,880-882,896,902-905,958,1032-1035,1041-1044,1103,1183-1184,1186-1187,1189-1190
+test/xqs/test-runner.xq
+  s_b9450a356bc06f::t_3d08b744082ae1 44,117
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_65d535871a2ead 1-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "84e23119efb29ab91255ac75763e70331994d2dc",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "unknown"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
