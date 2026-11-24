@@ -1,7 +1,12 @@
 modules/expand.xqm
   s_b9450a356bc06f::t_168ed4bbdaef2a 71-215,1199-1200,1204,1206,1210-1224,1283
+  s_b9450a356bc06f::t_2bf2270aa3c595 208
+  s_b9450a356bc06f::t_914dcd0dce38b2 1283
+  s_b9450a356bc06f::t_587b0a57faa051 71-207,209-215
+  s_b9450a356bc06f::t_3906cf1f56927a 1199-1200,1204,1206,1210-1224
 test/xqs/ts-expand-enrich-flags.xqm
   s_b9450a356bc06f::t_65fa5da59218e8 241-322
+  s_b9450a356bc06f::t_2d55335fc071a9 241-322
 ---
 {
   "schema_version": "authorship/3.0.0",
