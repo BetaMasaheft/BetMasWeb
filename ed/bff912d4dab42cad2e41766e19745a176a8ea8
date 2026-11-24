@@ -1,0 +1,23 @@
+modules/batchExpand.xqm
+  s_b9450a356bc06f::t_35932a099cc9fc 17-42,79-86,93,115-121,131,265,269
+modules/makeExpand.xql
+  s_b9450a356bc06f::t_3a5183129ea227 7-8,17,30,34,36
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_e85052b3801145 13,17-18,118-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "edbff912d4dab42cad2e41766e19745a176a8ea8",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "unknown"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
