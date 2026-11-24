@@ -1,0 +1,29 @@
+test/xqs/ts-titlesdata-tei-by-id.xqm
+  s_b9450a356bc06f::t_72e2cf2495b42a 1-48
+modules/titlesData.xqm
+  s_b9450a356bc06f::t_206276a40d6411 269-270,272
+  s_b9450a356bc06f::t_83b28e27ff5a2b 259-268,271,273-274
+  s_b9450a356bc06f::t_6e0826cb9c8732 275-276
+  s_b9450a356bc06f::t_3b687ed6ce1c8e 286,322
+test/xqs/run-titlesdata-tei-by-id.xq
+  s_b9450a356bc06f::t_7d3aaec5c535d9 1-15
+test/xqs/test-runner.xq
+  s_b9450a356bc06f::t_3fe0d7b407f241 55
+  s_b9450a356bc06f::t_df4a1cbdcfc8a4 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe8454966ac298d8ae30ba77a3f0e62bb596a02b",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
