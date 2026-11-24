@@ -25,6 +25,7 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
 import module namespace charts = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/charts" at "xmldb:exist:///db/apps/BetMasWeb/modules/charts.xqm";
 import module namespace LitFlow = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/LitFlow" at "xmldb:exist:///db/apps/BetMasWeb/modules/LitFlow.xqm";
+import module namespace refs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/refs" at "xmldb:exist:///db/apps/BetMasWeb/modules/refs.xqm";
 
 (:~
  : templates:apply lookup function for this module, referenced by name
@@ -147,7 +148,7 @@ declare function item2:witList($item) {
  : @param $id item xml:id
  :)
 declare function item2:witnesses($id) {
-	let $item := ($apprest:collection-rootMS, $apprest:collection-rootW)//t:TEI/id($id)
+	let $item := (($apprest:collection-rootMS, $apprest:collection-rootW)/id($id))[self::t:TEI]
 	return if ($item/@type eq "mss") then
 		<div class="w3-bar-item" id="textWitnesses"><h5>Transcription of the manuscript</h5></div>
 	else (
@@ -1712,8 +1713,8 @@ declare function item2:RestPersRole($file, $collection) {
 	return if ($collection = "persons") then (
 		<div class="w3-panel w3-margin w3-card-4">
 			{
-				let $persrol := $exptit:col//t:persName[ends-with(@ref, $id)]
-				let $persrole := $persrol[@role]
+				(: was ends-with; now canonical BMurl + value eq :)
+				let $persrole := refs:persName($exptit:col, $id)[@role]
 				return if ($persrole) then
 					for $role in $persrole
 					group by $r := $role/@role
@@ -1777,14 +1778,10 @@ declare function item2:RestPersRole($file, $collection) {
 				{ " of this manuscript" }.
 
     {
-					(: Select the persName nodes first and exclude this manuscript through
-					   the ancestor axis. The previous form bound
-					   $exptit:col//t:TEI[@xml:id != $id] first: a `!=` predicate cannot use
-					   an index, so it materialised every TEI document (~58k), and the
-					   following //t:persName step then sorted and de-duplicated that whole
-					   node set in document order, once per person role on the page. :)
+					(: Same shape as before: persName by ref then
+					   ancestor TEI xml:id != $id. Never bind all TEI with != first. :)
 					let $refid := string($ID)
-					let $persons := $exptit:col//t:persName[@ref eq $refid][@role][ancestor::t:TEI/@xml:id != $id]
+					let $persons := refs:persName($exptit:col, $refid)[@role][ancestor::t:TEI/@xml:id != $id]
 					for $role in $persons
 
 					group by $r := $role/@role
@@ -2104,7 +2101,7 @@ Scrolling in this box will also show you a summary of all the occurences.  <a
 				}
 				{
 					if (starts-with($id, "NAR")) then (
-						let $file := collection($config:data-rootN)//id($id)
+						let $file := collection($config:data-rootN)/id($id)
 						let $broadMatch := $file//t:relation[@name eq "skos:broadMatch"]/@passive
 						for $b in $broadMatch
 						let $broad := substring-after($b, "betmas:")

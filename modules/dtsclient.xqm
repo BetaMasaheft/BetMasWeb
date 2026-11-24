@@ -27,6 +27,25 @@ import module namespace rutil = "https://www.betamasaheft.uni-hamburg.de/BetMasW
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
+(: Expanded once — calling collection() per id re-open was ~1 s / 25 lookups. :)
+declare variable $dtsc:expanded := collection("/db/apps/expanded");
+
+(:~
+ : Expanded TEI by @xml:id via structural id() (not //@xml:id scan).
+ : Directional @:8082 warm (25 ids): //@xml:id ~56–66 ms; bare $col/id() ~6 ms;
+ : collection()/id() inside a function ~1 s (re-opens). Use module collection.
+ : Warm-only — reconfirm on a fresh eXist container before treating as proven.
+ : Two-arg form is for tests / alternate roots; keep $col bound by the caller
+ : (do not pass a freshly opened collection() into a hot loop).
+ :)
+declare function dtsc:expanded-tei($id as xs:string, $col as node()*) as element(t:TEI)* {
+	($col/id($id))[self::t:TEI]
+};
+
+declare function dtsc:expanded-tei($id as xs:string) as element(t:TEI)* {
+	dtsc:expanded-tei($id, $dtsc:expanded)
+};
+
 (:~
  : Text tab URL on this deployment for a DTS edition or translation member.
  :
@@ -193,7 +212,7 @@ declare function dtsc:text($id, $edition, $ref, $start, $end, $collection) {
 				$selectedFrag/t:div/@corresp,
 				$selectedFrag/t:div/@type,
 				<label xmlns="http://www.tei-c.org/ns/1.0">Text imported from linked Textual Unit</label>,
-				collection("/db/apps/expanded")//id($corresp)//t:div[@type = "edition"]/node()
+				dtsc:expanded-tei($corresp)//t:div[@type = "edition"]/node()
 			}
 		</div>
 	else
@@ -318,7 +337,7 @@ DTSannoCollectionLink">
 						$DTSdoc
 					else
 						(: Fallback: try to get from collection if available :)
-						try { collection("/db/apps/expanded")//t:TEI[@xml:id = $id] } catch * { () }
+						try { dtsc:expanded-tei($id) } catch * { () }
 				else
 					(: For external requests, cache the HTTP response :)
 					dtsc:requestXML($fullxml)[2]

@@ -523,10 +523,10 @@ function lists:SearchTitles(
 		$typeval
 	let $works := if ($limit-work = "") then (
 	) else
-		$lists:collection-rootW//id($limit-work)
+		$lists:collection-rootW/id($limit-work)
 	let $mss := if ($limit-mss = "") then (
 	) else
-		$lists:collection-rootMS//id($limit-mss)
+		$lists:collection-rootMS/id($limit-mss)
 	(: t:title/@ref stores the full canonical URL, not the bare @xml:id this parameter arrives as :)
 	let $limit-work-ref := if ($limit-work = "") then
 		""
@@ -2293,7 +2293,7 @@ declare %templates:wrap function lists:bindingRes($node as node(), $model as map
 					>
 						<span class="w3-badge w3-right">{ count($b) }</span>
 						<span class="w3-left " data-value="{ $type }">
-							{ $lists:collection-rootMS//id($ms)//t:msIdentifier/t:idno }
+							{ $lists:collection-rootMS/id($ms)//t:msIdentifier/t:idno }
 						</span>
 					</button>,
 					<div class="w3-container w3-hide" id="{ data($ms) }{ data($type) }">

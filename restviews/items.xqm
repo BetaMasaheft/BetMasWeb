@@ -154,7 +154,7 @@ declare function restItem:getcorpus($request as map(*)) {
 declare function restItem:ITEM($type, $id, $collection, $start, $end, $ref, $edition, $per-page, $hi as xs:string*) {
 	let $collect := switch2:collectionVar($collection)
 	let $coll := $config:data-root || "/" || $collection
-	let $this := $collect//t:TEI[@xml:id eq $id]
+	let $this := ($collect/id($id))[self::t:TEI]
 	(: let $t := util:log("info", $id) :)
 	let $title := item2:printTitle($id)
 	let $Cmap := map {"type": "collection", "name": $collection, "path": $coll}
@@ -347,7 +347,7 @@ declare function restItem:mainContentCorpus($id as xs:string*) {
 			let $msid := substring-before($rootid, "#")
 			return <div class="w3-row documentcorpus w3-panel w3-leftbar">
 				{
-					let $doc := $document/ancestor::t:TEI//id($itemid)
+					let $doc := $document/ancestor::t:TEI/id($itemid)
 					return (
 						<div class="w3-col" style="width:15%">
 							<a href="{ $msid }">{ $msid }</a>

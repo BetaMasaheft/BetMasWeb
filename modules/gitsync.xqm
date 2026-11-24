@@ -126,7 +126,7 @@ declare function gitsync:updatepersonsMOD($file-name) {
 	let $perslist := $gitsync:persons//t:list
 	let $fn := tokenize($file-name, "/")[last()]
 	let $id := substring-before($fn, ".xml")
-	let $file := collection($config:data-rootPr)//id($id)
+	let $file := collection($config:data-rootPr)/id($id)
 	let $t := titles:persNameSelector($file)
 	let $update := update value $perslist/t:item[@corresp eq $id] with $t
 	return "updated persNamesLabels.xml static list with " || $t || " for item with id = " || $id || ". "
@@ -144,7 +144,7 @@ declare function gitsync:updateplacesMOD($file-name) {
 	let $placelist := $gitsync:places//t:list
 	let $fn := tokenize($file-name, "/")[last()]
 	let $id := substring-before($fn, ".xml")
-	let $file := $titles:collection-rootPl//id($id)
+	let $file := $titles:collection-rootPl/id($id)
 	let $newtitleSelector := titles:placeNameSelector($file)
 	let $update := update value $placelist/t:item[@corresp eq $id] with $newtitleSelector
 	return "updated placeNamesLabels.xml static list"
@@ -162,7 +162,7 @@ declare function gitsync:updatetextpartsMOD($file-name) {
 	let $textslist := $gitsync:textparts//t:list
 	let $longid := tokenize($file-name, "/")[last()]
 	let $id := substring-before($longid, ".xml")
-	let $file := collection($config:data-rootW)//id($id)
+	let $file := collection($config:data-rootW)/id($id)
 	let $newtitleSelector := titles:worknarrTitleSelector($file)
 	let $update := if ($textslist/t:item[@corresp eq $id]) then
 		update value $textslist/t:item[@corresp eq $id] with $newtitleSelector

@@ -138,7 +138,7 @@ declare function legacy:label($id as xs:string) {
 		else
 			$mainIDstart
 		let $SUBid := substring-after($id, "#")
-		let $node := $legacy:col//id($mainID)
+		let $node := ($legacy:col/id($mainID))[self::t:TEI]
 		return if ($node) then
 			if (starts-with($SUBid, "t")) then
 				let $subtitles := $node//t:title[contains(@corresp, $SUBid)]

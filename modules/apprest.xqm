@@ -29,6 +29,7 @@ import module namespace console = "http://exist-db.org/xquery/console";
 import module namespace exreq = "http://exquery.org/ns/request";
 import module namespace viewItem = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/viewItem" at "xmldb:exist:///db/apps/BetMasWeb/modules/viewItem.xqm";
 import module namespace locus = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/locus" at "xmldb:exist:///db/apps/BetMasWeb/modules/locus.xqm";
+import module namespace refs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/refs" at "xmldb:exist:///db/apps/BetMasWeb/modules/refs.xqm";
 
 declare variable $apprest:languages := doc("/db/apps/lists/languages.xml");
 
@@ -336,29 +337,29 @@ declare function apprest:WhatPointsHereQuery($id as xs:string) {
 
 (: ~          used by apprest.xqm and timeline.xqm :)
 declare function apprest:WhatPointsHere($id as xs:string, $c) {
-	let $witnesses := $c//t:witness[@corresp eq $id]
-	let $placeNames := $c//t:placeName[@ref eq $id]
-	let $persNames := $c//t:persName[@ref eq $id]
-	let $ref := $c//t:ref[@corresp eq $id]
-	let $titles := $c//t:title[@ref eq $id]
-	let $settlement := $c//t:settlement[@ref eq $id]
-	let $region := $c//t:region[@ref eq $id]
-	let $country := $c//t:country[@ref eq $id]
-	let $active := $c//t:relation[@active eq $id]
-	let $passive := $c//t:relation[@passive eq $id]
-	let $locus := $c//t:locus[@corresp eq $id]
-	let $allrefs := (
-		$witnesses, $placeNames, $persNames, $ref, $titles, $settlement, $region, $country, $active, $passive, $locus
+	(: Same probes as historically; one canonical BMurl key + value eq so
+	   range fields apply. Multi-token relation passive still needs contains elsewhere. :)
+	let $key := refs:canonical($id)
+	return (
+		$c//t:witness[@corresp eq $key],
+		$c//t:placeName[@ref eq $key],
+		$c//t:persName[@ref eq $key],
+		$c//t:ref[@corresp eq $key],
+		$c//t:title[@ref eq $key],
+		$c//t:settlement[@ref eq $key],
+		$c//t:region[@ref eq $key],
+		$c//t:country[@ref eq $key],
+		$c//t:relation[@active eq $key],
+		$c//t:relation[@passive eq $key],
+		$c//t:locus[@corresp eq $key]
 	)
-	return for $corr in $allrefs
-		return $corr
 };
 
 (:~
  : collects bibliographical information for zotero metadata
  :)
 declare function apprest:bibdata($id, $collection) as node()* {
-	let $file := $exptit:col//t:TEI/id($id)
+	let $file := ($exptit:col/id($id))[self::t:TEI]
 	return (: here I cannot use for the title the javascript titles.js because the content is not exposed :) <bibl>
 		{
 			let $ids := (
@@ -2493,7 +2494,7 @@ declare function apprest:compareMssFromlist($mss) {
 				group by $MS := $ms
 				return $MS
 			) else
-				$apprest:collection-rootMS//id($ms)[self::t:TEI]
+				$apprest:collection-rootMS/id($ms)[self::t:TEI]
 		return (
 			<div class="msscomparison w3-container">
 				{

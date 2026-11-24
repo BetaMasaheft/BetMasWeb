@@ -113,7 +113,7 @@ declare function selectors:subtitle($node as node(), $sub-id as xs:string, $opti
 	else if (starts-with($sub-id, "Uni")) then
 		$sub-id
 	else
-		let $item := $node//id($sub-id)
+		let $item := $node/id($sub-id)
 		return if ($item/name() = "title") then
 			string($item/@xml:lang) ||
 				(

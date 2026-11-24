@@ -18,6 +18,10 @@ import module namespace tsdtsdoc = "https://www.betamasaheft.uni-hamburg.de/BetM
 import module namespace tsdtsprev = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-prevnext" at "ts-dtslib-prevnext.xqm";
 import module namespace tsdtsregex = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtslib-regexid" at "ts-dtslib-regexid.xqm";
 import module namespace tsdtscedlink = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtsclient-editionlink" at "ts-dtsclient-editionlink.xqm";
+import module namespace tsdtscexp = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-dtsclient-expanded-tei" at "ts-dtsclient-expanded-tei.xqm";
+import module namespace tsidcorners = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-id-lookup-corners" at "ts-id-lookup-corners.xqm";
+import module namespace tsresttei = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-restitem-tei-by-id" at "ts-restitem-tei-by-id.xqm";
+import module namespace tsrefs = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-refs" at "ts-refs.xqm";
 import module namespace tslocalhref = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-config-islocalhref" at "ts-config-islocalhref.xqm";
 import module namespace tsmainrels = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-item-mainrels" at "ts-item-mainrels.xqm";
 import module namespace tsvinar = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-viewitem-narrative" at "ts-viewitem-narrative.xqm";
@@ -52,6 +56,7 @@ import module namespace tstitlesres = "https://www.betamasaheft.uni-hamburg.de/B
 import module namespace tsdecores = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-resources-decores" at "ts-resources-decores.xqm";
 import module namespace tsformbatch = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-resources-formbatch" at "ts-resources-formbatch.xqm";
 import module namespace tstitlesconsol = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titles-consolidation" at "ts-titles-consolidation.xqm";
+import module namespace tstitlesid = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-titlesdata-tei-by-id" at "ts-titlesdata-tei-by-id.xqm";
 import module namespace tsprinttitle = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-exptit-printtitle" at "ts-exptit-printtitle.xqm";
 import module namespace tscatalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-catalog-contract" at "ts-catalog-contract.xqm";
 import module namespace tsselectors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-catalog-selectors" at "ts-catalog-selectors.xqm";
@@ -85,6 +90,10 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-dtslib-prevnext.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtslib-regexid.xqm")),
 		inspect:module-functions(xs:anyURI("ts-dtsclient-editionlink.xqm")),
+		inspect:module-functions(xs:anyURI("ts-dtsclient-expanded-tei.xqm")),
+		inspect:module-functions(xs:anyURI("ts-id-lookup-corners.xqm")),
+		inspect:module-functions(xs:anyURI("ts-restitem-tei-by-id.xqm")),
+		inspect:module-functions(xs:anyURI("ts-refs.xqm")),
 		inspect:module-functions(xs:anyURI("ts-config-islocalhref.xqm")),
 		inspect:module-functions(xs:anyURI("ts-item-mainrels.xqm")),
 		inspect:module-functions(xs:anyURI("ts-viewitem-narrative.xqm")),
@@ -121,6 +130,7 @@ test:suite(
 		inspect:module-functions(xs:anyURI("ts-resources-decores.xqm")),
 		inspect:module-functions(xs:anyURI("ts-resources-formbatch.xqm")),
 		inspect:module-functions(xs:anyURI("ts-titles-consolidation.xqm")),
+		inspect:module-functions(xs:anyURI("ts-titlesdata-tei-by-id.xqm")),
 		inspect:module-functions(xs:anyURI("ts-exptit-printtitle.xqm")),
 		inspect:module-functions(xs:anyURI("ts-catalog-contract.xqm")),
 		inspect:module-functions(xs:anyURI("ts-catalog-selectors.xqm")),
