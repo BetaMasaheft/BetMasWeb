@@ -197,6 +197,60 @@ declare function expand:bibl-enrich-entry($ptr as xs:string) as element(t:bibl)?
 };
 
 (:~
+ : True when a bibl already carries expand-baked EthioStudies/Zotero children.
+ :)
+declare %private function expand:bibl-has-baked-kids($bibl as element(t:bibl)) as xs:boolean {
+	exists(
+		$bibl/(t:title | t:author | t:editor | t:pubPlace | t:publisher | t:date | t:series | t:biblScope | t:note | t:seg)
+	)
+};
+
+(:~
+ : One bibl: if bm: ptr-only, inject EthioStudies children (response copy).
+ : Keeps authoring citedRange / ref. No-op when already baked or no cache hit.
+ :)
+declare %private function expand:enrich-bibl-one($bibl as element(t:bibl)) as element(t:bibl) {
+	let $ptr := normalize-space($bibl/t:ptr/@target)
+	return if (not(starts-with($ptr, "bm:")) or expand:bibl-has-baked-kids($bibl)) then
+		element {fn:QName("http://www.tei-c.org/ns/1.0", "bibl")} { ($bibl/@*, expand:enrich-bibl-nodes($bibl/node())) }
+	else
+		let $entry := expand:bibl-enrich-entry($ptr)
+		return if (empty($entry)) then
+			element {fn:QName("http://www.tei-c.org/ns/1.0", "bibl")} { ($bibl/@*, expand:enrich-bibl-nodes($bibl/node())) }
+		else
+			element {fn:QName("http://www.tei-c.org/ns/1.0", "bibl")} {
+				($bibl/@*[not(name() = "corresp")], $entry/@*, $entry/node(), $bibl/t:citedRange, $bibl/t:ref)
+			}
+};
+
+(:~
+ : Deep copy with bm: bibl enrich-on-read (does not write the DB).
+ :)
+declare function expand:enrich-bibl-nodes($nodes as node()*) as node()* {
+	for $n in $nodes
+	return typeswitch ($n)
+		case element(t:bibl) return
+			expand:enrich-bibl-one($n)
+		case element() return
+			element {node-name($n)} { ($n/@*, expand:enrich-bibl-nodes($n/node())) }
+		case document-node() return
+			document { expand:enrich-bibl-nodes($n/node()) }
+
+		default return
+			$n
+};
+
+(:~
+ : Enrich-on-download: TEI copy with EthioStudies biblStruct children for bm:
+ : ptrs that lack baked kids. Store stays ptr-only; do not xmldb:store result.
+ : @param $tei expanded (or authoring) TEI root
+ : @return new TEI element
+ :)
+declare function expand:enrich-bibl-tei($tei as element(t:TEI)) as element(t:TEI) {
+	expand:enrich-bibl-nodes($tei)
+};
+
+(:~
  : Wall-clock CKPT line for expand:file (docker logs: grep 'expand:file CKPT').
  :)
 declare %private function expand:ckpt($filepath as xs:string, $step as xs:string, $t0 as item()) {

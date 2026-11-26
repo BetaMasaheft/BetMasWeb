@@ -282,6 +282,60 @@ function tsexpenrich:with-enrich-defaults-overrides() {
 	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
 };
 
+declare
+	%test:name("enrich-bibl-tei injects EthioStudies kids on ptr-only bibl")
+	%test:assertXPath("exists($result/*:title) or exists($result/*:author) or exists($result/*:note)")
+function tsexpenrich:enrich-bibl-tei-injects() {
+	let $ptr-only := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTenrichDl01">
+		<teiHeader>
+			<fileDesc>
+				<titleStmt><title>t</title></titleStmt>
+				<publicationStmt><p>x</p></publicationStmt>
+				<sourceDesc>
+					<p><bibl><ptr target="{ $tsexpenrich:bm-ptr }" /><citedRange unit="page">1</citedRange></bibl></p>
+				</sourceDesc>
+			</fileDesc>
+		</teiHeader>
+		<text><body><div><p /></div></body></text>
+	</TEI>
+	let $out := expand:enrich-bibl-tei($ptr-only)
+	return $out//t:bibl[t:ptr/@target = $tsexpenrich:bm-ptr][1]
+};
+
+declare
+	%test:name("enrich-bibl-tei keeps citedRange") %test:assertEquals("1")
+function tsexpenrich:enrich-bibl-tei-keeps-citedRange() {
+	let $ptr-only := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTenrichDl02">
+		<teiHeader>
+			<fileDesc>
+				<titleStmt><title>t</title></titleStmt>
+				<publicationStmt><p>x</p></publicationStmt>
+				<sourceDesc>
+					<p><bibl><ptr target="{ $tsexpenrich:bm-ptr }" /><citedRange unit="page">1</citedRange></bibl></p>
+				</sourceDesc>
+			</fileDesc>
+		</teiHeader>
+		<text><body><div><p /></div></body></text>
+	</TEI>
+	return expand:enrich-bibl-tei($ptr-only)//t:bibl[t:ptr/@target = $tsexpenrich:bm-ptr]/t:citedRange/string()
+};
+
+declare
+	%test:name("enrich-bibl-tei leaves already-baked bibl alone") %test:assertEquals("KEEPME")
+function tsexpenrich:enrich-bibl-tei-skips-baked() {
+	let $baked := <TEI xmlns="http://www.tei-c.org/ns/1.0" type="work" xml:id="LITTESTenrichDl03">
+		<teiHeader>
+			<fileDesc>
+				<titleStmt><title>t</title></titleStmt>
+				<publicationStmt><p>x</p></publicationStmt>
+				<sourceDesc><p><bibl><ptr target="{ $tsexpenrich:bm-ptr }" /><title>KEEPME</title></bibl></p></sourceDesc>
+			</fileDesc>
+		</teiHeader>
+		<text><body><div><p /></div></body></text>
+	</TEI>
+	return expand:enrich-bibl-tei($baked)//t:bibl[t:ptr/@target = $tsexpenrich:bm-ptr]/t:title/string()
+};
+
 declare variable $tsexpenrich:ag00001 := "/db/apps/BetMasData/manuscripts/AbbaGarima/AG00001.xml";
 
 (:~

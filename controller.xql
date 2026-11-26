@@ -280,19 +280,20 @@ else if (
 			</forward>
 		</dispatch>
 
-(: tei tranformed :)
+(: Human TEI download: enrich bibl from EthioStudies on the response (Task 2b).
+   Raw expanded remains at /{id}.xml and /api/{id}/tei (default). :)
 else if (starts-with($exist:path, "/tei/") and ends-with($exist:path, ".xml")) then
 	let $id := substring-before($exist:resource, ".xml")
-	let $item := collection($config:data-root)/id($id)[name() = "TEI"]
-	let $collection := local:switchCol($item/@type)
-
-	return if ($item) then
-		<dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-			<forward absolute="yes" url="{ $config:appUrl }/{ $id }.xml" />
-		</dispatch>
-	else
-		let $Imap := map {"type": "xmlitem", "name": $id, "path": $collection}
-		return error:error($Imap)
+	return <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+		<forward url="{ $exist:controller }/modules/teiDownload.xql">
+			<add-parameter name="id" value="{ $id }" />
+			<add-parameter name="enrich" value="bibl" />
+		</forward>
+		<error-handler>
+			<forward method="get" url="{ $exist:controller }/error/error-page.html" />
+			<forward url="{ $exist:controller }/modules/view.xql" />
+		</error-handler>
+	</dispatch>
 
 (: the xml stored in the db :)
 else if (ends-with($exist:path, ".xml")) then
