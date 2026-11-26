@@ -261,19 +261,14 @@ declare function item2:RestViewOptions($this, $collection) {
 <span class="w3-text w3-tag itemoptiontooltip">Produces a PDF on the fly from the source TEI-XML using XSL-FO and Apache FOP</span>
 </div>-->
 		<div class="w3-bar-item w3-tooltip">
-			<a
-				class="w3-button w3-padding-small w3-gray"
-				href="{ concat("/tei/", $id, ".xml") }"
-				id="TEILink"
-				target="_blank"
-			>TEI/XML</a>
+			<a class="w3-button w3-padding-small w3-gray" href="/tei/{ $id }.xml" id="TEILink" target="_blank">TEI/XML</a>
 			<span
 				class="w3-text w3-tag itemoptiontooltip"
 			>
 				Download TEI with bibliography filled from EthioStudies (enrich-on-download).
-				Raw expanded TEI: {
-					concat("/", $id, ".xml or /api/", $id, "/tei")
-				}
+				Raw expanded TEI: /{
+					$id
+				}.xml or /api/{ $id }/tei
 			</span>
 		</div>
 		{
