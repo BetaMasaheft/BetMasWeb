@@ -1,0 +1,19 @@
+modules/item.xqm
+  s_545f96ebe4ea56::t_312a06938d4a2e 264,269-271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d1754db357c39448bfbde90865418e598366817a",
+  "prompts": {},
+  "sessions": {
+    "s_545f96ebe4ea56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "61fdbb27-391e-401a-9dd6-2f0e8ba78e02",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
