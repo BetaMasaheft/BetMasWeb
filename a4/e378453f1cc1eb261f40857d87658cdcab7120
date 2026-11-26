@@ -1,0 +1,31 @@
+modules/teiDownload.xql
+  s_b9450a356bc06f::t_75d28486c32bd3 28
+  s_b9450a356bc06f::t_def0dc80113796 1-27,29-35
+modules/expand.xqm
+  s_b9450a356bc06f::t_c5876fb75ba211 199-252
+controller.xql
+  s_b9450a356bc06f::t_a3e4834c9c2841 283-284,287-296
+modules/item.xqm
+  s_b9450a356bc06f::t_86540965a582f1 263-273
+  s_b9450a356bc06f::t_03f30bf78a60eb 274-276
+  s_b9450a356bc06f::t_f59b073560a20a 277-278
+test/xqs/ts-expand-enrich-flags.xqm
+  s_b9450a356bc06f::t_9da8b53ab28ec7 287
+  s_b9450a356bc06f::t_017754da884aa7 285-286,288-338
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4e378453f1cc1eb261f40857d87658cdcab7120",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
