@@ -16,7 +16,7 @@ declare variable $batchExpand:data-root := "/db/apps/BetMasData";
 
 (:~
  : Parse makeExpand ?enrich= allowlist into an expand:file options map.
- : Absent / empty sequence → map {} (module defaults stay on).
+ : Absent / empty sequence → map {} (module defaults: bibl off, titles on).
  : Present (including empty string) → only listed enrichments are true;
  : unknown tokens ignored. Tokens: bibl, titles (aliases enrich-bibl /
  : enrich-titles accepted).

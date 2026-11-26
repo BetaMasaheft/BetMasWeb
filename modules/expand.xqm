@@ -37,10 +37,11 @@ declare variable $expand:listPrefixDef := doc("/db/apps/lists/listPrefixDef.xml"
 declare variable $expand:calendarDesc := doc($config:app-root || "/calendars/calendarDesc.xml")/t:calendarDesc;
 
 (:~
- : When true (default), expand:file embeds EthioStudies/Zotero biblStruct for bm: ptrs.
- : Override per call via expand:file($path, map { "enrich-bibl": false() }).
+ : When true, expand:file embeds EthioStudies/Zotero biblStruct for bm: ptrs.
+ : Default false (Debake Task 2 / #312): keep source ptr/children; serve via catalog:bibl.
+ : Override per call via expand:file($path, map { "enrich-bibl": true() }) or ?enrich=bibl.
  :)
-declare variable $expand:enrich-bibl as xs:boolean := true();
+declare variable $expand:enrich-bibl as xs:boolean := false();
 
 (:~
  : When true (default), inject title[@type=full], fill empty @ref text, and

@@ -2,7 +2,8 @@ xquery version "3.1" encoding "UTF-8";
 
 (:~
  : XQSuite for expand enrich flags (BetMasWeb#312).
- : Defaults on preserve today's bake; options map can turn bibl/titles off.
+ : Default: enrich-bibl off, enrich-titles on. Options map / ?enrich= can
+ : turn bibl on or titles off.
  :
  : Prefer assertEmpty / assertExists / assertEquals / assertXPath on the
  : value under test so failures show expected vs $result (not opaque
@@ -89,7 +90,7 @@ declare %private function tsexpenrich:ref-ab($doc as node()) as element(t:ab)? {
 	$doc//t:ab[@xml:id = "enrichFlagsRefAb"][1]
 };
 
-declare %test:name("default enrich-bibl is on") %test:assertTrue function tsexpenrich:default-enrich-bibl-on() {
+declare %test:name("default enrich-bibl is off") %test:assertFalse function tsexpenrich:default-enrich-bibl-off() {
 	expand:enrich-bibl()
 };
 
@@ -98,11 +99,21 @@ declare %test:name("default enrich-titles is on") %test:assertTrue function tsex
 };
 
 declare
-	%test:name("default expand:file embeds biblStruct title for bm: ptr")
+	%test:name("default expand:file keeps ptr only (no embedded bibl children)")
+	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
+	%test:assertXPath(
+		"empty($result/(title | author | editor | pubPlace | publisher | date | series | biblScope | note))"
+	)
+function tsexpenrich:default-bibl-off-keeps-ptr-only() {
+	tsexpenrich:heldman-bibl(expand:file(tsexpenrich:path()))
+};
+
+declare
+	%test:name("enrich-bibl true embeds biblStruct title for bm: ptr")
 	%test:assertXPath("exists($result/ptr[@target = 'bm:Heldman1993AfrZion'])")
 	%test:assertXPath("exists($result/title)")
 function tsexpenrich:bibl-on-embeds-struct() {
-	tsexpenrich:heldman-bibl(expand:file(tsexpenrich:path()))
+	tsexpenrich:heldman-bibl(expand:file(tsexpenrich:path(), map {"enrich-bibl": true()}))
 };
 
 declare
@@ -264,8 +275,9 @@ function tsexpenrich:citation-by-tag-new-range-full() {
 };
 
 declare
-	%test:name("with-enrich-defaults materializes both enrich booleans") %test:assertEquals("true", "false")
+	%test:name("with-enrich-defaults materializes both enrich booleans") %test:assertEquals("false", "false")
 function tsexpenrich:with-enrich-defaults-overrides() {
+	(: titles override only; bibl stays at module default (off). :)
 	let $o := expand:with-enrich-defaults(map {"enrich-titles": false()})
 	return (string(map:get($o, "enrich-bibl")), string(map:get($o, "enrich-titles")))
 };
