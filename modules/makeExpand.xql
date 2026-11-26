@@ -5,7 +5,8 @@ xquery version "3.1" encoding "UTF-8";
  : GET|POST …/modules/makeExpand.xql?collection=/db/apps/BetMasData/works/1-1000
  : GET|POST …/modules/makeExpand.xql?mode=unmirrored&collection=/db/apps/BetMasData/manuscripts
  : Optional ?enrich=bibl,titles — allowlist of enrichments to keep on
- : (absent → expand module defaults; empty → both off). See batchExpand:enrich-opts.
+ : (absent → module defaults: bibl off, titles on; empty → both off).
+ : See batchExpand:enrich-opts.
  :
  : Requires an authenticated non-guest principal who is DBA or in Editors.
  : For xst / util:eval without HTTP, call batchExpand:expandCollection or
