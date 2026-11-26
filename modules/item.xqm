@@ -263,7 +263,7 @@ declare function item2:RestViewOptions($this, $collection) {
 		<div class="w3-bar-item w3-tooltip">
 			<a
 				class="w3-button w3-padding-small w3-gray"
-				href="{ "/tei/" || $id || ".xml" }"
+				href="{ concat("/tei/", $id, ".xml") }"
 				id="TEILink"
 				target="_blank"
 			>TEI/XML</a>
@@ -271,9 +271,9 @@ declare function item2:RestViewOptions($this, $collection) {
 				class="w3-text w3-tag itemoptiontooltip"
 			>
 				Download TEI with bibliography filled from EthioStudies (enrich-on-download).
-				Raw expanded TEI: /{
-					$id
-				}.xml or /api/{ $id }/tei
+				Raw expanded TEI: {
+					concat("/", $id, ".xml or /api/", $id, "/tei")
+				}
 			</span>
 		</div>
 		{
