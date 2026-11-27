@@ -12,6 +12,24 @@ declare namespace http = "http://expath.org/ns/http-client";
 import module namespace router = "http://e-editiones.org/roaster/router";
 
 (:~
+ : Bare media type for `roaster:response`.
+ :
+ : Roaster's `router:method-for-content-type` chooses `output:method` with
+ : `ends-with($type, "xml")`. A parameter suffix such as `; charset=utf-8`
+ : makes that fail, falls through to `text`, and element bodies become
+ : string-value while Content-Type still claims `…+xml` (BetMasApi#78).
+ : Pass the bare type here; Roaster adds charset via `content-type-header`.
+ :)
+declare function rutil:media-type($type as xs:string?) as xs:string? {
+	if (empty($type)) then (
+	) else
+		let $bare := normalize-space(tokenize($type, ";")[1])
+		return if ($bare eq "") then (
+		) else
+			$bare
+};
+
+(:~
  : True when $value is a Roaster response map (same test as router.xql).
  :)
 declare function rutil:is-response($value as item()?) as xs:boolean {

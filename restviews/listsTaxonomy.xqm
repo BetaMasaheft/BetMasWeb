@@ -24,7 +24,8 @@ declare function listsTax:canonicaltaxonomy($request as map(*)) {
 	if (exists($listsTax:canonical/*)) then
 		roaster:response(
 			200,
-			"application/xml; charset=utf-8",
+			(: bare type only — "; charset=…" breaks Roaster …xml → method=xml (BetMasApi#78) :)
+			"application/xml",
 			$listsTax:canonical/*,
 			map {"Access-Control-Allow-Origin": "*"}
 		)

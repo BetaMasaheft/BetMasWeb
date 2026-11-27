@@ -33,6 +33,7 @@ import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace config = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/config" at "xmldb:exist:///db/apps/BetMasWeb/modules/config.xqm";
 import module namespace fusekisparql = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/sparqlfuseki" at "xmldb:exist:///db/apps/BetMasWeb/fuseki/fuseki.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
+import module namespace rutil = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/rutil" at "xmldb:exist:///db/apps/BetMasWeb/modules/roaster-util.xqm";
 import module namespace switch2 = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/switch2" at "xmldb:exist:///db/apps/BetMasWeb/modules/switch2.xqm";
 import module namespace editors = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/editors" at "xmldb:exist:///db/apps/BetMasWeb/modules/editors.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
@@ -541,13 +542,15 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 	if ($id = "") then
 		dtslib:redirectToCollections()
 	else
+		(: Bare type only — see rutil:media-type / BetMasApi#78. :)
+		let $media-type := rutil:media-type($Content-Type)
 		let $r := dtslib:document-result($id, $ref, $start, $end)
 		return if ($r?status eq 400) then
 			roaster:response(400, "application/xml", $r?body)
 		else if ($r?status eq 302) then
 			roaster:response(302, (), (), $r?headers)
 		else
-			switch ($Content-Type)
+			switch ($media-type)
 				case "application/rdf+xml" return
 					dtslib:redirectToRDF($r?thisid)
 				case "application/pdf" return
@@ -555,14 +558,9 @@ declare function dtslib:docs($id as xs:string*, $ref as xs:string*, $start, $end
 				case "text/html" return
 					dtslib:redirectToHTML($r?thisid, $ref, $start)
 				case "text/plain" return
-					roaster:response(
-						200,
-						$Content-Type || "; charset=utf-8",
-						string:tei2string($r?body/node()[not(name() = "teiHeader")]),
-						$r?headers
-					)
+					roaster:response(200, $media-type, string:tei2string($r?body/node()[not(name() = "teiHeader")]), $r?headers)
 				default return
-					roaster:response(200, $Content-Type || "; charset=utf-8", $r?body, $r?headers)
+					roaster:response(200, $media-type, $r?body, $r?headers)
 };
 
 declare %private function dtslib:fragment($file, $edition, $ref, $start, $end, $text) {
