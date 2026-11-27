@@ -211,3 +211,96 @@ declare function all:distinct-values($values) {
 	group by $value
 	return $value
 };
+
+(:~
+ : Lucene BooleanQuery maxClauseCount (server default). Wildcard/prefix
+ : queries expand into one clause per matching term; above this they throw
+ : TooManyClauses. Tunable if the server raises the Lucene limit.
+ :)
+declare variable $all:LUCENE-WILDCARD-MAX-CLAUSES as xs:integer := 1024;
+
+(:~
+ : Floor for free-text wildcards (Yoh*, ab*). Measured on the live corpus:
+ : length 2 (ab*) hits TooManyClauses; length 3 (Yoh*, abc*) is usually safe.
+ : BM-id prefixes are NOT governed by this floor — see fan-out below.
+ : Was 4 (guess); lowered to 3 after measuring term expansion.
+ :)
+declare variable $all:LUCENE-WILDCARD-MIN-PREFIX as xs:integer := 3;
+
+(:~
+ : Conservative BM-id prefix floor when catalogs/labels.xml is unavailable
+ : (CI / bare app image). Dense namespaces need ~5 chars (PRS18*, LIT19*);
+ : length 3-4 (PRS*, PRS1*, LIT1*) still explode past maxClauseCount.
+ :)
+declare variable $all:LUCENE-WILDCARD-MIN-ID-PREFIX as xs:integer := 5;
+
+(:~
+ : Catalog of BM record ids (labels.xml @corresp). Used as a cheap stand-in
+ : for Lucene id-token fan-out when the query looks like a BM id prefix
+ : (PRS*, LIT1*, LOC2*). Module-load cache; empty if catalogs are absent.
+ :)
+declare variable $all:LUCENE-WILDCARD-LABEL-IDS as xs:string* := try {
+	doc("/db/apps/catalogs/labels.xml")//*:item/@corresp!string(.)
+} catch * { () };
+
+declare variable $all:LUCENE-WILDCARD-TOO-BROAD-MSG as xs:string :=
+	"Query too broad: this wildcard would match too many index terms (Lucene clause limit). Use a longer id prefix (e.g. PRS18* not PRS* / PRS1*), at least 3 letters for name wildcards (e.g. Yoh*), or a concrete id. Leading * / ? are not allowed.";
+
+(:~
+ : True when $prefix looks like a BM id stem (all-caps PRS, LIT19, LOC2…).
+ : Title-case / lowercase name stems (Yoh, ab) stay on the free-text floor.
+ :)
+declare %private function all:lucene-prefix-is-bm-id($prefix as xs:string) as xs:boolean {
+	matches($prefix, "^[A-Z]{2,}[0-9A-Z]*$")
+};
+
+(:~
+ : True when a BM-id-shaped prefix expands to >= maxClauseCount catalog ids.
+ : Without labels.xml, fall back to MIN-ID-PREFIX (not the free-text floor),
+ : so CI without catalogs still rejects PRS* / LIT1*.
+ :)
+declare %private function all:lucene-id-prefix-too-broad($prefix as xs:string) as xs:boolean {
+	if (empty($all:LUCENE-WILDCARD-LABEL-IDS)) then
+		string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-ID-PREFIX
+	else
+		count($all:LUCENE-WILDCARD-LABEL-IDS[starts-with(., $prefix)]) ge $all:LUCENE-WILDCARD-MAX-CLAUSES
+};
+
+(:~
+ : True when a single Lucene token has a leading wildcard, an over-broad
+ : BM-id prefix (labels.xml fan-out >= maxClauseCount), or fewer than
+ : $all:LUCENE-WILDCARD-MIN-PREFIX literal characters before * or ? for
+ : free-text tokens.
+ :)
+declare %private function all:lucene-token-wildcard-too-broad($token as xs:string?) as xs:boolean {
+	let $t := normalize-space(($token, "")[1])
+	return if ($t = "" or not(contains($t, "*") or contains($t, "?"))) then
+		false()
+	else if (matches($t, "^[?*]")) then
+		true()
+	else
+		let $prefix := replace($t, "[*?].*$", "")
+		let $prefix := replace($prefix, "^[+!~^-]+", "")
+		return if (all:lucene-prefix-is-bm-id($prefix)) then
+			all:lucene-id-prefix-too-broad($prefix)
+		else
+			string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
+};
+
+(:~
+ : True when any token in a Lucene query string is an unsafe wildcard/prefix.
+ : Understands field-scoped forms such as person:(PRS*).
+ :)
+declare function all:lucene-wildcard-too-broad($query as xs:string?) as xs:boolean {
+	if (empty($query) or normalize-space($query) = "") then
+		false()
+	else
+		let $parts :=
+			for $tok in tokenize(normalize-space($query), "\s+")
+			let $inner := if (matches($tok, "^[A-Za-z0-9_-]+:\([^)]*\)$")) then
+				replace($tok, "^[A-Za-z0-9_-]+:\(([^)]*)\)$", "$1")
+			else
+				$tok
+			return tokenize(translate($inner, '()"', "   "), "\s+")
+		return some $t in $parts[. != ""] satisfies all:lucene-token-wildcard-too-broad($t)
+};

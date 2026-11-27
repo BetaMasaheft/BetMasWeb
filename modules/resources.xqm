@@ -15,6 +15,7 @@ import module namespace exptit = "https://www.betamasaheft.uni-hamburg.de/BetMas
 import module namespace catalog = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/catalog" at "xmldb:exist:///db/apps/BetMasWeb/modules/catalog.xqm";
 import module namespace string = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/string" at "xmldb:exist:///db/apps/BetMasWeb/modules/tei2string.xqm";
 import module namespace zc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/zc" at "xmldb:exist:///db/apps/BetMasWeb/modules/zoteroCache.xqm";
+import module namespace all = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/all" at "xmldb:exist:///db/apps/BetMasWeb/modules/all.xqm";
 import module namespace console = "http://exist-db.org/xquery/console";
 
 declare variable $lists:collection-rootMS := collection($config:data-rootMS);
@@ -126,72 +127,75 @@ function lists:additions(
 	$otherText as xs:string*,
 	$interpret as xs:string*
 ) {
-	(:
-	 : was ancestor::t:TEI//t:textClass/t:keywords:/t:term[@ref eq ...] -
-	 : the stray colon made util:eval's string always fail to parse when
-	 : $main-key != "all", masking a second bug: the main-key <select>
-	 : below (and its only source of option values) is populated from
-	 : t:keywords/t:term/@key, not @ref, so even a syntactically valid
-	 : version of the old filter would have matched nothing. Both fixed
-	 : here as part of the native-predicate rewrite.
-	 :
-	 : Each filter step below is applied only when its parameter is
-	 : active ("all"/empty means skip) - unlike "[$x = 'all' or ...]"
-	 : chained onto every step regardless, which still pays for the
-	 : (often expensive, descendant-scanning) right-hand side per node
-	 : even when the left-hand side is already true. That form measured
-	 : 5-9x slower than the original util:eval'd query on this corpus.
-	 :)
-	let $s1 := $lists:collection-rootMS//t:item[starts-with(@xml:id, "a")]
-	let $s2 := if ($type = "all") then
-		$s1
+	if (all:lucene-wildcard-too-broad($otherText)) then
+		map {"hits": (), "error": $all:LUCENE-WILDCARD-TOO-BROAD-MSG}
 	else
-		$s1[descendant::t:desc/@type = $type]
-	let $s3 := if ($target-work = "all") then
-		$s2
-	else
-		$s2[descendant::t:title/@ref = $target-work]
-	let $s4 := if ($target-pers = "all") then
-		$s3
-	else
-		$s3[descendant::t:persName/@ref = $target-pers]
-	let $s5 := if ($target-place = "all") then
-		$s4
-	else
-		$s4[descendant::t:placeName/@ref = $target-place]
-	let $s6 := if ($target-keyword = "all") then
-		$s5
-	else
-		$s5[descendant::t:term/@key = $target-keyword]
-	let $s7 := if ($target-language = "all") then
-		$s6
-	else
-		$s6[descendant::t:q/@xml:lang = $target-language]
-	let $s8 := if (not($termText)) then
-		$s7
-	else
-		$s7[descendant::t:term[contains(., $termText)]]
-	let $s9 := if (not($otherText)) then
-		$s8
-	else
-		$s8[descendant::t:q[ft:query(., $otherText)]]
-	let $s10 := if ($interpret = "all") then
-		$s9
-	else
-		$s9[descendant::t:seg/@ana = $interpret]
-	let $s11 := if ($repo = "all") then
-		$s10
-	else
-		$s10[ancestor::t:TEI//t:repository/@ref = $repo]
-	let $s12 := if ($content = "all") then
-		$s11
-	else
-		$s11[ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref = $content]
-	let $additions := if ($main-key = "all") then
-		$s12
-	else
-		$s12[ancestor::t:TEI//t:textClass/t:keywords/t:term/@key = $main-key]
-	return map {"hits": $additions}
+		(:
+		 : was ancestor::t:TEI//t:textClass/t:keywords:/t:term[@ref eq ...] -
+		 : the stray colon made util:eval's string always fail to parse when
+		 : $main-key != "all", masking a second bug: the main-key <select>
+		 : below (and its only source of option values) is populated from
+		 : t:keywords/t:term/@key, not @ref, so even a syntactically valid
+		 : version of the old filter would have matched nothing. Both fixed
+		 : here as part of the native-predicate rewrite.
+		 :
+		 : Each filter step below is applied only when its parameter is
+		 : active ("all"/empty means skip) - unlike "[$x = 'all' or ...]"
+		 : chained onto every step regardless, which still pays for the
+		 : (often expensive, descendant-scanning) right-hand side per node
+		 : even when the left-hand side is already true. That form measured
+		 : 5-9x slower than the original util:eval'd query on this corpus.
+		 :)
+		let $s1 := $lists:collection-rootMS//t:item[starts-with(@xml:id, "a")]
+		let $s2 := if ($type = "all") then
+			$s1
+		else
+			$s1[descendant::t:desc/@type = $type]
+		let $s3 := if ($target-work = "all") then
+			$s2
+		else
+			$s2[descendant::t:title/@ref = $target-work]
+		let $s4 := if ($target-pers = "all") then
+			$s3
+		else
+			$s3[descendant::t:persName/@ref = $target-pers]
+		let $s5 := if ($target-place = "all") then
+			$s4
+		else
+			$s4[descendant::t:placeName/@ref = $target-place]
+		let $s6 := if ($target-keyword = "all") then
+			$s5
+		else
+			$s5[descendant::t:term/@key = $target-keyword]
+		let $s7 := if ($target-language = "all") then
+			$s6
+		else
+			$s6[descendant::t:q/@xml:lang = $target-language]
+		let $s8 := if (not($termText)) then
+			$s7
+		else
+			$s7[descendant::t:term[contains(., $termText)]]
+		let $s9 := if (not($otherText)) then
+			$s8
+		else
+			$s8[descendant::t:q[ft:query(., $otherText)]]
+		let $s10 := if ($interpret = "all") then
+			$s9
+		else
+			$s9[descendant::t:seg/@ana = $interpret]
+		let $s11 := if ($repo = "all") then
+			$s10
+		else
+			$s10[ancestor::t:TEI//t:repository/@ref = $repo]
+		let $s12 := if ($content = "all") then
+			$s11
+		else
+			$s11[ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref = $content]
+		let $additions := if ($main-key = "all") then
+			$s12
+		else
+			$s12[ancestor::t:TEI//t:textClass/t:keywords/t:term/@key = $main-key]
+		return map {"hits": $additions}
 };
 
 (:~
@@ -316,53 +320,56 @@ function lists:SearchDeco(
 	$legendText as xs:string*,
 	$otherText as xs:string*
 ) {
-	(:
-	 : filter steps applied only when active - see the comment in
-	 : lists:additions for why chaining "[$x = 'all' or ...]" on every
-	 : step regardless is a real performance regression, not just style.
-	 :)
-	let $s1 := $lists:collection-rootMS//t:decoNote[starts-with(@xml:id, "d")][@type]
-	let $s2 := if ($type = "all") then
-		$s1
+	if (all:lucene-wildcard-too-broad($legendText) or all:lucene-wildcard-too-broad($otherText)) then
+		map {"hits": (), "error": $all:LUCENE-WILDCARD-TOO-BROAD-MSG}
 	else
-		$s1[@type = $type]
-	let $s3 := if ($repo = "all") then
-		$s2
-	else
-		$s2[ancestor::t:TEI//t:repository/@ref = $repo]
-	let $s4 := if ($content = "all") then
-		$s3
-	else
-		$s3[ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref = $content]
-	let $s5 := if ($target-work = "all") then
-		$s4
-	else
-		$s4[descendant::t:title/@ref = $target-work]
-	let $s6 := if ($target-artTheme = "all") then
-		$s5
-	else
-		$s5[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
-	let $s7 := if ($target-pers = "all") then
-		$s6
-	else
-		$s6[descendant::t:persName/@ref = $target-pers]
-	let $s8 := if ($target-place = "all") then
-		$s7
-	else
-		$s7[descendant::t:placeName/@ref = $target-place]
-	let $s9 := if ($target-keyword = "all") then
-		$s8
-	else
-		$s8[descendant::t:term/@key = $target-keyword]
-	let $s10 := if (not($legendText)) then
-		$s9
-	else
-		$s9[descendant::t:q[@xml:lang][ft:query(., $legendText)]]
-	let $decos := if (not($otherText)) then
-		$s10
-	else
-		$s10[descendant::t:foreign[@xml:lang = "gez"][ft:query(., $otherText)]]
-	return map {"hits": $decos}
+		(:
+		 : filter steps applied only when active - see the comment in
+		 : lists:additions for why chaining "[$x = 'all' or ...]" on every
+		 : step regardless is a real performance regression, not just style.
+		 :)
+		let $s1 := $lists:collection-rootMS//t:decoNote[starts-with(@xml:id, "d")][@type]
+		let $s2 := if ($type = "all") then
+			$s1
+		else
+			$s1[@type = $type]
+		let $s3 := if ($repo = "all") then
+			$s2
+		else
+			$s2[ancestor::t:TEI//t:repository/@ref = $repo]
+		let $s4 := if ($content = "all") then
+			$s3
+		else
+			$s3[ancestor::t:TEI//t:msContents/t:msItem/t:title/@ref = $content]
+		let $s5 := if ($target-work = "all") then
+			$s4
+		else
+			$s4[descendant::t:title/@ref = $target-work]
+		let $s6 := if ($target-artTheme = "all") then
+			$s5
+		else
+			$s5[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
+		let $s7 := if ($target-pers = "all") then
+			$s6
+		else
+			$s6[descendant::t:persName/@ref = $target-pers]
+		let $s8 := if ($target-place = "all") then
+			$s7
+		else
+			$s7[descendant::t:placeName/@ref = $target-place]
+		let $s9 := if ($target-keyword = "all") then
+			$s8
+		else
+			$s8[descendant::t:term/@key = $target-keyword]
+		let $s10 := if (not($legendText)) then
+			$s9
+		else
+			$s9[descendant::t:q[@xml:lang][ft:query(., $legendText)]]
+		let $decos := if (not($otherText)) then
+			$s10
+		else
+			$s10[descendant::t:foreign[@xml:lang = "gez"][ft:query(., $otherText)]]
+		return map {"hits": $decos}
 };
 
 (:~
@@ -503,265 +510,268 @@ function lists:SearchTitles(
 	$target-artTheme as xs:string+,
 	$elements as xs:string+
 ) {
-	let $values := (
-		"subscriptio", "supplication", "embedded", "inscriptio", "translation", "expanded", "title", "desinit"
-	)
-	(:
-	 : when $typeval = "marked" this checks against the fixed $values list;
-	 : otherwise $typeval itself is already the caller-supplied list of
-	 : substrings to match - either way "contains(@x, $typeValues)" is
-	 : the OR-combination the old eval'd query built by hand. This relies
-	 : on eXist's (non-standard but supported) form of contains() that
-	 : takes a sequence as the second argument; the seemingly-more-correct
-	 : "some $v in $typeValues satisfies contains(@x, $v)" measured 20x
-	 : slower on this corpus (765ms vs 38ms per call), so it's kept as-is
-	 : rather than made "properly" standard XPath.
-	 :)
-	let $typeValues := if ($typeval = "marked") then
-		$values
+	if (all:lucene-wildcard-too-broad($query)) then
+		map {"hits": (), "error": $all:LUCENE-WILDCARD-TOO-BROAD-MSG}
 	else
-		$typeval
-	let $works := if ($limit-work = "") then (
-	) else
-		$lists:collection-rootW/id($limit-work)
-	let $mss := if ($limit-mss = "") then (
-	) else
-		$lists:collection-rootMS/id($limit-mss)
-	(: t:title/@ref stores the full canonical URL, not the bare @xml:id this parameter arrives as :)
-	let $limit-work-ref := if ($limit-work = "") then
-		""
-	else
-		$config:BMurl || $limit-work
-	(:
-	 : $mssWork/$msitems are only ever read from $context below, in the
-	 : "limit-work only" and "limit-work + limit-mss" branches respectively -
-	 : guarding them here skips a $lists:collection-rootMS scan on the two
-	 : other branches (no limits at all, or limit-mss only), which is the
-	 : common case for a plain /titles page load.
-	 :)
-	let $mssWork := if ($limit-work-ref != "" and $limit-mss = "") then
-		$lists:collection-rootMS//t:msItem[t:title[@ref eq $limit-work-ref]]
-	else (
-	)
-	let $msitems := if ($limit-work-ref != "" and $limit-mss != "") then
-		$mss//t:msItem[t:title[@ref eq $limit-work-ref]]
-	else (
-	)
-	let $msitemsIDS := $msitems/@xml:id
-	let $msSitemsIDS := $mssWork/@xml:id
-	(:
-	 : eq eq eq: eXist's range-index optimizer throws XPTY0004 on a
-	 : zero-cardinality key sequence instead of returning zero hits (hence
-	 : the exists() guards), and plain eq also rejects a many-item key
-	 : sequence outright (a value comparison requires singleton operands) -
-	 : realistic here whenever $limit-work matches more than one manuscript.
-	 : = (general comparison) tolerates any cardinality on both sides.
-	 :)
-	let $divs := if (exists($msitemsIDS)) then
-		$mss//t:div[@corresp = $msitemsIDS]
-	else (
-	)
-	let $mssdivs := if (exists($msSitemsIDS)) then
-		$mssWork/following::t:div[@corresp = $msSitemsIDS]
-	else (
-	)
-	let $additions := if (exists($msitemsIDS)) then
-		$mss//t:item[@corresp = $msitemsIDS]
-	else (
-	)
-	let $mssadditions := if (exists($msSitemsIDS)) then
-		$mssWork/following::t:item[@corresp = $msSitemsIDS]
-	else (
-	)
-	let $workdivs := $works//t:div[@type eq "edition"]
+		let $values := (
+			"subscriptio", "supplication", "embedded", "inscriptio", "translation", "expanded", "title", "desinit"
+		)
+		(:
+		 : when $typeval = "marked" this checks against the fixed $values list;
+		 : otherwise $typeval itself is already the caller-supplied list of
+		 : substrings to match - either way "contains(@x, $typeValues)" is
+		 : the OR-combination the old eval'd query built by hand. This relies
+		 : on eXist's (non-standard but supported) form of contains() that
+		 : takes a sequence as the second argument; the seemingly-more-correct
+		 : "some $v in $typeValues satisfies contains(@x, $v)" measured 20x
+		 : slower on this corpus (765ms vs 38ms per call), so it's kept as-is
+		 : rather than made "properly" standard XPath.
+		 :)
+		let $typeValues := if ($typeval = "marked") then
+			$values
+		else
+			$typeval
+		let $works := if ($limit-work = "") then (
+		) else
+			$lists:collection-rootW/id($limit-work)
+		let $mss := if ($limit-mss = "") then (
+		) else
+			$lists:collection-rootMS/id($limit-mss)
+		(: t:title/@ref stores the full canonical URL, not the bare @xml:id this parameter arrives as :)
+		let $limit-work-ref := if ($limit-work = "") then
+			""
+		else
+			$config:BMurl || $limit-work
+		(:
+		 : $mssWork/$msitems are only ever read from $context below, in the
+		 : "limit-work only" and "limit-work + limit-mss" branches respectively -
+		 : guarding them here skips a $lists:collection-rootMS scan on the two
+		 : other branches (no limits at all, or limit-mss only), which is the
+		 : common case for a plain /titles page load.
+		 :)
+		let $mssWork := if ($limit-work-ref != "" and $limit-mss = "") then
+			$lists:collection-rootMS//t:msItem[t:title[@ref eq $limit-work-ref]]
+		else (
+		)
+		let $msitems := if ($limit-work-ref != "" and $limit-mss != "") then
+			$mss//t:msItem[t:title[@ref eq $limit-work-ref]]
+		else (
+		)
+		let $msitemsIDS := $msitems/@xml:id
+		let $msSitemsIDS := $mssWork/@xml:id
+		(:
+		 : eq eq eq: eXist's range-index optimizer throws XPTY0004 on a
+		 : zero-cardinality key sequence instead of returning zero hits (hence
+		 : the exists() guards), and plain eq also rejects a many-item key
+		 : sequence outright (a value comparison requires singleton operands) -
+		 : realistic here whenever $limit-work matches more than one manuscript.
+		 : = (general comparison) tolerates any cardinality on both sides.
+		 :)
+		let $divs := if (exists($msitemsIDS)) then
+			$mss//t:div[@corresp = $msitemsIDS]
+		else (
+		)
+		let $mssdivs := if (exists($msSitemsIDS)) then
+			$mssWork/following::t:div[@corresp = $msSitemsIDS]
+		else (
+		)
+		let $additions := if (exists($msitemsIDS)) then
+			$mss//t:item[@corresp = $msitemsIDS]
+		else (
+		)
+		let $mssadditions := if (exists($msSitemsIDS)) then
+			$mssWork/following::t:item[@corresp = $msSitemsIDS]
+		else (
+		)
+		let $workdivs := $works//t:div[@type eq "edition"]
 
-	(:
-	 : $context used to be built as a string naming one of these
-	 : already-bound node-sequence variables, then util:eval'd - XQuery
-	 : path steps distribute over a sequence-valued context, so binding
-	 : $context to the real node sequence directly works the same way,
-	 : with no eval needed.
-	 :
-	 : if the search is limited to a set of manuscripts or a set of works, the context changes.
-	 : first if the no limit is set, we will search all the collection
-	 :)
-	let $context := if ($limit-work = "" and $limit-mss = "") then
-		$exptit:col
-	(: if the search is limited by work, then we want to search
+		(:
+		 : $context used to be built as a string naming one of these
+		 : already-bound node-sequence variables, then util:eval'd - XQuery
+		 : path steps distribute over a sequence-valued context, so binding
+		 : $context to the real node sequence directly works the same way,
+		 : with no eval needed.
+		 :
+		 : if the search is limited to a set of manuscripts or a set of works, the context changes.
+		 : first if the no limit is set, we will search all the collection
+		 :)
+		let $context := if ($limit-work = "" and $limit-mss = "") then
+			$exptit:col
+		(: if the search is limited by work, then we want to search
                                 - the file of that work,
                                 - the relevant parts of manuscripts which contain that work
                                 this assumes that if also parts or related works are wanted, the parameter should list those already :)
-	else if ($limit-work != "" and $limit-mss = "") then (
-		$workdivs, $mssWork, $mssadditions, $mssdivs
-	) (: if the search is limited by manuscript, then we want to search
+		else if ($limit-work != "" and $limit-mss = "") then (
+			$workdivs, $mssWork, $mssadditions, $mssdivs
+		) (: if the search is limited by manuscript, then we want to search
                                 - the files of those manuscripts :) else if ($limit-work = "" and $limit-mss != "") then
-		$mss
-	(: if the search is limited by manuscript and work
+			$mss
+		(: if the search is limited by manuscript and work
                                 - the relevant parts of those manuscripts which contain that work
                                 this assumes that if also parts or related works are wanted, the parameter should list those already :)
-	else (
-		$msitems, $additions, $divs
-	)
+		else (
+			$msitems, $additions, $divs
+		)
 
-	(:
-	 : filter steps applied only when active - see the comment in
-	 : lists:additions for why chaining "[$x = 'all' or ...]" on every
-	 : step regardless is a real performance regression, not just style.
-	 :)
-	let $titles := if ($elements = "all" or $elements = "title") then
-		let $t1 := $context//t:title[not(parent::t:titleStmt)]
-		let $t2 := if ($typeval = "all") then
-			$t1
-		else
-			$t1[contains(@subtype, $typeValues)]
-		let $t3 := if ($target-work = "all") then
-			$t2
-		else
-			$t2[descendant::t:title/@ref = $target-work]
-		let $t4 := if ($target-artTheme = "all") then
-			$t3
-		else
-			$t3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
-		let $t5 := if ($target-pers = "all") then
-			$t4
-		else
-			$t4[descendant::t:persName/@ref = $target-pers]
-		let $t6 := if ($target-place = "all") then
-			$t5
-		else
-			$t5[descendant::t:placeName/@ref = $target-place]
-		let $t7 := if ($target-keyword = "all") then
-			$t6
-		else
-			$t6[descendant::t:term/@key = $target-keyword]
-		return if (not($query)) then
-			$t7
-		else
-			$t7[ft:query(., $query)]
-	else (
-	)
-	let $divsResult := if ($elements = "all" or $elements = "div") then
-		let $d1 := $context//t:div
-		let $d2 := if ($typeval = "all") then
-			$d1
-		else
-			$d1[contains(@subtype, $typeValues)]
-		let $d3 := if ($target-work = "all") then
-			$d2
-		else
-			$d2[descendant::t:title/@ref = $target-work]
-		let $d4 := if ($target-artTheme = "all") then
-			$d3
-		else
-			$d3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
-		let $d5 := if ($target-pers = "all") then
-			$d4
-		else
-			$d4[descendant::t:persName/@ref = $target-pers]
-		let $d6 := if ($target-place = "all") then
-			$d5
-		else
-			$d5[descendant::t:placeName/@ref = $target-place]
-		let $d7 := if ($target-keyword = "all") then
-			$d6
-		else
-			$d6[descendant::t:term/@key = $target-keyword]
-		return if (not($query)) then
-			$d7
-		else
-			$d7[ft:query(., $query)]
-	else (
-	)
-	let $segs := if ($elements = "all" or $elements = "seg") then
-		let $sg1 := $context//t:seg[not(ancestor::t:handDesc)]
-		let $sg2 := if ($typeval = "all") then
-			$sg1
-		else
-			$sg1[contains(@type, $typeValues)]
-		let $sg3 := if ($target-work = "all") then
-			$sg2
-		else
-			$sg2[descendant::t:title/@ref = $target-work]
-		let $sg4 := if ($target-artTheme = "all") then
-			$sg3
-		else
-			$sg3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
-		let $sg5 := if ($target-pers = "all") then
-			$sg4
-		else
-			$sg4[descendant::t:persName/@ref = $target-pers]
-		let $sg6 := if ($target-place = "all") then
-			$sg5
-		else
-			$sg5[descendant::t:placeName/@ref = $target-place]
-		let $sg7 := if ($target-keyword = "all") then
-			$sg6
-		else
-			$sg6[descendant::t:term/@key = $target-keyword]
-		return if (not($query)) then
-			$sg7
-		else
-			$sg7[ft:query(., $query)]
-	else (
-	)
-	let $colincex :=
-		for $cie in ("colophon", "incipit", "explicit")
-		return if ($elements = "all" or $elements = $cie) then
-			(:
-			 : a static named step (//t:colophon etc) instead of
-			 : t:*[local-name() = $cie] - the latter forces a scan of
-			 : every element in $context to check its name instead of
-			 : eXist's fast named-descendant lookup; measured 226x
-			 : slower (19s vs 84ms) on this corpus.
-			 :)
-			let $c1 := switch ($cie)
-				case "colophon" return
-					$context//t:colophon
-				case "incipit" return
-					$context//t:incipit
-				case "explicit" return
-					$context//t:explicit
-				default return
-					()
-			let $c2 := if ($typeval = "all") then
-				$c1
+		(:
+		 : filter steps applied only when active - see the comment in
+		 : lists:additions for why chaining "[$x = 'all' or ...]" on every
+		 : step regardless is a real performance regression, not just style.
+		 :)
+		let $titles := if ($elements = "all" or $elements = "title") then
+			let $t1 := $context//t:title[not(parent::t:titleStmt)]
+			let $t2 := if ($typeval = "all") then
+				$t1
 			else
-				$c1[contains(@type, $typeValues)]
-			let $c3 := if ($target-work = "all") then
-				$c2
+				$t1[contains(@subtype, $typeValues)]
+			let $t3 := if ($target-work = "all") then
+				$t2
 			else
-				$c2[descendant::t:title/@ref = $target-work]
-			let $c4 := if ($target-artTheme = "all") then
-				$c3
+				$t2[descendant::t:title/@ref = $target-work]
+			let $t4 := if ($target-artTheme = "all") then
+				$t3
 			else
-				$c3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
-			let $c5 := if ($target-pers = "all") then
-				$c4
+				$t3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
+			let $t5 := if ($target-pers = "all") then
+				$t4
 			else
-				$c4[descendant::t:persName/@ref = $target-pers]
-			let $c6 := if ($target-place = "all") then
-				$c5
+				$t4[descendant::t:persName/@ref = $target-pers]
+			let $t6 := if ($target-place = "all") then
+				$t5
 			else
-				$c5[descendant::t:placeName/@ref = $target-place]
-			let $c7 := if ($target-keyword = "all") then
-				$c6
+				$t5[descendant::t:placeName/@ref = $target-place]
+			let $t7 := if ($target-keyword = "all") then
+				$t6
 			else
-				$c6[descendant::t:term/@key = $target-keyword]
+				$t6[descendant::t:term/@key = $target-keyword]
 			return if (not($query)) then
-				$c7
+				$t7
 			else
-				$c7[ft:query(., $query)]
+				$t7[ft:query(., $query)]
 		else (
 		)
-	let $allTitles := ($titles | $divsResult | $segs | $colincex)
-	(:
-	 : computed once here and shared via $model with the descendant
-	 : lists:titlesform/lists:titlesRes templates (both nested inside this
-	 : function's own div in titles.html), instead of each of them calling
-	 : lists:typeGroupsMap($allTitles) separately.
-	 :)
-	let $typeGroups := lists:typeGroupsMap($allTitles)
-	return map {"hits": $allTitles, "typeGroups": $typeGroups}
+		let $divsResult := if ($elements = "all" or $elements = "div") then
+			let $d1 := $context//t:div
+			let $d2 := if ($typeval = "all") then
+				$d1
+			else
+				$d1[contains(@subtype, $typeValues)]
+			let $d3 := if ($target-work = "all") then
+				$d2
+			else
+				$d2[descendant::t:title/@ref = $target-work]
+			let $d4 := if ($target-artTheme = "all") then
+				$d3
+			else
+				$d3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
+			let $d5 := if ($target-pers = "all") then
+				$d4
+			else
+				$d4[descendant::t:persName/@ref = $target-pers]
+			let $d6 := if ($target-place = "all") then
+				$d5
+			else
+				$d5[descendant::t:placeName/@ref = $target-place]
+			let $d7 := if ($target-keyword = "all") then
+				$d6
+			else
+				$d6[descendant::t:term/@key = $target-keyword]
+			return if (not($query)) then
+				$d7
+			else
+				$d7[ft:query(., $query)]
+		else (
+		)
+		let $segs := if ($elements = "all" or $elements = "seg") then
+			let $sg1 := $context//t:seg[not(ancestor::t:handDesc)]
+			let $sg2 := if ($typeval = "all") then
+				$sg1
+			else
+				$sg1[contains(@type, $typeValues)]
+			let $sg3 := if ($target-work = "all") then
+				$sg2
+			else
+				$sg2[descendant::t:title/@ref = $target-work]
+			let $sg4 := if ($target-artTheme = "all") then
+				$sg3
+			else
+				$sg3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
+			let $sg5 := if ($target-pers = "all") then
+				$sg4
+			else
+				$sg4[descendant::t:persName/@ref = $target-pers]
+			let $sg6 := if ($target-place = "all") then
+				$sg5
+			else
+				$sg5[descendant::t:placeName/@ref = $target-place]
+			let $sg7 := if ($target-keyword = "all") then
+				$sg6
+			else
+				$sg6[descendant::t:term/@key = $target-keyword]
+			return if (not($query)) then
+				$sg7
+			else
+				$sg7[ft:query(., $query)]
+		else (
+		)
+		let $colincex :=
+			for $cie in ("colophon", "incipit", "explicit")
+			return if ($elements = "all" or $elements = $cie) then
+				(:
+				 : a static named step (//t:colophon etc) instead of
+				 : t:*[local-name() = $cie] - the latter forces a scan of
+				 : every element in $context to check its name instead of
+				 : eXist's fast named-descendant lookup; measured 226x
+				 : slower (19s vs 84ms) on this corpus.
+				 :)
+				let $c1 := switch ($cie)
+					case "colophon" return
+						$context//t:colophon
+					case "incipit" return
+						$context//t:incipit
+					case "explicit" return
+						$context//t:explicit
+					default return
+						()
+				let $c2 := if ($typeval = "all") then
+					$c1
+				else
+					$c1[contains(@type, $typeValues)]
+				let $c3 := if ($target-work = "all") then
+					$c2
+				else
+					$c2[descendant::t:title/@ref = $target-work]
+				let $c4 := if ($target-artTheme = "all") then
+					$c3
+				else
+					$c3[descendant::t:ref[@type = "authFile"]/@corresp = $target-artTheme]
+				let $c5 := if ($target-pers = "all") then
+					$c4
+				else
+					$c4[descendant::t:persName/@ref = $target-pers]
+				let $c6 := if ($target-place = "all") then
+					$c5
+				else
+					$c5[descendant::t:placeName/@ref = $target-place]
+				let $c7 := if ($target-keyword = "all") then
+					$c6
+				else
+					$c6[descendant::t:term/@key = $target-keyword]
+				return if (not($query)) then
+					$c7
+				else
+					$c7[ft:query(., $query)]
+			else (
+			)
+		let $allTitles := ($titles | $divsResult | $segs | $colincex)
+		(:
+		 : computed once here and shared via $model with the descendant
+		 : lists:titlesform/lists:titlesRes templates (both nested inside this
+		 : function's own div in titles.html), instead of each of them calling
+		 : lists:typeGroupsMap($allTitles) separately.
+		 :)
+		let $typeGroups := lists:typeGroupsMap($allTitles)
+		return map {"hits": $allTitles, "typeGroups": $typeGroups}
 };
 
 declare function lists:biblform($node as node(), $model as map(*)) {

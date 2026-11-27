@@ -642,7 +642,10 @@ declare function q:textquerymode($node as node(), $model as map(*)) {
 				else (
 				)
 			}regex</option>
-		<option value="wildcard">
+		<option
+			title="Needs ≥3 letters for names (Yoh*); BM id prefixes must stay under the Lucene clause limit (PRS18* ok, PRS*/PRS1* rejected). No leading * or ?."
+			value="wildcard"
+		>
 			{
 				if ($textquerymodeparam = "wildcard") then
 					attribute selected { "selected" }
@@ -761,7 +764,15 @@ declare function q:query($node as node()*, $model as map(*), $query as xs:string
 		let $hits := q:switchSearchType($t, $query, $q:params)
 
 		let $runtime-ms := ((util:system-time() - $start-time) div xs:dayTimeDuration("PT1S")) * 1000
-		return map {"runtime": $runtime-ms, "type": $t, "query": $query, "hits": $hits("tei"), "qs": $hits("qs")}
+		return map:merge(
+			(
+				map {"runtime": $runtime-ms, "type": $t, "query": $query, "hits": $hits("tei"), "qs": $hits("qs")},
+				if (map:contains($hits, "error")) then
+					map {"error": $hits("error")}
+				else
+					map {}
+			)
+		)
 };
 
 (:~
@@ -803,6 +814,12 @@ like the facet, simple and advanced searches :)
  :)
 declare function q:displayQtime($node as node()*, $model as map(*)) {
 	<div>
+		{
+			if (map:contains($model, "error") and string($model("error")) != "") then
+				<p class="w3-panel w3-red" id="query-error">{ string($model("error")) }</p>
+			else (
+			)
+		}
 		{
 			if ($model("type") = "bibliography") then
 				<p>There are <span xmlns="http://www.w3.org/1999/xhtml" class="w3-tag w3-gray" id="hit-count">
@@ -1878,77 +1895,88 @@ declare function q:needsDedup($qs as xs:string?, $filters as xs:string) as xs:bo
 
 declare function q:text($q, $params) {
 	(: let $test := util:log('info', $q:allopts) :)
-	let $phrase := (starts-with($q, '"') and ends-with($q, '"')) or contains($q, "-")
-	let $mode := if (matches($q, "([A-Z]{1,3}-\d{3})") or $phrase) then
-		"phrase"
+	let $field-parts :=
+		for $parm in $q:params[ends-with(., "-field")][not(contains(., "-operator-"))]
+		return request:get-parameter($parm, ())
+	let $unsafe := all:lucene-wildcard-too-broad($q) or
+		(some $fp in $field-parts satisfies all:lucene-wildcard-too-broad($fp))
+	return if ($unsafe) then
+		map {"tei": (), "qs": (), "error": $all:LUCENE-WILDCARD-TOO-BROAD-MSG}
 	else
-		$q:mode
-	let $qscheck := q:querystring($q, $mode)
-	let $qs := if (normalize-space($qscheck) = "") then (
-	) else
-		$qscheck
-	let $querycontext := "$q:col//t:TEI"
-	let $ftquery := q:ftPredicate($q, $qs, $mode)
-	let $parmstoquery := q:parameters2arguments($params)
-	let $querytext := concat($querycontext, $parmstoquery, $ftquery)
-	let $test2 := util:log("info", ("query:", $q || " mode:", $mode))
-	(: not rewritten to native predicates - measured eval cost here is ~50-150ms regardless of
-	result size, not the BetMasWeb#3 bottleneck; q:parameters2arguments is 200+ lines, too risky
-	to touch for no measured gain :)
-	let $query := util:eval($querytext)
-	(: let $query :=
+		let $phrase := (starts-with($q, '"') and ends-with($q, '"')) or contains($q, "-")
+		let $mode := if (matches($q, "([A-Z]{1,3}-\d{3})") or $phrase) then
+			"phrase"
+		else
+			$q:mode
+		let $qscheck := q:querystring($q, $mode)
+		let $qs := if (normalize-space($qscheck) = "") then (
+		) else
+			$qscheck
+		let $querycontext := "$q:col//t:TEI"
+		let $ftquery := q:ftPredicate($q, $qs, $mode)
+		let $parmstoquery := q:parameters2arguments($params)
+		let $querytext := concat($querycontext, $parmstoquery, $ftquery)
+		let $test2 := util:log("info", ("query:", $q || " mode:", $mode))
+		(: not rewritten to native predicates - measured eval cost here is ~50-150ms regardless of
+		result size, not the BetMasWeb#3 bottleneck; q:parameters2arguments is 200+ lines, too risky
+		to touch for no measured gain :)(: TooManyClauses safety net if a broad wildcard slips past the prefix check :)
+		let $queryOrError := try { util:eval($querytext) } catch * {
+			if (contains($err:description, "TooManyClauses") or contains($err:description, "maxClauseCount")) then (
+				util:log("warn", ("lucene TooManyClauses for query:", $q)), map {"error": $all:LUCENE-WILDCARD-TOO-BROAD-MSG}
+			) else
+				error($err:code, $err:description, $err:value)
+		}
+		return if ($queryOrError instance of map(*)) then
+			map {"tei": (), "qs": $qs, "error": $queryOrError("error")}
+		else
+			let $query := $queryOrError
+			(: let $query :=
           for $r in util:eval($querytext)
           let $expanded := kwic:expand($r) where exists($expanded//exist:match[not(ancestor::t:bibl)])
           return $r ~~ excluding bibl suppressed not to slow down :)
-	let $needsDedup := q:needsDedup($qs, $parmstoquery)
-	let $sizeClass := if (count($query) gt 300) then
-		"large"
-	else if ($q:sort = "") then
-		"unsorted"
-	else
-		"sorted"
-	let $allTEI := switch ($sizeClass)
-		case "large" return
-			let $ordered :=
-				for $r in $query
-				let $matchcount := ft:score($r)
-				order by $matchcount descending
-				return $r
-			return if ($needsDedup) then
-				q:dedupPreserveOrder($ordered)
+			let $needsDedup := q:needsDedup($qs, $parmstoquery)
+			let $sizeClass := if (count($query) gt 300) then
+				"large"
+			else if ($q:sort = "") then
+				"unsorted"
 			else
-				$ordered
-		case "unsorted" return
-			let $ordered :=
-				for $r in $query
-				let $matchcount := ft:score($r)
-				order by $matchcount descending
-				return $r
-			let $deduped := if ($needsDedup) then
-				q:dedupPreserveOrder($ordered)
-			else
-				$ordered
-			for $TEI in $deduped
-			let $title := q:sortingkey($TEI//t:title[@type = "full"])
-			order by $title[1]
-			return $TEI
-		default return
-			let $deduped := if ($needsDedup) then
-				q:dedupPreserveOrder($query)
-			else
-				$query
-			for $TEI in $deduped
-			let $title := q:sortingkey($TEI//t:title[@type = "full"])
-			let $sort := q:enrichScore($TEI)
-			order by $sort descending
-			return $TEI
-	return map {"tei": $allTEI, "qs": $qs}
-};
-
-declare function q:indexquery($element, $q) {
-	let $path := "$q:col//t:" || $element || "[ft:query(., $q, $q:allopts)]"
-	for $q in util:eval($path)
-	return $q/ancestor::t:TEI
+				"sorted"
+			let $allTEI := switch ($sizeClass)
+				case "large" return
+					let $ordered :=
+						for $r in $query
+						let $matchcount := ft:score($r)
+						order by $matchcount descending
+						return $r
+					return if ($needsDedup) then
+						q:dedupPreserveOrder($ordered)
+					else
+						$ordered
+				case "unsorted" return
+					let $ordered :=
+						for $r in $query
+						let $matchcount := ft:score($r)
+						order by $matchcount descending
+						return $r
+					let $deduped := if ($needsDedup) then
+						q:dedupPreserveOrder($ordered)
+					else
+						$ordered
+					for $TEI in $deduped
+					let $title := q:sortingkey($TEI//t:title[@type = "full"])
+					order by $title[1]
+					return $TEI
+				default return
+					let $deduped := if ($needsDedup) then
+						q:dedupPreserveOrder($query)
+					else
+						$query
+					for $TEI in $deduped
+					let $title := q:sortingkey($TEI//t:title[@type = "full"])
+					let $sort := q:enrichScore($TEI)
+					order by $sort descending
+					return $TEI
+			return map {"tei": $allTEI, "qs": $qs}
 };
 
 declare function q:tracesquery($q) {
