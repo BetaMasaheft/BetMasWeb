@@ -211,3 +211,48 @@ declare function all:distinct-values($values) {
 	group by $value
 	return $value
 };
+
+(:~
+ : Minimum literal characters required before the first Lucene wildcard
+ : metacharacter (* or ?). Shorter prefixes expand into thousands of terms
+ : and hit BooleanQuery$TooManyClauses (maxClauseCount 1024), especially once
+ : Lucene fields index dense id/@ref token sets (debake Task 3).
+ :)
+declare variable $all:LUCENE-WILDCARD-MIN-PREFIX as xs:integer := 4;
+
+declare variable $all:LUCENE-WILDCARD-TOO-BROAD-MSG as xs:string :=
+	"Query too broad: wildcards need at least 4 literal characters before * or ? (short prefixes like PRS* are rejected).";
+
+(:~
+ : True when a single Lucene token has a leading wildcard or fewer than
+ : $all:LUCENE-WILDCARD-MIN-PREFIX literal characters before * or ?.
+ :)
+declare %private function all:lucene-token-wildcard-too-broad($token as xs:string?) as xs:boolean {
+	let $t := normalize-space(($token, "")[1])
+	return if ($t = "" or not(contains($t, "*") or contains($t, "?"))) then
+		false()
+	else if (matches($t, "^[?*]")) then
+		true()
+	else
+		let $prefix := replace($t, "[*?].*$", "")
+		let $prefix := replace($prefix, "^[+!~^-]+", "")
+		return string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
+};
+
+(:~
+ : True when any token in a Lucene query string is an unsafe wildcard/prefix.
+ : Understands field-scoped forms such as person:(PRS*).
+ :)
+declare function all:lucene-wildcard-too-broad($query as xs:string?) as xs:boolean {
+	if (empty($query) or normalize-space($query) = "") then
+		false()
+	else
+		let $parts :=
+			for $tok in tokenize(normalize-space($query), "\s+")
+			let $inner := if (matches($tok, "^[A-Za-z0-9_-]+:\([^)]*\)$")) then
+				replace($tok, "^[A-Za-z0-9_-]+:\(([^)]*)\)$", "$1")
+			else
+				$tok
+			return tokenize(translate($inner, '()"', "   "), "\s+")
+		return some $t in $parts[. != ""] satisfies all:lucene-token-wildcard-too-broad($t)
+};

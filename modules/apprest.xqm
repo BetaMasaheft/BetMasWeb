@@ -321,20 +321,6 @@ declare function apprest:AnyReferences($sourceid, $id as xs:string) {
 	</ul>
 };
 
-(:~
- : searches an ID in a @corresp, @ref, <relation> and makes a list
- :)
-declare function apprest:WhatPointsHereQuery($id as xs:string) {
-	for $corr in
-		(
-			$exptit:col//t:*[ft:query(@corresp, $id)],
-			$exptit:col//t:*[ft:query(@ref, $id)],
-			$exptit:col//t:relation[ft:query(., $id)]
-		)
-	order by ft:score($corr) descending
-	return $corr
-};
-
 (: ~          used by apprest.xqm and timeline.xqm :)
 declare function apprest:WhatPointsHere($id as xs:string, $c) {
 	(: Same probes as historically; one canonical BMurl key + value eq so
