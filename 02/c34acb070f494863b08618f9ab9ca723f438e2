@@ -1,0 +1,45 @@
+modules/all.xqm
+  s_b9450a356bc06f::t_0fef98f76c9a6e 214-229,231-258
+  s_b9450a356bc06f::t_80032aa1da6760 230
+test/xqs/test-runner.xq
+  s_b9450a356bc06f::t_8bf6ee0a725b87 161-162
+  s_b9450a356bc06f::t_2d4a393310df65 83
+modules/queries.xqm
+  s_b9450a356bc06f::t_a95d2e851621fb 771-772
+  s_b9450a356bc06f::t_096a260e2b1572 819
+  s_b9450a356bc06f::t_e1e73fdd5aaaad 814-818
+  s_b9450a356bc06f::t_00ef55396aaf57 1895-1901,1903-1917,1921,1923-1925
+  s_b9450a356bc06f::t_cc513ad34d78f4 764-770
+  s_b9450a356bc06f::t_a800a2a35fe786 1918-1920,1922,1926-1930,1934-1938,1940-1976
+modules/app.xqm
+  s_b9450a356bc06f::t_be0d6d04232d04 2980-2982
+  s_b9450a356bc06f::t_a13d818f5528cc 2586
+test/xqs/ts-all-lucene-wildcard.xqm
+  s_b9450a356bc06f::t_e345f890b31c14 20
+  s_b9450a356bc06f::t_32dd72524817ec 1-19,21-45
+  s_b9450a356bc06f::t_284570fa2254ac 46-48
+  s_b9450a356bc06f::t_ff367e61311400 49
+modules/resources.xqm
+  s_b9450a356bc06f::t_ae4d1e7d61da45 18,130-131,133-198,323-324,326-372,513-514,516-586,588-600,604-606,608-609,612-614,616-624,626-628,630-632,634-636,638-640,642-644,646,648,650,653-774
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02c34acb070f494863b08618f9ab9ca723f438e2",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  },
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
