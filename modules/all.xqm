@@ -228,6 +228,13 @@ declare variable $all:LUCENE-WILDCARD-MAX-CLAUSES as xs:integer := 1024;
 declare variable $all:LUCENE-WILDCARD-MIN-PREFIX as xs:integer := 3;
 
 (:~
+ : Conservative BM-id prefix floor when catalogs/labels.xml is unavailable
+ : (CI / bare app image). Dense namespaces need ~5 chars (PRS18*, LIT19*);
+ : length 3-4 (PRS*, PRS1*, LIT1*) still explode past maxClauseCount.
+ :)
+declare variable $all:LUCENE-WILDCARD-MIN-ID-PREFIX as xs:integer := 5;
+
+(:~
  : Catalog of BM record ids (labels.xml @corresp). Used as a cheap stand-in
  : for Lucene id-token fan-out when the query looks like a BM id prefix
  : (PRS*, LIT1*, LOC2*). Module-load cache; empty if catalogs are absent.
@@ -249,11 +256,12 @@ declare %private function all:lucene-prefix-is-bm-id($prefix as xs:string) as xs
 
 (:~
  : True when a BM-id-shaped prefix expands to >= maxClauseCount catalog ids.
- : Falls back to the free-text length floor when labels.xml is unavailable.
+ : Without labels.xml, fall back to MIN-ID-PREFIX (not the free-text floor),
+ : so CI without catalogs still rejects PRS* / LIT1*.
  :)
 declare %private function all:lucene-id-prefix-too-broad($prefix as xs:string) as xs:boolean {
 	if (empty($all:LUCENE-WILDCARD-LABEL-IDS)) then
-		string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
+		string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-ID-PREFIX
 	else
 		count($all:LUCENE-WILDCARD-LABEL-IDS[starts-with(., $prefix)]) ge $all:LUCENE-WILDCARD-MAX-CLAUSES
 };
