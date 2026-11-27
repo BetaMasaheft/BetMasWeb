@@ -1,0 +1,33 @@
+modules/queries.xqm
+  s_b9450a356bc06f::t_cc513ad34d78f4 764-770,1952,1962,1971
+  s_b9450a356bc06f::t_e1e73fdd5aaaad 814-818
+  s_b9450a356bc06f::t_00ef55396aaf57 1895-1901,1903-1917,1919-1926
+  s_b9450a356bc06f::t_a95d2e851621fb 771-772
+  s_b9450a356bc06f::t_096a260e2b1572 819
+  s_b9450a356bc06f::t_a06e6faef25a2e 1949-1951
+  s_b9450a356bc06f::t_17c0f64c8c97d5 1953-1955,1959-1961
+  s_b9450a356bc06f::t_7979184e5ebc7f 1963-1965,1968-1970
+  s_b9450a356bc06f::t_022254aef33669 1972
+  s_b9450a356bc06f::t_c66c4eeea2020e 1930-1948,1956-1958,1966-1967
+modules/all.xqm
+  s_b9450a356bc06f::t_0fef98f76c9a6e 214-258
+test/xqs/ts-all-lucene-wildcard.xqm
+  s_b9450a356bc06f::t_32dd72524817ec 1-19,21-45
+  s_b9450a356bc06f::t_e345f890b31c14 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d3392a417b6a548f44be343443c48bdf982f0975",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
