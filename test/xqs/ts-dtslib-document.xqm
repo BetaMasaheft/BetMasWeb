@@ -82,6 +82,18 @@ declare %test:assertEquals("TEI") function tsdtsdoc:docs-happy-path-body-is-tei(
 };
 
 (:~
+ : Callers (or older code) may pass a charset parameter. RESPONSE_TYPE must
+ : stay bare so Roaster picks output:method=xml (BetMasApi#78).
+ :)
+declare %test:assertEquals("application/tei+xml") function tsdtsdoc:docs-strips-charset-from-response-type() {
+	dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml; charset=utf-8")($router:RESPONSE_TYPE)
+};
+
+declare %test:assertEquals("TEI") function tsdtsdoc:docs-with-charset-suffix-body-still-tei() {
+	local-name(rutil:body(dtslib:docs($tsdtsdoc:sample-id, "", "", "", "application/tei+xml; charset=utf-8")))
+};
+
+(:~
  : HTTP producer still returns a Roaster response map for bad request.
  :)
 declare %test:assertTrue function tsdtsdoc:docs-bad-request-is-roaster-map() {

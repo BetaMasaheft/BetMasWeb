@@ -58,3 +58,28 @@ declare %test:assertEquals("from-http") function tsrutil:header-from-expath-sequ
 		"Link"
 	)
 };
+
+(:~
+ : Roaster method-for-content-type uses ends-with($type, "xml"). Parameters
+ : like "; charset=utf-8" must be stripped before roaster:response or element
+ : bodies serialize as string-value (BetMasApi#78).
+ :)
+declare %test:assertEquals("application/tei+xml") function tsrutil:media-type-strips-charset() {
+	rutil:media-type("application/tei+xml; charset=utf-8")
+};
+
+declare %test:assertEquals("application/xml") function tsrutil:media-type-strips-charset-xml() {
+	rutil:media-type("application/xml; charset=UTF-8")
+};
+
+declare %test:assertEquals("application/tei+xml") function tsrutil:media-type-bare-passthrough() {
+	rutil:media-type("application/tei+xml")
+};
+
+declare %test:assertEquals("text/plain") function tsrutil:media-type-text-plain() {
+	rutil:media-type("text/plain; charset=utf-8")
+};
+
+declare %test:assertEmpty function tsrutil:media-type-empty-sequence() {
+	rutil:media-type(())
+};
