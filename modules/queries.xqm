@@ -642,7 +642,10 @@ declare function q:textquerymode($node as node(), $model as map(*)) {
 				else (
 				)
 			}regex</option>
-		<option value="wildcard">
+		<option
+			title="Needs ≥3 letters for names (Yoh*); BM id prefixes must stay under the Lucene clause limit (PRS18* ok, PRS*/PRS1* rejected). No leading * or ?."
+			value="wildcard"
+		>
 			{
 				if ($textquerymodeparam = "wildcard") then
 					attribute selected { "selected" }

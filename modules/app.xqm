@@ -3008,6 +3008,12 @@ union the sequences of results and remove the doubles from the union
 declare function app:hit-count($node as node()*, $model as map(*)) {
 	<div class="w3-panel w3-card-4">
 		{
+			if (map:contains($model, "error") and string($model("error")) != "") then
+				<p class="w3-panel w3-red" id="query-error">{ string($model("error")) }</p>
+			else (
+			)
+		}
+		{
 			if ($model("type") = "bibliography") then
 				<h3>There are <span class="w3-tag w3-gray" id="hit-count">
 						{ count($model("hits")) }

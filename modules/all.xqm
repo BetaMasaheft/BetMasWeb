@@ -213,19 +213,56 @@ declare function all:distinct-values($values) {
 };
 
 (:~
- : Minimum literal characters required before the first Lucene wildcard
- : metacharacter (* or ?). Shorter prefixes expand into thousands of terms
- : and hit BooleanQuery$TooManyClauses (maxClauseCount 1024), especially once
- : Lucene fields index dense id/@ref token sets (debake Task 3).
+ : Lucene BooleanQuery maxClauseCount (server default). Wildcard/prefix
+ : queries expand into one clause per matching term; above this they throw
+ : TooManyClauses. Tunable if the server raises the Lucene limit.
  :)
-declare variable $all:LUCENE-WILDCARD-MIN-PREFIX as xs:integer := 4;
-
-declare variable $all:LUCENE-WILDCARD-TOO-BROAD-MSG as xs:string :=
-	"Query too broad: wildcards need at least 4 literal characters before * or ? (short prefixes like PRS* are rejected).";
+declare variable $all:LUCENE-WILDCARD-MAX-CLAUSES as xs:integer := 1024;
 
 (:~
- : True when a single Lucene token has a leading wildcard or fewer than
- : $all:LUCENE-WILDCARD-MIN-PREFIX literal characters before * or ?.
+ : Floor for free-text wildcards (Yoh*, ab*). Measured on the live corpus:
+ : length 2 (ab*) hits TooManyClauses; length 3 (Yoh*, abc*) is usually safe.
+ : BM-id prefixes are NOT governed by this floor — see fan-out below.
+ : Was 4 (guess); lowered to 3 after measuring term expansion.
+ :)
+declare variable $all:LUCENE-WILDCARD-MIN-PREFIX as xs:integer := 3;
+
+(:~
+ : Catalog of BM record ids (labels.xml @corresp). Used as a cheap stand-in
+ : for Lucene id-token fan-out when the query looks like a BM id prefix
+ : (PRS*, LIT1*, LOC2*). Module-load cache; empty if catalogs are absent.
+ :)
+declare variable $all:LUCENE-WILDCARD-LABEL-IDS as xs:string* := try {
+	doc("/db/apps/catalogs/labels.xml")//*:item/@corresp!string(.)
+} catch * { () };
+
+declare variable $all:LUCENE-WILDCARD-TOO-BROAD-MSG as xs:string :=
+	"Query too broad: this wildcard would match too many index terms (Lucene clause limit). Use a longer id prefix (e.g. PRS18* not PRS* / PRS1*), at least 3 letters for name wildcards (e.g. Yoh*), or a concrete id. Leading * / ? are not allowed.";
+
+(:~
+ : True when $prefix looks like a BM id stem (all-caps PRS, LIT19, LOC2…).
+ : Title-case / lowercase name stems (Yoh, ab) stay on the free-text floor.
+ :)
+declare %private function all:lucene-prefix-is-bm-id($prefix as xs:string) as xs:boolean {
+	matches($prefix, "^[A-Z]{2,}[0-9A-Z]*$")
+};
+
+(:~
+ : True when a BM-id-shaped prefix expands to >= maxClauseCount catalog ids.
+ : Falls back to the free-text length floor when labels.xml is unavailable.
+ :)
+declare %private function all:lucene-id-prefix-too-broad($prefix as xs:string) as xs:boolean {
+	if (empty($all:LUCENE-WILDCARD-LABEL-IDS)) then
+		string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
+	else
+		count($all:LUCENE-WILDCARD-LABEL-IDS[starts-with(., $prefix)]) ge $all:LUCENE-WILDCARD-MAX-CLAUSES
+};
+
+(:~
+ : True when a single Lucene token has a leading wildcard, an over-broad
+ : BM-id prefix (labels.xml fan-out >= maxClauseCount), or fewer than
+ : $all:LUCENE-WILDCARD-MIN-PREFIX literal characters before * or ? for
+ : free-text tokens.
  :)
 declare %private function all:lucene-token-wildcard-too-broad($token as xs:string?) as xs:boolean {
 	let $t := normalize-space(($token, "")[1])
@@ -236,7 +273,10 @@ declare %private function all:lucene-token-wildcard-too-broad($token as xs:strin
 	else
 		let $prefix := replace($t, "[*?].*$", "")
 		let $prefix := replace($prefix, "^[+!~^-]+", "")
-		return string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
+		return if (all:lucene-prefix-is-bm-id($prefix)) then
+			all:lucene-id-prefix-too-broad($prefix)
+		else
+			string-length($prefix) lt $all:LUCENE-WILDCARD-MIN-PREFIX
 };
 
 (:~

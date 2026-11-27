@@ -3,8 +3,8 @@ xquery version "3.1" encoding "UTF-8";
 (:~
  : XQSuite for all:lucene-wildcard-too-broad (modules/all.xqm).
  :
- : Short Lucene prefixes (PRS*, LIT*) explode into TooManyClauses once
- : person/place/title fields index dense @ref tokens.
+ : Free-text floor is MIN_PREFIX (3). BM-id prefixes (PRS*, LIT1*) are
+ : judged by catalogs/labels.xml fan-out vs maxClauseCount (1024).
  :)
 module namespace tsallwc = "https://www.betamasaheft.uni-hamburg.de/BetMasWeb/ts-all-lucene-wildcard";
 
@@ -16,16 +16,38 @@ declare %test:assertFalse function tsallwc:plain-name-ok() {
 	all:lucene-wildcard-too-broad("Yohannes")
 };
 
-declare %test:assertFalse function tsallwc:long-prefix-ok() {
-	all:lucene-wildcard-too-broad("Yoha*")
+declare %test:assertFalse function tsallwc:name-prefix-ok() {
+	all:lucene-wildcard-too-broad("Yoh*")
 };
 
-declare %test:assertTrue function tsallwc:short-prefix-rejected() {
+declare %test:assertTrue function tsallwc:name-prefix-too-short() {
+	all:lucene-wildcard-too-broad("Yo*")
+};
+
+declare %test:assertTrue function tsallwc:short-id-prefix-rejected() {
 	all:lucene-wildcard-too-broad("PRS*")
+};
+
+declare %test:assertTrue function tsallwc:dense-id-prefix-rejected() {
+	(: PRS1* ≈ 7k labels — over maxClauseCount even at length 4 :)
+	all:lucene-wildcard-too-broad("PRS1*")
+};
+
+declare %test:assertFalse function tsallwc:narrow-id-prefix-ok() {
+	(: PRS18* ≈ 191 labels — under maxClauseCount :)
+	all:lucene-wildcard-too-broad("PRS18*")
 };
 
 declare %test:assertTrue function tsallwc:lit-prefix-rejected() {
 	all:lucene-wildcard-too-broad("LIT*")
+};
+
+declare %test:assertTrue function tsallwc:lit1-prefix-rejected() {
+	all:lucene-wildcard-too-broad("LIT1*")
+};
+
+declare %test:assertFalse function tsallwc:lit19-prefix-ok() {
+	all:lucene-wildcard-too-broad("LIT19*")
 };
 
 declare %test:assertTrue function tsallwc:field-scoped-short-prefix() {

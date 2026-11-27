@@ -106,7 +106,9 @@
 							</span>
 							<span id="searchtype" class="w3-hide w3-padding"
 								>If running a text search, you can select the type of text search. This determines how the single words
-								which you enter are matched in the indexes here
+								which you enter are matched in the indexes here. Wildcard mode expands * and ? against the Lucene index:
+								use at least 3 letters for name patterns (Yoh*), and a longer id stem when searching BM ids (PRS18*
+								works; PRS* / PRS1* are rejected because they match too many terms). Leading * or ? is not allowed.
 							</span>
 							<span id="searchoperator" class="w3-hide w3-padding"
 								>By default the search will use OR as an operator, which means that if you search two words you will get
