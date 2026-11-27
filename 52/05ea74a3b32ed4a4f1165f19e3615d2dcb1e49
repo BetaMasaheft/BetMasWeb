@@ -1,0 +1,26 @@
+modules/all.xqm
+  s_b9450a356bc06f::t_9cd34ef7b85504 231-236
+  s_b9450a356bc06f::t_74e60d62210d50 230
+  s_b9450a356bc06f::t_cfd264167c4c33 259-260,264
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5205ea74a3b32ed4a4f1165f19e3615d2dcb1e49",
+  "prompts": {},
+  "humans": {
+    "h_ff0005bef58c9d": {
+      "author": "duncdrum <d.paterson@me.com>"
+    }
+  },
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
