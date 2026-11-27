@@ -1,0 +1,40 @@
+modules/queries.xqm
+  s_b9450a356bc06f::t_38657c599a87a2 645-647
+  s_b9450a356bc06f::t_d4c55307d9dbf8 648
+newSearch.html
+  s_b9450a356bc06f::t_fa7772e39231c5 109-111
+modules/app.xqm
+  s_b9450a356bc06f::t_260ddfdbd71731 3011-3015
+  s_b9450a356bc06f::t_75c01e85f68669 3010
+test/xqs/ts-all-lucene-wildcard.xqm
+  s_b9450a356bc06f::t_ec5fb1914fa2c1 6-7,19-20,23-27,31-40,45-51
+  s_e197b16c6c23bb::t_c04e59fb08c323 52
+modules/all.xqm
+  s_b9450a356bc06f::t_7a682f038fa1ea 243-244,247
+  s_b9450a356bc06f::t_cdc7f2443450d8 216-218,220-237,240-242,245-246,248-259,262-265,276-278
+  s_b9450a356bc06f::t_e6d53526c3fa4a 279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "212c9df890597f31520f0d256e486a99cf840d7a",
+  "prompts": {},
+  "sessions": {
+    "s_b9450a356bc06f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1bd97766-acd4-49d3-bb31-b1719f9da3e6",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    },
+    "s_e197b16c6c23bb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f942af03-ab0c-44c9-a177-be25ab57682b",
+        "model": "default"
+      },
+      "human_author": "duncdrum <d.paterson@me.com>"
+    }
+  }
+}
